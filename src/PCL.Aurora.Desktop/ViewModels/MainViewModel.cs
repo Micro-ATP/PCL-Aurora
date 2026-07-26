@@ -20,11 +20,13 @@ public partial class MainViewModel(
     IThemeService themeService) : ViewModelBase
 {
     private MinecraftAccount? selectedAccount;
-    private MinecraftInstance? selectedInstance;
     private JavaInstallation? selectedJava;
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
+    private bool isRefreshing;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
+
+    public ObservableCollection<MinecraftInstance> AvailableInstances { get; } = [];
 
     public IReadOnlyList<ThemeOption> ThemeModes { get; } =
     [
@@ -65,6 +67,12 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string instanceSummary = "正在扫描本地实例…";
+
+    [ObservableProperty]
+    private MinecraftInstance? selectedInstance;
+
+    [ObservableProperty]
+    private bool hasAvailableInstances;
 
     [ObservableProperty]
     private string versionMetadataSummary = "将在发现本地实例后读取版本元数据。";
@@ -113,13 +121,23 @@ public partial class MainViewModel(
     {
         try
         {
+            isRefreshing = true;
             var diagnosticsTask = diagnosticsService.GetAsync();
             var instancesTask = instanceCatalogService.GetAllAsync();
             await Task.WhenAll(diagnosticsTask, instancesTask);
 
             var diagnostics = await diagnosticsTask;
             var instances = await instancesTask;
-            selectedInstance = instances.FirstOrDefault(instance => instance.Status == MinecraftInstanceStatus.Valid);
+            var selectedDirectory = SelectedInstance?.DirectoryPath;
+            AvailableInstances.Clear();
+            foreach (var instance in instances.Where(instance => instance.Status == MinecraftInstanceStatus.Valid))
+            {
+                AvailableInstances.Add(instance);
+            }
+
+            HasAvailableInstances = AvailableInstances.Count > 0;
+            SelectedInstance = AvailableInstances.FirstOrDefault(instance => instance.DirectoryPath == selectedDirectory)
+                ?? AvailableInstances.FirstOrDefault();
             selectedJava = diagnostics.JavaInstallations.FirstOrDefault(java => java.IsCompatible);
             OperatingSystem = $"{diagnostics.Platform.OperatingSystem} ({diagnostics.Platform.Version})";
             Architecture = diagnostics.Platform.Architecture.ToString();
@@ -132,10 +150,7 @@ public partial class MainViewModel(
             InstanceSummary = instances.Count == 0
                 ? "未在 macOS 默认 Minecraft 目录中发现实例。"
                 : $"发现 {instances.Count} 个本地实例，其中 {instances.Count(instance => instance.Status == MinecraftInstanceStatus.Valid)} 个可读取版本元数据。";
-            await RefreshVersionPreparationAsync();
-            await RefreshLaunchArgumentPreparationAsync();
-            UpdateLaunchPreflight();
-            await RefreshGameLaunchPreparationAsync();
+            await RefreshSelectedInstanceStateAsync();
         }
         catch (Exception exception)
         {
@@ -149,11 +164,36 @@ public partial class MainViewModel(
             CanLaunchGame = false;
             CanInstallGame = false;
         }
+        finally
+        {
+            isRefreshing = false;
+        }
+    }
+
+    private async Task RefreshSelectedInstanceStateAsync()
+    {
+        try
+        {
+            await RefreshVersionPreparationAsync();
+            await RefreshLaunchArgumentPreparationAsync();
+            UpdateLaunchPreflight();
+            await RefreshGameLaunchPreparationAsync();
+        }
+        catch (Exception exception)
+        {
+            VersionMetadataSummary = $"无法读取版本元数据：{exception.Message}";
+            DownloadPreparationSummary = "无法生成下载计划。";
+            LaunchArgumentSummary = "无法准备启动参数。";
+            ClasspathSummary = "无法解析类路径。";
+            GameLaunchSummary = "无法检查游戏进程启动条件。";
+            CanLaunchGame = false;
+            CanInstallGame = false;
+        }
     }
 
     private async Task RefreshVersionPreparationAsync()
     {
-        if (selectedInstance is null)
+        if (SelectedInstance is null)
         {
             VersionMetadataSummary = "未选择可读取版本元数据的本地实例。";
             DownloadPreparationSummary = "需先发现有效本地实例；不会创建目录或下载文件。";
@@ -162,11 +202,13 @@ public partial class MainViewModel(
             return;
         }
 
-        var preparation = await versionPreparationService.PrepareAsync(selectedInstance);
+        var preparation = await versionPreparationService.PrepareAsync(SelectedInstance);
         if (!preparation.Inspection.IsSuccess || preparation.Inspection.EffectiveMetadata is null)
         {
             VersionMetadataSummary = string.Join(Environment.NewLine, preparation.Inspection.Errors);
             DownloadPreparationSummary = "版本元数据无效，未生成下载计划。";
+            InstallationSummary = "版本元数据无效，无法开始下载。";
+            CanInstallGame = false;
             return;
         }
 
@@ -183,14 +225,14 @@ public partial class MainViewModel(
 
     private async Task RefreshLaunchArgumentPreparationAsync()
     {
-        if (selectedInstance is null)
+        if (SelectedInstance is null)
         {
             LaunchArgumentSummary = "未选择可读取版本元数据的本地实例。";
             ClasspathSummary = "未选择可读取版本元数据的本地实例。";
             return;
         }
 
-        var preparation = await launchPreparationService.PrepareAsync(selectedInstance, selectedAccount);
+        var preparation = await launchPreparationService.PrepareAsync(SelectedInstance, selectedAccount);
         ClasspathSummary = preparation.ClasspathInspection.IsReady
             ? $"已发现 {preparation.ClasspathInspection.Entries.Count} 个本地类路径条目。"
             : string.Join(
@@ -204,7 +246,7 @@ public partial class MainViewModel(
 
     private async Task RefreshGameLaunchPreparationAsync()
     {
-        gameLaunchPreparation = await gameLaunchService.PrepareAsync(selectedInstance, selectedAccount, selectedJava);
+        gameLaunchPreparation = await gameLaunchService.PrepareAsync(SelectedInstance, selectedAccount, selectedJava);
         CanLaunchGame = gameLaunchPreparation.CanLaunch;
         GameLaunchSummary = gameLaunchPreparation.CanLaunch
             ? "启动条件和进程请求均已准备。点击“启动游戏”后将先安全准备 native 库，再启动 Java 进程。"
@@ -282,6 +324,14 @@ public partial class MainViewModel(
         CanProvisionSelectedVersion = value is not null;
     }
 
+    partial void OnSelectedInstanceChanged(MinecraftInstance? value)
+    {
+        if (!isRefreshing)
+        {
+            _ = RefreshSelectedInstanceStateAsync();
+        }
+    }
+
     partial void OnSelectedThemeModeChanged(ThemeOption value)
     {
         themeService.Apply(value.Mode);
@@ -291,7 +341,7 @@ public partial class MainViewModel(
     [RelayCommand]
     private async Task InstallGameAsync()
     {
-        if (selectedInstance is null || !CanInstallGame)
+        if (SelectedInstance is null || !CanInstallGame)
         {
             InstallationSummary = "安装条件尚未满足，未发起下载。";
             return;
@@ -302,7 +352,7 @@ public partial class MainViewModel(
             CanInstallGame = false;
             var progress = new Progress<MinecraftInstallationProgress>(update =>
                 InstallationSummary = $"[{update.CompletedStages}/{update.TotalStages}] {update.Description}");
-            await installationService.InstallAsync(selectedInstance, progress);
+            await installationService.InstallAsync(SelectedInstance, progress);
             InstallationSummary = "安装下载完成。资源映射将在下一次显式启动时准备。";
             await RefreshAsync();
         }
@@ -374,7 +424,7 @@ public partial class MainViewModel(
 
     private void UpdateLaunchPreflight()
     {
-        var readiness = launchReadinessService.Evaluate(selectedInstance, selectedAccount, selectedJava);
+        var readiness = launchReadinessService.Evaluate(SelectedInstance, selectedAccount, selectedJava);
         LaunchPreflightSummary = readiness.CanLaunch
             ? "启动前检查已通过。进程启动条件将继续检查类路径与版本参数。"
             : string.Join(Environment.NewLine, readiness.BlockingReasons);

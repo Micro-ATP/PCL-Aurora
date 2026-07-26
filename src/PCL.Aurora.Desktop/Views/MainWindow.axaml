@@ -44,10 +44,28 @@
                                 <TextBlock FontSize="18" FontWeight="SemiBold" Text="本地实例" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                            Text="{Binding InstanceSummary}" TextWrapping="Wrap" />
+                                <Label Content="启动实例" Target="{Binding #InstanceSelector}" />
+                                <ComboBox x:Name="InstanceSelector"
+                                          Width="360"
+                                          HorizontalAlignment="Left"
+                                          AutomationProperties.Name="启动实例"
+                                          IsEnabled="{Binding HasAvailableInstances}"
+                                          ItemsSource="{Binding AvailableInstances}"
+                                          SelectedItem="{Binding SelectedInstance}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Spacing="2">
+                                                <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                           Text="{Binding VersionId}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                            Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
                                 <StackPanel Orientation="Horizontal" Spacing="12">
-                                    <Button IsEnabled="False" Content="选择实例" />
+                                    <Button Command="{Binding RefreshCommand}" Content="刷新本地实例" />
                                     <Button Command="{Binding LaunchGameCommand}" IsEnabled="{Binding CanLaunchGame}" Content="启动游戏" />
                                 </StackPanel>
                             </StackPanel>
