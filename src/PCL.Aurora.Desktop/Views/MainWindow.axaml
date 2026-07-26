@@ -43,6 +43,8 @@
                                 <TextBlock FontSize="18" FontWeight="SemiBold" Text="本地实例" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                            Text="{Binding InstanceSummary}" TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
                                 <StackPanel Orientation="Horizontal" Spacing="12">
                                     <Button IsEnabled="False" Content="选择实例" />
                                     <Button IsEnabled="False" Content="启动游戏" />
@@ -103,7 +105,7 @@
                             </Border>
                         </UniformGrid>
                         <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                   Text="下载源、校验、断点续传和安装器解析尚未迁移；本页入口已保留，避免把不可用功能伪装为已完成。"
+                                   Text="{Binding DownloadPreparationSummary}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
                 </ScrollViewer>

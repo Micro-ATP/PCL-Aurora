@@ -8,7 +8,8 @@ namespace PCL.Aurora.Desktop.ViewModels;
 public partial class MainViewModel(
     ISystemDiagnosticsService diagnosticsService,
     IInstanceCatalogService instanceCatalogService,
-    ILaunchReadinessService launchReadinessService) : ViewModelBase
+    ILaunchReadinessService launchReadinessService,
+    IMinecraftVersionPreparationService versionPreparationService) : ViewModelBase
 {
     private MinecraftAccount? selectedAccount;
     private MinecraftInstance? selectedInstance;
@@ -34,6 +35,12 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string instanceSummary = "正在扫描本地实例…";
+
+    [ObservableProperty]
+    private string versionMetadataSummary = "将在发现本地实例后读取版本元数据。";
+
+    [ObservableProperty]
+    private string downloadPreparationSummary = "版本下载计划尚未生成。";
 
     [ObservableProperty]
     private string offlinePlayerName = string.Empty;
@@ -68,13 +75,40 @@ public partial class MainViewModel(
             InstanceSummary = instances.Count == 0
                 ? "未在 macOS 默认 Minecraft 目录中发现实例。"
                 : $"发现 {instances.Count} 个本地实例，其中 {instances.Count(instance => instance.Status == MinecraftInstanceStatus.Valid)} 个可读取版本元数据。";
+            await RefreshVersionPreparationAsync();
             UpdateLaunchPreflight();
         }
         catch (Exception exception)
         {
             JavaSummary = $"Java 扫描失败：{exception.Message}";
             InstanceSummary = $"实例扫描失败：{exception.Message}";
+            VersionMetadataSummary = "无法读取版本元数据。";
+            DownloadPreparationSummary = "无法生成下载计划。";
         }
+    }
+
+    private async Task RefreshVersionPreparationAsync()
+    {
+        if (selectedInstance is null)
+        {
+            VersionMetadataSummary = "未选择可读取版本元数据的本地实例。";
+            DownloadPreparationSummary = "需先发现有效本地实例；不会创建目录或下载文件。";
+            return;
+        }
+
+        var preparation = await versionPreparationService.PrepareAsync(selectedInstance);
+        if (!preparation.Inspection.IsSuccess || preparation.Inspection.EffectiveMetadata is null)
+        {
+            VersionMetadataSummary = string.Join(Environment.NewLine, preparation.Inspection.Errors);
+            DownloadPreparationSummary = "版本元数据无效，未生成下载计划。";
+            return;
+        }
+
+        var metadata = preparation.Inspection.EffectiveMetadata;
+        VersionMetadataSummary = $"{metadata.Id} · {metadata.Type ?? "未知类型"} · 继承链：{string.Join(" → ", preparation.Inspection.InheritanceChain.Select(item => item.Id))}";
+        DownloadPreparationSummary = preparation.DownloadPlan.IsReady
+            ? $"已生成 {preparation.DownloadPlan.Artifacts.Count} 个下载计划项；下载器尚未迁移，未写入任何文件。"
+            : string.Join(Environment.NewLine, preparation.DownloadPlan.BlockingReasons);
     }
 
     [RelayCommand]

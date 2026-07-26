@@ -8,15 +8,18 @@ services.AddSingleton<IPlatformInfo, MacOSPlatformInfo>();
 services.AddSingleton<IPlatformPaths, MacOSPlatformPaths>();
 services.AddSingleton<IJavaLocator, MacOSJavaLocator>();
 services.AddSingleton<IMinecraftInstanceLocator, MacOSMinecraftInstanceLocator>();
+services.AddSingleton<IMinecraftVersionMetadataReader, MacOSMinecraftVersionMetadataReader>();
 services.AddSingleton<IOpenPathService, MacOSOpenPathService>();
 services.AddSingleton<ISystemDiagnosticsService, SystemDiagnosticsService>();
 services.AddSingleton<IInstanceCatalogService, InstanceCatalogService>();
 services.AddSingleton<ILaunchReadinessService, LaunchReadinessService>();
+services.AddSingleton<IMinecraftVersionPreparationService, MinecraftVersionPreparationService>();
 
 await using var provider = services.BuildServiceProvider();
 var diagnosticsService = provider.GetRequiredService<ISystemDiagnosticsService>();
 var instanceCatalogService = provider.GetRequiredService<IInstanceCatalogService>();
 var launchReadinessService = provider.GetRequiredService<ILaunchReadinessService>();
+var versionPreparationService = provider.GetRequiredService<IMinecraftVersionPreparationService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
 switch (command)
@@ -95,9 +98,53 @@ switch (command)
 
         return 1;
     }
+    case "versions inspect":
+    {
+        var instance = (await instanceCatalogService.GetAllAsync())
+            .FirstOrDefault(candidate => candidate.Status == PCL.Aurora.Domain.MinecraftInstanceStatus.Valid);
+        if (instance is null)
+        {
+            Console.WriteLine("未发现可读取版本元数据的本地实例。不会创建目录或下载文件。");
+            return 1;
+        }
+
+        var preparation = await versionPreparationService.PrepareAsync(instance);
+        if (!preparation.Inspection.IsSuccess || preparation.Inspection.EffectiveMetadata is null)
+        {
+            Console.WriteLine("版本元数据检查未通过：");
+            foreach (var error in preparation.Inspection.Errors)
+            {
+                Console.WriteLine($"- {error}");
+            }
+
+            return 1;
+        }
+
+        var metadata = preparation.Inspection.EffectiveMetadata;
+        Console.WriteLine($"版本：{metadata.Id} | {metadata.Type ?? "未知类型"}");
+        Console.WriteLine($"继承链：{string.Join(" -> ", preparation.Inspection.InheritanceChain.Select(item => item.Id))}");
+        if (preparation.DownloadPlan.IsReady)
+        {
+            Console.WriteLine($"已生成 {preparation.DownloadPlan.Artifacts.Count} 个只读下载计划项；未下载文件。");
+            foreach (var artifact in preparation.DownloadPlan.Artifacts)
+            {
+                Console.WriteLine($"- {artifact.Description}：{artifact.RelativePath}");
+            }
+
+            break;
+        }
+
+        Console.WriteLine("下载计划不完整：");
+        foreach (var reason in preparation.DownloadPlan.BlockingReasons)
+        {
+            Console.WriteLine($"- {reason}");
+        }
+
+        return 1;
+    }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | launch check | doctor");
+        Console.WriteLine("用法：info | java list | instances list | versions inspect | launch check | doctor");
         return command == "help" ? 0 : 64;
 }
 
