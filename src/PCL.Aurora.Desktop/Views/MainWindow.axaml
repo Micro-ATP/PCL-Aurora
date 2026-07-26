@@ -167,10 +167,26 @@
                         </Border>
 
                         <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
-                            <StackPanel Spacing="8">
+                            <StackPanel Spacing="12">
                                 <TextBlock FontWeight="SemiBold" Text="启动器 · 界面" />
+                                <Label Content="主题模式" Target="{Binding #ThemeModeSelector}" />
+                                <ComboBox x:Name="ThemeModeSelector"
+                                          Width="240"
+                                          HorizontalAlignment="Left"
+                                          AutomationProperties.Name="主题模式"
+                                          ItemsSource="{Binding ThemeModes}"
+                                          SelectedItem="{Binding SelectedThemeMode}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="当前跟随系统主题。主题选择、语言、更新、日志与反馈将在对应服务完成后启用。"
+                                           Text="{Binding ThemeSummary}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="语言、更新、日志与反馈将在对应服务完成后启用。"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>

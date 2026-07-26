@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PCL.Aurora.Application;
 using PCL.Aurora.Desktop.ViewModels;
 using PCL.Aurora.Desktop.Views;
+using PCL.Aurora.Desktop.Services;
 using PCL.Aurora.Infrastructure;
 using PCL.Aurora.Platform.Abstractions;
 using PCL.Aurora.Platform.MacOS;
@@ -60,6 +61,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
         services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
         services.AddSingleton<IMinecraftGameLaunchService, MinecraftGameLaunchService>();
+        services.AddSingleton<IThemeService, AvaloniaThemeService>();
         services.AddTransient<MainViewModel>();
         return services.BuildServiceProvider();
     }

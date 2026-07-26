@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using PCL.Aurora.Application;
+using PCL.Aurora.Desktop.Services;
 using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Desktop.ViewModels;
@@ -15,7 +16,8 @@ public partial class MainViewModel(
     IMinecraftInstanceInstallationService installationService,
     IMinecraftVersionCatalogService versionCatalogService,
     IMinecraftVersionProvisioningService versionProvisioningService,
-    IMinecraftGameLaunchService gameLaunchService) : ViewModelBase
+    IMinecraftGameLaunchService gameLaunchService,
+    IThemeService themeService) : ViewModelBase
 {
     private MinecraftAccount? selectedAccount;
     private MinecraftInstance? selectedInstance;
@@ -23,6 +25,25 @@ public partial class MainViewModel(
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
+
+    public IReadOnlyList<ThemeOption> ThemeModes { get; } =
+    [
+        new(ThemeMode.System, "跟随系统"),
+        new(ThemeMode.Light, "浅色"),
+        new(ThemeMode.Dark, "深色"),
+    ];
+
+    [ObservableProperty]
+    private ThemeOption selectedThemeMode = new(themeService.CurrentMode, themeService.CurrentMode switch
+    {
+        ThemeMode.System => "跟随系统",
+        ThemeMode.Light => "浅色",
+        ThemeMode.Dark => "深色",
+        _ => throw new ArgumentOutOfRangeException(nameof(themeService.CurrentMode)),
+    });
+
+    [ObservableProperty]
+    private string themeSummary = "当前跟随系统主题；此设置仅在本次运行生效，尚未保存。";
 
     [ObservableProperty]
     private string operatingSystem = "正在读取系统信息…";
@@ -259,6 +280,12 @@ public partial class MainViewModel(
     partial void OnSelectedCatalogVersionChanged(MinecraftVersionCatalogEntry? value)
     {
         CanProvisionSelectedVersion = value is not null;
+    }
+
+    partial void OnSelectedThemeModeChanged(ThemeOption value)
+    {
+        themeService.Apply(value.Mode);
+        ThemeSummary = $"当前使用{value.DisplayName}主题；此设置仅在本次运行生效，尚未保存。";
     }
 
     [RelayCommand]
