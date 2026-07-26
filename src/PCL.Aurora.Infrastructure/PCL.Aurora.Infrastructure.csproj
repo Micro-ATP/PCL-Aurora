@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../PCL.Aurora.Application/PCL.Aurora.Application.csproj" />
     <ProjectReference Include="../PCL.Aurora.Domain/PCL.Aurora.Domain.csproj" />
   </ItemGroup>
 </Project>

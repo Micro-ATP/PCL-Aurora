@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/PCL.Aurora.Application/PCL.Aurora.Application.csproj" />
+    <ProjectReference Include="../../src/PCL.Aurora.Infrastructure/PCL.Aurora.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
