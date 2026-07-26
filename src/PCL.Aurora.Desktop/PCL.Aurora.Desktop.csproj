@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
     <ProjectReference Include="../PCL.Aurora.Application/PCL.Aurora.Application.csproj" />
     <ProjectReference Include="../PCL.Aurora.Infrastructure/PCL.Aurora.Infrastructure.csproj" />
     <ProjectReference Include="../PCL.Aurora.Platform.MacOS/PCL.Aurora.Platform.MacOS.csproj" />

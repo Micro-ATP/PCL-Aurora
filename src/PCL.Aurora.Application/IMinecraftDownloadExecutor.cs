@@ -8,4 +8,9 @@ public interface IMinecraftDownloadExecutor
         MinecraftDownloadPlan downloadPlan,
         string minecraftRootDirectory,
         CancellationToken cancellationToken = default);
+
+    Task ExecuteAsync(
+        MinecraftAssetDownloadPlan downloadPlan,
+        string minecraftRootDirectory,
+        CancellationToken cancellationToken = default);
 }

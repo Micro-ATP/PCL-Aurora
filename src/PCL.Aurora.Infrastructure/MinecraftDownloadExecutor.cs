@@ -12,7 +12,25 @@ public sealed class MinecraftDownloadExecutor(HttpClient httpClient) : IMinecraf
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(downloadPlan);
-        if (!downloadPlan.IsReady)
+        await ExecuteArtifactsAsync(downloadPlan.IsReady, downloadPlan.Artifacts, minecraftRootDirectory, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task ExecuteAsync(
+        MinecraftAssetDownloadPlan downloadPlan,
+        string minecraftRootDirectory,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(downloadPlan);
+        await ExecuteArtifactsAsync(downloadPlan.IsReady, downloadPlan.Artifacts, minecraftRootDirectory, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task ExecuteArtifactsAsync(
+        bool isReady,
+        IReadOnlyList<MinecraftDownloadArtifact> artifacts,
+        string minecraftRootDirectory,
+        CancellationToken cancellationToken)
+    {
+        if (!isReady)
         {
             throw new InvalidOperationException("下载计划不完整，不能执行。");
         }
@@ -23,7 +41,7 @@ public sealed class MinecraftDownloadExecutor(HttpClient httpClient) : IMinecraf
         }
 
         var rootDirectory = Path.GetFullPath(minecraftRootDirectory);
-        foreach (var artifact in downloadPlan.Artifacts)
+        foreach (var artifact in artifacts)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var destinationPath = GetDestinationPath(rootDirectory, artifact.RelativePath);

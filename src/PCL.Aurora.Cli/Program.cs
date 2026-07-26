@@ -20,6 +20,9 @@ services.AddSingleton<IMinecraftAssetPreparationService, MinecraftAssetPreparati
 services.AddSingleton<IMinecraftLaunchPreparationService, MinecraftLaunchPreparationService>();
 services.AddSingleton<IMinecraftAssetIndexReader, MacOSMinecraftAssetIndexReader>();
 services.AddSingleton<IAssetMapper, MinecraftAssetMapper>();
+services.AddSingleton<HttpClient>();
+services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();
+services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceInstallationService>();
 services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
 services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
 services.AddSingleton<IMinecraftGameLaunchService, MinecraftGameLaunchService>();
@@ -31,6 +34,7 @@ var launchReadinessService = provider.GetRequiredService<ILaunchReadinessService
 var versionPreparationService = provider.GetRequiredService<IMinecraftVersionPreparationService>();
 var launchPreparationService = provider.GetRequiredService<IMinecraftLaunchPreparationService>();
 var gameLaunchService = provider.GetRequiredService<IMinecraftGameLaunchService>();
+var installationService = provider.GetRequiredService<IMinecraftInstanceInstallationService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
 switch (command)
@@ -108,6 +112,22 @@ switch (command)
         }
 
         return 1;
+    }
+    case "install local":
+    {
+        var instance = (await instanceCatalogService.GetAllAsync())
+            .FirstOrDefault(candidate => candidate.Status == MinecraftInstanceStatus.Valid);
+        if (instance is null)
+        {
+            Console.WriteLine("未发现可安装的本地实例；不会发起下载。\n");
+            return 1;
+        }
+
+        var progress = new Progress<MinecraftInstallationProgress>(update =>
+            Console.WriteLine($"[{update.CompletedStages}/{update.TotalStages}] {update.Description}"));
+        await installationService.InstallAsync(instance, progress);
+        Console.WriteLine("安装下载完成。资源映射将在下一次显式启动时准备。");
+        break;
     }
     case "launch arguments":
     {
@@ -234,7 +254,7 @@ switch (command)
     }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | versions inspect | launch check | launch arguments | launch run [离线用户名] | doctor");
+        Console.WriteLine("用法：info | java list | instances list | versions inspect | install local | launch check | launch arguments | launch run [离线用户名] | doctor");
         return command == "help" ? 0 : 64;
 }
 

@@ -11,6 +11,7 @@ public partial class MainViewModel(
     ILaunchReadinessService launchReadinessService,
     IMinecraftVersionPreparationService versionPreparationService,
     IMinecraftLaunchPreparationService launchPreparationService,
+    IMinecraftInstanceInstallationService installationService,
     IMinecraftGameLaunchService gameLaunchService) : ViewModelBase
 {
     private MinecraftAccount? selectedAccount;
@@ -56,6 +57,12 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private bool canLaunchGame;
+
+    [ObservableProperty]
+    private bool canInstallGame;
+
+    [ObservableProperty]
+    private string installationSummary = "选择本地实例后可查看安装计划；不会自动下载。";
 
     [ObservableProperty]
     private string offlinePlayerName = string.Empty;
@@ -105,6 +112,7 @@ public partial class MainViewModel(
             ClasspathSummary = "无法解析类路径。";
             GameLaunchSummary = "无法检查游戏进程启动条件。";
             CanLaunchGame = false;
+            CanInstallGame = false;
         }
     }
 
@@ -114,6 +122,8 @@ public partial class MainViewModel(
         {
             VersionMetadataSummary = "未选择可读取版本元数据的本地实例。";
             DownloadPreparationSummary = "需先发现有效本地实例；不会创建目录或下载文件。";
+            InstallationSummary = "未选择可安装的本地实例。";
+            CanInstallGame = false;
             return;
         }
 
@@ -128,8 +138,12 @@ public partial class MainViewModel(
         var metadata = preparation.Inspection.EffectiveMetadata;
         VersionMetadataSummary = $"{metadata.Id} · {metadata.Type ?? "未知类型"} · 继承链：{string.Join(" → ", preparation.Inspection.InheritanceChain.Select(item => item.Id))}";
         DownloadPreparationSummary = preparation.DownloadPlan.IsReady
-            ? $"已生成 {preparation.DownloadPlan.Artifacts.Count} 个下载计划项；下载器尚未迁移，未写入任何文件。"
+            ? $"已生成 {preparation.DownloadPlan.Artifacts.Count} 个游戏与库下载计划项；等待用户确认安装。"
             : string.Join(Environment.NewLine, preparation.DownloadPlan.BlockingReasons);
+        CanInstallGame = preparation.DownloadPlan.IsReady;
+        InstallationSummary = preparation.DownloadPlan.IsReady
+            ? "点击“安装所选本地实例”后才会下载游戏文件、支持库、资源索引和资源对象。"
+            : "安装计划不完整，无法开始下载。";
     }
 
     private async Task RefreshLaunchArgumentPreparationAsync()
@@ -160,6 +174,36 @@ public partial class MainViewModel(
         GameLaunchSummary = gameLaunchPreparation.CanLaunch
             ? "启动条件和进程请求均已准备。点击“启动游戏”后将先安全准备 native 库，再启动 Java 进程。"
             : string.Join(Environment.NewLine, gameLaunchPreparation.BlockingReasons);
+    }
+
+    [RelayCommand]
+    private async Task InstallGameAsync()
+    {
+        if (selectedInstance is null || !CanInstallGame)
+        {
+            InstallationSummary = "安装条件尚未满足，未发起下载。";
+            return;
+        }
+
+        try
+        {
+            CanInstallGame = false;
+            var progress = new Progress<MinecraftInstallationProgress>(update =>
+                InstallationSummary = $"[{update.CompletedStages}/{update.TotalStages}] {update.Description}");
+            await installationService.InstallAsync(selectedInstance, progress);
+            InstallationSummary = "安装下载完成。资源映射将在下一次显式启动时准备。";
+            await RefreshAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            InstallationSummary = "安装已取消。";
+            CanInstallGame = true;
+        }
+        catch (Exception exception)
+        {
+            InstallationSummary = $"安装失败：{exception.Message}";
+            CanInstallGame = true;
+        }
     }
 
     [RelayCommand]

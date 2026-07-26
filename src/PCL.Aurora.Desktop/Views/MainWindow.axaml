@@ -6,6 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="1120" d:DesignHeight="720"
         x:Class="PCL.Aurora.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
+        Icon="/Assets/Icons/AppIcon.ico"
         MinWidth="800"
         MinHeight="560"
         Title="PCL Aurora">
@@ -109,12 +110,15 @@
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="游戏安装" />
                                     <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="Minecraft、Fabric、Forge、NeoForge 等安装器。" TextWrapping="Wrap" />
-                                    <Button IsEnabled="False" Content="选择版本" />
+                                    <Button Command="{Binding InstallGameCommand}" IsEnabled="{Binding CanInstallGame}" Content="安装所选本地实例" />
                                 </StackPanel>
                             </Border>
                         </UniformGrid>
                         <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                    Text="{Binding DownloadPreparationSummary}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   Text="{Binding InstallationSummary}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
                 </ScrollViewer>
