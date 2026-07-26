@@ -79,6 +79,30 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
         Assert.Equal(content, await File.ReadAllBytesAsync(Path.Combine(rootDirectory, "cache", "installer.jar")));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_DownloadsIndependentArtifactsWithBoundedConcurrency()
+    {
+        var content = "PCL Aurora concurrent downloads"u8.ToArray();
+        var handler = new DelayedResponseHandler(content);
+        using var client = new HttpClient(handler);
+        var executor = new MinecraftDownloadExecutor(client);
+        var artifacts = Enumerable.Range(0, 8)
+            .Select(index => new MinecraftDownloadArtifact(
+                $"测试文件 {index}",
+                $"libraries/test/{index}.jar",
+                new Uri($"https://example.invalid/{index}.jar"),
+                Convert.ToHexString(SHA1.HashData(content)),
+                content.Length))
+            .ToArray();
+
+        await executor.ExecuteAsync(new MinecraftDownloadPlan("test", artifacts, []), rootDirectory);
+
+        Assert.InRange(handler.MaximumConcurrentRequests, 2, 4);
+        Assert.All(artifacts, artifact => Assert.Equal(
+            content,
+            File.ReadAllBytes(Path.Combine(rootDirectory, artifact.RelativePath))));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(rootDirectory))
@@ -110,5 +134,37 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
             Task.FromResult(request.RequestUri!.Host == "bmclapi2.bangbang93.com"
                 ? new HttpResponseMessage(HttpStatusCode.BadGateway)
                 : new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(content) });
+    }
+
+    private sealed class DelayedResponseHandler(byte[] content) : HttpMessageHandler
+    {
+        private int activeRequests;
+        private int maximumConcurrentRequests;
+
+        public int MaximumConcurrentRequests => maximumConcurrentRequests;
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var active = Interlocked.Increment(ref activeRequests);
+            SetMaximum(active);
+            try
+            {
+                await Task.Delay(40, cancellationToken);
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(content) };
+            }
+            finally
+            {
+                Interlocked.Decrement(ref activeRequests);
+            }
+        }
+
+        private void SetMaximum(int active)
+        {
+            int observed;
+            while (active > (observed = maximumConcurrentRequests) &&
+                   Interlocked.CompareExchange(ref maximumConcurrentRequests, active, observed) != observed)
+            {
+            }
+        }
     }
 }

@@ -6,6 +6,8 @@ namespace PCL.Aurora.Infrastructure;
 
 public sealed class MinecraftDownloadExecutor(HttpClient httpClient) : IMinecraftDownloadExecutor
 {
+    private const int MaximumConcurrentArtifacts = 4;
+
     public async Task ExecuteAsync(
         MinecraftDownloadPlan downloadPlan,
         string minecraftRootDirectory,
@@ -41,12 +43,18 @@ public sealed class MinecraftDownloadExecutor(HttpClient httpClient) : IMinecraf
         }
 
         var rootDirectory = Path.GetFullPath(minecraftRootDirectory);
-        foreach (var artifact in artifacts)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var destinationPath = GetDestinationPath(rootDirectory, artifact.RelativePath);
-            await DownloadArtifactAsync(artifact, destinationPath, cancellationToken).ConfigureAwait(false);
-        }
+        await Parallel.ForEachAsync(
+            artifacts,
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = MaximumConcurrentArtifacts,
+                CancellationToken = cancellationToken,
+            },
+            async (artifact, token) =>
+            {
+                var destinationPath = GetDestinationPath(rootDirectory, artifact.RelativePath);
+                await DownloadArtifactAsync(artifact, destinationPath, token).ConfigureAwait(false);
+            }).ConfigureAwait(false);
     }
 
     private async Task DownloadArtifactAsync(

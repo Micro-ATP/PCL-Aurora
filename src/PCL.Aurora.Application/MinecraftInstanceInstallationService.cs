@@ -27,7 +27,7 @@ public sealed class MinecraftInstanceInstallationService(
             throw new InvalidOperationException("游戏文件下载计划不完整：" + string.Join("；", versionPreparation.DownloadPlan.BlockingReasons));
         }
 
-        progress?.Report(new(0, 2, "正在下载游戏文件、支持库和资源索引…"));
+        progress?.Report(new(0, 2, $"正在并发下载 {versionPreparation.DownloadPlan.Artifacts.Count} 个游戏文件、支持库和资源索引…"));
         await downloadExecutor
             .ExecuteAsync(versionPreparation.DownloadPlan, minecraftRootDirectory, cancellationToken)
             .ConfigureAwait(false);
@@ -40,7 +40,7 @@ public sealed class MinecraftInstanceInstallationService(
             throw new InvalidOperationException("资源对象下载计划不完整：" + string.Join("；", assetPreparation.DownloadPlan.BlockingReasons));
         }
 
-        progress?.Report(new(1, 2, "正在下载资源对象…"));
+        progress?.Report(new(1, 2, $"正在并发下载 {assetPreparation.DownloadPlan.Artifacts.Count} 个资源对象…"));
         await downloadExecutor
             .ExecuteAsync(assetPreparation.DownloadPlan, minecraftRootDirectory, cancellationToken)
             .ConfigureAwait(false);
