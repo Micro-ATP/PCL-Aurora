@@ -14,18 +14,24 @@ public sealed class MinecraftGameLaunchService(
         MinecraftInstance? instance,
         MinecraftAccount? account,
         JavaInstallation? java,
+        bool hasAcknowledgedAccountGuidance = false,
         CancellationToken cancellationToken = default)
     {
         var readiness = launchReadinessService.Evaluate(instance, account, java);
+        var accountGuidance = MinecraftAccountLicenseGuidance.Evaluate(account);
+        var guidanceBlockingReasons = accountGuidance.RequiresAcknowledgement && !hasAcknowledgedAccountGuidance
+            ? new[] { "请先确认正版购买与上游赞助提示；该确认不能替代 Microsoft 正版认证。" }
+            : [];
         if (instance is null || instance.Status != MinecraftInstanceStatus.Valid)
         {
             return new(
                 readiness,
+                accountGuidance,
                 null,
                 null,
                 new MinecraftNativeLibraryPlan(string.Empty, [], [], readiness.BlockingReasons),
                 new MinecraftGameLaunchRequestPreparation(null, readiness.BlockingReasons),
-                readiness.BlockingReasons);
+                readiness.BlockingReasons.Concat(guidanceBlockingReasons).ToArray());
         }
 
         var launchPreparation = await launchPreparationService
@@ -45,6 +51,7 @@ public sealed class MinecraftGameLaunchService(
             java?.Architecture ?? JavaArchitecture.Unknown);
         var requestPreparation = MinecraftGameLaunchRequestBuilder.Prepare(instance, java, launchPreparation.ArgumentPreparation);
         var blockingReasons = readiness.BlockingReasons
+            .Concat(guidanceBlockingReasons)
             .Concat(launchPreparation.ClasspathInspection.BlockingReasons)
             .Concat(launchPreparation.ClasspathInspection.MissingFiles.Select(path => $"缺少文件：{path}"))
             .Concat(assetPreparation.IndexInspection.Errors)
@@ -55,7 +62,7 @@ public sealed class MinecraftGameLaunchService(
             .Concat(requestPreparation.BlockingReasons)
             .Distinct(StringComparer.Ordinal)
             .ToList();
-        return new(readiness, launchPreparation, assetPreparation, nativeLibraryPlan, requestPreparation, blockingReasons);
+        return new(readiness, accountGuidance, launchPreparation, assetPreparation, nativeLibraryPlan, requestPreparation, blockingReasons);
     }
 
     public Task<GameProcessSession> LaunchAsync(

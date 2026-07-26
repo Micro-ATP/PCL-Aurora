@@ -71,7 +71,18 @@ public sealed class MinecraftGameLaunchServiceTests
             var preparation = await service.PrepareAsync(instance, account, java);
 
             Assert.False(preparation.CanLaunch);
+            Assert.Contains(preparation.BlockingReasons, reason => reason.Contains("正版购买", StringComparison.Ordinal));
             Assert.Contains(preparation.BlockingReasons, reason => reason.Contains("缺少 native 文件", StringComparison.Ordinal));
+
+            var acknowledgedPreparation = await service.PrepareAsync(
+                instance,
+                account,
+                java,
+                hasAcknowledgedAccountGuidance: true);
+
+            Assert.DoesNotContain(
+                acknowledgedPreparation.BlockingReasons,
+                reason => reason.Contains("正版购买", StringComparison.Ordinal));
             await Assert.ThrowsAsync<InvalidOperationException>(() => service.LaunchAsync(preparation));
             Assert.False(processRunner.WasCalled);
         }

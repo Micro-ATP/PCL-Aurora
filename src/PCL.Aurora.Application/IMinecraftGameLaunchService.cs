@@ -8,6 +8,7 @@ public interface IMinecraftGameLaunchService
         MinecraftInstance? instance,
         MinecraftAccount? account,
         JavaInstallation? java,
+        bool hasAcknowledgedAccountGuidance = false,
         CancellationToken cancellationToken = default);
 
     Task<GameProcessSession> LaunchAsync(

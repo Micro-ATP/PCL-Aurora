@@ -84,6 +84,15 @@
                                     <Button Command="{Binding ClearOfflineAccountCommand}" Content="清除离线账户" />
                                     <TextBlock VerticalAlignment="Center" Text="{Binding AccountSummary}" TextWrapping="Wrap" />
                                 </StackPanel>
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding AccountLicenseGuidance}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="购买正版：https://www.minecraft.net/store/minecraft-java-bedrock-edition-java-edition · 赞助 PCL/PCL-CE：https://meloong.com/afd/a/LTCat"
+                                           TextWrapping="Wrap" />
+                                <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
+                                          IsChecked="{Binding HasAcknowledgedAccountGuidance}"
+                                          Content="我已知悉：离线或第三方账户不代表拥有正版 Minecraft，且该确认不替代 Microsoft 认证。" />
                             </StackPanel>
                         </Border>
 

@@ -251,8 +251,14 @@ switch (command)
     case "launch run":
     case var value when value.StartsWith("launch run ", StringComparison.Ordinal):
     {
+        if (args.Length > 4 || (args.Length == 4 && !string.Equals(args[3], "--acknowledge-offline", StringComparison.Ordinal)))
+        {
+            Console.WriteLine("用法：launch run [离线用户名] [--acknowledge-offline]");
+            return 64;
+        }
+
         MinecraftAccount? account = null;
-        if (args.Length == 3 && !OfflineAccount.TryCreate(args[2], out account))
+        if (args.Length >= 3 && !OfflineAccount.TryCreate(args[2], out account))
         {
             Console.WriteLine("离线用户名需为 3–16 位英文字母、数字或下划线。");
             return 64;
@@ -263,7 +269,11 @@ switch (command)
         await Task.WhenAll(instancesTask, diagnosticsTask);
         var instance = (await instancesTask).FirstOrDefault(candidate => candidate.Status == PCL.Aurora.Domain.MinecraftInstanceStatus.Valid);
         var java = (await diagnosticsTask).JavaInstallations.FirstOrDefault(candidate => candidate.IsCompatible);
-        var preparation = await gameLaunchService.PrepareAsync(instance, account, java);
+        var preparation = await gameLaunchService.PrepareAsync(
+            instance,
+            account,
+            java,
+            hasAcknowledgedAccountGuidance: args.Length == 4);
         if (!preparation.CanLaunch)
         {
             Console.WriteLine("游戏启动被阻断：");
@@ -331,7 +341,7 @@ switch (command)
     }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | loaders inspect <本地目录.json> | install create <版本 ID> | install local | launch check | launch arguments | launch run [离线用户名] | doctor");
+        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | loaders inspect <本地目录.json> | install create <版本 ID> | install local | launch check | launch arguments | launch run [离线用户名] [--acknowledge-offline] | doctor");
         return command == "help" ? 0 : 64;
 }
 

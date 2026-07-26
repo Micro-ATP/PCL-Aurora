@@ -172,6 +172,15 @@ public partial class MainViewModel(
     private string accountSummary = "未选择账户。可创建只在本次会话使用的离线账户。";
 
     [ObservableProperty]
+    private string accountLicenseGuidance = "选择账户后会显示正版购买与上游赞助提示。";
+
+    [ObservableProperty]
+    private bool requiresAccountGuidance;
+
+    [ObservableProperty]
+    private bool hasAcknowledgedAccountGuidance;
+
+    [ObservableProperty]
     private string launchPreflightSummary = "正在检查启动条件…";
 
     [RelayCommand]
@@ -354,7 +363,13 @@ public partial class MainViewModel(
 
     private async Task RefreshGameLaunchPreparationAsync()
     {
-        gameLaunchPreparation = await gameLaunchService.PrepareAsync(SelectedInstance, selectedAccount, SelectedJava);
+        gameLaunchPreparation = await gameLaunchService.PrepareAsync(
+            SelectedInstance,
+            selectedAccount,
+            SelectedJava,
+            HasAcknowledgedAccountGuidance);
+        AccountLicenseGuidance = gameLaunchPreparation.AccountGuidance.Message;
+        RequiresAccountGuidance = gameLaunchPreparation.AccountGuidance.RequiresAcknowledgement;
         CanLaunchGame = gameLaunchPreparation.CanLaunch;
         GameLaunchSummary = gameLaunchPreparation.CanLaunch
             ? "启动条件和进程请求均已准备。点击“启动游戏”后将先安全准备 native 库，再启动 Java 进程。"
@@ -565,6 +580,14 @@ public partial class MainViewModel(
         }
     }
 
+    partial void OnHasAcknowledgedAccountGuidanceChanged(bool value)
+    {
+        if (!isRefreshing)
+        {
+            _ = RefreshGameLaunchPreparationAsync();
+        }
+    }
+
     private async Task SaveSelectedInstancePreferenceAsync(string? instanceName)
     {
         try
@@ -646,6 +669,7 @@ public partial class MainViewModel(
         }
 
         selectedAccount = account;
+        HasAcknowledgedAccountGuidance = false;
         try
         {
             await preferencesService.SaveOfflinePlayerNameAsync(account.DisplayName);
@@ -666,6 +690,7 @@ public partial class MainViewModel(
     private async Task ClearOfflineAccountAsync()
     {
         selectedAccount = null;
+        HasAcknowledgedAccountGuidance = false;
         OfflinePlayerName = string.Empty;
         try
         {
@@ -698,6 +723,7 @@ public partial class MainViewModel(
 
         OfflinePlayerName = account.DisplayName;
         selectedAccount = account;
+        HasAcknowledgedAccountGuidance = false;
         AccountSummary = $"已恢复离线账户：{account.DisplayName}。本机仅保存用户名，不保存密码或令牌。";
     }
 

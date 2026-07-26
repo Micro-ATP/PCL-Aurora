@@ -4,6 +4,7 @@ namespace PCL.Aurora.Application;
 
 public sealed record MinecraftGameLaunchPreparation(
     LaunchReadiness Readiness,
+    MinecraftAccountLicenseGuidance AccountGuidance,
     MinecraftLaunchPreparation? LaunchPreparation,
     MinecraftAssetPreparation? AssetPreparation,
     MinecraftNativeLibraryPlan NativeLibraryPlan,
