@@ -37,7 +37,7 @@ public static class MinecraftNativeLibraryPlanBuilder
 
         foreach (var library in inspection.EffectiveMetadata.Libraries ?? [])
         {
-            if (!TryGetMacOSClassifier(library, architecture, out var classifier, out var reason))
+            if (!TrySelectMacOSClassifier(library, architecture, out var classifier, out var reason))
             {
                 if (reason is not null)
                 {
@@ -96,7 +96,7 @@ public static class MinecraftNativeLibraryPlanBuilder
             blockingReasons.Distinct(StringComparer.Ordinal).ToList());
     }
 
-    private static bool TryGetMacOSClassifier(
+    public static bool TrySelectMacOSClassifier(
         MinecraftVersionLibrary library,
         JavaArchitecture architecture,
         out string? classifier,

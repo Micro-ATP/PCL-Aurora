@@ -190,4 +190,73 @@ public sealed class MinecraftVersionMetadataTests
         Assert.Equal("org/example/native/1.0/native-arm64.jar", classifier.Path);
         Assert.Equal(456, classifier.Download!.Size);
     }
+
+    [Fact]
+    public void CreateDownloadPlan_IncludesExplicitLibraryAndMacOSNativeArtifacts()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.21.4",
+            null,
+            "release",
+            null,
+            new MinecraftVersionDownload(new Uri("https://example.invalid/client.jar"), null, null),
+            new MinecraftVersionAssetIndex("17", new Uri("https://example.invalid/assets.json"), null, null),
+            null,
+            [
+                new MinecraftVersionLibrary(
+                    "org.example:library:1.0",
+                    "org/example/library/1.0/library-1.0.jar",
+                    new MinecraftVersionDownload(new Uri("https://example.invalid/library.jar"), null, null),
+                    HasConditionalRules: false),
+                new MinecraftVersionLibrary(
+                    "org.example:native:1.0",
+                    null,
+                    null,
+                    HasConditionalRules: false,
+                    NativeClassifiers: new Dictionary<string, string> { ["osx"] = "natives-macos-${arch}" },
+                    Classifiers: new Dictionary<string, MinecraftVersionLibraryClassifier>
+                    {
+                        ["natives-macos-arm64"] = new(
+                            "org/example/native/1.0/native-arm64.jar",
+                            new MinecraftVersionDownload(new Uri("https://example.invalid/native.jar"), "native-sha", 123)),
+                    }),
+            ]);
+        var inspection = new MinecraftVersionMetadataInspection([metadata], metadata, []);
+
+        var plan = MinecraftDownloadPlanBuilder.Create(inspection, JavaArchitecture.Arm64);
+
+        Assert.True(plan.IsReady);
+        Assert.Equal(
+            [
+                "versions/1.21.4/1.21.4.jar",
+                "assets/indexes/17.json",
+                "libraries/org/example/library/1.0/library-1.0.jar",
+                "libraries/org/example/native/1.0/native-arm64.jar",
+            ],
+            plan.Artifacts.Select(artifact => artifact.RelativePath));
+    }
+
+    [Fact]
+    public void CreateDownloadPlan_BlocksUnsafeLibraryArtifactPath()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.21.4",
+            null,
+            "release",
+            null,
+            new MinecraftVersionDownload(new Uri("https://example.invalid/client.jar"), null, null),
+            new MinecraftVersionAssetIndex("17", new Uri("https://example.invalid/assets.json"), null, null),
+            null,
+            [new MinecraftVersionLibrary(
+                "org.example:unsafe:1.0",
+                "../unsafe.jar",
+                new MinecraftVersionDownload(new Uri("https://example.invalid/unsafe.jar"), null, null),
+                HasConditionalRules: false)]);
+        var inspection = new MinecraftVersionMetadataInspection([metadata], metadata, []);
+
+        var plan = MinecraftDownloadPlanBuilder.Create(inspection, JavaArchitecture.Arm64);
+
+        Assert.False(plan.IsReady);
+        Assert.Contains(plan.BlockingReasons, reason => reason.Contains("路径无效", StringComparison.Ordinal));
+    }
 }

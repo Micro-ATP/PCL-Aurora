@@ -31,4 +31,112 @@ public static class MinecraftDownloadPlanBuilder
 
         return new(metadata.Id, artifacts, blockingReasons);
     }
+
+    public static MinecraftDownloadPlan Create(
+        MinecraftVersionMetadataInspection inspection,
+        JavaArchitecture architecture)
+    {
+        ArgumentNullException.ThrowIfNull(inspection);
+        var basePlan = Create(inspection.EffectiveMetadata);
+        if (inspection.EffectiveMetadata is null)
+        {
+            return basePlan;
+        }
+
+        var artifacts = basePlan.Artifacts.ToList();
+        var blockingReasons = basePlan.BlockingReasons.ToList();
+        foreach (var library in inspection.EffectiveMetadata.Libraries ?? [])
+        {
+            if (library.HasConditionalRules)
+            {
+                blockingReasons.Add($"库 {library.Name} 包含条件规则，规则评估尚未迁移。");
+                continue;
+            }
+
+            AddArtifact(
+                artifacts,
+                blockingReasons,
+                $"支持库 {library.Name}",
+                library.ArtifactPath,
+                library.Artifact);
+
+            if (!MinecraftNativeLibraryPlanBuilder.TrySelectMacOSClassifier(
+                    library,
+                    architecture,
+                    out var classifier,
+                    out var nativeSelectionReason))
+            {
+                if (nativeSelectionReason is not null)
+                {
+                    blockingReasons.Add($"原生库 {library.Name}：{nativeSelectionReason}");
+                }
+
+                continue;
+            }
+
+            if (library.Classifiers is null ||
+                !library.Classifiers.TryGetValue(classifier!, out var classifierInfo))
+            {
+                blockingReasons.Add($"原生库 {library.Name} 未提供 classifier {classifier} 的下载描述。");
+                continue;
+            }
+
+            AddArtifact(
+                artifacts,
+                blockingReasons,
+                $"原生库 {library.Name} ({classifier})",
+                classifierInfo.Path,
+                classifierInfo.Download);
+        }
+
+        return new(
+            basePlan.VersionId,
+            artifacts.DistinctBy(artifact => artifact.RelativePath, StringComparer.Ordinal).ToList(),
+            blockingReasons.Distinct(StringComparer.Ordinal).ToList());
+    }
+
+    private static void AddArtifact(
+        List<MinecraftDownloadArtifact> artifacts,
+        List<string> blockingReasons,
+        string description,
+        string? path,
+        MinecraftVersionDownload? download)
+    {
+        if (path is null && download is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(path) || download is null)
+        {
+            blockingReasons.Add($"{description} 缺少完整下载描述。");
+            return;
+        }
+
+        string relativePath;
+        try
+        {
+            relativePath = GetLibraryRelativePath(path);
+        }
+        catch (InvalidDataException exception)
+        {
+            blockingReasons.Add($"{description} 的路径无效：{exception.Message}");
+            return;
+        }
+
+        artifacts.Add(new(description, relativePath, download.Url, download.Sha1, download.Size));
+    }
+
+    private static string GetLibraryRelativePath(string path)
+    {
+        var normalizedPath = path.Replace('\\', '/');
+        if (Path.IsPathRooted(normalizedPath) ||
+            normalizedPath.StartsWith("/", StringComparison.Ordinal) ||
+            normalizedPath.Split('/').Any(segment => segment is "." or ".."))
+        {
+            throw new InvalidDataException("artifact 路径必须位于 libraries 目录内。");
+        }
+
+        return $"libraries/{normalizedPath}";
+    }
 }

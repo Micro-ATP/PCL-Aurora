@@ -18,7 +18,7 @@ public sealed class MinecraftVersionPreparationServiceTests
             new MinecraftVersionDownload(new Uri("https://example.invalid/client.jar"), "client-sha", 123),
             new MinecraftVersionAssetIndex("17", new Uri("https://example.invalid/assets.json"), "assets-sha", 456));
         var inspection = new MinecraftVersionMetadataInspection([metadata], metadata, []);
-        var service = new MinecraftVersionPreparationService(new FakeMetadataReader(inspection));
+        var service = new MinecraftVersionPreparationService(new FakeMetadataReader(inspection), new FakePlatformInfo());
 
         var preparation = await service.PrepareAsync(instance);
 
@@ -32,5 +32,10 @@ public sealed class MinecraftVersionPreparationServiceTests
         public Task<MinecraftVersionMetadataInspection> InspectAsync(
             MinecraftInstance instance,
             CancellationToken cancellationToken = default) => Task.FromResult(inspection);
+    }
+
+    private sealed class FakePlatformInfo : IPlatformInfo
+    {
+        public PlatformInformation Get() => new("macOS", "test", JavaArchitecture.Arm64, ".NET test");
     }
 }

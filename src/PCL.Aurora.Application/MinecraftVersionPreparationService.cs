@@ -3,7 +3,9 @@ using PCL.Aurora.Platform.Abstractions;
 
 namespace PCL.Aurora.Application;
 
-public sealed class MinecraftVersionPreparationService(IMinecraftVersionMetadataReader metadataReader)
+public sealed class MinecraftVersionPreparationService(
+    IMinecraftVersionMetadataReader metadataReader,
+    IPlatformInfo platformInfo)
     : IMinecraftVersionPreparationService
 {
     public async Task<MinecraftVersionPreparation> PrepareAsync(
@@ -11,6 +13,6 @@ public sealed class MinecraftVersionPreparationService(IMinecraftVersionMetadata
         CancellationToken cancellationToken = default)
     {
         var inspection = await metadataReader.InspectAsync(instance, cancellationToken).ConfigureAwait(false);
-        return new(inspection, MinecraftDownloadPlanBuilder.Create(inspection.EffectiveMetadata));
+        return new(inspection, MinecraftDownloadPlanBuilder.Create(inspection, platformInfo.Get().Architecture));
     }
 }
