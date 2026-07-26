@@ -129,10 +129,22 @@
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="游戏安装" />
                                     <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="先选择官方 Minecraft 版本，再创建本地实例并下载。" TextWrapping="Wrap" />
+                                    <TextBlock Text="搜索版本 ID" />
+                                    <TextBox PlaceholderText="例如 1.21.4 或 24w14a"
+                                             Text="{Binding VersionSearchText}" />
+                                    <WrapPanel ItemHeight="32" ItemWidth="92">
+                                        <CheckBox Content="正式版" IsChecked="{Binding IncludeReleaseVersions}" />
+                                        <CheckBox Content="快照" IsChecked="{Binding IncludeSnapshotVersions}" />
+                                        <CheckBox Content="旧版" IsChecked="{Binding IncludeLegacyVersions}" />
+                                    </WrapPanel>
                                     <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedCatalogVersion}">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding Id}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Id}" />
+                                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                               Text="{Binding Type}" />
+                                                </StackPanel>
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>

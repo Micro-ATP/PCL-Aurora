@@ -23,6 +23,7 @@ public partial class MainViewModel(
 {
     private const int MaximumGameLogLines = 500;
 
+    private readonly List<MinecraftVersionCatalogEntry> allCatalogVersions = [];
     private MinecraftAccount? selectedAccount;
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
     private LauncherPreferences currentPreferences = LauncherPreferences.Default;
@@ -126,6 +127,18 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private MinecraftVersionCatalogEntry? selectedCatalogVersion;
+
+    [ObservableProperty]
+    private string versionSearchText = string.Empty;
+
+    [ObservableProperty]
+    private bool includeReleaseVersions = true;
+
+    [ObservableProperty]
+    private bool includeSnapshotVersions = true;
+
+    [ObservableProperty]
+    private bool includeLegacyVersions;
 
     [ObservableProperty]
     private bool canProvisionSelectedVersion;
@@ -338,21 +351,16 @@ public partial class MainViewModel(
             var result = await versionCatalogService.FetchAsync();
             if (!result.IsSuccess || result.Catalog is null)
             {
+                allCatalogVersions.Clear();
                 AvailableVersions.Clear();
                 SelectedCatalogVersion = null;
                 VersionCatalogSummary = string.Join(Environment.NewLine, result.Errors);
                 return;
             }
 
-            AvailableVersions.Clear();
-            foreach (var version in result.Catalog.Versions.Take(100))
-            {
-                AvailableVersions.Add(version);
-            }
-
-            SelectedCatalogVersion = AvailableVersions.FirstOrDefault(version => version.Id == result.Catalog.LatestRelease)
-                ?? AvailableVersions.FirstOrDefault();
-            VersionCatalogSummary = $"已加载 {result.Catalog.Versions.Count} 个官方版本；当前显示前 {AvailableVersions.Count} 个。";
+            allCatalogVersions.Clear();
+            allCatalogVersions.AddRange(result.Catalog.Versions);
+            ApplyVersionFilters(result.Catalog.LatestRelease);
         }
         catch (OperationCanceledException)
         {
@@ -398,6 +406,42 @@ public partial class MainViewModel(
     partial void OnSelectedCatalogVersionChanged(MinecraftVersionCatalogEntry? value)
     {
         CanProvisionSelectedVersion = value is not null;
+    }
+
+    partial void OnVersionSearchTextChanged(string value) => ApplyVersionFilters();
+
+    partial void OnIncludeReleaseVersionsChanged(bool value) => ApplyVersionFilters();
+
+    partial void OnIncludeSnapshotVersionsChanged(bool value) => ApplyVersionFilters();
+
+    partial void OnIncludeLegacyVersionsChanged(bool value) => ApplyVersionFilters();
+
+    private void ApplyVersionFilters(string? preferredVersionId = null)
+    {
+        if (allCatalogVersions.Count == 0)
+        {
+            return;
+        }
+
+        var selectedId = SelectedCatalogVersion?.Id ?? preferredVersionId;
+        var filtered = MinecraftVersionCatalogFilter.Filter(
+            allCatalogVersions,
+            VersionSearchText,
+            IncludeReleaseVersions,
+            IncludeSnapshotVersions,
+            IncludeLegacyVersions);
+
+        AvailableVersions.Clear();
+        foreach (var version in filtered)
+        {
+            AvailableVersions.Add(version);
+        }
+
+        SelectedCatalogVersion = AvailableVersions.FirstOrDefault(version => version.Id == selectedId)
+            ?? AvailableVersions.FirstOrDefault();
+        VersionCatalogSummary = AvailableVersions.Count == 0
+            ? "没有符合当前筛选条件的官方版本；不会创建实例。"
+            : $"已加载 {allCatalogVersions.Count} 个官方版本；当前筛选显示 {AvailableVersions.Count} 个。";
     }
 
     partial void OnSelectedInstanceChanged(MinecraftInstance? value)
