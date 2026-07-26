@@ -532,7 +532,7 @@ public partial class MainViewModel(
     [RelayCommand]
     private async Task RefreshOfficialLoaderCatalogAsync()
     {
-        var minecraftVersion = SelectedCatalogVersion?.Id ?? SelectedInstance?.VersionId;
+        var minecraftVersion = SelectedCatalogVersion?.Id ?? GetMinecraftVersionForLoaders(SelectedInstance);
         if (string.IsNullOrWhiteSpace(minecraftVersion))
         {
             LoaderCatalogSummary = "请先选择下载页中的官方版本，或选择一个本地实例；未访问网络。";
@@ -586,7 +586,7 @@ public partial class MainViewModel(
             return;
         }
 
-        var minecraftVersion = SelectedCatalogVersion?.Id ?? SelectedInstance?.VersionId;
+        var minecraftVersion = SelectedCatalogVersion?.Id ?? GetMinecraftVersionForLoaders(SelectedInstance);
         if (string.IsNullOrWhiteSpace(minecraftVersion))
         {
             HasAvailableLoaders = false;
@@ -639,7 +639,7 @@ public partial class MainViewModel(
         if (SelectedLoader is not { } loader ||
             SelectedInstance is not { } instance ||
             SelectedJava is not { } java ||
-            !string.Equals(loader.MinecraftVersion, instance.VersionId, StringComparison.OrdinalIgnoreCase))
+            !string.Equals(loader.MinecraftVersion, GetMinecraftVersionForLoaders(instance), StringComparison.OrdinalIgnoreCase))
         {
             LoaderSelectionSummary = "请先选择兼容的加载器、本地实例与 Java；未下载或执行安装器。";
             return;
@@ -658,13 +658,11 @@ public partial class MainViewModel(
 
             LoaderSelectionSummary = $"正在下载并执行 {loader.Kind} {loader.Version} 安装器…";
             var result = await loaderInstallerService.InstallAsync(plan, MinecraftRootDirectory, hasExplicitUserConfirmation: true);
-            LoaderSelectionSummary = result.Succeeded
+            var resultSummary = result.Succeeded
                 ? $"{loader.Kind} {loader.Version} 安装完成。请刷新本地实例列表以检查新增版本。"
                 : string.Join(Environment.NewLine, result.Errors.Concat(result.Output.TakeLast(5).Select(line => line.Text)));
-            if (result.Succeeded)
-            {
-                await RefreshAsync();
-            }
+            await RefreshAsync();
+            LoaderSelectionSummary = resultSummary;
         }
         catch (OperationCanceledException)
         {
@@ -684,7 +682,10 @@ public partial class MainViewModel(
         loader is not null &&
         SelectedInstance is not null &&
         SelectedJava is not null &&
-        string.Equals(loader.MinecraftVersion, SelectedInstance.VersionId, StringComparison.OrdinalIgnoreCase);
+        string.Equals(loader.MinecraftVersion, GetMinecraftVersionForLoaders(SelectedInstance), StringComparison.OrdinalIgnoreCase);
+
+    private static string? GetMinecraftVersionForLoaders(MinecraftInstance? instance) =>
+        instance?.BaseVersionId ?? instance?.VersionId;
 
     partial void OnHasAcknowledgedAccountGuidanceChanged(bool value)
     {

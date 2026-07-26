@@ -38,6 +38,32 @@ public sealed class MacOSMinecraftInstanceLocatorTests : IDisposable
             });
     }
 
+    [Fact]
+    public async Task FindAllAsync_ReportsBaseVersionAndInstalledLoaderFromMetadata()
+    {
+        var versionsDirectory = Path.Combine(rootDirectory, "versions");
+        var forgeDirectory = Path.Combine(versionsDirectory, "1.20.1-forge-47.2.0");
+        Directory.CreateDirectory(forgeDirectory);
+        await File.WriteAllTextAsync(
+            Path.Combine(forgeDirectory, "1.20.1-forge-47.2.0.json"),
+            """
+            {
+              "id": "1.20.1-forge-47.2.0",
+              "inheritsFrom": "1.20.1",
+              "libraries": [{ "name": "net.minecraftforge:forge:1.20.1-47.2.0" }]
+            }
+            """);
+
+        var instance = Assert.Single(await new MacOSMinecraftInstanceLocator(rootDirectory).FindAllAsync());
+
+        Assert.Equal("1.20.1", instance.BaseVersionId);
+        Assert.Equal("1.20.1", instance.InheritsFrom);
+        Assert.Equal(MinecraftLoaderKind.Forge, instance.InstalledLoader!.Kind);
+        Assert.Equal("47.2.0", instance.InstalledLoader.Version);
+        Assert.Contains("1.20.1", instance.VersionDisplay, StringComparison.Ordinal);
+        Assert.Equal("Forge 47.2.0", instance.LoaderDisplay);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(rootDirectory))

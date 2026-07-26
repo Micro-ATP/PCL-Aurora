@@ -61,7 +61,19 @@ public sealed class MacOSMinecraftInstanceLocator(string? minecraftDirectory = n
             var versionId = GetString(root, "id");
             var type = GetString(root, "type");
             var releaseTime = ParseReleaseTime(GetString(root, "releaseTime"));
-            return new MinecraftInstance(name, directory, versionId, type, releaseTime, MinecraftInstanceStatus.Valid);
+            var inheritsFrom = GetString(root, "inheritsFrom");
+            var installedLoader = MinecraftInstalledLoaderDetector.Detect(GetLibraryNames(root));
+            var baseVersionId = inheritsFrom ?? installedLoader?.MinecraftVersion ?? versionId;
+            return new MinecraftInstance(
+                name,
+                directory,
+                versionId,
+                type,
+                releaseTime,
+                MinecraftInstanceStatus.Valid,
+                inheritsFrom,
+                baseVersionId,
+                installedLoader);
         }
         catch (OperationCanceledException)
         {
@@ -80,6 +92,23 @@ public sealed class MacOSMinecraftInstanceLocator(string? minecraftDirectory = n
         element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String
             ? property.GetString()
             : null;
+
+    private static IEnumerable<string> GetLibraryNames(JsonElement root)
+    {
+        if (!root.TryGetProperty("libraries", out var libraries) || libraries.ValueKind != JsonValueKind.Array)
+        {
+            yield break;
+        }
+
+        foreach (var library in libraries.EnumerateArray())
+        {
+            var name = library.ValueKind == JsonValueKind.Object ? GetString(library, "name") : null;
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                yield return name;
+            }
+        }
+    }
 
     private static DateTimeOffset? ParseReleaseTime(string? value) =>
         DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var result)

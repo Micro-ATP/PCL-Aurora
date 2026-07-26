@@ -98,7 +98,7 @@ switch (command)
 
         foreach (var instance in instances)
         {
-            Console.WriteLine($"{instance.Name} | {instance.VersionId ?? "未知版本"} | {instance.Type ?? "未知类型"} | {instance.Status}");
+            Console.WriteLine($"{instance.Name} | {instance.VersionDisplay} | {instance.LoaderDisplay} | {instance.Type ?? "未知类型"} | {instance.Status}");
             Console.WriteLine($"  {instance.DirectoryPath}");
         }
 

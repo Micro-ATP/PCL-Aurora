@@ -57,7 +57,9 @@
                                             <StackPanel Spacing="2">
                                                 <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
                                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                           Text="{Binding VersionId}" />
+                                                           Text="{Binding VersionDisplay}" />
+                                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                           Text="{Binding LoaderDisplay}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
