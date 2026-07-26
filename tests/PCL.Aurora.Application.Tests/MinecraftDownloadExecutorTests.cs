@@ -103,6 +103,77 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
             File.ReadAllBytes(Path.Combine(rootDirectory, artifact.RelativePath))));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_ForVerifiedLargeFile_UsesValidatedParallelRanges()
+    {
+        var content = Enumerable.Range(0, 2 * 1024 * 1024).Select(index => (byte)(index % 251)).ToArray();
+        var handler = new RangeResponseHandler(content);
+        using var client = new HttpClient(handler);
+        var executor = new MinecraftDownloadExecutor(client);
+
+        await executor.ExecuteAsync(CreatePlan(content), rootDirectory);
+
+        Assert.True(handler.ProbeRequests >= 1);
+        Assert.True(handler.RangeRequests >= 2, $"实际分片请求数：{handler.RangeRequests}");
+        Assert.Equal(content, await File.ReadAllBytesAsync(Path.Combine(rootDirectory, "versions", "1.21.4", "1.21.4.jar")));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenServerRejectsRange_FallsBackToSingleConnection()
+    {
+        var content = Enumerable.Repeat((byte)0x3a, 2 * 1024 * 1024).ToArray();
+        var handler = new RangeRejectedHandler(content);
+        using var client = new HttpClient(handler);
+        var executor = new MinecraftDownloadExecutor(client);
+
+        await executor.ExecuteAsync(CreatePlan(content), rootDirectory);
+
+        Assert.Equal(1, handler.RangeRequests);
+        Assert.Equal(1, handler.SingleConnectionRequests);
+        Assert.Equal(content, await File.ReadAllBytesAsync(Path.Combine(rootDirectory, "versions", "1.21.4", "1.21.4.jar")));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenParallelRangeHashFails_PreservesExistingFileAndCleansPartialFile()
+    {
+        var content = Enumerable.Repeat((byte)0x7f, 2 * 1024 * 1024).ToArray();
+        using var client = new HttpClient(new RangeResponseHandler(content));
+        var executor = new MinecraftDownloadExecutor(client);
+        var destinationPath = Path.Combine(rootDirectory, "versions", "1.21.4", "1.21.4.jar");
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+        await File.WriteAllTextAsync(destinationPath, "existing content");
+        var invalidPlan = CreatePlan(content) with
+        {
+            Artifacts = [new MinecraftDownloadArtifact(
+                "Minecraft 客户端",
+                "versions/1.21.4/1.21.4.jar",
+                new Uri("https://example.invalid/client.jar"),
+                new string('0', 40),
+                content.Length)],
+        };
+
+        await Assert.ThrowsAsync<InvalidDataException>(() => executor.ExecuteAsync(invalidPlan, rootDirectory));
+
+        Assert.Equal("existing content", await File.ReadAllTextAsync(destinationPath));
+        Assert.Empty(Directory.EnumerateFiles(Path.GetDirectoryName(destinationPath)!, "*.partial"));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenParallelRangeIsCancelled_CleansPartialFile()
+    {
+        var content = Enumerable.Repeat((byte)0x61, 2 * 1024 * 1024).ToArray();
+        using var client = new HttpClient(new DelayedRangeResponseHandler(content));
+        var executor = new MinecraftDownloadExecutor(client);
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(30));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => executor.ExecuteAsync(CreatePlan(content), rootDirectory, cancellation.Token));
+
+        var destinationDirectory = Path.Combine(rootDirectory, "versions", "1.21.4");
+        Assert.False(File.Exists(Path.Combine(destinationDirectory, "1.21.4.jar")));
+        Assert.False(Directory.Exists(destinationDirectory) && Directory.EnumerateFiles(destinationDirectory, "*.partial").Any());
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(rootDirectory))
@@ -165,6 +236,82 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
                    Interlocked.CompareExchange(ref maximumConcurrentRequests, active, observed) != observed)
             {
             }
+        }
+    }
+
+    private sealed class RangeResponseHandler(byte[] content) : HttpMessageHandler
+    {
+        private int probeRequests;
+        private int rangeRequests;
+
+        public int ProbeRequests => probeRequests;
+
+        public int RangeRequests => rangeRequests;
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var range = request.Headers.Range?.Ranges.SingleOrDefault();
+            if (range is null || range.From is null || range.To is null)
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(content) });
+            }
+
+            if (range.From == 0 && range.To == 0)
+            {
+                Interlocked.Increment(ref probeRequests);
+            }
+            else
+            {
+                Interlocked.Increment(ref rangeRequests);
+            }
+
+            var start = checked((int)range.From.Value);
+            var end = checked((int)range.To.Value);
+            var responseContent = new ByteArrayContent(content[start..(end + 1)]);
+            responseContent.Headers.ContentRange = new System.Net.Http.Headers.ContentRangeHeaderValue(start, end, content.Length);
+            var response = new HttpResponseMessage(HttpStatusCode.PartialContent) { Content = responseContent };
+            response.Headers.AcceptRanges.Add("bytes");
+            return Task.FromResult(response);
+        }
+    }
+
+    private sealed class RangeRejectedHandler(byte[] content) : HttpMessageHandler
+    {
+        public int RangeRequests { get; private set; }
+
+        public int SingleConnectionRequests { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.Headers.Range is not null)
+            {
+                RangeRequests++;
+            }
+            else
+            {
+                SingleConnectionRequests++;
+            }
+
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(content) });
+        }
+    }
+
+    private sealed class DelayedRangeResponseHandler(byte[] content) : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var range = request.Headers.Range?.Ranges.SingleOrDefault();
+            if (range is { From: 0, To: 0 })
+            {
+                var responseContent = new ByteArrayContent(content[..1]);
+                responseContent.Headers.ContentRange = new System.Net.Http.Headers.ContentRangeHeaderValue(0, 0, content.Length);
+                var response = new HttpResponseMessage(HttpStatusCode.PartialContent) { Content = responseContent };
+                response.Headers.AcceptRanges.Add("bytes");
+                return response;
+            }
+
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            throw new InvalidOperationException("取消的请求不应返回响应。");
         }
     }
 }

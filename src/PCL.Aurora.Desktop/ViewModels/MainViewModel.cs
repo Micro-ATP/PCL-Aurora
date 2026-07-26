@@ -53,6 +53,14 @@ public partial class MainViewModel(
         new(LauncherThemeMode.Dark, "深色"),
     ];
 
+    public IReadOnlyList<int> DownloadConcurrencyOptions { get; } =
+        Enumerable.Range(
+            LauncherDownloadSettings.MinimumConcurrency,
+            LauncherDownloadSettings.MaximumConcurrency - LauncherDownloadSettings.MinimumConcurrency + 1)
+        .ToArray();
+
+    public IReadOnlyList<DownloadSpeedOption> DownloadSpeedOptions { get; } = DownloadSpeedOption.CreateAll();
+
     [ObservableProperty]
     private ThemeOption selectedThemeMode = new(themeService.CurrentMode, themeService.CurrentMode switch
     {
@@ -64,6 +72,17 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string themeSummary = "正在读取本地主题偏好…";
+
+    [ObservableProperty]
+    private int selectedDownloadConcurrency = LauncherDownloadSettings.DefaultConcurrency;
+
+    [ObservableProperty]
+    private DownloadSpeedOption selectedDownloadSpeedLimit = new(
+        LauncherDownloadSettings.UnlimitedSpeedLimitStep,
+        LauncherDownloadSettings.GetSpeedLimitDisplayName(LauncherDownloadSettings.UnlimitedSpeedLimitStep));
+
+    [ObservableProperty]
+    private string downloadSettingsSummary = "正在读取本地下载设置…";
 
     [ObservableProperty]
     private string operatingSystem = "正在读取系统信息…";
@@ -280,11 +299,15 @@ public partial class MainViewModel(
             SelectedThemeMode = option;
             themeService.Apply(option.Mode);
             ThemeSummary = result.Warning ?? $"当前使用{option.DisplayName}主题；该偏好已保存到本机。";
+            SelectedDownloadConcurrency = result.Preferences.DownloadConcurrency;
+            SelectedDownloadSpeedLimit = DownloadSpeedOptions.Single(option => option.Step == result.Preferences.DownloadSpeedLimitStep);
+            DownloadSettingsSummary = result.Warning ?? GetDownloadSettingsSummary(result.Preferences);
             RestoreOfflineAccount(result.Preferences.OfflinePlayerName);
         }
         catch (Exception exception)
         {
             ThemeSummary = $"无法读取本地主题偏好：{exception.Message}；当前跟随系统主题。";
+            DownloadSettingsSummary = "无法读取本地下载设置；已使用安全默认值。";
         }
         finally
         {
@@ -732,6 +755,55 @@ public partial class MainViewModel(
             ThemeSummary = $"当前使用{value.DisplayName}主题，但保存失败：{exception.Message}";
         }
     }
+
+    partial void OnSelectedDownloadConcurrencyChanged(int value)
+    {
+        if (!isLoadingPreferences)
+        {
+            _ = SaveDownloadConcurrencyPreferenceAsync(value);
+        }
+    }
+
+    partial void OnSelectedDownloadSpeedLimitChanged(DownloadSpeedOption value)
+    {
+        if (!isLoadingPreferences)
+        {
+            _ = SaveDownloadSpeedLimitPreferenceAsync(value.Step);
+        }
+    }
+
+    private async Task SaveDownloadConcurrencyPreferenceAsync(int value)
+    {
+        try
+        {
+            DownloadSettingsSummary = "正在保存下载并发设置…";
+            await preferencesService.SaveDownloadConcurrencyAsync(value);
+            currentPreferences = currentPreferences with { DownloadConcurrency = value };
+            DownloadSettingsSummary = GetDownloadSettingsSummary(currentPreferences);
+        }
+        catch (Exception exception)
+        {
+            DownloadSettingsSummary = $"下载并发设置保存失败：{exception.Message}";
+        }
+    }
+
+    private async Task SaveDownloadSpeedLimitPreferenceAsync(int value)
+    {
+        try
+        {
+            DownloadSettingsSummary = "正在保存下载限速设置…";
+            await preferencesService.SaveDownloadSpeedLimitStepAsync(value);
+            currentPreferences = currentPreferences with { DownloadSpeedLimitStep = value };
+            DownloadSettingsSummary = GetDownloadSettingsSummary(currentPreferences);
+        }
+        catch (Exception exception)
+        {
+            DownloadSettingsSummary = $"下载限速设置保存失败：{exception.Message}";
+        }
+    }
+
+    private static string GetDownloadSettingsSummary(LauncherPreferences preferences) =>
+        $"最多 {preferences.DownloadConcurrency} 个总下载连接；速度上限：{LauncherDownloadSettings.GetSpeedLimitDisplayName(preferences.DownloadSpeedLimitStep)}。设置将在下一次安装任务开始时生效。";
 
     [RelayCommand]
     private async Task InstallGameAsync()

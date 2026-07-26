@@ -8,14 +8,18 @@ namespace PCL.Aurora.Application;
 public sealed record LauncherPreferences(
     LauncherThemeMode ThemeMode,
     string? SelectedInstanceName = null,
-    string? OfflinePlayerName = null)
+    string? OfflinePlayerName = null,
+    int DownloadConcurrency = LauncherDownloadSettings.DefaultConcurrency,
+    int DownloadSpeedLimitStep = LauncherDownloadSettings.UnlimitedSpeedLimitStep)
 {
     public static LauncherPreferences Default { get; } = new(LauncherThemeMode.System);
 
     public bool IsValid =>
         Enum.IsDefined(ThemeMode) &&
         IsValidInstanceName(SelectedInstanceName) &&
-        IsValidOfflinePlayerName(OfflinePlayerName);
+        IsValidOfflinePlayerName(OfflinePlayerName) &&
+        LauncherDownloadSettings.IsValidConcurrency(DownloadConcurrency) &&
+        LauncherDownloadSettings.IsValidSpeedLimitStep(DownloadSpeedLimitStep);
 
     public static bool IsValidInstanceName(string? instanceName) =>
         instanceName is null ||

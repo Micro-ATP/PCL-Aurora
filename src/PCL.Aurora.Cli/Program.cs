@@ -22,6 +22,8 @@ services.AddSingleton<IMinecraftLaunchPreparationService, MinecraftLaunchPrepara
 services.AddSingleton<IMinecraftAssetIndexReader, MacOSMinecraftAssetIndexReader>();
 services.AddSingleton<IAssetMapper, MinecraftAssetMapper>();
 services.AddSingleton<HttpClient>();
+services.AddSingleton<ILauncherPreferencesStore, JsonLauncherPreferencesStore>();
+services.AddSingleton<ILauncherPreferencesService, LauncherPreferencesService>();
 services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();
 services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceInstallationService>();
 services.AddSingleton<IMinecraftVersionCatalogService, MinecraftVersionCatalogService>();
@@ -49,6 +51,8 @@ var officialLoaderCatalogService = provider.GetRequiredService<IMinecraftOfficia
 var loaderInstallerService = provider.GetRequiredService<IMinecraftLoaderInstallerService>();
 var minecraftDirectoryService = provider.GetRequiredService<IMinecraftDirectoryService>();
 var versionProvisioningService = provider.GetRequiredService<IMinecraftVersionProvisioningService>();
+var preferencesService = provider.GetRequiredService<ILauncherPreferencesService>();
+await preferencesService.LoadAsync();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
 switch (command)

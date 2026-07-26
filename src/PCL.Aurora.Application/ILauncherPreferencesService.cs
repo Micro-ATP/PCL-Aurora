@@ -5,6 +5,8 @@ namespace PCL.Aurora.Application;
 /// </summary>
 public interface ILauncherPreferencesService
 {
+    LauncherPreferences Current { get; }
+
     Task<LauncherPreferencesLoadResult> LoadAsync(CancellationToken cancellationToken = default);
 
     Task SaveThemeModeAsync(LauncherThemeMode themeMode, CancellationToken cancellationToken = default);
@@ -12,4 +14,8 @@ public interface ILauncherPreferencesService
     Task SaveSelectedInstanceNameAsync(string? instanceName, CancellationToken cancellationToken = default);
 
     Task SaveOfflinePlayerNameAsync(string? playerName, CancellationToken cancellationToken = default);
+
+    Task SaveDownloadConcurrencyAsync(int concurrency, CancellationToken cancellationToken = default);
+
+    Task SaveDownloadSpeedLimitStepAsync(int speedLimitStep, CancellationToken cancellationToken = default);
 }

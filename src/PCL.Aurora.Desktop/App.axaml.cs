@@ -54,6 +54,8 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IMinecraftAssetIndexReader, MacOSMinecraftAssetIndexReader>();
         services.AddSingleton<IAssetMapper, MinecraftAssetMapper>();
         services.AddSingleton<HttpClient>();
+        services.AddSingleton<ILauncherPreferencesStore, JsonLauncherPreferencesStore>();
+        services.AddSingleton<ILauncherPreferencesService, LauncherPreferencesService>();
         services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();
         services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceInstallationService>();
         services.AddSingleton<IMinecraftVersionCatalogService, MinecraftVersionCatalogService>();
@@ -63,8 +65,6 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IMinecraftLoaderInstallerService, MinecraftLoaderInstallerService>();
         services.AddSingleton<IMinecraftVersionProvisioningService, MinecraftVersionProvisioningService>();
         services.AddSingleton<IMinecraftDirectoryService, MinecraftDirectoryService>();
-        services.AddSingleton<ILauncherPreferencesStore, JsonLauncherPreferencesStore>();
-        services.AddSingleton<ILauncherPreferencesService, LauncherPreferencesService>();
         services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
         services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
         services.AddSingleton<IMinecraftGameLaunchService, MinecraftGameLaunchService>();

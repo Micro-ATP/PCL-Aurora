@@ -33,6 +33,21 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_RoundTripsValidatedDownloadSettings()
+    {
+        var store = CreateStore();
+
+        await store.SaveAsync(new LauncherPreferences(
+            LauncherThemeMode.System,
+            DownloadConcurrency: 8,
+            DownloadSpeedLimitStep: 31));
+        var result = await store.LoadAsync();
+
+        Assert.Equal(8, result.Preferences.DownloadConcurrency);
+        Assert.Equal(31, result.Preferences.DownloadSpeedLimitStep);
+    }
+
+    [Fact]
     public async Task SaveAsync_RoundTripsSafeSelectedInstanceName()
     {
         var store = CreateStore();

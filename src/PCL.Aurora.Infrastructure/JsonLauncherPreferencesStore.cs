@@ -48,7 +48,7 @@ public sealed class JsonLauncherPreferencesStore(IPlatformPaths platformPaths) :
         ArgumentNullException.ThrowIfNull(preferences);
         if (!preferences.IsValid)
         {
-            throw new ArgumentOutOfRangeException(nameof(preferences), "启动器偏好包含不支持的主题模式。");
+            throw new ArgumentOutOfRangeException(nameof(preferences), "启动器偏好包含不支持的值。");
         }
 
         await saveLock.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -80,5 +80,5 @@ public sealed class JsonLauncherPreferencesStore(IPlatformPaths platformPaths) :
         "preferences.json");
 
     private static LauncherPreferencesLoadResult InvalidResult() =>
-        new(LauncherPreferences.Default, "本地主题偏好无效，已安全回退为跟随系统主题。");
+        new(LauncherPreferences.Default, "本地启动器偏好无效，已安全回退为默认值。");
 }

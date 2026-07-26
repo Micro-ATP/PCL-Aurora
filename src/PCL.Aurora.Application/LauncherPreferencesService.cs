@@ -8,6 +8,8 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
     private readonly SemaphoreSlim updateLock = new(1, 1);
     private LauncherPreferences currentPreferences = LauncherPreferences.Default;
 
+    public LauncherPreferences Current => Volatile.Read(ref currentPreferences);
+
     public async Task<LauncherPreferencesLoadResult> LoadAsync(CancellationToken cancellationToken = default)
     {
         await updateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -31,6 +33,12 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
 
     public Task SaveOfflinePlayerNameAsync(string? playerName, CancellationToken cancellationToken = default) =>
         UpdateAsync(preferences => preferences with { OfflinePlayerName = playerName }, cancellationToken);
+
+    public Task SaveDownloadConcurrencyAsync(int concurrency, CancellationToken cancellationToken = default) =>
+        UpdateAsync(preferences => preferences with { DownloadConcurrency = concurrency }, cancellationToken);
+
+    public Task SaveDownloadSpeedLimitStepAsync(int speedLimitStep, CancellationToken cancellationToken = default) =>
+        UpdateAsync(preferences => preferences with { DownloadSpeedLimitStep = speedLimitStep }, cancellationToken);
 
     private async Task UpdateAsync(
         Func<LauncherPreferences, LauncherPreferences> update,

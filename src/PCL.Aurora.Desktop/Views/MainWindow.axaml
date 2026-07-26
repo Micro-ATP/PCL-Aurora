@@ -99,6 +99,38 @@
                         </Border>
 
                         <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
+                            <StackPanel Spacing="12">
+                                <TextBlock FontWeight="SemiBold" Text="游戏 · 下载" />
+                                <Label Content="最大下载连接数" Target="{Binding #DownloadConcurrencySelector}" />
+                                <ComboBox x:Name="DownloadConcurrencySelector"
+                                          Width="240"
+                                          HorizontalAlignment="Left"
+                                          AutomationProperties.Name="最大下载连接数"
+                                          ItemsSource="{Binding DownloadConcurrencyOptions}"
+                                          SelectedItem="{Binding SelectedDownloadConcurrency}" />
+                                <Label Content="总下载限速" Target="{Binding #DownloadSpeedSelector}" />
+                                <ComboBox x:Name="DownloadSpeedSelector"
+                                          Width="240"
+                                          HorizontalAlignment="Left"
+                                          AutomationProperties.Name="总下载限速"
+                                          ItemsSource="{Binding DownloadSpeedOptions}"
+                                          SelectedItem="{Binding SelectedDownloadSpeedLimit}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding DownloadSettingsSummary}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="大文件仅在服务器明确支持 HTTP Range、文件长度和 SHA-1 均已验证时分片；否则自动回退到单连接并保持来源回退、哈希校验和原子替换。"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
                             <StackPanel Spacing="8">
                                 <TextBlock FontWeight="SemiBold" Text="启动迁移状态" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
