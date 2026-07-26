@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PCL.Aurora.Application/PCL.Aurora.Application.csproj" />
+    <Project Path="src/PCL.Aurora.Cli/PCL.Aurora.Cli.csproj" />
+    <Project Path="src/PCL.Aurora.Desktop/PCL.Aurora.Desktop.csproj" />
+    <Project Path="src/PCL.Aurora.Domain/PCL.Aurora.Domain.csproj" />
+    <Project Path="src/PCL.Aurora.Infrastructure/PCL.Aurora.Infrastructure.csproj" />
+    <Project Path="src/PCL.Aurora.Platform.Abstractions/PCL.Aurora.Platform.Abstractions.csproj" />
+    <Project Path="src/PCL.Aurora.Platform.MacOS/PCL.Aurora.Platform.MacOS.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PCL.Aurora.Application.Tests/PCL.Aurora.Application.Tests.csproj" />
+    <Project Path="tests/PCL.Aurora.Domain.Tests/PCL.Aurora.Domain.Tests.csproj" />
+    <Project Path="tests/PCL.Aurora.Platform.Tests/PCL.Aurora.Platform.Tests.csproj" />
+  </Folder>
+</Solution>

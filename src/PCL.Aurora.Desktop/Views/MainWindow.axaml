@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:PCL.Aurora.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="860" d:DesignHeight="580"
+        x:Class="PCL.Aurora.Desktop.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="PCL Aurora">
+
+    <Design.DataContext>
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="32" Spacing="16">
+            <TextBlock FontSize="28" FontWeight="SemiBold" Text="PCL Aurora" />
+            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                       Text="跨平台迁移 · 系统诊断" />
+
+            <Border Padding="20" CornerRadius="10" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="160,*" RowSpacing="12">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="操作系统" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OperatingSystem}" TextWrapping="Wrap" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="系统架构" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Architecture}" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text=".NET 运行时" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Runtime}" TextWrapping="Wrap" />
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="数据目录" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ApplicationDataDirectory}" TextWrapping="Wrap" />
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="缓存目录" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CacheDirectory}" TextWrapping="Wrap" />
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Java" />
+                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding JavaSummary}" TextWrapping="Wrap" />
+                </Grid>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button Command="{Binding RefreshCommand}" Content="刷新诊断" />
+                <TextBlock VerticalAlignment="Center" Text="实例、下载与设置功能将在后续迁移迭代中实现。" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+
+</Window>
