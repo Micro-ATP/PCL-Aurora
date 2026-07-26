@@ -3,43 +3,170 @@
         xmlns:vm="using:PCL.Aurora.Desktop.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="860" d:DesignHeight="580"
+        mc:Ignorable="d" d:DesignWidth="1120" d:DesignHeight="720"
         x:Class="PCL.Aurora.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
+        MinWidth="800"
+        MinHeight="560"
         Title="PCL Aurora">
 
     <Design.DataContext>
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <ScrollViewer>
-        <StackPanel Margin="32" Spacing="16">
-            <TextBlock FontSize="28" FontWeight="SemiBold" Text="PCL Aurora" />
-            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                       Text="跨平台迁移 · 系统诊断" />
+    <Grid RowDefinitions="Auto,*">
+        <Border Padding="24,18" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                    <TextBlock FontSize="24" FontWeight="SemiBold" Text="PCL Aurora" />
+                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               Text="跨平台启动器 · 迁移预览" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           Text="macOS · .NET 10" />
+            </Grid>
+        </Border>
 
-            <Border Padding="20" CornerRadius="10" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="160,*" RowSpacing="12">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="操作系统" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OperatingSystem}" TextWrapping="Wrap" />
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="系统架构" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Architecture}" />
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text=".NET 运行时" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Runtime}" TextWrapping="Wrap" />
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="数据目录" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ApplicationDataDirectory}" TextWrapping="Wrap" />
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="缓存目录" />
-                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CacheDirectory}" TextWrapping="Wrap" />
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Java" />
-                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding JavaSummary}" TextWrapping="Wrap" />
-                </Grid>
-            </Border>
+        <TabControl Grid.Row="1" Margin="16" TabStripPlacement="Left">
+            <TabItem Header="启动">
+                <ScrollViewer>
+                    <StackPanel Margin="28" MaxWidth="860" Spacing="20">
+                        <StackPanel Spacing="6">
+                            <TextBlock FontSize="28" FontWeight="SemiBold" Text="启动游戏" />
+                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                       Text="选择实例、账户和 Java 后启动 Minecraft。" TextWrapping="Wrap" />
+                        </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <Button Command="{Binding RefreshCommand}" Content="刷新诊断" />
-                <TextBlock VerticalAlignment="Center" Text="实例、下载与设置功能将在后续迁移迭代中实现。" />
-            </StackPanel>
-        </StackPanel>
-    </ScrollViewer>
+                        <Border Padding="24" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                            <StackPanel Spacing="14">
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="尚未选择实例" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="实例管理和启动流程将在完成元数据、账户与版本解析迁移后启用。" TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Button IsEnabled="False" Content="选择实例" />
+                                    <Button IsEnabled="False" Content="启动游戏" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="启动迁移状态" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="已完成：系统与 Java 诊断。待完成：实例选择、离线与微软账户、版本下载、依赖解析、游戏进程启动。"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="下载">
+                <ScrollViewer>
+                    <StackPanel Margin="28" MaxWidth="860" Spacing="20">
+                        <StackPanel Spacing="6">
+                            <TextBlock FontSize="28" FontWeight="SemiBold" Text="下载" />
+                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                       Text="社区资源与游戏组件安装入口。" />
+                        </StackPanel>
+
+                        <UniformGrid Columns="2" Rows="2" HorizontalAlignment="Left">
+                            <Border Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="SemiBold" Text="社区资源" />
+                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="模组、整合包、数据包、资源包、光影与存档。" TextWrapping="Wrap" />
+                                    <Button IsEnabled="False" Content="浏览资源" />
+                                </StackPanel>
+                            </Border>
+                            <Border Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="SemiBold" Text="游戏安装" />
+                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="Minecraft、Fabric、Forge、NeoForge 等安装器。" TextWrapping="Wrap" />
+                                    <Button IsEnabled="False" Content="选择版本" />
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   Text="下载源、校验、断点续传和安装器解析尚未迁移；本页入口已保留，避免把不可用功能伪装为已完成。"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="设置">
+                <ScrollViewer>
+                    <StackPanel Margin="28" MaxWidth="860" Spacing="24">
+                        <StackPanel Spacing="6">
+                            <TextBlock FontSize="28" FontWeight="SemiBold" Text="设置" />
+                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                       Text="游戏、工具、启动器与关于信息。" />
+                        </StackPanel>
+
+                        <Border Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                            <StackPanel Spacing="14">
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="游戏 · Java" />
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="160,*" RowSpacing="12">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="操作系统" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OperatingSystem}" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="系统架构" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Architecture}" />
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text=".NET 运行时" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Runtime}" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="数据目录" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ApplicationDataDirectory}" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="缓存目录" />
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CacheDirectory}" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Java" />
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding JavaSummary}" TextWrapping="Wrap" />
+                                </Grid>
+                                <Button HorizontalAlignment="Left" Command="{Binding RefreshCommand}" Content="刷新 Java 诊断" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="启动器 · 界面" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="当前跟随系统主题。主题选择、语言、更新、日志与反馈将在对应服务完成后启用。"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="更多">
+                <ScrollViewer>
+                    <StackPanel Margin="28" MaxWidth="860" Spacing="20">
+                        <StackPanel Spacing="6">
+                            <TextBlock FontSize="28" FontWeight="SemiBold" Text="更多工具" />
+                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                       Text="联机、游戏目录、日志与维护工具。" />
+                        </StackPanel>
+
+                        <Border Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontWeight="SemiBold" Text="工具迁移队列" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="计划依次实现：游戏目录关联、日志查看与导出、局域网联机辅助、崩溃分析。"
+                                           TextWrapping="Wrap" />
+                                <Button HorizontalAlignment="Left" IsEnabled="False" Content="打开工具" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="关于 PCL Aurora" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="这是跨平台迁移工程。功能对齐以 PCL-CE 为参照，平台实现与界面代码独立重建。"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
 
 </Window>
