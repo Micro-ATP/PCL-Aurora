@@ -18,6 +18,7 @@ public partial class MainViewModel(
     IMinecraftVersionProvisioningService versionProvisioningService,
     IMinecraftDirectoryService minecraftDirectoryService,
     IMinecraftGameLaunchService gameLaunchService,
+    ILauncherPreferencesService preferencesService,
     IThemeService themeService) : ViewModelBase
 {
     private const int MaximumGameLogLines = 500;
@@ -26,6 +27,7 @@ public partial class MainViewModel(
     private JavaInstallation? selectedJava;
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
     private bool isRefreshing;
+    private bool isLoadingPreferences;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
@@ -37,22 +39,22 @@ public partial class MainViewModel(
 
     public IReadOnlyList<ThemeOption> ThemeModes { get; } =
     [
-        new(ThemeMode.System, "跟随系统"),
-        new(ThemeMode.Light, "浅色"),
-        new(ThemeMode.Dark, "深色"),
+        new(LauncherThemeMode.System, "跟随系统"),
+        new(LauncherThemeMode.Light, "浅色"),
+        new(LauncherThemeMode.Dark, "深色"),
     ];
 
     [ObservableProperty]
     private ThemeOption selectedThemeMode = new(themeService.CurrentMode, themeService.CurrentMode switch
     {
-        ThemeMode.System => "跟随系统",
-        ThemeMode.Light => "浅色",
-        ThemeMode.Dark => "深色",
+        LauncherThemeMode.System => "跟随系统",
+        LauncherThemeMode.Light => "浅色",
+        LauncherThemeMode.Dark => "深色",
         _ => throw new ArgumentOutOfRangeException(nameof(themeService.CurrentMode)),
     });
 
     [ObservableProperty]
-    private string themeSummary = "当前跟随系统主题；此设置仅在本次运行生效，尚未保存。";
+    private string themeSummary = "正在读取本地主题偏好…";
 
     [ObservableProperty]
     private string operatingSystem = "正在读取系统信息…";
@@ -183,6 +185,33 @@ public partial class MainViewModel(
         finally
         {
             isRefreshing = false;
+        }
+    }
+
+    public async Task InitializeAsync()
+    {
+        await LoadThemePreferenceAsync();
+        await RefreshAsync();
+    }
+
+    private async Task LoadThemePreferenceAsync()
+    {
+        try
+        {
+            isLoadingPreferences = true;
+            var result = await preferencesService.LoadAsync();
+            var option = ThemeModes.Single(item => item.Mode == result.Preferences.ThemeMode);
+            SelectedThemeMode = option;
+            themeService.Apply(option.Mode);
+            ThemeSummary = result.Warning ?? $"当前使用{option.DisplayName}主题；该偏好已保存到本机。";
+        }
+        catch (Exception exception)
+        {
+            ThemeSummary = $"无法读取本地主题偏好：{exception.Message}；当前跟随系统主题。";
+        }
+        finally
+        {
+            isLoadingPreferences = false;
         }
     }
 
@@ -350,8 +379,27 @@ public partial class MainViewModel(
 
     partial void OnSelectedThemeModeChanged(ThemeOption value)
     {
+        if (isLoadingPreferences)
+        {
+            return;
+        }
+
         themeService.Apply(value.Mode);
-        ThemeSummary = $"当前使用{value.DisplayName}主题；此设置仅在本次运行生效，尚未保存。";
+        _ = SaveThemePreferenceAsync(value);
+    }
+
+    private async Task SaveThemePreferenceAsync(ThemeOption value)
+    {
+        try
+        {
+            ThemeSummary = $"当前使用{value.DisplayName}主题；正在保存到本机…";
+            await preferencesService.SaveThemeModeAsync(value.Mode);
+            ThemeSummary = $"当前使用{value.DisplayName}主题；该偏好已保存到本机。";
+        }
+        catch (Exception exception)
+        {
+            ThemeSummary = $"当前使用{value.DisplayName}主题，但保存失败：{exception.Message}";
+        }
     }
 
     [RelayCommand]

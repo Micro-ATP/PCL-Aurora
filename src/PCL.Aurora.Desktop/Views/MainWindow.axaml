@@ -204,7 +204,7 @@
                                            Text="{Binding ThemeSummary}"
                                            TextWrapping="Wrap" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="语言、更新、日志与反馈将在对应服务完成后启用。"
+                                           Text="主题偏好只保存在本机；不保存账户密码或令牌。语言、更新与反馈将在对应服务完成后启用。"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>

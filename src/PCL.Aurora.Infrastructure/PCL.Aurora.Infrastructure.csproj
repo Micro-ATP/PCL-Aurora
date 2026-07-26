@@ -9,5 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="../PCL.Aurora.Application/PCL.Aurora.Application.csproj" />
     <ProjectReference Include="../PCL.Aurora.Domain/PCL.Aurora.Domain.csproj" />
+    <ProjectReference Include="../PCL.Aurora.Platform.Abstractions/PCL.Aurora.Platform.Abstractions.csproj" />
   </ItemGroup>
 </Project>

@@ -11,7 +11,7 @@ public partial class MainWindow : Window
         {
             if (DataContext is ViewModels.MainViewModel viewModel)
             {
-                await viewModel.RefreshCommand.ExecuteAsync(null);
+                await viewModel.InitializeAsync();
             }
         };
     }
