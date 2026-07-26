@@ -1,3 +1,5 @@
+using PCL.Aurora.Domain;
+
 namespace PCL.Aurora.Application;
 
 /// <summary>
@@ -42,6 +44,12 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
 
     public Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default) =>
         UpdateAsync(preferences => preferences with { MicrosoftAccount = profile }, cancellationToken);
+
+    public Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        return UpdateAsync(preferences => preferences with { LaunchOptions = options }, cancellationToken);
+    }
 
     private async Task UpdateAsync(
         Func<LauncherPreferences, LauncherPreferences> update,

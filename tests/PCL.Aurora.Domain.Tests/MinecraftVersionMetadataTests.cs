@@ -257,6 +257,76 @@ public sealed class MinecraftVersionMetadataTests
     }
 
     [Fact]
+    public void Prepare_AppliesCustomArgumentsFullscreenAndWindowDimensionsWithoutShellSplitting()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.21.4",
+            null,
+            "release",
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                "net.minecraft.client.main.Main",
+                ["-cp", "${classpath}"],
+                ["--width", "854", "--height", "480"],
+                HasModernArguments: true,
+                HasConditionalArguments: false,
+                LegacyGameArguments: null));
+        OfflineAccount.TryCreate("AuroraPlayer", out var account);
+        var context = MinecraftLaunchContext.CreateDefault("1.21.4") with
+        {
+            Classpath = "/libraries/example.jar",
+            GameDirectory = "/Minecraft Folder",
+            Account = account,
+        };
+        var options = new MinecraftLaunchOptions(
+            AdditionalJvmArguments: "-Dgame.dir=\"${game_directory}\" -Xmx4G",
+            AdditionalGameArguments: "--width 1280 --note \"Hello Aurora\"",
+            WindowMode: MinecraftGameWindowMode.Fullscreen,
+            WindowWidth: 1280,
+            WindowHeight: 720);
+
+        var preparation = MinecraftLaunchArgumentBuilder.Prepare(metadata, context, options);
+
+        Assert.True(preparation.IsReady);
+        Assert.Equal(
+            ["-cp", "/libraries/example.jar", "-Dgame.dir=/Minecraft Folder", "-Xmx4G"],
+            preparation.Arguments!.JvmArguments);
+        Assert.Equal(
+            ["--width", "1280", "--height", "480", "--note", "Hello Aurora", "--fullscreen"],
+            preparation.Arguments.GameArguments);
+    }
+
+    [Fact]
+    public void Prepare_RejectsMalformedCustomArguments()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.21.4",
+            null,
+            "release",
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                "net.minecraft.client.main.Main",
+                ["-cp", "${classpath}"],
+                [],
+                HasModernArguments: true,
+                HasConditionalArguments: false,
+                LegacyGameArguments: null));
+        var context = MinecraftLaunchContext.CreateDefault("1.21.4") with { Classpath = "/libraries/example.jar" };
+
+        var preparation = MinecraftLaunchArgumentBuilder.Prepare(
+            metadata,
+            context,
+            new MinecraftLaunchOptions(AdditionalJvmArguments: "-Dexample=\"unterminated"));
+
+        Assert.False(preparation.IsReady);
+        Assert.Contains(preparation.BlockingReasons, reason => reason.Contains("额外 JVM 参数", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Prepare_UsesAuthenticatedMicrosoftTokenOnlyForRequiredLaunchPlaceholders()
     {
         var metadata = new MinecraftVersionMetadata(

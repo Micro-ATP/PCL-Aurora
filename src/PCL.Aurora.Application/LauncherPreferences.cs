@@ -11,7 +11,8 @@ public sealed record LauncherPreferences(
     string? OfflinePlayerName = null,
     int DownloadConcurrency = LauncherDownloadSettings.DefaultConcurrency,
     int DownloadSpeedLimitStep = LauncherDownloadSettings.UnlimitedSpeedLimitStep,
-    MicrosoftAccountProfile? MicrosoftAccount = null)
+    MicrosoftAccountProfile? MicrosoftAccount = null,
+    MinecraftLaunchOptions? LaunchOptions = null)
 {
     public static LauncherPreferences Default { get; } = new(LauncherThemeMode.System);
 
@@ -21,7 +22,10 @@ public sealed record LauncherPreferences(
         IsValidOfflinePlayerName(OfflinePlayerName) &&
         LauncherDownloadSettings.IsValidConcurrency(DownloadConcurrency) &&
         LauncherDownloadSettings.IsValidSpeedLimitStep(DownloadSpeedLimitStep) &&
-        (MicrosoftAccount?.IsValid ?? true);
+        (MicrosoftAccount?.IsValid ?? true) &&
+        (LaunchOptions?.IsValid ?? true);
+
+    public MinecraftLaunchOptions EffectiveLaunchOptions => LaunchOptions ?? MinecraftLaunchOptions.Default;
 
     public static bool IsValidInstanceName(string? instanceName) =>
         instanceName is null ||

@@ -1,4 +1,5 @@
 using PCL.Aurora.Application;
+using PCL.Aurora.Domain;
 using PCL.Aurora.Infrastructure;
 using PCL.Aurora.Platform.Abstractions;
 
@@ -45,6 +46,32 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
 
         Assert.Equal(8, result.Preferences.DownloadConcurrency);
         Assert.Equal(31, result.Preferences.DownloadSpeedLimitStep);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RoundTripsValidatedLaunchOptionsWithoutAnyToken()
+    {
+        var store = CreateStore();
+        var options = new MinecraftLaunchOptions("-Xmx4G", "--demo", MinecraftGameWindowMode.Custom, 1280, 720);
+
+        await store.SaveAsync(new LauncherPreferences(LauncherThemeMode.System, LaunchOptions: options));
+        var result = await store.LoadAsync();
+
+        Assert.Equal(options, result.Preferences.EffectiveLaunchOptions);
+        var storedJson = await File.ReadAllTextAsync(GetPreferencesPath());
+        Assert.DoesNotContain("token", storedJson, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RejectsUnsafeLaunchOptions()
+    {
+        var store = CreateStore();
+        var options = new MinecraftLaunchOptions(WindowWidth: 99);
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            store.SaveAsync(new LauncherPreferences(LauncherThemeMode.System, LaunchOptions: options)));
+
+        Assert.False(File.Exists(GetPreferencesPath()));
     }
 
     [Fact]

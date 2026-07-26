@@ -49,7 +49,7 @@ public static class Pcl2MinecraftLegacyArgumentTokenizer
 
         if (inQuotes)
         {
-            error = "旧版 minecraftArguments 包含未闭合的双引号。";
+            error = "参数文本包含未闭合的双引号。";
             return false;
         }
 

@@ -6,10 +6,17 @@ public static partial class MinecraftLaunchArgumentBuilder
 {
     public static MinecraftLaunchArgumentPreparation Prepare(
         MinecraftVersionMetadata? metadata,
-        MinecraftLaunchContext context)
+        MinecraftLaunchContext context,
+        MinecraftLaunchOptions? launchOptions = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         var blockingReasons = new List<string>();
+        launchOptions ??= MinecraftLaunchOptions.Default;
+        if (!launchOptions.IsValid)
+        {
+            return new(null, ["自定义启动选项包含不支持的值。"]);
+        }
+
         if (metadata?.Launch is not { } launch)
         {
             return new(null, ["版本元数据未提供启动信息。"]);
@@ -49,8 +56,27 @@ public static partial class MinecraftLaunchArgumentBuilder
             gameTemplates = AppendLegacyGameArguments(gameTemplates, launch.LegacyGameArguments, blockingReasons);
         }
 
-        var jvmArguments = ReplaceAll(jvmTemplates, replacements, blockingReasons);
-        var gameArguments = ReplaceAll(gameTemplates, replacements, blockingReasons);
+        jvmTemplates = AppendCustomArguments(
+            jvmTemplates,
+            launchOptions.AdditionalJvmArguments,
+            "额外 JVM 参数",
+            blockingReasons);
+        gameTemplates = AppendCustomArguments(
+            gameTemplates,
+            launchOptions.AdditionalGameArguments,
+            "额外游戏参数",
+            blockingReasons);
+        if (launchOptions.WindowMode == MinecraftGameWindowMode.Fullscreen)
+        {
+            gameTemplates = gameTemplates.Concat(["--fullscreen"]).ToArray();
+        }
+
+        var jvmArguments = Pcl2MinecraftLaunchArgumentDeduplicator.Deduplicate(
+            ReplaceAll(jvmTemplates, replacements, blockingReasons),
+            isJvmArgument: true);
+        var gameArguments = Pcl2MinecraftLaunchArgumentDeduplicator.Deduplicate(
+            ReplaceAll(gameTemplates, replacements, blockingReasons),
+            isJvmArgument: false);
         if (blockingReasons.Count > 0 || string.IsNullOrWhiteSpace(launch.MainClass))
         {
             return new(null, blockingReasons);
@@ -89,6 +115,26 @@ public static partial class MinecraftLaunchArgumentBuilder
 
         result.AddRange(modernArguments);
         return result;
+    }
+
+    private static IReadOnlyList<string> AppendCustomArguments(
+        IReadOnlyList<string> baseArguments,
+        string? customArguments,
+        string settingName,
+        List<string> blockingReasons)
+    {
+        if (string.IsNullOrWhiteSpace(customArguments))
+        {
+            return baseArguments;
+        }
+
+        if (!Pcl2MinecraftLegacyArgumentTokenizer.TryTokenize(customArguments, out var customTokens, out var error))
+        {
+            blockingReasons.Add($"{settingName}：{error}");
+            return baseArguments;
+        }
+
+        return baseArguments.Concat(customTokens).ToArray();
     }
 
     private static IReadOnlyList<string> SelectConditionalArguments(

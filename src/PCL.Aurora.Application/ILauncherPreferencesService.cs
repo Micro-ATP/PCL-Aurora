@@ -1,3 +1,5 @@
+using PCL.Aurora.Domain;
+
 namespace PCL.Aurora.Application;
 
 /// <summary>
@@ -20,4 +22,6 @@ public interface ILauncherPreferencesService
     Task SaveDownloadSpeedLimitStepAsync(int speedLimitStep, CancellationToken cancellationToken = default);
 
     Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default);
+
+    Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default);
 }

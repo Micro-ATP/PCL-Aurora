@@ -2,7 +2,9 @@ using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Application;
 
-public sealed class MinecraftLaunchPreparationService(IMinecraftVersionPreparationService versionPreparationService)
+public sealed class MinecraftLaunchPreparationService(
+    IMinecraftVersionPreparationService versionPreparationService,
+    ILauncherPreferencesService? preferencesService = null)
     : IMinecraftLaunchPreparationService
 {
     public async Task<MinecraftLaunchPreparation> PrepareAsync(
@@ -26,6 +28,7 @@ public sealed class MinecraftLaunchPreparationService(IMinecraftVersionPreparati
         var minecraftRootDirectory = versionsDirectory is null
             ? null
             : Directory.GetParent(versionsDirectory)?.FullName;
+        var launchOptions = preferencesService?.Current.EffectiveLaunchOptions ?? MinecraftLaunchOptions.Default;
         var context = MinecraftLaunchContext.CreateDefault(metadata.Id) with
         {
             NativesDirectory = Path.Combine(instance.DirectoryPath, "natives"),
@@ -35,12 +38,21 @@ public sealed class MinecraftLaunchPreparationService(IMinecraftVersionPreparati
             VersionType = metadata.Type,
             Account = account,
             RuleEnvironment = versionPreparation.RuleEnvironment,
+            ResolutionWidth = launchOptions.WindowMode == MinecraftGameWindowMode.Custom
+                ? launchOptions.WindowWidth
+                : MinecraftLaunchOptions.DefaultWindowWidth,
+            ResolutionHeight = launchOptions.WindowMode == MinecraftGameWindowMode.Custom
+                ? launchOptions.WindowHeight
+                : MinecraftLaunchOptions.DefaultWindowHeight,
         };
         var classpathInspection = MinecraftClasspathBuilder.Build(
             versionPreparation.Inspection,
             minecraftRootDirectory,
             versionPreparation.RuleEnvironment);
         context = context with { Classpath = classpathInspection.Value };
-        return new(versionPreparation, classpathInspection, MinecraftLaunchArgumentBuilder.Prepare(metadata, context));
+        return new(
+            versionPreparation,
+            classpathInspection,
+            MinecraftLaunchArgumentBuilder.Prepare(metadata, context, launchOptions));
     }
 }

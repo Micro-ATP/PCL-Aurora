@@ -1,4 +1,5 @@
 using PCL.Aurora.Application;
+using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Application.Tests;
 
@@ -53,6 +54,24 @@ public sealed class LauncherPreferencesServiceTests
         Assert.Equal("Aurora_01", store.SavedPreferences?.OfflinePlayerName);
         await service.SaveMicrosoftAccountAsync(null);
         Assert.Null(store.SavedPreferences?.MicrosoftAccount);
+    }
+
+    [Fact]
+    public async Task SaveLaunchOptionsAsync_PreservesPreviouslyLoadedPreferences()
+    {
+        var store = new RecordingPreferencesStore(
+            new LauncherPreferencesLoadResult(
+                new LauncherPreferences(LauncherThemeMode.Light, "1.21.4", "Aurora_01"),
+                null));
+        var service = new LauncherPreferencesService(store);
+        var options = new MinecraftLaunchOptions("-Xmx4G", "--demo", MinecraftGameWindowMode.Custom, 1280, 720);
+        await service.LoadAsync();
+
+        await service.SaveLaunchOptionsAsync(options);
+
+        Assert.Equal(options, store.SavedPreferences?.EffectiveLaunchOptions);
+        Assert.Equal("1.21.4", store.SavedPreferences?.SelectedInstanceName);
+        Assert.Equal("Aurora_01", store.SavedPreferences?.OfflinePlayerName);
     }
 
     private sealed class RecordingPreferencesStore(LauncherPreferencesLoadResult loadResult) : ILauncherPreferencesStore

@@ -67,6 +67,13 @@ public partial class MainViewModel(
 
     public IReadOnlyList<DownloadSpeedOption> DownloadSpeedOptions { get; } = DownloadSpeedOption.CreateAll();
 
+    public IReadOnlyList<MinecraftGameWindowModeOption> GameWindowModes { get; } =
+    [
+        new(MinecraftGameWindowMode.Default, "默认窗口（854 × 480）"),
+        new(MinecraftGameWindowMode.Fullscreen, "全屏"),
+        new(MinecraftGameWindowMode.Custom, "自定义尺寸"),
+    ];
+
     [ObservableProperty]
     private ThemeOption selectedThemeMode = new(themeService.CurrentMode, themeService.CurrentMode switch
     {
@@ -89,6 +96,29 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string downloadSettingsSummary = "正在读取本地下载设置…";
+
+    [ObservableProperty]
+    private string additionalJvmArguments = string.Empty;
+
+    [ObservableProperty]
+    private string additionalGameArguments = string.Empty;
+
+    [ObservableProperty]
+    private MinecraftGameWindowModeOption selectedGameWindowMode = new(
+        MinecraftGameWindowMode.Default,
+        "默认窗口（854 × 480）");
+
+    [ObservableProperty]
+    private string customGameWindowWidth = MinecraftLaunchOptions.DefaultWindowWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    [ObservableProperty]
+    private string customGameWindowHeight = MinecraftLaunchOptions.DefaultWindowHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    [ObservableProperty]
+    private bool usesCustomGameWindowSize;
+
+    [ObservableProperty]
+    private string launchOptionsSummary = "正在读取本地启动选项…";
 
     [ObservableProperty]
     private string operatingSystem = "正在读取系统信息…";
@@ -332,6 +362,14 @@ public partial class MainViewModel(
             SelectedDownloadConcurrency = result.Preferences.DownloadConcurrency;
             SelectedDownloadSpeedLimit = DownloadSpeedOptions.Single(option => option.Step == result.Preferences.DownloadSpeedLimitStep);
             DownloadSettingsSummary = result.Warning ?? GetDownloadSettingsSummary(result.Preferences);
+            var launchOptions = result.Preferences.EffectiveLaunchOptions;
+            AdditionalJvmArguments = launchOptions.AdditionalJvmArguments ?? string.Empty;
+            AdditionalGameArguments = launchOptions.AdditionalGameArguments ?? string.Empty;
+            SelectedGameWindowMode = GameWindowModes.Single(option => option.Mode == launchOptions.WindowMode);
+            CustomGameWindowWidth = launchOptions.WindowWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            CustomGameWindowHeight = launchOptions.WindowHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            UsesCustomGameWindowSize = launchOptions.WindowMode == MinecraftGameWindowMode.Custom;
+            LaunchOptionsSummary = result.Warning ?? GetLaunchOptionsSummary(launchOptions);
             RestoreOfflineAccount(result.Preferences.OfflinePlayerName);
             UpdateMicrosoftLoginAvailability(result.Preferences.MicrosoftAccount);
         }
@@ -339,6 +377,7 @@ public partial class MainViewModel(
         {
             ThemeSummary = $"无法读取本地主题偏好：{exception.Message}；当前跟随系统主题。";
             DownloadSettingsSummary = "无法读取本地下载设置；已使用安全默认值。";
+            LaunchOptionsSummary = "无法读取本地启动选项；已使用安全默认值。";
             MicrosoftLoginSummary = "无法读取本地 Microsoft 账户档案。";
         }
         finally
@@ -837,6 +876,67 @@ public partial class MainViewModel(
     private static string GetDownloadSettingsSummary(LauncherPreferences preferences) =>
         $"最多 {preferences.DownloadConcurrency} 个总下载连接；速度上限：{LauncherDownloadSettings.GetSpeedLimitDisplayName(preferences.DownloadSpeedLimitStep)}。设置将在下一次安装任务开始时生效。";
 
+    partial void OnSelectedGameWindowModeChanged(MinecraftGameWindowModeOption value) =>
+        UsesCustomGameWindowSize = value.Mode == MinecraftGameWindowMode.Custom;
+
+    [RelayCommand]
+    private async Task SaveLaunchOptionsAsync()
+    {
+        if (!int.TryParse(
+                CustomGameWindowWidth,
+                System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var width) ||
+            !int.TryParse(
+                CustomGameWindowHeight,
+                System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var height))
+        {
+            LaunchOptionsSummary = "窗口宽度和高度必须是整数；未保存也不会影响当前启动配置。";
+            return;
+        }
+
+        var options = new MinecraftLaunchOptions(
+            AdditionalJvmArguments,
+            AdditionalGameArguments,
+            SelectedGameWindowMode.Mode,
+            width,
+            height);
+        if (!options.IsValid)
+        {
+            LaunchOptionsSummary = $"启动选项无效：自定义参数最多 {MinecraftLaunchOptions.MaximumArgumentTextLength} 个字符，窗口尺寸范围为 {MinecraftLaunchOptions.MinimumWindowDimension}–{MinecraftLaunchOptions.MaximumWindowDimension}。";
+            return;
+        }
+
+        try
+        {
+            LaunchOptionsSummary = "正在保存启动选项…";
+            await preferencesService.SaveLaunchOptionsAsync(options);
+            currentPreferences = currentPreferences with { LaunchOptions = options };
+            LaunchOptionsSummary = GetLaunchOptionsSummary(options);
+            await RefreshSelectedInstanceStateAsync();
+        }
+        catch (Exception exception)
+        {
+            LaunchOptionsSummary = $"启动选项保存失败：{exception.Message}";
+        }
+    }
+
+    private static string GetLaunchOptionsSummary(MinecraftLaunchOptions options)
+    {
+        var windowDescription = options.WindowMode switch
+        {
+            MinecraftGameWindowMode.Default => "默认窗口 854 × 480",
+            MinecraftGameWindowMode.Fullscreen => "全屏",
+            MinecraftGameWindowMode.Custom => $"自定义窗口 {options.WindowWidth} × {options.WindowHeight}",
+            _ => "未知窗口模式",
+        };
+        var jvmDescription = string.IsNullOrWhiteSpace(options.AdditionalJvmArguments) ? "未设置额外 JVM 参数" : "已设置额外 JVM 参数";
+        var gameDescription = string.IsNullOrWhiteSpace(options.AdditionalGameArguments) ? "未设置额外游戏参数" : "已设置额外游戏参数";
+        return $"{windowDescription}；{jvmDescription}；{gameDescription}。保存后立即用于下一次启动准备。";
+    }
+
     [RelayCommand]
     private async Task InstallGameAsync()
     {
@@ -1227,3 +1327,5 @@ public partial class MainViewModel(
             : string.Join(Environment.NewLine, readiness.BlockingReasons);
     }
 }
+
+public sealed record MinecraftGameWindowModeOption(MinecraftGameWindowMode Mode, string DisplayName);

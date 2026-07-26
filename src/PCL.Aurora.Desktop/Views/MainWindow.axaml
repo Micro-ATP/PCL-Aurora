@@ -152,6 +152,61 @@
                         </Border>
 
                         <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
+                            <StackPanel Spacing="12">
+                                <TextBlock FontWeight="SemiBold" Text="游戏 · 启动参数" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="参数会被拆分为独立值并直接传给 Java，不会经由 shell。错误的 JVM 参数可能导致游戏无法启动。"
+                                           TextWrapping="Wrap" />
+                                <Label Content="窗口模式" Target="{Binding #GameWindowModeSelector}" />
+                                <ComboBox x:Name="GameWindowModeSelector"
+                                          Width="280"
+                                          HorizontalAlignment="Left"
+                                          AutomationProperties.Name="Minecraft 窗口模式"
+                                          ItemsSource="{Binding GameWindowModes}"
+                                          SelectedItem="{Binding SelectedGameWindowMode}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <StackPanel IsEnabled="{Binding UsesCustomGameWindowSize}" Orientation="Horizontal" Spacing="8">
+                                    <TextBlock VerticalAlignment="Center" Text="宽度" />
+                                    <TextBox Width="90"
+                                             AutomationProperties.Name="自定义 Minecraft 窗口宽度"
+                                             Text="{Binding CustomGameWindowWidth}" />
+                                    <TextBlock VerticalAlignment="Center" Text="×" />
+                                    <TextBox Width="90"
+                                             AutomationProperties.Name="自定义 Minecraft 窗口高度"
+                                             Text="{Binding CustomGameWindowHeight}" />
+                                    <TextBlock VerticalAlignment="Center" Text="高度" />
+                                </StackPanel>
+                                <TextBlock Text="额外 JVM 参数" />
+                                <TextBox AcceptsReturn="True"
+                                         Height="80"
+                                         MaxLength="4000"
+                                         PlaceholderText="例如：-Xmx4G -Dexample=value"
+                                         Text="{Binding AdditionalJvmArguments}"
+                                         TextWrapping="Wrap"
+                                         VerticalContentAlignment="Top" />
+                                <TextBlock Text="额外游戏参数" />
+                                <TextBox AcceptsReturn="True"
+                                         Height="80"
+                                         MaxLength="4000"
+                                         PlaceholderText="例如：--demo"
+                                         Text="{Binding AdditionalGameArguments}"
+                                         TextWrapping="Wrap"
+                                         VerticalContentAlignment="Top" />
+                                <Button Command="{Binding SaveLaunchOptionsCommand}"
+                                        HorizontalAlignment="Left"
+                                        Content="保存启动选项" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding LaunchOptionsSummary}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
                             <StackPanel Spacing="8">
                                 <TextBlock FontWeight="SemiBold" Text="启动迁移状态" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
