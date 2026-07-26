@@ -109,7 +109,16 @@
                             <Border Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="游戏安装" />
-                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="Minecraft、Fabric、Forge、NeoForge 等安装器。" TextWrapping="Wrap" />
+                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="先选择官方 Minecraft 版本，再创建本地实例并下载。" TextWrapping="Wrap" />
+                                    <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedCatalogVersion}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Id}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <Button Command="{Binding RefreshVersionCatalogCommand}" Content="刷新官方版本" />
+                                    <Button Command="{Binding ProvisionSelectedVersionCommand}" IsEnabled="{Binding CanProvisionSelectedVersion}" Content="创建所选实例" />
                                     <Button Command="{Binding InstallGameCommand}" IsEnabled="{Binding CanInstallGame}" Content="安装所选本地实例" />
                                 </StackPanel>
                             </Border>
@@ -119,6 +128,9 @@
                                    TextWrapping="Wrap" />
                         <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                    Text="{Binding InstallationSummary}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   Text="{Binding VersionCatalogSummary}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
                 </ScrollViewer>

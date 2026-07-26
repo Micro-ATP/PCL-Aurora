@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
 using PCL.Aurora.Application;
 using PCL.Aurora.Domain;
 
@@ -12,12 +13,16 @@ public partial class MainViewModel(
     IMinecraftVersionPreparationService versionPreparationService,
     IMinecraftLaunchPreparationService launchPreparationService,
     IMinecraftInstanceInstallationService installationService,
+    IMinecraftVersionCatalogService versionCatalogService,
+    IMinecraftVersionProvisioningService versionProvisioningService,
     IMinecraftGameLaunchService gameLaunchService) : ViewModelBase
 {
     private MinecraftAccount? selectedAccount;
     private MinecraftInstance? selectedInstance;
     private JavaInstallation? selectedJava;
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
+
+    public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
     [ObservableProperty]
     private string operatingSystem = "正在读取系统信息…";
@@ -63,6 +68,15 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string installationSummary = "选择本地实例后可查看安装计划；不会自动下载。";
+
+    [ObservableProperty]
+    private MinecraftVersionCatalogEntry? selectedCatalogVersion;
+
+    [ObservableProperty]
+    private bool canProvisionSelectedVersion;
+
+    [ObservableProperty]
+    private string versionCatalogSummary = "点击“刷新官方版本”后加载可选版本；不会自动访问网络。";
 
     [ObservableProperty]
     private string offlinePlayerName = string.Empty;
@@ -174,6 +188,77 @@ public partial class MainViewModel(
         GameLaunchSummary = gameLaunchPreparation.CanLaunch
             ? "启动条件和进程请求均已准备。点击“启动游戏”后将先安全准备 native 库，再启动 Java 进程。"
             : string.Join(Environment.NewLine, gameLaunchPreparation.BlockingReasons);
+    }
+
+    [RelayCommand]
+    private async Task RefreshVersionCatalogAsync()
+    {
+        try
+        {
+            VersionCatalogSummary = "正在获取官方版本清单…";
+            var result = await versionCatalogService.FetchAsync();
+            if (!result.IsSuccess || result.Catalog is null)
+            {
+                AvailableVersions.Clear();
+                SelectedCatalogVersion = null;
+                VersionCatalogSummary = string.Join(Environment.NewLine, result.Errors);
+                return;
+            }
+
+            AvailableVersions.Clear();
+            foreach (var version in result.Catalog.Versions.Take(100))
+            {
+                AvailableVersions.Add(version);
+            }
+
+            SelectedCatalogVersion = AvailableVersions.FirstOrDefault(version => version.Id == result.Catalog.LatestRelease)
+                ?? AvailableVersions.FirstOrDefault();
+            VersionCatalogSummary = $"已加载 {result.Catalog.Versions.Count} 个官方版本；当前显示前 {AvailableVersions.Count} 个。";
+        }
+        catch (OperationCanceledException)
+        {
+            VersionCatalogSummary = "获取版本清单已取消。";
+        }
+        catch (Exception exception)
+        {
+            VersionCatalogSummary = $"获取版本清单失败：{exception.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task ProvisionSelectedVersionAsync()
+    {
+        if (SelectedCatalogVersion is null)
+        {
+            VersionCatalogSummary = "请先选择官方版本；不会创建实例。";
+            return;
+        }
+
+        try
+        {
+            CanProvisionSelectedVersion = false;
+            VersionCatalogSummary = $"正在创建 {SelectedCatalogVersion.Id} 的本地实例元数据…";
+            var instance = await versionProvisioningService.ProvisionAsync(SelectedCatalogVersion);
+            VersionCatalogSummary = $"已创建 {instance.Name}。请点击“安装所选本地实例”下载游戏文件。";
+            await RefreshAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            VersionCatalogSummary = "创建实例已取消。";
+        }
+        catch (Exception exception)
+        {
+            VersionCatalogSummary = $"创建实例失败：{exception.Message}";
+        }
+        finally
+        {
+            CanProvisionSelectedVersion = SelectedCatalogVersion is not null;
+        }
+    }
+
+    partial void OnSelectedCatalogVersionChanged(MinecraftVersionCatalogEntry? value)
+    {
+        CanProvisionSelectedVersion = value is not null;
     }
 
     [RelayCommand]
