@@ -45,6 +45,53 @@ public sealed class MinecraftVersionMetadataTests
     }
 
     [Fact]
+    public void Resolve_PreservesParentConditionalLaunchArguments()
+    {
+        var child = new MinecraftVersionMetadata(
+            "fabric-1.21.4",
+            "1.21.4",
+            null,
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                null,
+                [],
+                ["--child"],
+                HasModernArguments: true,
+                HasConditionalArguments: false,
+                LegacyGameArguments: null));
+        var parent = new MinecraftVersionMetadata(
+            "1.21.4",
+            null,
+            "release",
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                "net.minecraft.client.main.Main",
+                [],
+                ["--parent"],
+                HasModernArguments: true,
+                HasConditionalArguments: true,
+                LegacyGameArguments: null,
+                ConditionalGameArguments:
+                [new(["--mac-only"], [new(MinecraftLaunchRuleAction.Allow, new("osx", null, null), null)])]));
+
+        var inspection = MinecraftVersionMetadataResolver.Resolve([child, parent]);
+        var preparation = MinecraftLaunchArgumentBuilder.Prepare(
+            inspection.EffectiveMetadata,
+            MinecraftLaunchContext.CreateDefault("fabric-1.21.4") with
+            {
+                RuleEnvironment = new MinecraftLaunchRuleEnvironment("osx", "15.7.7", "arm64"),
+            });
+
+        Assert.True(inspection.IsSuccess);
+        Assert.True(preparation.IsReady);
+        Assert.Equal(["--parent", "--child", "--mac-only"], preparation.Arguments!.GameArguments);
+    }
+
+    [Fact]
     public void Parse_RejectsInvalidJson()
     {
         var result = MinecraftVersionMetadataParser.Parse("{ invalid }");
@@ -220,6 +267,7 @@ public sealed class MinecraftVersionMetadataTests
               "libraries": [
                 {
                   "name": "com.example:demo:1.0",
+                  "rules": [{ "action": "allow", "os": { "name": "osx" } }],
                   "downloads": {
                     "artifact": {
                       "path": "com/example/demo/1.0/demo-1.0.jar",
@@ -238,9 +286,133 @@ public sealed class MinecraftVersionMetadataTests
         Assert.Equal(["-cp", "${classpath}"], result.Metadata.Launch.JvmArguments);
         Assert.Equal(["--username", "${auth_player_name}"], result.Metadata.Launch.GameArguments);
         Assert.True(result.Metadata.Launch.HasConditionalArguments);
+        Assert.Single(result.Metadata.Launch.ConditionalJvmArguments!);
         var library = Assert.Single(result.Metadata.Libraries!);
+        Assert.True(library.HasConditionalRules);
+        Assert.Single(library.Rules!);
+        Assert.Equal("osx", library.Rules![0].OperatingSystem!.Name);
         Assert.Equal("com/example/demo/1.0/demo-1.0.jar", library.ArtifactPath);
         Assert.Equal(123, library.Artifact!.Size);
+    }
+
+    [Fact]
+    public void Prepare_SelectsConditionalArgumentsForMacOSAndKnownFeatures()
+    {
+        var parsed = MinecraftVersionMetadataParser.Parse(
+            """
+            {
+              "id": "1.21.4",
+              "mainClass": "net.minecraft.client.main.Main",
+              "arguments": {
+                "jvm": [
+                  "-cp",
+                  "${classpath}",
+                  { "rules": [{ "action": "allow", "os": { "name": "osx", "arch": "arm64" } }], "value": ["-Dos.name=macOS", "-Dapple.awt.UIElement=true"] },
+                  { "rules": [{ "action": "allow", "os": { "name": "windows" } }], "value": "-Dwindows-only=true" },
+                  { "value": "-Dwithout-rules=true" }
+                ],
+                "game": [
+                  { "rules": [{ "action": "allow", "features": { "is_demo_user": false } }], "value": ["--demoFlag", "false"] },
+                  { "rules": [{ "action": "allow", "features": { "has_custom_resolution": true } }], "value": "--width" }
+                ]
+              }
+            }
+            """);
+        var context = MinecraftLaunchContext.CreateDefault("1.21.4") with
+        {
+            Classpath = "/libraries/game.jar",
+            RuleEnvironment = new MinecraftLaunchRuleEnvironment("osx", "15.7.7", "arm64"),
+        };
+
+        var preparation = MinecraftLaunchArgumentBuilder.Prepare(parsed.Metadata, context);
+
+        Assert.True(parsed.IsSuccess);
+        Assert.True(parsed.Metadata!.Launch!.HasConditionalArguments);
+        Assert.True(preparation.IsReady);
+        Assert.Equal(
+            ["-cp", "/libraries/game.jar", "-Dos.name=macOS", "-Dapple.awt.UIElement=true", "-Dwithout-rules=true"],
+            preparation.Arguments!.JvmArguments);
+        Assert.Equal(["--demoFlag", "false"], preparation.Arguments.GameArguments);
+    }
+
+    [Fact]
+    public void RuleEvaluator_UsesLastMatchingActionAndRequiresMatchingOsVersion()
+    {
+        var environment = new MinecraftLaunchRuleEnvironment("osx", "15.7.7", "arm64");
+        var rules = new MinecraftLaunchRule[]
+        {
+            new(MinecraftLaunchRuleAction.Allow, new("osx", "^15\\.", "arm64"), null),
+            new(MinecraftLaunchRuleAction.Disallow, new("osx", null, "arm64"), null),
+        };
+
+        var allowed = PclCeMinecraftLaunchRuleEvaluator.IsAllowed(rules, environment);
+
+        Assert.False(allowed);
+        Assert.False(PclCeMinecraftLaunchRuleEvaluator.IsAllowed(
+            [new(MinecraftLaunchRuleAction.Allow, new("osx", "^14\\.", "arm64"), null)],
+            environment));
+    }
+
+    [Fact]
+    public void Prepare_BlocksMalformedConditionalArgumentInsteadOfSilentlyDroppingIt()
+    {
+        var parsed = MinecraftVersionMetadataParser.Parse(
+            """
+            {
+              "id": "1.21.4",
+              "mainClass": "net.minecraft.client.main.Main",
+              "arguments": { "game": [{ "rules": [{ "action": "allow" }] }] }
+            }
+            """);
+
+        var preparation = MinecraftLaunchArgumentBuilder.Prepare(
+            parsed.Metadata,
+            MinecraftLaunchContext.CreateDefault("1.21.4") with
+            {
+                RuleEnvironment = new MinecraftLaunchRuleEnvironment("osx", "15.7.7", "arm64"),
+            });
+
+        Assert.True(parsed.IsSuccess);
+        Assert.True(parsed.Metadata!.Launch!.HasUnsupportedConditionalArguments);
+        Assert.False(preparation.IsReady);
+        Assert.Contains(preparation.BlockingReasons, reason => reason.Contains("无法安全解析", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void CreateDownloadPlan_FiltersConditionalLibrariesUsingTheSameRuleEvaluator()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.21.4",
+            null,
+            "release",
+            null,
+            new MinecraftVersionDownload(new Uri("https://example.invalid/client.jar"), "client-sha", 123),
+            new MinecraftVersionAssetIndex("17", new Uri("https://example.invalid/assets.json"), "assets-sha", 456),
+            null,
+            [
+                new MinecraftVersionLibrary(
+                    "org.example:mac:1.0",
+                    "org/example/mac/1.0/mac.jar",
+                    new MinecraftVersionDownload(new Uri("https://example.invalid/mac.jar"), "mac-sha", 10),
+                    HasConditionalRules: true,
+                    Rules: [new(MinecraftLaunchRuleAction.Allow, new("osx", null, "arm64"), null)]),
+                new MinecraftVersionLibrary(
+                    "org.example:windows:1.0",
+                    "org/example/windows/1.0/windows.jar",
+                    new MinecraftVersionDownload(new Uri("https://example.invalid/windows.jar"), "windows-sha", 10),
+                    HasConditionalRules: true,
+                    Rules: [new(MinecraftLaunchRuleAction.Allow, new("windows", null, null), null)]),
+            ]);
+        var inspection = new MinecraftVersionMetadataInspection([metadata], metadata, []);
+
+        var plan = MinecraftDownloadPlanBuilder.Create(
+            inspection,
+            JavaArchitecture.Arm64,
+            new MinecraftLaunchRuleEnvironment("osx", "15.7.7", "arm64"));
+
+        Assert.True(plan.IsReady);
+        Assert.Contains(plan.Artifacts, artifact => artifact.RelativePath == "libraries/org/example/mac/1.0/mac.jar");
+        Assert.DoesNotContain(plan.Artifacts, artifact => artifact.RelativePath == "libraries/org/example/windows/1.0/windows.jar");
     }
 
     [Fact]

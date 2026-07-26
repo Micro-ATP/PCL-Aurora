@@ -34,8 +34,12 @@ public sealed class MinecraftLaunchPreparationService(IMinecraftVersionPreparati
             AssetsIndexName = metadata.AssetIndex?.Id,
             VersionType = metadata.Type,
             Account = account,
+            RuleEnvironment = versionPreparation.RuleEnvironment,
         };
-        var classpathInspection = MinecraftClasspathBuilder.Build(versionPreparation.Inspection, minecraftRootDirectory);
+        var classpathInspection = MinecraftClasspathBuilder.Build(
+            versionPreparation.Inspection,
+            minecraftRootDirectory,
+            versionPreparation.RuleEnvironment);
         context = context with { Classpath = classpathInspection.Value };
         return new(versionPreparation, classpathInspection, MinecraftLaunchArgumentBuilder.Prepare(metadata, context));
     }

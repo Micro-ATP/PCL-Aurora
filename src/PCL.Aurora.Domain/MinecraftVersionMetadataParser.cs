@@ -81,20 +81,21 @@ public static class MinecraftVersionMetadataParser
     private static MinecraftLaunchMetadata? ParseLaunchMetadata(JsonElement root)
     {
         var hasArguments = TryGetObject(root, "arguments", out var arguments);
-        var hasConditionalJvmArguments = false;
-        var hasConditionalGameArguments = false;
-        var jvmArguments = hasArguments ? ParseStringArray(arguments, "jvm", out hasConditionalJvmArguments) : [];
-        var gameArguments = hasArguments ? ParseStringArray(arguments, "game", out hasConditionalGameArguments) : [];
+        var jvmArguments = hasArguments ? ParseLaunchArguments(arguments, "jvm") : ParsedLaunchArguments.Empty;
+        var gameArguments = hasArguments ? ParseLaunchArguments(arguments, "game") : ParsedLaunchArguments.Empty;
         var legacyGameArguments = GetString(root, "minecraftArguments");
         var mainClass = GetString(root, "mainClass");
         return hasArguments || !string.IsNullOrWhiteSpace(legacyGameArguments) || !string.IsNullOrWhiteSpace(mainClass)
             ? new MinecraftLaunchMetadata(
                 mainClass,
-                jvmArguments,
-                gameArguments,
+                jvmArguments.UnconditionalValues,
+                gameArguments.UnconditionalValues,
                 hasArguments,
-                hasConditionalJvmArguments || hasConditionalGameArguments,
-                legacyGameArguments)
+                jvmArguments.ConditionalValues.Count > 0 || gameArguments.ConditionalValues.Count > 0,
+                legacyGameArguments,
+                jvmArguments.ConditionalValues,
+                gameArguments.ConditionalValues,
+                jvmArguments.HasUnsupportedValues || gameArguments.HasUnsupportedValues)
             : null;
     }
 
@@ -114,7 +115,9 @@ public static class MinecraftVersionMetadataParser
             }
 
             var name = GetString(library, "name") ?? "未命名库";
-            var hasConditionalRules = library.TryGetProperty("rules", out _);
+            var hasConditionalRules = library.TryGetProperty("rules", out var rulesElement);
+            IReadOnlyList<MinecraftLaunchRule>? rules = null;
+            var hasUnsupportedRules = hasConditionalRules && !TryParseLaunchRules(rulesElement, out rules);
             var artifactPath = default(string);
             MinecraftVersionDownload? artifact = null;
             var nativeClassifiers = ParseNativeClassifiers(library);
@@ -137,7 +140,9 @@ public static class MinecraftVersionMetadataParser
                 artifact,
                 hasConditionalRules,
                 nativeClassifiers,
-                classifiers));
+                classifiers,
+                rules,
+                hasUnsupportedRules));
         }
 
         return result;
@@ -195,31 +200,176 @@ public static class MinecraftVersionMetadataParser
         return result.Count == 0 ? null : result;
     }
 
-    private static IReadOnlyList<string> ParseStringArray(
-        JsonElement arguments,
-        string propertyName,
-        out bool hasConditionalArguments)
+    private static ParsedLaunchArguments ParseLaunchArguments(JsonElement arguments, string propertyName)
     {
-        hasConditionalArguments = false;
         if (!arguments.TryGetProperty(propertyName, out var values) || values.ValueKind != JsonValueKind.Array)
         {
-            return [];
+            return ParsedLaunchArguments.Empty;
         }
 
-        var result = new List<string>();
+        var unconditionalValues = new List<string>();
+        var conditionalValues = new List<MinecraftConditionalLaunchArgument>();
+        var hasUnsupportedValues = false;
         foreach (var value in values.EnumerateArray())
         {
             if (value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString()))
             {
-                result.Add(value.GetString()!);
+                unconditionalValues.Add(value.GetString()!);
             }
-            else if (value.ValueKind != JsonValueKind.String)
+            else if (value.ValueKind == JsonValueKind.Object && TryParseConditionalLaunchArgument(value, out var conditional))
             {
-                hasConditionalArguments = true;
+                conditionalValues.Add(conditional!);
+            }
+            else
+            {
+                hasUnsupportedValues = true;
             }
         }
 
-        return result;
+        return new(unconditionalValues, conditionalValues, hasUnsupportedValues);
+    }
+
+    private static bool TryParseConditionalLaunchArgument(
+        JsonElement element,
+        out MinecraftConditionalLaunchArgument? conditional)
+    {
+        conditional = null;
+        if (!element.TryGetProperty("value", out var value) || !TryParseArgumentValues(value, out var values))
+        {
+            return false;
+        }
+
+        IReadOnlyList<MinecraftLaunchRule>? rules = null;
+        if (element.TryGetProperty("rules", out var rulesElement) && !TryParseLaunchRules(rulesElement, out rules))
+        {
+            return false;
+        }
+
+        conditional = new(values, rules);
+        return true;
+    }
+
+    private static bool TryParseArgumentValues(JsonElement element, out IReadOnlyList<string> values)
+    {
+        values = [];
+        if (element.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(element.GetString()))
+        {
+            values = [element.GetString()!];
+            return true;
+        }
+
+        if (element.ValueKind != JsonValueKind.Array)
+        {
+            return false;
+        }
+
+        var result = new List<string>();
+        foreach (var value in element.EnumerateArray())
+        {
+            if (value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()))
+            {
+                return false;
+            }
+
+            result.Add(value.GetString()!);
+        }
+
+        values = result;
+        return result.Count > 0;
+    }
+
+    private static bool TryParseLaunchRules(JsonElement element, out IReadOnlyList<MinecraftLaunchRule>? rules)
+    {
+        rules = null;
+        if (element.ValueKind != JsonValueKind.Array)
+        {
+            return false;
+        }
+
+        var result = new List<MinecraftLaunchRule>();
+        foreach (var rule in element.EnumerateArray())
+        {
+            if (rule.ValueKind != JsonValueKind.Object || !TryParseLaunchRule(rule, out var parsedRule))
+            {
+                return false;
+            }
+
+            result.Add(parsedRule!);
+        }
+
+        rules = result;
+        return true;
+    }
+
+    private static bool TryParseLaunchRule(JsonElement element, out MinecraftLaunchRule? rule)
+    {
+        rule = null;
+        var action = string.Equals(GetString(element, "action"), "allow", StringComparison.OrdinalIgnoreCase)
+            ? MinecraftLaunchRuleAction.Allow
+            : MinecraftLaunchRuleAction.Disallow;
+        MinecraftLaunchRuleOperatingSystem? operatingSystem = null;
+        if (element.TryGetProperty("os", out var os))
+        {
+            if (os.ValueKind != JsonValueKind.Object ||
+                !TryParseOptionalString(os, "name", out var name) ||
+                !TryParseOptionalString(os, "version", out var version) ||
+                !TryParseOptionalString(os, "arch", out var architecture))
+            {
+                return false;
+            }
+
+            operatingSystem = new(name, version, architecture);
+        }
+
+        IReadOnlyDictionary<string, bool>? features = null;
+        if (element.TryGetProperty("features", out var featureElement))
+        {
+            if (featureElement.ValueKind != JsonValueKind.Object)
+            {
+                return false;
+            }
+
+            var result = new Dictionary<string, bool>(StringComparer.Ordinal);
+            foreach (var feature in featureElement.EnumerateObject())
+            {
+                if (feature.Value.ValueKind is not JsonValueKind.True and not JsonValueKind.False)
+                {
+                    return false;
+                }
+
+                result[feature.Name] = feature.Value.GetBoolean();
+            }
+
+            features = result;
+        }
+
+        rule = new(action, operatingSystem, features);
+        return true;
+    }
+
+    private static bool TryParseOptionalString(JsonElement element, string propertyName, out string? value)
+    {
+        value = null;
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return true;
+        }
+
+        if (property.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        value = property.GetString();
+        return true;
+    }
+
+    private sealed record ParsedLaunchArguments(
+        IReadOnlyList<string> UnconditionalValues,
+        IReadOnlyList<MinecraftConditionalLaunchArgument> ConditionalValues,
+        bool HasUnsupportedValues)
+    {
+        public static ParsedLaunchArguments Empty { get; } = new([], [], false);
     }
 
     private static Uri? ParseHttpUri(string? value, string fieldName, List<string> errors)

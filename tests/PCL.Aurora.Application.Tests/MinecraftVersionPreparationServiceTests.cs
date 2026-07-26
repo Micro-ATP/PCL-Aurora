@@ -16,7 +16,14 @@ public sealed class MinecraftVersionPreparationServiceTests
             "release",
             null,
             new MinecraftVersionDownload(new Uri("https://example.invalid/client.jar"), "client-sha", 123),
-            new MinecraftVersionAssetIndex("17", new Uri("https://example.invalid/assets.json"), "assets-sha", 456));
+            new MinecraftVersionAssetIndex("17", new Uri("https://example.invalid/assets.json"), "assets-sha", 456),
+            null,
+            [new MinecraftVersionLibrary(
+                "org.example:mac-only:1.0",
+                "org/example/mac-only/1.0/mac-only.jar",
+                new MinecraftVersionDownload(new Uri("https://example.invalid/mac-only.jar"), "mac-only-sha", 20),
+                HasConditionalRules: true,
+                Rules: [new(MinecraftLaunchRuleAction.Allow, new("osx", null, "arm64"), null)])]);
         var inspection = new MinecraftVersionMetadataInspection([metadata], metadata, []);
         var service = new MinecraftVersionPreparationService(new FakeMetadataReader(inspection), new FakePlatformInfo());
 
@@ -24,7 +31,11 @@ public sealed class MinecraftVersionPreparationServiceTests
 
         Assert.True(preparation.Inspection.IsSuccess);
         Assert.True(preparation.DownloadPlan.IsReady);
-        Assert.Equal(["versions/1.21.4/1.21.4.jar", "assets/indexes/17.json"], preparation.DownloadPlan.Artifacts.Select(item => item.RelativePath));
+        Assert.Equal(
+            ["versions/1.21.4/1.21.4.jar", "assets/indexes/17.json", "libraries/org/example/mac-only/1.0/mac-only.jar"],
+            preparation.DownloadPlan.Artifacts.Select(item => item.RelativePath));
+        Assert.Equal("osx", preparation.RuleEnvironment!.OperatingSystemName);
+        Assert.Equal("arm64", preparation.RuleEnvironment.Architecture);
     }
 
     private sealed class FakeMetadataReader(MinecraftVersionMetadataInspection inspection) : IMinecraftVersionMetadataReader

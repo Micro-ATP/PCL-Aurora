@@ -20,9 +20,12 @@ public static partial class MinecraftLaunchArgumentBuilder
             blockingReasons.Add("旧版 minecraftArguments 启动参数尚未迁移。");
         }
 
-        if (launch.HasConditionalArguments)
+        if (launch.HasUnsupportedConditionalArguments ||
+            (launch.HasConditionalArguments &&
+             launch.ConditionalJvmArguments is null &&
+             launch.ConditionalGameArguments is null))
         {
-            blockingReasons.Add("版本包含条件启动参数，规则评估尚未迁移。");
+            blockingReasons.Add("版本包含无法安全解析的条件启动参数。");
         }
 
         if (string.IsNullOrWhiteSpace(launch.MainClass))
@@ -31,14 +34,53 @@ public static partial class MinecraftLaunchArgumentBuilder
         }
 
         var replacements = CreateReplacements(context);
-        var jvmArguments = ReplaceAll(launch.JvmArguments, replacements, blockingReasons);
-        var gameArguments = ReplaceAll(launch.GameArguments, replacements, blockingReasons);
+        var jvmTemplates = SelectConditionalArguments(
+            launch.JvmArguments,
+            launch.ConditionalJvmArguments,
+            context.RuleEnvironment,
+            blockingReasons);
+        var gameTemplates = SelectConditionalArguments(
+            launch.GameArguments,
+            launch.ConditionalGameArguments,
+            context.RuleEnvironment,
+            blockingReasons);
+        var jvmArguments = ReplaceAll(jvmTemplates, replacements, blockingReasons);
+        var gameArguments = ReplaceAll(gameTemplates, replacements, blockingReasons);
         if (blockingReasons.Count > 0 || string.IsNullOrWhiteSpace(launch.MainClass))
         {
             return new(null, blockingReasons);
         }
 
         return new(new MinecraftLaunchArguments(jvmArguments, launch.MainClass, gameArguments), []);
+    }
+
+    private static IReadOnlyList<string> SelectConditionalArguments(
+        IReadOnlyList<string> unconditionalArguments,
+        IReadOnlyList<MinecraftConditionalLaunchArgument>? conditionalArguments,
+        MinecraftLaunchRuleEnvironment? environment,
+        List<string> blockingReasons)
+    {
+        if (conditionalArguments is null || conditionalArguments.Count == 0)
+        {
+            return unconditionalArguments;
+        }
+
+        if (environment is null)
+        {
+            blockingReasons.Add("版本包含条件启动参数，但未提供规则执行环境。");
+            return unconditionalArguments;
+        }
+
+        var result = new List<string>(unconditionalArguments);
+        foreach (var conditional in conditionalArguments)
+        {
+            if (PclCeMinecraftLaunchRuleEvaluator.IsAllowed(conditional.Rules, environment))
+            {
+                result.AddRange(conditional.Values);
+            }
+        }
+
+        return result;
     }
 
     private static IReadOnlyList<string> ReplaceAll(

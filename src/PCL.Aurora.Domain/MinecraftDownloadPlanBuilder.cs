@@ -36,7 +36,8 @@ public static class MinecraftDownloadPlanBuilder
 
     public static MinecraftDownloadPlan Create(
         MinecraftVersionMetadataInspection inspection,
-        JavaArchitecture architecture)
+        JavaArchitecture architecture,
+        MinecraftLaunchRuleEnvironment? ruleEnvironment = null)
     {
         ArgumentNullException.ThrowIfNull(inspection);
         var basePlan = Create(inspection.EffectiveMetadata);
@@ -49,9 +50,8 @@ public static class MinecraftDownloadPlanBuilder
         var blockingReasons = basePlan.BlockingReasons.ToList();
         foreach (var library in inspection.EffectiveMetadata.Libraries ?? [])
         {
-            if (library.HasConditionalRules)
+            if (!ShouldIncludeLibrary(library, ruleEnvironment, blockingReasons))
             {
-                blockingReasons.Add($"库 {library.Name} 包含条件规则，规则评估尚未迁移。");
                 continue;
             }
 
@@ -95,6 +95,31 @@ public static class MinecraftDownloadPlanBuilder
             basePlan.VersionId,
             artifacts.DistinctBy(artifact => artifact.RelativePath, StringComparer.Ordinal).ToList(),
             blockingReasons.Distinct(StringComparer.Ordinal).ToList());
+    }
+
+    internal static bool ShouldIncludeLibrary(
+        MinecraftVersionLibrary library,
+        MinecraftLaunchRuleEnvironment? ruleEnvironment,
+        List<string> blockingReasons)
+    {
+        if (library.HasUnsupportedRules || (library.HasConditionalRules && library.Rules is null))
+        {
+            blockingReasons.Add($"库 {library.Name} 包含无法安全解析的条件规则。");
+            return false;
+        }
+
+        if (!library.HasConditionalRules)
+        {
+            return true;
+        }
+
+        if (ruleEnvironment is null)
+        {
+            blockingReasons.Add($"库 {library.Name} 包含条件规则，但未提供规则执行环境。");
+            return false;
+        }
+
+        return PclCeMinecraftLaunchRuleEvaluator.IsAllowed(library.Rules, ruleEnvironment);
     }
 
     private static void AddArtifact(

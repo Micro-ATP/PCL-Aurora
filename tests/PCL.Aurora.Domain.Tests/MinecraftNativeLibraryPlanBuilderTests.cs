@@ -44,7 +44,7 @@ public sealed class MinecraftNativeLibraryPlanBuilderTests : IDisposable
     }
 
     [Fact]
-    public void Build_BlocksConditionalNativeLibrary()
+    public void Build_SkipsConditionalNativeLibraryThatDoesNotMatchMacOS()
     {
         var metadata = CreateMetadata("natives-macos", "natives-macos") with
         {
@@ -59,7 +59,8 @@ public sealed class MinecraftNativeLibraryPlanBuilderTests : IDisposable
                     ["natives-macos"] = new(
                         "org/example/native/1.0/native-macos.jar",
                         new MinecraftVersionDownload(new Uri("https://example.invalid/native.jar"), null, null)),
-                })],
+                },
+                Rules: [new(MinecraftLaunchRuleAction.Allow, new("windows", null, null), null)])],
         };
         var inspection = new MinecraftVersionMetadataInspection([metadata], metadata, []);
 
@@ -67,10 +68,12 @@ public sealed class MinecraftNativeLibraryPlanBuilderTests : IDisposable
             inspection,
             rootDirectory,
             Path.Combine(rootDirectory, "versions", "1.21.4", "natives"),
-            JavaArchitecture.Arm64);
+            JavaArchitecture.Arm64,
+            new MinecraftLaunchRuleEnvironment("osx", "15.7.7", "arm64"));
 
-        Assert.False(plan.IsReady);
-        Assert.Contains(plan.BlockingReasons, reason => reason.Contains("条件规则", StringComparison.Ordinal));
+        Assert.True(plan.IsReady);
+        Assert.Empty(plan.Archives);
+        Assert.Empty(plan.MissingFiles);
     }
 
     private static MinecraftVersionMetadata CreateMetadata(string pattern, string classifier) =>

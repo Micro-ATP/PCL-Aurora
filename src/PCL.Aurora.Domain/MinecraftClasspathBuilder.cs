@@ -4,7 +4,8 @@ public static class MinecraftClasspathBuilder
 {
     public static MinecraftClasspathInspection Build(
         MinecraftVersionMetadataInspection inspection,
-        string? minecraftRootDirectory)
+        string? minecraftRootDirectory,
+        MinecraftLaunchRuleEnvironment? ruleEnvironment = null)
     {
         ArgumentNullException.ThrowIfNull(inspection);
         var entries = new List<string>();
@@ -30,9 +31,8 @@ public static class MinecraftClasspathBuilder
 
         foreach (var library in libraries)
         {
-            if (library.HasConditionalRules)
+            if (!MinecraftDownloadPlanBuilder.ShouldIncludeLibrary(library, ruleEnvironment, blockingReasons))
             {
-                blockingReasons.Add($"库 {library.Name} 包含条件规则，规则评估尚未迁移。");
                 continue;
             }
 

@@ -6,7 +6,8 @@ public static class MinecraftNativeLibraryPlanBuilder
         MinecraftVersionMetadataInspection inspection,
         string? minecraftRootDirectory,
         string? nativesDirectory,
-        JavaArchitecture architecture)
+        JavaArchitecture architecture,
+        MinecraftLaunchRuleEnvironment? ruleEnvironment = null)
     {
         ArgumentNullException.ThrowIfNull(inspection);
         var archives = new List<MinecraftNativeLibraryArchive>();
@@ -47,9 +48,8 @@ public static class MinecraftNativeLibraryPlanBuilder
                 continue;
             }
 
-            if (library.HasConditionalRules)
+            if (!MinecraftDownloadPlanBuilder.ShouldIncludeLibrary(library, ruleEnvironment, blockingReasons))
             {
-                blockingReasons.Add($"原生库 {library.Name} 包含条件规则，规则评估尚未迁移。");
                 continue;
             }
 

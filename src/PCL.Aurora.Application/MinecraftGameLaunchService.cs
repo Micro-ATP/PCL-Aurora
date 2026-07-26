@@ -48,7 +48,8 @@ public sealed class MinecraftGameLaunchService(
             launchPreparation.VersionPreparation.Inspection,
             minecraftRootDirectory,
             Path.Combine(instance.DirectoryPath, "natives"),
-            java?.Architecture ?? JavaArchitecture.Unknown);
+            java?.Architecture ?? JavaArchitecture.Unknown,
+            launchPreparation.VersionPreparation.RuleEnvironment);
         var requestPreparation = MinecraftGameLaunchRequestBuilder.Prepare(instance, java, launchPreparation.ArgumentPreparation);
         var blockingReasons = readiness.BlockingReasons
             .Concat(guidanceBlockingReasons)

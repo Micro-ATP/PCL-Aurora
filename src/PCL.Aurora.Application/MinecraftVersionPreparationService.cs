@@ -13,6 +13,27 @@ public sealed class MinecraftVersionPreparationService(
         CancellationToken cancellationToken = default)
     {
         var inspection = await metadataReader.InspectAsync(instance, cancellationToken).ConfigureAwait(false);
-        return new(inspection, MinecraftDownloadPlanBuilder.Create(inspection, platformInfo.Get().Architecture));
+        var platform = platformInfo.Get();
+        var ruleEnvironment = CreateRuleEnvironment(platform);
+        return new(
+            inspection,
+            MinecraftDownloadPlanBuilder.Create(inspection, platform.Architecture, ruleEnvironment),
+            ruleEnvironment);
     }
+
+    private static MinecraftLaunchRuleEnvironment CreateRuleEnvironment(PlatformInformation platform) => new(
+        platform.OperatingSystem switch
+        {
+            "macOS" => "osx",
+            "Windows" => "windows",
+            "Linux" => "linux",
+            _ => "unknown",
+        },
+        platform.Version,
+        platform.Architecture switch
+        {
+            JavaArchitecture.X64 => "x86_64",
+            JavaArchitecture.Arm64 => "arm64",
+            _ => null,
+        });
 }

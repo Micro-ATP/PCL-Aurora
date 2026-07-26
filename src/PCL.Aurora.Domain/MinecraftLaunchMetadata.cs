@@ -6,4 +6,7 @@ public sealed record MinecraftLaunchMetadata(
     IReadOnlyList<string> GameArguments,
     bool HasModernArguments,
     bool HasConditionalArguments,
-    string? LegacyGameArguments);
+    string? LegacyGameArguments,
+    IReadOnlyList<MinecraftConditionalLaunchArgument>? ConditionalJvmArguments = null,
+    IReadOnlyList<MinecraftConditionalLaunchArgument>? ConditionalGameArguments = null,
+    bool HasUnsupportedConditionalArguments = false);

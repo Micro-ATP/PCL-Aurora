@@ -2,6 +2,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 
 - PCL.Core/Utils/RegexPatterns.cs (Apache License 2.0)
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModDownload.cs
+- PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModLibrary.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/McVersionComparer.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Base/ModSetup.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Network/Downloader/FileDownloader.cs

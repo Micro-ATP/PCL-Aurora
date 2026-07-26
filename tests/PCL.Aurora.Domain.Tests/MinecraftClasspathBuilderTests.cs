@@ -37,6 +37,33 @@ public sealed class MinecraftClasspathBuilderTests : IDisposable
         Assert.Contains(result.BlockingReasons, reason => reason.Contains("目录外", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task Build_SkipsConditionalLibraryThatDoesNotMatchMacOS()
+    {
+        var clientPath = Path.Combine(rootDirectory, "versions", "1.21.4", "1.21.4.jar");
+        Directory.CreateDirectory(Path.GetDirectoryName(clientPath)!);
+        await File.WriteAllTextAsync(clientPath, "client");
+        var metadata = CreateMetadata("org/example/windows/1.0/windows.jar") with
+        {
+            Libraries = [new MinecraftVersionLibrary(
+                "org.example:windows:1.0",
+                "org/example/windows/1.0/windows.jar",
+                new MinecraftVersionDownload(new Uri("https://example.invalid/windows.jar"), null, null),
+                HasConditionalRules: true,
+                Rules: [new(MinecraftLaunchRuleAction.Allow, new("windows", null, null), null)])],
+        };
+        var inspection = new MinecraftVersionMetadataInspection([metadata], metadata, []);
+
+        var result = MinecraftClasspathBuilder.Build(
+            inspection,
+            rootDirectory,
+            new MinecraftLaunchRuleEnvironment("osx", "15.7.7", "arm64"));
+
+        Assert.True(result.IsReady);
+        Assert.Equal([clientPath], result.Entries);
+        Assert.Empty(result.MissingFiles);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(rootDirectory))

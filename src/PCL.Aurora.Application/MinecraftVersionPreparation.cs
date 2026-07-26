@@ -4,4 +4,5 @@ namespace PCL.Aurora.Application;
 
 public sealed record MinecraftVersionPreparation(
     MinecraftVersionMetadataInspection Inspection,
-    MinecraftDownloadPlan DownloadPlan);
+    MinecraftDownloadPlan DownloadPlan,
+    MinecraftLaunchRuleEnvironment? RuleEnvironment = null);

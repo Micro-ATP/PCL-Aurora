@@ -70,12 +70,27 @@ public static class MinecraftVersionMetadataResolver
             return parent;
         }
 
+        var conditionalJvmArguments = MergeConditionalArguments(
+            parent.ConditionalJvmArguments,
+            child.ConditionalJvmArguments);
+        var conditionalGameArguments = MergeConditionalArguments(
+            parent.ConditionalGameArguments,
+            child.ConditionalGameArguments);
+
         return new(
             child.MainClass ?? parent.MainClass,
             [.. parent.JvmArguments, .. child.JvmArguments],
             [.. parent.GameArguments, .. child.GameArguments],
             parent.HasModernArguments || child.HasModernArguments,
             parent.HasConditionalArguments || child.HasConditionalArguments,
-            child.LegacyGameArguments ?? parent.LegacyGameArguments);
+            child.LegacyGameArguments ?? parent.LegacyGameArguments,
+            conditionalJvmArguments,
+            conditionalGameArguments,
+            parent.HasUnsupportedConditionalArguments || child.HasUnsupportedConditionalArguments);
     }
+
+    private static IReadOnlyList<MinecraftConditionalLaunchArgument>? MergeConditionalArguments(
+        IReadOnlyList<MinecraftConditionalLaunchArgument>? parent,
+        IReadOnlyList<MinecraftConditionalLaunchArgument>? child) =>
+        parent is null && child is null ? null : [.. parent ?? [], .. child ?? []];
 }

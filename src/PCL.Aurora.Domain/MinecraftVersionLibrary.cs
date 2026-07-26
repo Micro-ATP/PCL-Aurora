@@ -6,4 +6,6 @@ public sealed record MinecraftVersionLibrary(
     MinecraftVersionDownload? Artifact,
     bool HasConditionalRules,
     IReadOnlyDictionary<string, string>? NativeClassifiers = null,
-    IReadOnlyDictionary<string, MinecraftVersionLibraryClassifier>? Classifiers = null);
+    IReadOnlyDictionary<string, MinecraftVersionLibraryClassifier>? Classifiers = null,
+    IReadOnlyList<MinecraftLaunchRule>? Rules = null,
+    bool HasUnsupportedRules = false);
