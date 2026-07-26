@@ -26,6 +26,7 @@ services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();
 services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceInstallationService>();
 services.AddSingleton<IMinecraftVersionCatalogService, MinecraftVersionCatalogService>();
 services.AddSingleton<IMinecraftLoaderCatalogService, MinecraftLoaderCatalogService>();
+services.AddSingleton<IMinecraftOfficialLoaderCatalogService, MinecraftOfficialLoaderCatalogService>();
 services.AddSingleton<IMinecraftVersionProvisioningService, MinecraftVersionProvisioningService>();
 services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
 services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
@@ -41,6 +42,7 @@ var gameLaunchService = provider.GetRequiredService<IMinecraftGameLaunchService>
 var installationService = provider.GetRequiredService<IMinecraftInstanceInstallationService>();
 var versionCatalogService = provider.GetRequiredService<IMinecraftVersionCatalogService>();
 var loaderCatalogService = provider.GetRequiredService<IMinecraftLoaderCatalogService>();
+var officialLoaderCatalogService = provider.GetRequiredService<IMinecraftOfficialLoaderCatalogService>();
 var versionProvisioningService = provider.GetRequiredService<IMinecraftVersionProvisioningService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
@@ -143,6 +145,42 @@ switch (command)
         }
 
         Console.WriteLine("仅完成本地目录读取和兼容性建模；未访问网络、下载或执行安装器。");
+        break;
+    }
+    case "loaders refresh":
+    case var value when value.StartsWith("loaders refresh ", StringComparison.Ordinal):
+    {
+        var minecraftVersion = args.ElementAtOrDefault(2);
+        if (string.IsNullOrWhiteSpace(minecraftVersion))
+        {
+            Console.WriteLine("请提供 Minecraft 版本。此命令会访问 Forge、NeoForge 和 Fabric 官方目录，但不会下载或执行安装器。");
+            return 64;
+        }
+
+        var catalog = await officialLoaderCatalogService.FetchAsync(minecraftVersion);
+        if (catalog.Catalog is null)
+        {
+            Console.WriteLine("官方加载器目录检查未通过：");
+            foreach (var error in catalog.Errors)
+            {
+                Console.WriteLine($"- {error}");
+            }
+
+            return 1;
+        }
+
+        Console.WriteLine($"来源：{catalog.Catalog.SourceName}；Minecraft {minecraftVersion} 共 {catalog.Catalog.Entries.Count} 个加载器版本。 ");
+        foreach (var entry in catalog.Catalog.Entries)
+        {
+            Console.WriteLine($"{entry.Kind} | {entry.Version} | {entry.Channel}");
+        }
+
+        foreach (var warning in catalog.Errors)
+        {
+            Console.WriteLine($"警告：{warning}");
+        }
+
+        Console.WriteLine("仅完成官方目录读取和兼容性建模；未下载或执行安装器。 ");
         break;
     }
     case var value when value.StartsWith("install create ", StringComparison.Ordinal):
@@ -341,7 +379,7 @@ switch (command)
     }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | loaders inspect <本地目录.json> | install create <版本 ID> | install local | launch check | launch arguments | launch run [离线用户名] [--acknowledge-offline] | doctor");
+        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | loaders inspect <本地目录.json> | loaders refresh <Minecraft 版本> | install create <版本 ID> | install local | launch check | launch arguments | launch run [离线用户名] [--acknowledge-offline] | doctor");
         return command == "help" ? 0 : 64;
 }
 

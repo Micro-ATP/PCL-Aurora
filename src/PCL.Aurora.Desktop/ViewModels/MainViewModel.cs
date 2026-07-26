@@ -16,6 +16,7 @@ public partial class MainViewModel(
     IMinecraftInstanceInstallationService installationService,
     IMinecraftVersionCatalogService versionCatalogService,
     IMinecraftLoaderCatalogService loaderCatalogService,
+    IMinecraftOfficialLoaderCatalogService officialLoaderCatalogService,
     IMinecraftVersionProvisioningService versionProvisioningService,
     IMinecraftDirectoryService minecraftDirectoryService,
     IMinecraftGameLaunchService gameLaunchService,
@@ -383,7 +384,7 @@ public partial class MainViewModel(
         {
             VersionCatalogSummary = "正在获取官方版本清单…";
             var result = await versionCatalogService.FetchAsync();
-            if (!result.IsSuccess || result.Catalog is null)
+            if (result.Catalog is null)
             {
                 allCatalogVersions.Clear();
                 AvailableVersions.Clear();
@@ -519,6 +520,47 @@ public partial class MainViewModel(
         catch (Exception exception)
         {
             LoaderCatalogSummary = $"读取本地加载器目录失败：{exception.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task RefreshOfficialLoaderCatalogAsync()
+    {
+        var minecraftVersion = SelectedCatalogVersion?.Id ?? SelectedInstance?.VersionId;
+        if (string.IsNullOrWhiteSpace(minecraftVersion))
+        {
+            LoaderCatalogSummary = "请先选择下载页中的官方版本，或选择一个本地实例；未访问网络。";
+            return;
+        }
+
+        try
+        {
+            LoaderCatalogSummary = $"正在读取 Minecraft {minecraftVersion} 的官方加载器目录…";
+            var result = await officialLoaderCatalogService.FetchAsync(minecraftVersion);
+            if (!result.IsSuccess || result.Catalog is null)
+            {
+                loaderCatalog = null;
+                AvailableLoaders.Clear();
+                HasAvailableLoaders = false;
+                SelectedLoader = null;
+                LoaderCatalogSummary = string.Join(Environment.NewLine, result.Errors);
+                LoaderSelectionSummary = "官方目录未通过检查；未选择加载器，也不会发起安装。";
+                return;
+            }
+
+            loaderCatalog = result.Catalog;
+            LoaderCatalogSummary = result.Errors.Count == 0
+                ? $"已读取官方目录：Minecraft {minecraftVersion} 共 {loaderCatalog.Entries.Count} 个加载器版本。"
+                : $"已读取部分官方目录：Minecraft {minecraftVersion} 共 {loaderCatalog.Entries.Count} 个加载器版本。{Environment.NewLine}{string.Join(Environment.NewLine, result.Errors)}";
+            RefreshLoaderEntries();
+        }
+        catch (OperationCanceledException)
+        {
+            LoaderCatalogSummary = "读取官方加载器目录已取消。";
+        }
+        catch (Exception exception)
+        {
+            LoaderCatalogSummary = $"读取官方加载器目录失败：{exception.Message}";
         }
     }
 

@@ -171,6 +171,7 @@
                                     <TextBox PlaceholderText="本地 loaders.json 的完整路径"
                                              Text="{Binding LoaderCatalogPath}" />
                                     <Button Command="{Binding LoadLoaderCatalogCommand}" Content="读取本地加载器目录" />
+                                    <Button Command="{Binding RefreshOfficialLoaderCatalogCommand}" Content="刷新官方加载器目录" />
                                     <ComboBox IsEnabled="{Binding HasAvailableLoaders}"
                                               ItemsSource="{Binding AvailableLoaders}"
                                               SelectedItem="{Binding SelectedLoader}">
