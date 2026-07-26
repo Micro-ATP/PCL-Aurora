@@ -13,7 +13,8 @@ public static class MinecraftDownloadPlanBuilder
         var blockingReasons = new List<string>();
         if (metadata.ClientDownload is { } client)
         {
-            artifacts.Add(new("Minecraft 客户端", $"versions/{metadata.Id}/{metadata.Id}.jar", client.Url, client.Sha1, client.Size));
+            artifacts.Add(Pcl2VerifiedMirrorSourceMapper.PreferMirrorWhenVerified(
+                new("Minecraft 客户端", $"versions/{metadata.Id}/{metadata.Id}.jar", client.Url, client.Sha1, client.Size)));
         }
         else
         {
@@ -22,7 +23,8 @@ public static class MinecraftDownloadPlanBuilder
 
         if (metadata.AssetIndex is { } assetIndex)
         {
-            artifacts.Add(new("Minecraft 资源索引", $"assets/indexes/{assetIndex.Id}.json", assetIndex.Url, assetIndex.Sha1, assetIndex.Size));
+            artifacts.Add(Pcl2VerifiedMirrorSourceMapper.PreferMirrorWhenVerified(
+                new("Minecraft 资源索引", $"assets/indexes/{assetIndex.Id}.json", assetIndex.Url, assetIndex.Sha1, assetIndex.Size)));
         }
         else
         {
@@ -124,7 +126,8 @@ public static class MinecraftDownloadPlanBuilder
             return;
         }
 
-        artifacts.Add(new(description, relativePath, download.Url, download.Sha1, download.Size));
+        artifacts.Add(Pcl2VerifiedMirrorSourceMapper.PreferMirrorWhenVerified(
+            new(description, relativePath, download.Url, download.Sha1, download.Size)));
     }
 
     private static string GetLibraryRelativePath(string path)

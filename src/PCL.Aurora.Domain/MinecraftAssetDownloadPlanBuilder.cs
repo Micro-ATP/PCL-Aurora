@@ -12,12 +12,13 @@ public static class MinecraftAssetDownloadPlanBuilder
 
         var artifacts = inspection.Index.Objects
             .DistinctBy(asset => asset.Hash, StringComparer.OrdinalIgnoreCase)
-            .Select(asset => new MinecraftDownloadArtifact(
-                $"资源对象 {asset.Name}",
-                $"assets/objects/{asset.Hash[..2]}/{asset.Hash}",
-                new Uri($"https://resources.download.minecraft.net/{asset.Hash[..2]}/{asset.Hash}"),
-                asset.Hash,
-                asset.Size))
+            .Select(asset => Pcl2VerifiedMirrorSourceMapper.PreferMirrorWhenVerified(
+                new MinecraftDownloadArtifact(
+                    $"资源对象 {asset.Name}",
+                    $"assets/objects/{asset.Hash[..2]}/{asset.Hash}",
+                    new Uri($"https://resources.download.minecraft.net/{asset.Hash[..2]}/{asset.Hash}"),
+                    asset.Hash,
+                    asset.Size)))
             .ToList();
         return new(inspection.Index.Id, artifacts, []);
     }

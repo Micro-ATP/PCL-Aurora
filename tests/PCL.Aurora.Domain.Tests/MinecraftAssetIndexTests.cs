@@ -20,7 +20,8 @@ public sealed class MinecraftAssetIndexTests
         Assert.True(plan.IsReady);
         var artifact = Assert.Single(plan.Artifacts);
         Assert.Equal($"assets/objects/01/{hash}", artifact.RelativePath);
-        Assert.Equal($"https://resources.download.minecraft.net/01/{hash}", artifact.Url.ToString());
+        Assert.Equal($"https://bmclapi2.bangbang93.com/assets/01/{hash}", artifact.Url.ToString());
+        Assert.Equal($"https://resources.download.minecraft.net/01/{hash}", Assert.Single(artifact.AlternativeUrls!).ToString());
         Assert.Equal(hash, artifact.Sha1);
     }
 
