@@ -427,3 +427,52 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+/upstream
+.DS_Store
+/tips
+/docs
+
+# PCL Aurora local-only development state
+/.idea/
+/.vscode/
+/.dotnet/
+/.nuget/
+*.sln.iml
+*.DotSettings.user
+
+# macOS Finder and extended-attribute metadata
+.AppleDouble
+.LSOverride
+Icon\r
+._*
+
+# Local configuration, credentials, and signing material
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+**/appsettings.Development.json
+**/secrets.json
+/secrets/
+*.pfx
+*.p12
+*.key
+*.pem
+
+# Generated packages, test output, and local runtime data
+/artifacts/
+/dist/
+/publish/
+/coverage/
+/TestResults/
+/logs/
+/cache/
+/downloads/
+/screenshots/
+/recordings/
+/.pcl-aurora/
+/.minecraft/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
