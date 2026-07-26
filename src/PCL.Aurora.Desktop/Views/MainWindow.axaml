@@ -50,11 +50,26 @@
                             </StackPanel>
                         </Border>
 
+                        <Border Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                            <StackPanel Spacing="12">
+                                <TextBlock FontWeight="SemiBold" Text="账户 · 离线模式" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="离线账户仅保留在本次会话；微软与 Authlib-Injector 登录将在安全认证服务完成后提供。"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="离线用户名" />
+                                <TextBox PlaceholderText="离线用户名（3–16 位）" Text="{Binding OfflinePlayerName}" />
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Button Command="{Binding UseOfflineAccountCommand}" Content="使用离线账户" />
+                                    <TextBlock VerticalAlignment="Center" Text="{Binding AccountSummary}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
                         <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
                             <StackPanel Spacing="8">
                                 <TextBlock FontWeight="SemiBold" Text="启动迁移状态" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="已完成：系统与 Java 诊断。待完成：实例选择、离线与微软账户、版本下载、依赖解析、游戏进程启动。"
+                                           Text="{Binding LaunchPreflightSummary}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>

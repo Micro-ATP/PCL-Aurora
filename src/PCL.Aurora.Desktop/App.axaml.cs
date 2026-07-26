@@ -43,6 +43,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IOpenPathService, MacOSOpenPathService>();
         services.AddSingleton<ISystemDiagnosticsService, SystemDiagnosticsService>();
         services.AddSingleton<IInstanceCatalogService, InstanceCatalogService>();
+        services.AddSingleton<ILaunchReadinessService, LaunchReadinessService>();
         services.AddTransient<MainViewModel>();
         return services.BuildServiceProvider();
     }

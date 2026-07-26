@@ -11,10 +11,12 @@ services.AddSingleton<IMinecraftInstanceLocator, MacOSMinecraftInstanceLocator>(
 services.AddSingleton<IOpenPathService, MacOSOpenPathService>();
 services.AddSingleton<ISystemDiagnosticsService, SystemDiagnosticsService>();
 services.AddSingleton<IInstanceCatalogService, InstanceCatalogService>();
+services.AddSingleton<ILaunchReadinessService, LaunchReadinessService>();
 
 await using var provider = services.BuildServiceProvider();
 var diagnosticsService = provider.GetRequiredService<ISystemDiagnosticsService>();
 var instanceCatalogService = provider.GetRequiredService<IInstanceCatalogService>();
+var launchReadinessService = provider.GetRequiredService<ILaunchReadinessService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
 switch (command)
@@ -70,9 +72,32 @@ switch (command)
 
         break;
     }
+    case "launch check":
+    {
+        var instancesTask = instanceCatalogService.GetAllAsync();
+        var diagnosticsTask = diagnosticsService.GetAsync();
+        await Task.WhenAll(instancesTask, diagnosticsTask);
+        var instance = (await instancesTask).FirstOrDefault(candidate => candidate.Status == PCL.Aurora.Domain.MinecraftInstanceStatus.Valid);
+        var java = (await diagnosticsTask).JavaInstallations.FirstOrDefault(candidate => candidate.IsCompatible);
+        var readiness = launchReadinessService.Evaluate(instance, account: null, java);
+
+        if (readiness.CanLaunch)
+        {
+            Console.WriteLine("启动前检查通过。游戏进程启动器尚未迁移。");
+            break;
+        }
+
+        Console.WriteLine("启动前检查未通过：");
+        foreach (var reason in readiness.BlockingReasons)
+        {
+            Console.WriteLine($"- {reason}");
+        }
+
+        return 1;
+    }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | doctor");
+        Console.WriteLine("用法：info | java list | instances list | launch check | doctor");
         return command == "help" ? 0 : 64;
 }
 
