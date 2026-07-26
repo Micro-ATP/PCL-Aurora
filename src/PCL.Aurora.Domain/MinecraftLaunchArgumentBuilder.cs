@@ -15,11 +15,6 @@ public static partial class MinecraftLaunchArgumentBuilder
             return new(null, ["版本元数据未提供启动信息。"]);
         }
 
-        if (!launch.HasModernArguments)
-        {
-            blockingReasons.Add("旧版 minecraftArguments 启动参数尚未迁移。");
-        }
-
         if (launch.HasUnsupportedConditionalArguments ||
             (launch.HasConditionalArguments &&
              launch.ConditionalJvmArguments is null &&
@@ -44,6 +39,16 @@ public static partial class MinecraftLaunchArgumentBuilder
             launch.ConditionalGameArguments,
             context.RuleEnvironment,
             blockingReasons);
+        if (!launch.HasModernArguments && jvmTemplates.Count == 0)
+        {
+            jvmTemplates = CreateLegacyJvmArguments();
+        }
+
+        if (!string.IsNullOrWhiteSpace(launch.LegacyGameArguments))
+        {
+            gameTemplates = AppendLegacyGameArguments(gameTemplates, launch.LegacyGameArguments, blockingReasons);
+        }
+
         var jvmArguments = ReplaceAll(jvmTemplates, replacements, blockingReasons);
         var gameArguments = ReplaceAll(gameTemplates, replacements, blockingReasons);
         if (blockingReasons.Count > 0 || string.IsNullOrWhiteSpace(launch.MainClass))
@@ -52,6 +57,38 @@ public static partial class MinecraftLaunchArgumentBuilder
         }
 
         return new(new MinecraftLaunchArguments(jvmArguments, launch.MainClass, gameArguments), []);
+    }
+
+    private static IReadOnlyList<string> CreateLegacyJvmArguments() =>
+    [
+        "-Djava.library.path=${natives_directory}",
+        "-cp",
+        "${classpath}",
+    ];
+
+    private static IReadOnlyList<string> AppendLegacyGameArguments(
+        IReadOnlyList<string> modernArguments,
+        string legacyArguments,
+        List<string> blockingReasons)
+    {
+        if (!Pcl2MinecraftLegacyArgumentTokenizer.TryTokenize(legacyArguments, out var legacyTokens, out var error))
+        {
+            blockingReasons.Add(error!);
+            return modernArguments;
+        }
+
+        var result = new List<string>(legacyTokens.Count + modernArguments.Count + 4);
+        result.AddRange(legacyTokens);
+        if (!legacyTokens.Contains("--height", StringComparer.Ordinal))
+        {
+            result.Add("--height");
+            result.Add("${resolution_height}");
+            result.Add("--width");
+            result.Add("${resolution_width}");
+        }
+
+        result.AddRange(modernArguments);
+        return result;
     }
 
     private static IReadOnlyList<string> SelectConditionalArguments(
@@ -118,6 +155,9 @@ public static partial class MinecraftLaunchArgumentBuilder
             ["${natives_directory}"] = context.NativesDirectory,
             ["${game_directory}"] = context.GameDirectory,
             ["${assets_root}"] = context.AssetsRoot,
+            ["${game_assets}"] = context.AssetsRoot is null
+                ? null
+                : Path.Combine(context.AssetsRoot, "virtual", "legacy"),
             ["${assets_index_name}"] = context.AssetsIndexName,
             ["${launcher_name}"] = context.LauncherName,
             ["${launcher_version}"] = context.LauncherVersion,

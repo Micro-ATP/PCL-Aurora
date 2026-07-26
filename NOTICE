@@ -9,6 +9,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModLaunch.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/MyMsgLogin.xaml.cs
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModMinecraft.vb
+- PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModLaunch.vb
 - PCL2: Plain Craft Launcher 2/Modules/Base/ModNet.vb
 
 The original license texts are provided in LICENSES/Apache-2.0.txt,

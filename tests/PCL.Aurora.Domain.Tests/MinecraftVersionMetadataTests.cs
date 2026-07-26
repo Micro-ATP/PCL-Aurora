@@ -142,6 +142,121 @@ public sealed class MinecraftVersionMetadataTests
     }
 
     [Fact]
+    public void Prepare_UsesSafeLegacyJvmAndGameArgumentsWithoutShellSplitting()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.6.4",
+            null,
+            "release",
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                "net.minecraft.client.Minecraft",
+                [],
+                [],
+                HasModernArguments: false,
+                HasConditionalArguments: false,
+                LegacyGameArguments: "--username ${auth_player_name} --gameDir \"${game_directory}\" --assetsDir ${game_assets} --session ${auth_session} --height 720"));
+        var account = new MinecraftAccount(
+            "AuroraPlayer",
+            "01234567-89ab-cdef-0123-456789abcdef",
+            MinecraftAccountKind.Microsoft,
+            IsAuthenticated: true)
+        {
+            AccessToken = "in-memory-minecraft-access-token",
+        };
+        var context = MinecraftLaunchContext.CreateDefault("1.6.4") with
+        {
+            Classpath = "/libraries/legacy.jar",
+            NativesDirectory = "/minecraft/natives",
+            GameDirectory = "/Minecraft Folder",
+            AssetsRoot = "/minecraft/assets",
+            Account = account,
+        };
+
+        var preparation = MinecraftLaunchArgumentBuilder.Prepare(metadata, context);
+
+        Assert.True(preparation.IsReady);
+        Assert.Equal(
+            ["-Djava.library.path=/minecraft/natives", "-cp", "/libraries/legacy.jar"],
+            preparation.Arguments!.JvmArguments);
+        Assert.Equal(
+            [
+                "--username", "AuroraPlayer",
+                "--gameDir", "/Minecraft Folder",
+                "--assetsDir", Path.Combine("/minecraft/assets", "virtual", "legacy"),
+                "--session", "in-memory-minecraft-access-token",
+                "--height", "720",
+            ],
+            preparation.Arguments.GameArguments);
+    }
+
+    [Fact]
+    public void Prepare_AddsLegacyWindowSizeWhenHeightIsMissing()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.6.4",
+            null,
+            "release",
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                "net.minecraft.client.Minecraft",
+                [],
+                [],
+                HasModernArguments: false,
+                HasConditionalArguments: false,
+                LegacyGameArguments: "--username ${auth_player_name}"));
+        OfflineAccount.TryCreate("AuroraPlayer", out var account);
+        var context = MinecraftLaunchContext.CreateDefault("1.6.4") with
+        {
+            Classpath = "/libraries/legacy.jar",
+            NativesDirectory = "/minecraft/natives",
+            Account = account,
+            ResolutionWidth = 1024,
+            ResolutionHeight = 768,
+        };
+
+        var preparation = MinecraftLaunchArgumentBuilder.Prepare(metadata, context);
+
+        Assert.True(preparation.IsReady);
+        Assert.Equal(
+            ["--username", "AuroraPlayer", "--height", "768", "--width", "1024"],
+            preparation.Arguments!.GameArguments);
+    }
+
+    [Fact]
+    public void Prepare_RejectsUnknownLegacyPlaceholder()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.6.4",
+            null,
+            "release",
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                "net.minecraft.client.Minecraft",
+                [],
+                [],
+                HasModernArguments: false,
+                HasConditionalArguments: false,
+                LegacyGameArguments: "--unsupported ${unknown_placeholder}"));
+        var context = MinecraftLaunchContext.CreateDefault("1.6.4") with
+        {
+            Classpath = "/libraries/legacy.jar",
+            NativesDirectory = "/minecraft/natives",
+        };
+
+        var preparation = MinecraftLaunchArgumentBuilder.Prepare(metadata, context);
+
+        Assert.False(preparation.IsReady);
+        Assert.Contains(preparation.BlockingReasons, reason => reason.Contains("${unknown_placeholder}", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Prepare_UsesAuthenticatedMicrosoftTokenOnlyForRequiredLaunchPlaceholders()
     {
         var metadata = new MinecraftVersionMetadata(
