@@ -238,6 +238,36 @@
                         </Border>
 
                         <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontWeight="SemiBold" Text="游戏日志" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding GameLogSummary}"
+                                           TextWrapping="Wrap" />
+                                <Button HorizontalAlignment="Left"
+                                        Command="{Binding ClearGameLogsCommand}"
+                                        IsEnabled="{Binding HasGameLogLines}"
+                                        Content="清除本次会话日志" />
+                                <Border MaxHeight="260"
+                                        Padding="12"
+                                        Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                                        CornerRadius="8">
+                                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                                  VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl ItemsSource="{Binding GameLogLines}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock FontFamily="Menlo, Consolas, monospace"
+                                                               Text="{Binding DisplayText}"
+                                                               TextWrapping="Wrap" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
                             <StackPanel Spacing="8">
                                 <TextBlock FontWeight="SemiBold" Text="关于 PCL Aurora" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"

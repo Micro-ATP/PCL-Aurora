@@ -20,6 +20,8 @@ public partial class MainViewModel(
     IMinecraftGameLaunchService gameLaunchService,
     IThemeService themeService) : ViewModelBase
 {
+    private const int MaximumGameLogLines = 500;
+
     private MinecraftAccount? selectedAccount;
     private JavaInstallation? selectedJava;
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
@@ -28,6 +30,8 @@ public partial class MainViewModel(
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
     public ObservableCollection<MinecraftInstance> AvailableInstances { get; } = [];
+
+    public ObservableCollection<GameLogLine> GameLogLines { get; } = [];
 
     public string MinecraftRootDirectory { get; } = minecraftDirectoryService.GetRootDirectory();
 
@@ -94,6 +98,12 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string gameDirectorySummary = "仅在点击“打开游戏目录”后调用系统文件管理器；不会创建目录。";
+
+    [ObservableProperty]
+    private string gameLogSummary = "尚未启动游戏，本次会话没有可查看的进程输出。";
+
+    [ObservableProperty]
+    private bool hasGameLogLines;
 
     [ObservableProperty]
     private bool canLaunchGame;
@@ -406,6 +416,9 @@ public partial class MainViewModel(
         {
             var session = await gameLaunchService.LaunchAsync(gameLaunchPreparation);
             GameLaunchSummary = $"已启动游戏进程（PID {session.ProcessId}）。输出将用于后续日志页。";
+            GameLogLines.Clear();
+            HasGameLogLines = false;
+            GameLogSummary = $"正在捕获游戏进程 {session.ProcessId} 的输出；日志仅保留在本次会话内。";
             _ = ObserveGameProcessAsync(session);
         }
         catch (Exception exception)
@@ -437,14 +450,30 @@ public partial class MainViewModel(
     private async Task ObserveGameProcessAsync(GameProcessSession session)
     {
         var outputCount = 0;
-        await foreach (var _ in session.Output.ReadAllAsync())
+        await foreach (var output in session.Output.ReadAllAsync())
         {
             outputCount++;
+            if (GameLogLines.Count == MaximumGameLogLines)
+            {
+                GameLogLines.RemoveAt(0);
+            }
+
+            GameLogLines.Add(GameLogLine.FromOutput(output));
+            HasGameLogLines = true;
         }
 
         var exitCode = await session.ExitCode;
         GameLaunchSummary = $"游戏进程已退出（代码 {exitCode}，捕获 {outputCount} 行输出）。";
+        GameLogSummary = $"游戏进程已退出（代码 {exitCode}）。本次会话保留 {GameLogLines.Count} 行输出。";
         CanLaunchGame = false;
+    }
+
+    [RelayCommand]
+    private void ClearGameLogs()
+    {
+        GameLogLines.Clear();
+        HasGameLogLines = false;
+        GameLogSummary = "已清除本次会话中的游戏输出；不会影响游戏进程或本地文件。";
     }
 
     private void UpdateLaunchPreflight()
