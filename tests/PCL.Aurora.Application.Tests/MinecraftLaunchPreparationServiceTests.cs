@@ -38,6 +38,7 @@ public sealed class MinecraftLaunchPreparationServiceTests
         var preparation = await service.PrepareAsync(instance, account);
 
         Assert.False(preparation.ArgumentPreparation.IsReady);
+        Assert.False(preparation.ClasspathInspection.IsReady);
         Assert.Contains(preparation.ArgumentPreparation.BlockingReasons, reason => reason.Contains("${classpath}", StringComparison.Ordinal));
         Assert.DoesNotContain(preparation.ArgumentPreparation.BlockingReasons, reason => reason.Contains("${auth_player_name}", StringComparison.Ordinal));
     }

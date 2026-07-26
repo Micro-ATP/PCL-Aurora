@@ -130,7 +130,20 @@ public sealed class MinecraftVersionMetadataTests
               "arguments": {
                 "jvm": ["-cp", "${classpath}", { "rules": [], "value": "-Dignored=true" }],
                 "game": ["--username", "${auth_player_name}"]
-              }
+              },
+              "libraries": [
+                {
+                  "name": "com.example:demo:1.0",
+                  "downloads": {
+                    "artifact": {
+                      "path": "com/example/demo/1.0/demo-1.0.jar",
+                      "url": "https://example.invalid/demo-1.0.jar",
+                      "sha1": "demo-sha",
+                      "size": 123
+                    }
+                  }
+                }
+              ]
             }
             """);
 
@@ -139,5 +152,8 @@ public sealed class MinecraftVersionMetadataTests
         Assert.Equal(["-cp", "${classpath}"], result.Metadata.Launch.JvmArguments);
         Assert.Equal(["--username", "${auth_player_name}"], result.Metadata.Launch.GameArguments);
         Assert.True(result.Metadata.Launch.HasConditionalArguments);
+        var library = Assert.Single(result.Metadata.Libraries!);
+        Assert.Equal("com/example/demo/1.0/demo-1.0.jar", library.ArtifactPath);
+        Assert.Equal(123, library.Artifact!.Size);
     }
 }

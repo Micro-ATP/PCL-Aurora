@@ -16,7 +16,10 @@ public sealed class MinecraftLaunchPreparationService(IMinecraftVersionPreparati
         var metadata = versionPreparation.Inspection.EffectiveMetadata;
         if (metadata is null)
         {
-            return new(versionPreparation, new MinecraftLaunchArgumentPreparation(null, ["未读取到有效版本元数据。"]));
+            return new(
+                versionPreparation,
+                new MinecraftClasspathInspection([], [], ["未读取到有效版本元数据。"]),
+                new MinecraftLaunchArgumentPreparation(null, ["未读取到有效版本元数据。"]));
         }
 
         var versionsDirectory = Directory.GetParent(instance.DirectoryPath)?.FullName;
@@ -32,6 +35,8 @@ public sealed class MinecraftLaunchPreparationService(IMinecraftVersionPreparati
             VersionType = metadata.Type,
             Account = account,
         };
-        return new(versionPreparation, MinecraftLaunchArgumentBuilder.Prepare(metadata, context));
+        var classpathInspection = MinecraftClasspathBuilder.Build(versionPreparation.Inspection, minecraftRootDirectory);
+        context = context with { Classpath = classpathInspection.Value };
+        return new(versionPreparation, classpathInspection, MinecraftLaunchArgumentBuilder.Prepare(metadata, context));
     }
 }

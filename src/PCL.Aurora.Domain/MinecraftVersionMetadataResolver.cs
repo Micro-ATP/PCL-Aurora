@@ -31,10 +31,29 @@ public static class MinecraftVersionMetadataResolver
                 ClientDownload = child.ClientDownload ?? effective.ClientDownload,
                 AssetIndex = child.AssetIndex ?? effective.AssetIndex,
                 Launch = MergeLaunchMetadata(effective.Launch, child.Launch),
+                Libraries = MergeLibraries(effective.Libraries, child.Libraries),
             };
         }
 
         return new(inheritanceChain, effective, []);
+    }
+
+    private static IReadOnlyList<MinecraftVersionLibrary> MergeLibraries(
+        IReadOnlyList<MinecraftVersionLibrary>? parent,
+        IReadOnlyList<MinecraftVersionLibrary>? child)
+    {
+        var libraries = new Dictionary<string, MinecraftVersionLibrary>(StringComparer.Ordinal);
+        foreach (var library in parent ?? [])
+        {
+            libraries[library.Name] = library;
+        }
+
+        foreach (var library in child ?? [])
+        {
+            libraries[library.Name] = library;
+        }
+
+        return libraries.Values.ToList();
     }
 
     private static MinecraftLaunchMetadata? MergeLaunchMetadata(

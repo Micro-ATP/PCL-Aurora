@@ -111,6 +111,20 @@ switch (command)
         }
 
         var preparation = await launchPreparationService.PrepareAsync(instance, account: null);
+        if (!preparation.ClasspathInspection.IsReady)
+        {
+            Console.WriteLine("类路径尚未准备：");
+            foreach (var reason in preparation.ClasspathInspection.BlockingReasons)
+            {
+                Console.WriteLine($"- {reason}");
+            }
+
+            foreach (var missingFile in preparation.ClasspathInspection.MissingFiles)
+            {
+                Console.WriteLine($"- 缺少文件：{missingFile}");
+            }
+        }
+
         if (!preparation.ArgumentPreparation.IsReady)
         {
             Console.WriteLine("启动参数尚未准备：");

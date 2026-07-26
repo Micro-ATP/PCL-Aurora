@@ -38,7 +38,8 @@ public static class MinecraftVersionMetadataParser
                     ParseDateTime(GetString(root, "releaseTime")),
                     clientDownload,
                     assetIndex,
-                    ParseLaunchMetadata(root)),
+                    ParseLaunchMetadata(root),
+                    ParseLibraries(root)),
                 errors);
         }
         catch (JsonException exception)
@@ -97,6 +98,43 @@ public static class MinecraftVersionMetadataParser
             : null;
     }
 
+    private static IReadOnlyList<MinecraftVersionLibrary> ParseLibraries(JsonElement root)
+    {
+        if (!root.TryGetProperty("libraries", out var libraries) || libraries.ValueKind != JsonValueKind.Array)
+        {
+            return [];
+        }
+
+        var result = new List<MinecraftVersionLibrary>();
+        foreach (var library in libraries.EnumerateArray())
+        {
+            if (library.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var name = GetString(library, "name") ?? "未命名库";
+            var hasConditionalRules = library.TryGetProperty("rules", out _);
+            var artifactPath = default(string);
+            MinecraftVersionDownload? artifact = null;
+            if (TryGetObject(library, "downloads", out var downloads) && TryGetObject(downloads, "artifact", out var artifactInfo))
+            {
+                artifactPath = GetString(artifactInfo, "path");
+                if (artifactPath is not null && TryParseHttpUri(GetString(artifactInfo, "url"), out var artifactUrl))
+                {
+                    artifact = new MinecraftVersionDownload(
+                        artifactUrl!,
+                        GetString(artifactInfo, "sha1"),
+                        GetInt64(artifactInfo, "size"));
+                }
+            }
+
+            result.Add(new MinecraftVersionLibrary(name, artifactPath, artifact, hasConditionalRules));
+        }
+
+        return result;
+    }
+
     private static IReadOnlyList<string> ParseStringArray(
         JsonElement arguments,
         string propertyName,
@@ -134,6 +172,19 @@ public static class MinecraftVersionMetadataParser
 
         errors.Add($"{fieldName}无效或缺失。");
         return null;
+    }
+
+    private static bool TryParseHttpUri(string? value, out Uri? uri)
+    {
+        if (Uri.TryCreate(value, UriKind.Absolute, out var candidate) &&
+            (candidate.Scheme == Uri.UriSchemeHttp || candidate.Scheme == Uri.UriSchemeHttps))
+        {
+            uri = candidate;
+            return true;
+        }
+
+        uri = null;
+        return false;
     }
 
     private static string? GetString(JsonElement element, string propertyName) =>

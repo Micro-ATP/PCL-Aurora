@@ -47,6 +47,9 @@ public partial class MainViewModel(
     private string launchArgumentSummary = "正在等待版本元数据与账户信息。";
 
     [ObservableProperty]
+    private string classpathSummary = "正在等待版本元数据。";
+
+    [ObservableProperty]
     private string offlinePlayerName = string.Empty;
 
     [ObservableProperty]
@@ -90,6 +93,7 @@ public partial class MainViewModel(
             VersionMetadataSummary = "无法读取版本元数据。";
             DownloadPreparationSummary = "无法生成下载计划。";
             LaunchArgumentSummary = "无法准备启动参数。";
+            ClasspathSummary = "无法解析类路径。";
         }
     }
 
@@ -122,10 +126,17 @@ public partial class MainViewModel(
         if (selectedInstance is null)
         {
             LaunchArgumentSummary = "未选择可读取版本元数据的本地实例。";
+            ClasspathSummary = "未选择可读取版本元数据的本地实例。";
             return;
         }
 
         var preparation = await launchPreparationService.PrepareAsync(selectedInstance, selectedAccount);
+        ClasspathSummary = preparation.ClasspathInspection.IsReady
+            ? $"已发现 {preparation.ClasspathInspection.Entries.Count} 个本地类路径条目。"
+            : string.Join(
+                Environment.NewLine,
+                preparation.ClasspathInspection.BlockingReasons
+                    .Concat(preparation.ClasspathInspection.MissingFiles.Select(file => $"缺少文件：{file}")));
         LaunchArgumentSummary = preparation.ArgumentPreparation.IsReady
             ? $"已准备 {preparation.ArgumentPreparation.Arguments!.JvmArguments.Count} 个 JVM 参数与 {preparation.ArgumentPreparation.Arguments.GameArguments.Count} 个游戏参数；游戏进程启动器尚未迁移。"
             : string.Join(Environment.NewLine, preparation.ArgumentPreparation.BlockingReasons);
