@@ -8,7 +8,7 @@ public sealed class LauncherPreferencesServiceTests
     public async Task SaveThemeModeAsync_PreservesLoadedInstanceSelection()
     {
         var store = new RecordingPreferencesStore(
-            new LauncherPreferencesLoadResult(new LauncherPreferences(LauncherThemeMode.System, "1.21.4"), null));
+            new LauncherPreferencesLoadResult(new LauncherPreferences(LauncherThemeMode.System, "1.21.4", "Aurora_01"), null));
         var service = new LauncherPreferencesService(store);
         await service.LoadAsync();
 
@@ -16,6 +16,7 @@ public sealed class LauncherPreferencesServiceTests
 
         Assert.Equal(LauncherThemeMode.Dark, store.SavedPreferences?.ThemeMode);
         Assert.Equal("1.21.4", store.SavedPreferences?.SelectedInstanceName);
+        Assert.Equal("Aurora_01", store.SavedPreferences?.OfflinePlayerName);
     }
 
     private sealed class RecordingPreferencesStore(LauncherPreferencesLoadResult loadResult) : ILauncherPreferencesStore

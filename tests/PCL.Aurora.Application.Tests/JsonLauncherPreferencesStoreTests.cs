@@ -55,6 +55,28 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_RoundTripsValidatedOfflinePlayerName()
+    {
+        var store = CreateStore();
+
+        await store.SaveAsync(new LauncherPreferences(LauncherThemeMode.System, OfflinePlayerName: "Aurora_01"));
+        var result = await store.LoadAsync();
+
+        Assert.Equal("Aurora_01", result.Preferences.OfflinePlayerName);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RejectsInvalidOfflinePlayerName()
+    {
+        var store = CreateStore();
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            store.SaveAsync(new LauncherPreferences(LauncherThemeMode.System, OfflinePlayerName: "not valid")));
+
+        Assert.False(File.Exists(GetPreferencesPath()));
+    }
+
+    [Fact]
     public async Task LoadAsync_RecoversFromInvalidPreferencesWithoutOverwritingFile()
     {
         Directory.CreateDirectory(applicationDataDirectory);

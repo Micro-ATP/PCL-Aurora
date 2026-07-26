@@ -10,4 +10,6 @@ public interface ILauncherPreferencesService
     Task SaveThemeModeAsync(LauncherThemeMode themeMode, CancellationToken cancellationToken = default);
 
     Task SaveSelectedInstanceNameAsync(string? instanceName, CancellationToken cancellationToken = default);
+
+    Task SaveOfflinePlayerNameAsync(string? playerName, CancellationToken cancellationToken = default);
 }

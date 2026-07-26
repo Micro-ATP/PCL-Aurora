@@ -29,6 +29,9 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
     public Task SaveSelectedInstanceNameAsync(string? instanceName, CancellationToken cancellationToken = default) =>
         UpdateAsync(preferences => preferences with { SelectedInstanceName = instanceName }, cancellationToken);
 
+    public Task SaveOfflinePlayerNameAsync(string? playerName, CancellationToken cancellationToken = default) =>
+        UpdateAsync(preferences => preferences with { OfflinePlayerName = playerName }, cancellationToken);
+
     private async Task UpdateAsync(
         Func<LauncherPreferences, LauncherPreferences> update,
         CancellationToken cancellationToken)

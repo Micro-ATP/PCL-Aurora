@@ -75,12 +75,13 @@
                             <StackPanel Spacing="12">
                                 <TextBlock FontWeight="SemiBold" Text="账户 · 离线模式" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="离线账户仅保留在本次会话；微软与 Authlib-Injector 登录将在安全认证服务完成后提供。"
+                                           Text="本机仅保存通过校验的离线用户名；微软与 Authlib-Injector 登录将在安全认证服务完成后提供。"
                                            TextWrapping="Wrap" />
                                 <TextBlock Text="离线用户名" />
                                 <TextBox PlaceholderText="离线用户名（3–16 位）" Text="{Binding OfflinePlayerName}" />
                                 <StackPanel Orientation="Horizontal" Spacing="12">
                                     <Button Command="{Binding UseOfflineAccountCommand}" Content="使用离线账户" />
+                                    <Button Command="{Binding ClearOfflineAccountCommand}" Content="清除离线账户" />
                                     <TextBlock VerticalAlignment="Center" Text="{Binding AccountSummary}" TextWrapping="Wrap" />
                                 </StackPanel>
                             </StackPanel>

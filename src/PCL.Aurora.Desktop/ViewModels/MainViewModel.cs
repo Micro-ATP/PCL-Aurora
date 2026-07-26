@@ -234,6 +234,7 @@ public partial class MainViewModel(
             SelectedThemeMode = option;
             themeService.Apply(option.Mode);
             ThemeSummary = result.Warning ?? $"当前使用{option.DisplayName}主题；该偏好已保存到本机。";
+            RestoreOfflineAccount(result.Preferences.OfflinePlayerName);
         }
         catch (Exception exception)
         {
@@ -497,10 +498,59 @@ public partial class MainViewModel(
         }
 
         selectedAccount = account;
-        AccountSummary = $"本次会话使用离线账户：{account.DisplayName}。未写入密码或令牌。";
+        try
+        {
+            await preferencesService.SaveOfflinePlayerNameAsync(account.DisplayName);
+            currentPreferences = currentPreferences with { OfflinePlayerName = account.DisplayName };
+            AccountSummary = $"已恢复离线账户：{account.DisplayName}。本机仅保存用户名，不保存密码或令牌。";
+        }
+        catch (Exception exception)
+        {
+            AccountSummary = $"本次会话使用离线账户：{account.DisplayName}。用户名保存失败：{exception.Message}";
+        }
+
         UpdateLaunchPreflight();
         await RefreshLaunchArgumentPreparationAsync();
         await RefreshGameLaunchPreparationAsync();
+    }
+
+    [RelayCommand]
+    private async Task ClearOfflineAccountAsync()
+    {
+        selectedAccount = null;
+        OfflinePlayerName = string.Empty;
+        try
+        {
+            await preferencesService.SaveOfflinePlayerNameAsync(null);
+            currentPreferences = currentPreferences with { OfflinePlayerName = null };
+            AccountSummary = "已清除离线账户；本机不再保存该用户名。";
+        }
+        catch (Exception exception)
+        {
+            AccountSummary = $"已清除当前会话账户，但删除本地用户名失败：{exception.Message}";
+        }
+
+        UpdateLaunchPreflight();
+        await RefreshLaunchArgumentPreparationAsync();
+        await RefreshGameLaunchPreparationAsync();
+    }
+
+    private void RestoreOfflineAccount(string? playerName)
+    {
+        if (string.IsNullOrEmpty(playerName))
+        {
+            return;
+        }
+
+        if (!OfflineAccount.TryCreate(playerName, out var account) || account is null)
+        {
+            AccountSummary = "本地离线用户名无效，未恢复账户。";
+            return;
+        }
+
+        OfflinePlayerName = account.DisplayName;
+        selectedAccount = account;
+        AccountSummary = $"已恢复离线账户：{account.DisplayName}。本机仅保存用户名，不保存密码或令牌。";
     }
 
     [RelayCommand]
