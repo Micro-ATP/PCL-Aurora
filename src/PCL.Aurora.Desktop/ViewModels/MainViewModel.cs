@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using PCL.Aurora.Application;
 using PCL.Aurora.Desktop.Services;
 using PCL.Aurora.Domain;
+using PCL.Aurora.Platform.Abstractions;
 
 namespace PCL.Aurora.Desktop.ViewModels;
 
@@ -22,6 +23,9 @@ public partial class MainViewModel(
     IMinecraftDirectoryService minecraftDirectoryService,
     IMinecraftGameLaunchService gameLaunchService,
     ILauncherPreferencesService preferencesService,
+    IMicrosoftAccountAuthenticationService microsoftAuthenticationService,
+    IMicrosoftAccountSessionService microsoftAccountSessionService,
+    IOpenPathService openPathService,
     IThemeService themeService) : ViewModelBase
 {
     private const int MaximumGameLogLines = 500;
@@ -34,6 +38,7 @@ public partial class MainViewModel(
     private bool isRefreshing;
     private bool isLoadingPreferences;
     private CancellationTokenSource? installationCancellation;
+    private CancellationTokenSource? microsoftLoginCancellation;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
@@ -212,6 +217,24 @@ public partial class MainViewModel(
     private bool hasAcknowledgedAccountGuidance;
 
     [ObservableProperty]
+    private string microsoftLoginSummary = "Microsoft 登录尚未开始。";
+
+    [ObservableProperty]
+    private string microsoftDeviceCode = "—";
+
+    [ObservableProperty]
+    private bool canStartMicrosoftLogin;
+
+    [ObservableProperty]
+    private bool canRestoreMicrosoftLogin;
+
+    [ObservableProperty]
+    private bool canCancelMicrosoftLogin;
+
+    [ObservableProperty]
+    private bool canClearMicrosoftLogin;
+
+    [ObservableProperty]
     private string launchPreflightSummary = "正在检查启动条件…";
 
     [RelayCommand]
@@ -310,11 +333,13 @@ public partial class MainViewModel(
             SelectedDownloadSpeedLimit = DownloadSpeedOptions.Single(option => option.Step == result.Preferences.DownloadSpeedLimitStep);
             DownloadSettingsSummary = result.Warning ?? GetDownloadSettingsSummary(result.Preferences);
             RestoreOfflineAccount(result.Preferences.OfflinePlayerName);
+            UpdateMicrosoftLoginAvailability(result.Preferences.MicrosoftAccount);
         }
         catch (Exception exception)
         {
             ThemeSummary = $"无法读取本地主题偏好：{exception.Message}；当前跟随系统主题。";
             DownloadSettingsSummary = "无法读取本地下载设置；已使用安全默认值。";
+            MicrosoftLoginSummary = "无法读取本地 Microsoft 账户档案。";
         }
         finally
         {
@@ -889,6 +914,166 @@ public partial class MainViewModel(
         < 1024L * 1024 * 1024 => $"{value / 1024d / 1024d:0.#} MiB",
         _ => $"{value / 1024d / 1024d / 1024d:0.#} GiB",
     };
+
+    [RelayCommand]
+    private async Task StartMicrosoftLoginAsync()
+    {
+        if (!microsoftAuthenticationService.IsConfigured)
+        {
+            MicrosoftLoginSummary = "尚未配置 Aurora 的 Microsoft OAuth Client ID；请设置 PCL_AURORA_MS_CLIENT_ID 后重新启动。";
+            return;
+        }
+
+        using var cancellation = new CancellationTokenSource();
+        microsoftLoginCancellation = cancellation;
+        CanStartMicrosoftLogin = false;
+        CanRestoreMicrosoftLogin = false;
+        CanCancelMicrosoftLogin = true;
+        try
+        {
+            MicrosoftLoginSummary = "正在请求 Microsoft 设备代码…";
+            var session = await microsoftAuthenticationService.BeginDeviceCodeLoginAsync(cancellation.Token);
+            MicrosoftDeviceCode = session.Prompt.UserCode;
+            MicrosoftLoginSummary = $"请在浏览器完成 Microsoft 登录；设备代码：{session.Prompt.UserCode}。授权窗口会自动打开。";
+            await openPathService.OpenUriAsync(session.Prompt.OpenUri, cancellation.Token);
+            var progress = new Progress<MicrosoftAuthenticationProgress>(update => MicrosoftLoginSummary = update.Description);
+            var result = await microsoftAuthenticationService.CompleteDeviceCodeLoginAsync(session, progress, cancellation.Token);
+            await microsoftAccountSessionService.PersistAsync(result, cancellation.Token);
+            var profile = MicrosoftAccountProfile.FromAuthenticatedAccount(result.Account);
+            await preferencesService.SaveMicrosoftAccountAsync(profile, cancellation.Token);
+            currentPreferences = currentPreferences with { MicrosoftAccount = profile };
+            selectedAccount = result.Account;
+            HasAcknowledgedAccountGuidance = false;
+            AccountSummary = $"已认证 Microsoft 账户：{result.Account.DisplayName}。刷新令牌仅保存于系统钥匙串。";
+            MicrosoftLoginSummary = "Microsoft 登录已完成。";
+            MicrosoftDeviceCode = "—";
+            CanClearMicrosoftLogin = true;
+            UpdateLaunchPreflight();
+            await RefreshLaunchArgumentPreparationAsync();
+            await RefreshGameLaunchPreparationAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            MicrosoftLoginSummary = "Microsoft 登录已取消。";
+        }
+        catch (Exception exception)
+        {
+            MicrosoftLoginSummary = $"Microsoft 登录失败：{exception.Message}";
+        }
+        finally
+        {
+            if (ReferenceEquals(microsoftLoginCancellation, cancellation))
+            {
+                microsoftLoginCancellation = null;
+                CanCancelMicrosoftLogin = false;
+                UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount);
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task RestoreMicrosoftLoginAsync()
+    {
+        if (currentPreferences.MicrosoftAccount is not { } profile)
+        {
+            MicrosoftLoginSummary = "没有可恢复的 Microsoft 账户。";
+            return;
+        }
+
+        CanStartMicrosoftLogin = false;
+        CanRestoreMicrosoftLogin = false;
+        try
+        {
+            var progress = new Progress<MicrosoftAuthenticationProgress>(update => MicrosoftLoginSummary = update.Description);
+            MicrosoftLoginSummary = "正在从系统钥匙串恢复 Microsoft 登录…";
+            var restored = await microsoftAccountSessionService.RestoreAsync(profile, progress);
+            if (restored.Account is null)
+            {
+                MicrosoftLoginSummary = restored.Warning ?? "无法恢复 Microsoft 登录。";
+                return;
+            }
+
+            selectedAccount = restored.Account;
+            HasAcknowledgedAccountGuidance = false;
+            AccountSummary = $"已恢复 Microsoft 账户：{restored.Account.DisplayName}。";
+            MicrosoftLoginSummary = "Microsoft 登录已恢复。";
+            UpdateLaunchPreflight();
+            await RefreshLaunchArgumentPreparationAsync();
+            await RefreshGameLaunchPreparationAsync();
+        }
+        catch (Exception exception)
+        {
+            MicrosoftLoginSummary = $"恢复 Microsoft 登录失败：{exception.Message}";
+        }
+        finally
+        {
+            UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount);
+        }
+    }
+
+    [RelayCommand]
+    private void CancelMicrosoftLogin()
+    {
+        if (microsoftLoginCancellation is not { IsCancellationRequested: false })
+        {
+            return;
+        }
+
+        CanCancelMicrosoftLogin = false;
+        MicrosoftLoginSummary = "正在取消 Microsoft 登录…";
+        microsoftLoginCancellation.Cancel();
+    }
+
+    [RelayCommand]
+    private async Task ClearMicrosoftLoginAsync()
+    {
+        if (currentPreferences.MicrosoftAccount is not { } profile)
+        {
+            return;
+        }
+
+        try
+        {
+            await microsoftAccountSessionService.RemoveAsync(profile);
+            await preferencesService.SaveMicrosoftAccountAsync(null);
+            currentPreferences = currentPreferences with { MicrosoftAccount = null };
+            if (selectedAccount?.Kind == MinecraftAccountKind.Microsoft)
+            {
+                selectedAccount = null;
+                HasAcknowledgedAccountGuidance = false;
+                UpdateLaunchPreflight();
+                await RefreshLaunchArgumentPreparationAsync();
+                await RefreshGameLaunchPreparationAsync();
+            }
+
+            AccountSummary = "已清除 Microsoft 账户及系统钥匙串中的刷新令牌。";
+            MicrosoftLoginSummary = "Microsoft 登录已清除。";
+            MicrosoftDeviceCode = "—";
+        }
+        catch (Exception exception)
+        {
+            MicrosoftLoginSummary = $"清除 Microsoft 登录失败：{exception.Message}";
+        }
+        finally
+        {
+            UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount);
+        }
+    }
+
+    private void UpdateMicrosoftLoginAvailability(MicrosoftAccountProfile? profile)
+    {
+        CanStartMicrosoftLogin = microsoftAuthenticationService.IsConfigured && microsoftLoginCancellation is null;
+        CanRestoreMicrosoftLogin = microsoftAuthenticationService.IsConfigured && profile is not null && microsoftLoginCancellation is null;
+        CanClearMicrosoftLogin = profile is not null;
+        if (!microsoftAuthenticationService.IsConfigured)
+        {
+            MicrosoftLoginSummary = "需设置 Aurora 的 PCL_AURORA_MS_CLIENT_ID 后才能使用 Microsoft 登录。";
+        }
+        else if (profile is not null && !CanCancelMicrosoftLogin && selectedAccount?.Kind != MinecraftAccountKind.Microsoft)
+        {
+            MicrosoftLoginSummary = $"检测到 Microsoft 账户 {profile.DisplayName}；点击“恢复 Microsoft 登录”后才会访问网络。";
+        }
+    }
 
     [RelayCommand]
     private async Task UseOfflineAccount()

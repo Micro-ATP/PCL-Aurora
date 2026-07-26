@@ -30,4 +30,22 @@ public sealed class MinecraftAccountLicenseGuidanceTests
         Assert.False(guidance.RequiresAcknowledgement);
         Assert.Null(guidance.PurchaseUri);
     }
+
+    [Fact]
+    public void ToString_DoesNotExposeInMemoryMicrosoftAccessToken()
+    {
+        var account = new MinecraftAccount(
+            "Alex",
+            "00000000-0000-0000-0000-000000000000",
+            MinecraftAccountKind.Microsoft,
+            IsAuthenticated: true)
+        {
+            AccessToken = "private-minecraft-access-token",
+        };
+
+        var representation = account.ToString();
+
+        Assert.DoesNotContain("private-minecraft-access-token", representation, StringComparison.Ordinal);
+        Assert.DoesNotContain("AccessToken", representation, StringComparison.Ordinal);
+    }
 }

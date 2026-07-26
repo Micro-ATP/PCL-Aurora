@@ -10,7 +10,8 @@ public sealed record LauncherPreferences(
     string? SelectedInstanceName = null,
     string? OfflinePlayerName = null,
     int DownloadConcurrency = LauncherDownloadSettings.DefaultConcurrency,
-    int DownloadSpeedLimitStep = LauncherDownloadSettings.UnlimitedSpeedLimitStep)
+    int DownloadSpeedLimitStep = LauncherDownloadSettings.UnlimitedSpeedLimitStep,
+    MicrosoftAccountProfile? MicrosoftAccount = null)
 {
     public static LauncherPreferences Default { get; } = new(LauncherThemeMode.System);
 
@@ -19,7 +20,8 @@ public sealed record LauncherPreferences(
         IsValidInstanceName(SelectedInstanceName) &&
         IsValidOfflinePlayerName(OfflinePlayerName) &&
         LauncherDownloadSettings.IsValidConcurrency(DownloadConcurrency) &&
-        LauncherDownloadSettings.IsValidSpeedLimitStep(DownloadSpeedLimitStep);
+        LauncherDownloadSettings.IsValidSpeedLimitStep(DownloadSpeedLimitStep) &&
+        (MicrosoftAccount?.IsValid ?? true);
 
     public static bool IsValidInstanceName(string? instanceName) =>
         instanceName is null ||

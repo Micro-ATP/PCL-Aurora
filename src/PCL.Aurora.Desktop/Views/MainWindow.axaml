@@ -75,9 +75,30 @@
 
                         <Border Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
                             <StackPanel Spacing="12">
-                                <TextBlock FontWeight="SemiBold" Text="账户 · 离线模式" />
+                                <TextBlock FontWeight="SemiBold" Text="账户 · Microsoft 与离线模式" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="本机仅保存通过校验的离线用户名；微软与 Authlib-Injector 登录将在安全认证服务完成后提供。"
+                                           Text="Microsoft 登录使用设备代码授权；刷新令牌仅保存至 macOS 系统钥匙串，绝不写入普通偏好文件。"
+                                           TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Button Command="{Binding StartMicrosoftLoginCommand}"
+                                            IsEnabled="{Binding CanStartMicrosoftLogin}"
+                                            Content="登录 Microsoft 账户" />
+                                    <Button Command="{Binding RestoreMicrosoftLoginCommand}"
+                                            IsEnabled="{Binding CanRestoreMicrosoftLogin}"
+                                            Content="恢复 Microsoft 登录" />
+                                    <Button Command="{Binding CancelMicrosoftLoginCommand}"
+                                            IsEnabled="{Binding CanCancelMicrosoftLogin}"
+                                            Content="取消登录" />
+                                    <Button Command="{Binding ClearMicrosoftLoginCommand}"
+                                            IsEnabled="{Binding CanClearMicrosoftLogin}"
+                                            Content="清除 Microsoft 登录" />
+                                </StackPanel>
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding MicrosoftLoginSummary}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding MicrosoftDeviceCode}"
+                                           FontFamily="Menlo"
                                            TextWrapping="Wrap" />
                                 <TextBlock Text="离线用户名" />
                                 <TextBox PlaceholderText="离线用户名（3–16 位）" Text="{Binding OfflinePlayerName}" />

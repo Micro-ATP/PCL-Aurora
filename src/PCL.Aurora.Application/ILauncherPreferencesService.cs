@@ -18,4 +18,6 @@ public interface ILauncherPreferencesService
     Task SaveDownloadConcurrencyAsync(int concurrency, CancellationToken cancellationToken = default);
 
     Task SaveDownloadSpeedLimitStepAsync(int speedLimitStep, CancellationToken cancellationToken = default);
+
+    Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default);
 }

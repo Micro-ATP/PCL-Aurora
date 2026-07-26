@@ -5,6 +5,8 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/McVersionComparer.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Base/ModSetup.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Network/Downloader/FileDownloader.cs
+- PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModLaunch.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/MyMsgLogin.xaml.cs
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModMinecraft.vb
 - PCL2: Plain Craft Launcher 2/Modules/Base/ModNet.vb
 

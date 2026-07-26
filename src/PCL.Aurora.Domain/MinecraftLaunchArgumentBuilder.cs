@@ -83,14 +83,26 @@ public static partial class MinecraftLaunchArgumentBuilder
             ["${version_type}"] = context.VersionType,
             ["${auth_player_name}"] = context.Account?.DisplayName,
             ["${auth_uuid}"] = context.Account?.Uuid,
-            ["${auth_access_token}"] = context.Account?.Kind == MinecraftAccountKind.Offline ? "0" : null,
-            ["${access_token}"] = context.Account?.Kind == MinecraftAccountKind.Offline ? "0" : null,
-            ["${auth_session}"] = context.Account?.Kind == MinecraftAccountKind.Offline ? "0" : null,
-            ["${user_type}"] = context.Account?.Kind == MinecraftAccountKind.Offline ? "legacy" : null,
+            ["${auth_access_token}"] = GetAccessToken(context.Account),
+            ["${access_token}"] = GetAccessToken(context.Account),
+            ["${auth_session}"] = GetAccessToken(context.Account),
+            ["${user_type}"] = context.Account?.Kind switch
+            {
+                MinecraftAccountKind.Offline => "legacy",
+                MinecraftAccountKind.Microsoft when context.Account.IsAuthenticated && !string.IsNullOrWhiteSpace(context.Account.AccessToken) => "msa",
+                _ => null,
+            },
             ["${user_properties}"] = "{}",
             ["${resolution_width}"] = context.ResolutionWidth.ToString(System.Globalization.CultureInfo.InvariantCulture),
             ["${resolution_height}"] = context.ResolutionHeight.ToString(System.Globalization.CultureInfo.InvariantCulture),
         };
+
+    private static string? GetAccessToken(MinecraftAccount? account) => account?.Kind switch
+    {
+        MinecraftAccountKind.Offline => "0",
+        MinecraftAccountKind.Microsoft when account.IsAuthenticated && !string.IsNullOrWhiteSpace(account.AccessToken) => account.AccessToken,
+        _ => null,
+    };
 
     [GeneratedRegex(@"\$\{[A-Za-z0-9_]+\}")]
     private static partial Regex PlaceholderPattern();

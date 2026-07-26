@@ -95,6 +95,92 @@ public sealed class MinecraftVersionMetadataTests
     }
 
     [Fact]
+    public void Prepare_UsesAuthenticatedMicrosoftTokenOnlyForRequiredLaunchPlaceholders()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.21.4",
+            null,
+            "release",
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                "net.minecraft.client.main.Main",
+                [],
+                [
+                    "--username", "${auth_player_name}",
+                    "--uuid", "${auth_uuid}",
+                    "--accessToken", "${auth_access_token}",
+                    "--session", "${auth_session}",
+                    "--legacy-access-token", "${access_token}",
+                    "--userType", "${user_type}",
+                ],
+                HasModernArguments: true,
+                HasConditionalArguments: false,
+                LegacyGameArguments: null));
+        var account = new MinecraftAccount(
+            "AuroraPlayer",
+            "01234567-89ab-cdef-0123-456789abcdef",
+            MinecraftAccountKind.Microsoft,
+            IsAuthenticated: true)
+        {
+            AccessToken = "in-memory-minecraft-access-token",
+        };
+        var context = MinecraftLaunchContext.CreateDefault("1.21.4") with
+        {
+            Account = account,
+        };
+
+        var preparation = MinecraftLaunchArgumentBuilder.Prepare(metadata, context);
+
+        Assert.True(preparation.IsReady);
+        Assert.Equal(
+            [
+                "--username", "AuroraPlayer",
+                "--uuid", "01234567-89ab-cdef-0123-456789abcdef",
+                "--accessToken", "in-memory-minecraft-access-token",
+                "--session", "in-memory-minecraft-access-token",
+                "--legacy-access-token", "in-memory-minecraft-access-token",
+                "--userType", "msa",
+            ],
+            preparation.Arguments!.GameArguments);
+    }
+
+    [Fact]
+    public void Prepare_RejectsMicrosoftTokenPlaceholdersWhenAccountIsNotAuthenticated()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.21.4",
+            null,
+            "release",
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                "net.minecraft.client.main.Main",
+                [],
+                ["--accessToken", "${auth_access_token}", "--userType", "${user_type}"],
+                HasModernArguments: true,
+                HasConditionalArguments: false,
+                LegacyGameArguments: null));
+        var account = new MinecraftAccount(
+            "AuroraPlayer",
+            "01234567-89ab-cdef-0123-456789abcdef",
+            MinecraftAccountKind.Microsoft,
+            IsAuthenticated: false);
+        var context = MinecraftLaunchContext.CreateDefault("1.21.4") with
+        {
+            Account = account,
+        };
+
+        var preparation = MinecraftLaunchArgumentBuilder.Prepare(metadata, context);
+
+        Assert.False(preparation.IsReady);
+        Assert.Contains(preparation.BlockingReasons, reason => reason.Contains("${auth_access_token}", StringComparison.Ordinal));
+        Assert.Contains(preparation.BlockingReasons, reason => reason.Contains("${user_type}", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Prepare_BlocksConditionalArgumentsAndUnresolvedPlaceholders()
     {
         var metadata = new MinecraftVersionMetadata(

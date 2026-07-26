@@ -48,6 +48,20 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_RoundTripsMicrosoftProfileWithoutAnyToken()
+    {
+        var store = CreateStore();
+        var profile = new MicrosoftAccountProfile("AuroraPlayer", "01234567-89ab-cdef-0123-456789abcdef");
+
+        await store.SaveAsync(new LauncherPreferences(LauncherThemeMode.System, MicrosoftAccount: profile));
+        var result = await store.LoadAsync();
+
+        Assert.Equal(profile, result.Preferences.MicrosoftAccount);
+        var storedJson = await File.ReadAllTextAsync(GetPreferencesPath());
+        Assert.DoesNotContain("token", storedJson, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task SaveAsync_RoundTripsSafeSelectedInstanceName()
     {
         var store = CreateStore();

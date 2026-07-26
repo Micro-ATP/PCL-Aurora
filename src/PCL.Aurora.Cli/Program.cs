@@ -22,6 +22,10 @@ services.AddSingleton<IMinecraftLaunchPreparationService, MinecraftLaunchPrepara
 services.AddSingleton<IMinecraftAssetIndexReader, MacOSMinecraftAssetIndexReader>();
 services.AddSingleton<IAssetMapper, MinecraftAssetMapper>();
 services.AddSingleton<HttpClient>();
+services.AddSingleton(new MicrosoftAuthenticationConfiguration(Environment.GetEnvironmentVariable("PCL_AURORA_MS_CLIENT_ID")));
+services.AddSingleton<IMicrosoftAccountAuthenticationService, MicrosoftAccountAuthenticationService>();
+services.AddSingleton<ISecureSecretStore, MacOSKeychainSecretStore>();
+services.AddSingleton<IMicrosoftAccountSessionService, MicrosoftAccountSessionService>();
 services.AddSingleton<ILauncherPreferencesStore, JsonLauncherPreferencesStore>();
 services.AddSingleton<ILauncherPreferencesService, LauncherPreferencesService>();
 services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();

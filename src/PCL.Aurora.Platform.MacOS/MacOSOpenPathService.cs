@@ -9,6 +9,24 @@ public sealed class MacOSOpenPathService : IOpenPathService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
+        await OpenAsync(path, "无法打开路径", cancellationToken).ConfigureAwait(false);
+    }
+
+    public Task OpenUriAsync(Uri uri, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(uri);
+        if (!uri.IsAbsoluteUri ||
+            (!string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) &&
+             !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new ArgumentException("只能在浏览器中打开 HTTP 或 HTTPS 地址。", nameof(uri));
+        }
+
+        return OpenAsync(uri.AbsoluteUri, "无法打开网页", cancellationToken);
+    }
+
+    private static async Task OpenAsync(string target, string errorPrefix, CancellationToken cancellationToken)
+    {
         using var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -17,13 +35,13 @@ public sealed class MacOSOpenPathService : IOpenPathService
                 UseShellExecute = false,
             },
         };
-        process.StartInfo.ArgumentList.Add(path);
+        process.StartInfo.ArgumentList.Add(target);
         process.Start();
 
         await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
         if (process.ExitCode != 0)
         {
-            throw new InvalidOperationException($"无法打开路径：{path}");
+            throw new InvalidOperationException($"{errorPrefix}：{target}");
         }
     }
 }
