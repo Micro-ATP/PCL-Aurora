@@ -16,6 +16,7 @@ public partial class MainViewModel(
     IMinecraftInstanceInstallationService installationService,
     IMinecraftVersionCatalogService versionCatalogService,
     IMinecraftVersionProvisioningService versionProvisioningService,
+    IMinecraftDirectoryService minecraftDirectoryService,
     IMinecraftGameLaunchService gameLaunchService,
     IThemeService themeService) : ViewModelBase
 {
@@ -27,6 +28,8 @@ public partial class MainViewModel(
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
     public ObservableCollection<MinecraftInstance> AvailableInstances { get; } = [];
+
+    public string MinecraftRootDirectory { get; } = minecraftDirectoryService.GetRootDirectory();
 
     public IReadOnlyList<ThemeOption> ThemeModes { get; } =
     [
@@ -88,6 +91,9 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string gameLaunchSummary = "正在检查游戏进程启动条件。";
+
+    [ObservableProperty]
+    private string gameDirectorySummary = "仅在点击“打开游戏目录”后调用系统文件管理器；不会创建目录。";
 
     [ObservableProperty]
     private bool canLaunchGame;
@@ -406,6 +412,25 @@ public partial class MainViewModel(
         {
             GameLaunchSummary = $"启动游戏失败：{exception.Message}";
             CanLaunchGame = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenGameDirectoryAsync()
+    {
+        try
+        {
+            GameDirectorySummary = "正在打开游戏目录…";
+            await minecraftDirectoryService.OpenRootDirectoryAsync();
+            GameDirectorySummary = "已请求系统文件管理器打开游戏目录。";
+        }
+        catch (DirectoryNotFoundException)
+        {
+            GameDirectorySummary = "游戏目录尚不存在。请先创建本地实例或安装游戏；本操作不会创建目录。";
+        }
+        catch (Exception exception)
+        {
+            GameDirectorySummary = $"无法打开游戏目录：{exception.Message}";
         }
     }
 

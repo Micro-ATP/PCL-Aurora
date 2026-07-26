@@ -223,11 +223,17 @@
 
                         <Border Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
                             <StackPanel Spacing="10">
-                                <TextBlock FontWeight="SemiBold" Text="工具迁移队列" />
+                                <TextBlock FontWeight="SemiBold" Text="游戏目录" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="计划依次实现：游戏目录关联、日志查看与导出、局域网联机辅助、崩溃分析。"
+                                           Text="在系统文件管理器中打开当前 Minecraft 根目录。"
                                            TextWrapping="Wrap" />
-                                <Button HorizontalAlignment="Left" IsEnabled="False" Content="打开工具" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding MinecraftRootDirectory}"
+                                           TextWrapping="Wrap" />
+                                <Button HorizontalAlignment="Left" Command="{Binding OpenGameDirectoryCommand}" Content="打开游戏目录" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding GameDirectorySummary}"
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
