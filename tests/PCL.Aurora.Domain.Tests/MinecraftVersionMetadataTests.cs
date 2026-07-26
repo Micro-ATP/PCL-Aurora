@@ -156,4 +156,38 @@ public sealed class MinecraftVersionMetadataTests
         Assert.Equal("com/example/demo/1.0/demo-1.0.jar", library.ArtifactPath);
         Assert.Equal(123, library.Artifact!.Size);
     }
+
+    [Fact]
+    public void Parse_ReadsMacOSNativeClassifiers()
+    {
+        var result = MinecraftVersionMetadataParser.Parse(
+            """
+            {
+              "id": "1.21.4",
+              "libraries": [
+                {
+                  "name": "org.example:native:1.0",
+                  "natives": { "osx": "natives-macos-${arch}" },
+                  "downloads": {
+                    "classifiers": {
+                      "natives-macos-arm64": {
+                        "path": "org/example/native/1.0/native-arm64.jar",
+                        "url": "https://example.invalid/native-arm64.jar",
+                        "sha1": "native-sha",
+                        "size": 456
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+            """);
+
+        Assert.True(result.IsSuccess);
+        var library = Assert.Single(result.Metadata!.Libraries!);
+        Assert.Equal("natives-macos-${arch}", library.NativeClassifiers!["osx"]);
+        var classifier = library.Classifiers!["natives-macos-arm64"];
+        Assert.Equal("org/example/native/1.0/native-arm64.jar", classifier.Path);
+        Assert.Equal(456, classifier.Download!.Size);
+    }
 }

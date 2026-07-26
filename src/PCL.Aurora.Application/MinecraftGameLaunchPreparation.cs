@@ -5,6 +5,7 @@ namespace PCL.Aurora.Application;
 public sealed record MinecraftGameLaunchPreparation(
     LaunchReadiness Readiness,
     MinecraftLaunchPreparation? LaunchPreparation,
+    MinecraftNativeLibraryPlan NativeLibraryPlan,
     MinecraftGameLaunchRequestPreparation RequestPreparation,
     IReadOnlyList<string> BlockingReasons)
 {

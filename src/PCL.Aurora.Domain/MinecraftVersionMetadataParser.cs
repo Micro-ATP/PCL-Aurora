@@ -117,6 +117,8 @@ public static class MinecraftVersionMetadataParser
             var hasConditionalRules = library.TryGetProperty("rules", out _);
             var artifactPath = default(string);
             MinecraftVersionDownload? artifact = null;
+            var nativeClassifiers = ParseNativeClassifiers(library);
+            var classifiers = ParseClassifiers(library);
             if (TryGetObject(library, "downloads", out var downloads) && TryGetObject(downloads, "artifact", out var artifactInfo))
             {
                 artifactPath = GetString(artifactInfo, "path");
@@ -129,10 +131,68 @@ public static class MinecraftVersionMetadataParser
                 }
             }
 
-            result.Add(new MinecraftVersionLibrary(name, artifactPath, artifact, hasConditionalRules));
+            result.Add(new MinecraftVersionLibrary(
+                name,
+                artifactPath,
+                artifact,
+                hasConditionalRules,
+                nativeClassifiers,
+                classifiers));
         }
 
         return result;
+    }
+
+    private static IReadOnlyDictionary<string, string>? ParseNativeClassifiers(JsonElement library)
+    {
+        if (!TryGetObject(library, "natives", out var natives))
+        {
+            return null;
+        }
+
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var native in natives.EnumerateObject())
+        {
+            if (native.Value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(native.Value.GetString()))
+            {
+                result[native.Name] = native.Value.GetString()!;
+            }
+        }
+
+        return result.Count == 0 ? null : result;
+    }
+
+    private static IReadOnlyDictionary<string, MinecraftVersionLibraryClassifier>? ParseClassifiers(JsonElement library)
+    {
+        if (!TryGetObject(library, "downloads", out var downloads) ||
+            !TryGetObject(downloads, "classifiers", out var classifierDownloads))
+        {
+            return null;
+        }
+
+        var result = new Dictionary<string, MinecraftVersionLibraryClassifier>(StringComparer.Ordinal);
+        foreach (var classifier in classifierDownloads.EnumerateObject())
+        {
+            if (classifier.Value.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            MinecraftVersionDownload? download = null;
+            if (TryParseHttpUri(GetString(classifier.Value, "url"), out var downloadUri))
+            {
+                download = new MinecraftVersionDownload(
+                    downloadUri!,
+                    GetString(classifier.Value, "sha1"),
+                    GetInt64(classifier.Value, "size"));
+            }
+
+            result[classifier.Name] = new MinecraftVersionLibraryClassifier(
+                GetString(classifier.Value, "path"),
+                download);
+        }
+
+        return result.Count == 0 ? null : result;
     }
 
     private static IReadOnlyList<string> ParseStringArray(

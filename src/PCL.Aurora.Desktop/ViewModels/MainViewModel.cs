@@ -158,7 +158,7 @@ public partial class MainViewModel(
         gameLaunchPreparation = await gameLaunchService.PrepareAsync(selectedInstance, selectedAccount, selectedJava);
         CanLaunchGame = gameLaunchPreparation.CanLaunch;
         GameLaunchSummary = gameLaunchPreparation.CanLaunch
-            ? "启动条件和进程请求均已准备。点击“启动游戏”后才会启动 Java 进程。"
+            ? "启动条件和进程请求均已准备。点击“启动游戏”后将先安全准备 native 库，再启动 Java 进程。"
             : string.Join(Environment.NewLine, gameLaunchPreparation.BlockingReasons);
     }
 
