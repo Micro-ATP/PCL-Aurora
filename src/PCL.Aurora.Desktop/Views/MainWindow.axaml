@@ -47,7 +47,7 @@
                                            Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
                                 <StackPanel Orientation="Horizontal" Spacing="12">
                                     <Button IsEnabled="False" Content="选择实例" />
-                                    <Button IsEnabled="False" Content="启动游戏" />
+                                    <Button Command="{Binding LaunchGameCommand}" IsEnabled="{Binding CanLaunchGame}" Content="启动游戏" />
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -78,6 +78,9 @@
                                            TextWrapping="Wrap" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                            Text="{Binding ClasspathSummary}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding GameLaunchSummary}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>

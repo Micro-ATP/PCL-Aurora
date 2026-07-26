@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using PCL.Aurora.Application;
+using PCL.Aurora.Domain;
+using PCL.Aurora.Infrastructure;
 using PCL.Aurora.Platform.Abstractions;
 using PCL.Aurora.Platform.MacOS;
 
@@ -15,6 +17,8 @@ services.AddSingleton<IInstanceCatalogService, InstanceCatalogService>();
 services.AddSingleton<ILaunchReadinessService, LaunchReadinessService>();
 services.AddSingleton<IMinecraftVersionPreparationService, MinecraftVersionPreparationService>();
 services.AddSingleton<IMinecraftLaunchPreparationService, MinecraftLaunchPreparationService>();
+services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
+services.AddSingleton<IMinecraftGameLaunchService, MinecraftGameLaunchService>();
 
 await using var provider = services.BuildServiceProvider();
 var diagnosticsService = provider.GetRequiredService<ISystemDiagnosticsService>();
@@ -22,6 +26,7 @@ var instanceCatalogService = provider.GetRequiredService<IInstanceCatalogService
 var launchReadinessService = provider.GetRequiredService<ILaunchReadinessService>();
 var versionPreparationService = provider.GetRequiredService<IMinecraftVersionPreparationService>();
 var launchPreparationService = provider.GetRequiredService<IMinecraftLaunchPreparationService>();
+var gameLaunchService = provider.GetRequiredService<IMinecraftGameLaunchService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
 switch (command)
@@ -142,6 +147,43 @@ switch (command)
         Console.WriteLine("仅完成参数准备；未启动 Java 或 Minecraft 进程。");
         break;
     }
+    case "launch run":
+    case var value when value.StartsWith("launch run ", StringComparison.Ordinal):
+    {
+        MinecraftAccount? account = null;
+        if (args.Length == 3 && !OfflineAccount.TryCreate(args[2], out account))
+        {
+            Console.WriteLine("离线用户名需为 3–16 位英文字母、数字或下划线。");
+            return 64;
+        }
+
+        var instancesTask = instanceCatalogService.GetAllAsync();
+        var diagnosticsTask = diagnosticsService.GetAsync();
+        await Task.WhenAll(instancesTask, diagnosticsTask);
+        var instance = (await instancesTask).FirstOrDefault(candidate => candidate.Status == PCL.Aurora.Domain.MinecraftInstanceStatus.Valid);
+        var java = (await diagnosticsTask).JavaInstallations.FirstOrDefault(candidate => candidate.IsCompatible);
+        var preparation = await gameLaunchService.PrepareAsync(instance, account, java);
+        if (!preparation.CanLaunch)
+        {
+            Console.WriteLine("游戏启动被阻断：");
+            foreach (var reason in preparation.BlockingReasons)
+            {
+                Console.WriteLine($"- {reason}");
+            }
+
+            Console.WriteLine("不会启动游戏进程。");
+            return 1;
+        }
+
+        var session = await gameLaunchService.LaunchAsync(preparation);
+        Console.WriteLine($"已启动游戏进程：{session.ProcessId}");
+        await foreach (var output in session.Output.ReadAllAsync())
+        {
+            Console.WriteLine(output.Text);
+        }
+
+        return await session.ExitCode;
+    }
     case "versions inspect":
     {
         var instance = (await instanceCatalogService.GetAllAsync())
@@ -188,7 +230,7 @@ switch (command)
     }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | versions inspect | launch check | launch arguments | doctor");
+        Console.WriteLine("用法：info | java list | instances list | versions inspect | launch check | launch arguments | launch run [离线用户名] | doctor");
         return command == "help" ? 0 : 64;
 }
 
