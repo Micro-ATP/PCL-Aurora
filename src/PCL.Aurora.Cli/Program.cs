@@ -23,6 +23,7 @@ services.AddSingleton<IAssetMapper, MinecraftAssetMapper>();
 services.AddSingleton<HttpClient>();
 services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();
 services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceInstallationService>();
+services.AddSingleton<IMinecraftVersionCatalogService, MinecraftVersionCatalogService>();
 services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
 services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
 services.AddSingleton<IMinecraftGameLaunchService, MinecraftGameLaunchService>();
@@ -35,6 +36,7 @@ var versionPreparationService = provider.GetRequiredService<IMinecraftVersionPre
 var launchPreparationService = provider.GetRequiredService<IMinecraftLaunchPreparationService>();
 var gameLaunchService = provider.GetRequiredService<IMinecraftGameLaunchService>();
 var installationService = provider.GetRequiredService<IMinecraftInstanceInstallationService>();
+var versionCatalogService = provider.GetRequiredService<IMinecraftVersionCatalogService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
 switch (command)
@@ -86,6 +88,23 @@ switch (command)
         {
             Console.WriteLine($"{instance.Name} | {instance.VersionId ?? "未知版本"} | {instance.Type ?? "未知类型"} | {instance.Status}");
             Console.WriteLine($"  {instance.DirectoryPath}");
+        }
+
+        break;
+    }
+    case "versions list":
+    {
+        var catalog = await versionCatalogService.FetchAsync();
+        if (!catalog.IsSuccess || catalog.Catalog is null)
+        {
+            Console.WriteLine(string.Join(Environment.NewLine, catalog.Errors));
+            return 1;
+        }
+
+        Console.WriteLine($"最新正式版：{catalog.Catalog.LatestRelease ?? "未知"}；最新快照：{catalog.Catalog.LatestSnapshot ?? "未知"}");
+        foreach (var version in catalog.Catalog.Versions.Take(20))
+        {
+            Console.WriteLine($"{version.Id} | {version.Type} | {version.ReleaseTime:yyyy-MM-dd}");
         }
 
         break;
@@ -254,7 +273,7 @@ switch (command)
     }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | versions inspect | install local | launch check | launch arguments | launch run [离线用户名] | doctor");
+        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | install local | launch check | launch arguments | launch run [离线用户名] | doctor");
         return command == "help" ? 0 : 64;
 }
 
