@@ -33,6 +33,28 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_RoundTripsSafeSelectedInstanceName()
+    {
+        var store = CreateStore();
+
+        await store.SaveAsync(new LauncherPreferences(LauncherThemeMode.Light, "fabric-1.21.4"));
+        var result = await store.LoadAsync();
+
+        Assert.Equal("fabric-1.21.4", result.Preferences.SelectedInstanceName);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RejectsInstanceNameContainingPathTraversal()
+    {
+        var store = CreateStore();
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            store.SaveAsync(new LauncherPreferences(LauncherThemeMode.System, "../outside")));
+
+        Assert.False(File.Exists(GetPreferencesPath()));
+    }
+
+    [Fact]
     public async Task LoadAsync_RecoversFromInvalidPreferencesWithoutOverwritingFile()
     {
         Directory.CreateDirectory(applicationDataDirectory);

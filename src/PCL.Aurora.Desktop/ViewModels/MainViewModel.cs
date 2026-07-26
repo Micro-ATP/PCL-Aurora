@@ -26,6 +26,7 @@ public partial class MainViewModel(
     private MinecraftAccount? selectedAccount;
     private JavaInstallation? selectedJava;
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
+    private LauncherPreferences currentPreferences = LauncherPreferences.Default;
     private bool isRefreshing;
     private bool isLoadingPreferences;
 
@@ -137,6 +138,7 @@ public partial class MainViewModel(
     [RelayCommand]
     private async Task RefreshAsync()
     {
+        var shouldPersistSelectedInstance = false;
         try
         {
             isRefreshing = true;
@@ -147,6 +149,7 @@ public partial class MainViewModel(
             var diagnostics = await diagnosticsTask;
             var instances = await instancesTask;
             var selectedDirectory = SelectedInstance?.DirectoryPath;
+            var preferredInstanceName = SelectedInstance?.Name ?? currentPreferences.SelectedInstanceName;
             AvailableInstances.Clear();
             foreach (var instance in instances.Where(instance => instance.Status == MinecraftInstanceStatus.Valid))
             {
@@ -155,7 +158,12 @@ public partial class MainViewModel(
 
             HasAvailableInstances = AvailableInstances.Count > 0;
             SelectedInstance = AvailableInstances.FirstOrDefault(instance => instance.DirectoryPath == selectedDirectory)
+                ?? AvailableInstances.FirstOrDefault(instance => instance.Name == preferredInstanceName)
                 ?? AvailableInstances.FirstOrDefault();
+            shouldPersistSelectedInstance = !string.Equals(
+                currentPreferences.SelectedInstanceName,
+                SelectedInstance?.Name,
+                StringComparison.Ordinal);
             selectedJava = diagnostics.JavaInstallations.FirstOrDefault(java => java.IsCompatible);
             OperatingSystem = $"{diagnostics.Platform.OperatingSystem} ({diagnostics.Platform.Version})";
             Architecture = diagnostics.Platform.Architecture.ToString();
@@ -186,20 +194,26 @@ public partial class MainViewModel(
         {
             isRefreshing = false;
         }
+
+        if (shouldPersistSelectedInstance)
+        {
+            _ = SaveSelectedInstancePreferenceAsync(SelectedInstance?.Name);
+        }
     }
 
     public async Task InitializeAsync()
     {
-        await LoadThemePreferenceAsync();
+        await LoadPreferencesAsync();
         await RefreshAsync();
     }
 
-    private async Task LoadThemePreferenceAsync()
+    private async Task LoadPreferencesAsync()
     {
         try
         {
             isLoadingPreferences = true;
             var result = await preferencesService.LoadAsync();
+            currentPreferences = result.Preferences;
             var option = ThemeModes.Single(item => item.Mode == result.Preferences.ThemeMode);
             SelectedThemeMode = option;
             themeService.Apply(option.Mode);
@@ -374,6 +388,20 @@ public partial class MainViewModel(
         if (!isRefreshing)
         {
             _ = RefreshSelectedInstanceStateAsync();
+            _ = SaveSelectedInstancePreferenceAsync(value?.Name);
+        }
+    }
+
+    private async Task SaveSelectedInstancePreferenceAsync(string? instanceName)
+    {
+        try
+        {
+            await preferencesService.SaveSelectedInstanceNameAsync(instanceName);
+            currentPreferences = currentPreferences with { SelectedInstanceName = instanceName };
+        }
+        catch (Exception exception)
+        {
+            InstanceSummary = $"{InstanceSummary}{Environment.NewLine}无法保存实例选择：{exception.Message}";
         }
     }
 

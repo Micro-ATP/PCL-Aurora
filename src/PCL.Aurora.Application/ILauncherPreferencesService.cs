@@ -8,4 +8,6 @@ public interface ILauncherPreferencesService
     Task<LauncherPreferencesLoadResult> LoadAsync(CancellationToken cancellationToken = default);
 
     Task SaveThemeModeAsync(LauncherThemeMode themeMode, CancellationToken cancellationToken = default);
+
+    Task SaveSelectedInstanceNameAsync(string? instanceName, CancellationToken cancellationToken = default);
 }
