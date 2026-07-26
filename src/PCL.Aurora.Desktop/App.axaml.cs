@@ -41,6 +41,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IPlatformPaths, MacOSPlatformPaths>();
         services.AddSingleton<IJavaLocator, MacOSJavaLocator>();
         services.AddSingleton<IMinecraftInstanceLocator, MacOSMinecraftInstanceLocator>();
+        services.AddSingleton<IMinecraftRootDirectoryProvider, MacOSMinecraftRootDirectoryProvider>();
         services.AddSingleton<IMinecraftVersionMetadataReader, MacOSMinecraftVersionMetadataReader>();
         services.AddSingleton<IOpenPathService, MacOSOpenPathService>();
         services.AddSingleton<ISystemDiagnosticsService, SystemDiagnosticsService>();
@@ -54,6 +55,8 @@ public partial class App : Avalonia.Application
         services.AddSingleton<HttpClient>();
         services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();
         services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceInstallationService>();
+        services.AddSingleton<IMinecraftVersionCatalogService, MinecraftVersionCatalogService>();
+        services.AddSingleton<IMinecraftVersionProvisioningService, MinecraftVersionProvisioningService>();
         services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
         services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
         services.AddSingleton<IMinecraftGameLaunchService, MinecraftGameLaunchService>();

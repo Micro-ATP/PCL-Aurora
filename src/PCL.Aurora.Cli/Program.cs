@@ -10,6 +10,7 @@ services.AddSingleton<IPlatformInfo, MacOSPlatformInfo>();
 services.AddSingleton<IPlatformPaths, MacOSPlatformPaths>();
 services.AddSingleton<IJavaLocator, MacOSJavaLocator>();
 services.AddSingleton<IMinecraftInstanceLocator, MacOSMinecraftInstanceLocator>();
+services.AddSingleton<IMinecraftRootDirectoryProvider, MacOSMinecraftRootDirectoryProvider>();
 services.AddSingleton<IMinecraftVersionMetadataReader, MacOSMinecraftVersionMetadataReader>();
 services.AddSingleton<IOpenPathService, MacOSOpenPathService>();
 services.AddSingleton<ISystemDiagnosticsService, SystemDiagnosticsService>();
@@ -24,6 +25,7 @@ services.AddSingleton<HttpClient>();
 services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();
 services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceInstallationService>();
 services.AddSingleton<IMinecraftVersionCatalogService, MinecraftVersionCatalogService>();
+services.AddSingleton<IMinecraftVersionProvisioningService, MinecraftVersionProvisioningService>();
 services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
 services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
 services.AddSingleton<IMinecraftGameLaunchService, MinecraftGameLaunchService>();
@@ -37,6 +39,7 @@ var launchPreparationService = provider.GetRequiredService<IMinecraftLaunchPrepa
 var gameLaunchService = provider.GetRequiredService<IMinecraftGameLaunchService>();
 var installationService = provider.GetRequiredService<IMinecraftInstanceInstallationService>();
 var versionCatalogService = provider.GetRequiredService<IMinecraftVersionCatalogService>();
+var versionProvisioningService = provider.GetRequiredService<IMinecraftVersionProvisioningService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
 switch (command)
@@ -107,6 +110,28 @@ switch (command)
             Console.WriteLine($"{version.Id} | {version.Type} | {version.ReleaseTime:yyyy-MM-dd}");
         }
 
+        break;
+    }
+    case var value when value.StartsWith("install create ", StringComparison.Ordinal):
+    {
+        var requestedId = args.ElementAtOrDefault(2);
+        if (string.IsNullOrWhiteSpace(requestedId))
+        {
+            Console.WriteLine("请提供要创建的版本 ID。 ");
+            return 64;
+        }
+
+        var catalog = await versionCatalogService.FetchAsync();
+        var version = catalog.Catalog?.Versions.FirstOrDefault(item => string.Equals(item.Id, requestedId, StringComparison.Ordinal));
+        if (!catalog.IsSuccess || version is null)
+        {
+            Console.WriteLine($"未在官方版本清单中找到 {requestedId}；不会创建实例。 ");
+            return 1;
+        }
+
+        var instance = await versionProvisioningService.ProvisionAsync(version);
+        Console.WriteLine($"已创建本地实例元数据：{instance.DirectoryPath}");
+        Console.WriteLine("请继续运行 install local 以显式下载游戏文件。 ");
         break;
     }
     case "launch check":
@@ -273,7 +298,7 @@ switch (command)
     }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | install local | launch check | launch arguments | launch run [离线用户名] | doctor");
+        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | install create <版本 ID> | install local | launch check | launch arguments | launch run [离线用户名] | doctor");
         return command == "help" ? 0 : 64;
 }
 
