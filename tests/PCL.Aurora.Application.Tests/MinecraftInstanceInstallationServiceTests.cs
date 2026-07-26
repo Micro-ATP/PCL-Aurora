@@ -28,6 +28,28 @@ public sealed class MinecraftInstanceInstallationServiceTests
         Assert.Equal([0, 1, 2], updates.Select(update => update.CompletedStages));
     }
 
+    [Fact]
+    public async Task InstallAsync_ForwardsTrustworthyDownloadProgressForEachStage()
+    {
+        var instance = new MinecraftInstance(
+            "1.21.4",
+            Path.Combine(Path.GetTempPath(), "pcl-aurora-install", "versions", "1.21.4"),
+            "1.21.4",
+            "release",
+            null,
+            MinecraftInstanceStatus.Valid);
+        var service = new MinecraftInstanceInstallationService(
+            new FixedVersionPreparationService(CreateVersionPreparation()),
+            new FixedAssetPreparationService(CreateAssetPreparation()),
+            new ProgressReportingExecutor());
+        var updates = new List<MinecraftInstallationProgress>();
+
+        await service.InstallAsync(instance, new InlineProgress<MinecraftInstallationProgress>(updates.Add));
+
+        Assert.Contains(updates, update => update.CompletedStages == 0 && update.TotalArtifacts == 2 && update.DownloadedBytes == 64);
+        Assert.Contains(updates, update => update.CompletedStages == 1 && update.TotalArtifacts == 3 && update.DownloadedBytes == 96);
+    }
+
     private static MinecraftVersionPreparation CreateVersionPreparation()
     {
         var metadata = new MinecraftVersionMetadata("1.21.4", null, "release", null, null, null);
@@ -64,6 +86,35 @@ public sealed class MinecraftInstanceInstallationServiceTests
         public Task ExecuteAsync(MinecraftAssetDownloadPlan downloadPlan, string minecraftRootDirectory, CancellationToken cancellationToken = default)
         {
             ExecutedPlans.Add("assets");
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class ProgressReportingExecutor : IMinecraftDownloadExecutor
+    {
+        public Task ExecuteAsync(MinecraftDownloadPlan downloadPlan, string minecraftRootDirectory, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
+        public Task ExecuteAsync(MinecraftAssetDownloadPlan downloadPlan, string minecraftRootDirectory, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
+        public Task ExecuteAsync(
+            MinecraftDownloadPlan downloadPlan,
+            string minecraftRootDirectory,
+            IProgress<MinecraftDownloadProgress>? progress,
+            CancellationToken cancellationToken = default)
+        {
+            progress?.Report(new(1, 2, 1, 64, 128, "正在下载游戏文件…"));
+            return Task.CompletedTask;
+        }
+
+        public Task ExecuteAsync(
+            MinecraftAssetDownloadPlan downloadPlan,
+            string minecraftRootDirectory,
+            IProgress<MinecraftDownloadProgress>? progress,
+            CancellationToken cancellationToken = default)
+        {
+            progress?.Report(new(2, 3, 1, 96, 192, "正在下载资源对象…"));
             return Task.CompletedTask;
         }
     }

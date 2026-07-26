@@ -27,8 +27,17 @@ public sealed class MinecraftDownloadExecutor(
         string minecraftRootDirectory,
         CancellationToken cancellationToken = default)
     {
+        await ExecuteAsync(downloadPlan, minecraftRootDirectory, progress: null, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task ExecuteAsync(
+        MinecraftDownloadPlan downloadPlan,
+        string minecraftRootDirectory,
+        IProgress<MinecraftDownloadProgress>? progress,
+        CancellationToken cancellationToken = default)
+    {
         ArgumentNullException.ThrowIfNull(downloadPlan);
-        await ExecuteArtifactsAsync(downloadPlan.IsReady, downloadPlan.Artifacts, minecraftRootDirectory, cancellationToken).ConfigureAwait(false);
+        await ExecuteArtifactsAsync(downloadPlan.IsReady, downloadPlan.Artifacts, minecraftRootDirectory, progress, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task ExecuteAsync(
@@ -36,14 +45,24 @@ public sealed class MinecraftDownloadExecutor(
         string minecraftRootDirectory,
         CancellationToken cancellationToken = default)
     {
+        await ExecuteAsync(downloadPlan, minecraftRootDirectory, progress: null, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task ExecuteAsync(
+        MinecraftAssetDownloadPlan downloadPlan,
+        string minecraftRootDirectory,
+        IProgress<MinecraftDownloadProgress>? progress,
+        CancellationToken cancellationToken = default)
+    {
         ArgumentNullException.ThrowIfNull(downloadPlan);
-        await ExecuteArtifactsAsync(downloadPlan.IsReady, downloadPlan.Artifacts, minecraftRootDirectory, cancellationToken).ConfigureAwait(false);
+        await ExecuteArtifactsAsync(downloadPlan.IsReady, downloadPlan.Artifacts, minecraftRootDirectory, progress, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task ExecuteArtifactsAsync(
         bool isReady,
         IReadOnlyList<MinecraftDownloadArtifact> artifacts,
         string minecraftRootDirectory,
+        IProgress<MinecraftDownloadProgress>? progress,
         CancellationToken cancellationToken)
     {
         if (!isReady)
@@ -61,6 +80,7 @@ public sealed class MinecraftDownloadExecutor(
         var bandwidthLimiter = new DownloadBandwidthLimiter(
             LauncherDownloadSettings.GetSpeedLimitBytesPerSecond(preferences.DownloadSpeedLimitStep));
         using var requestSlots = new SemaphoreSlim(concurrency, concurrency);
+        var progressTracker = new DownloadProgressTracker(artifacts, progress);
         var rootDirectory = Path.GetFullPath(minecraftRootDirectory);
         await Parallel.ForEachAsync(
             artifacts,
@@ -72,7 +92,17 @@ public sealed class MinecraftDownloadExecutor(
             async (artifact, token) =>
             {
                 var destinationPath = GetDestinationPath(rootDirectory, artifact.RelativePath);
-                await DownloadArtifactAsync(artifact, destinationPath, requestSlots, concurrency, bandwidthLimiter, token).ConfigureAwait(false);
+                progressTracker.StartArtifact(artifact);
+                try
+                {
+                    await DownloadArtifactAsync(artifact, destinationPath, requestSlots, concurrency, bandwidthLimiter, progressTracker, token).ConfigureAwait(false);
+                    progressTracker.CompleteArtifact(artifact);
+                }
+                catch
+                {
+                    progressTracker.StopArtifact(artifact);
+                    throw;
+                }
             }).ConfigureAwait(false);
     }
 
@@ -82,6 +112,7 @@ public sealed class MinecraftDownloadExecutor(
         SemaphoreSlim requestSlots,
         int concurrency,
         DownloadBandwidthLimiter bandwidthLimiter,
+        DownloadProgressTracker progressTracker,
         CancellationToken cancellationToken)
     {
         var sources = new[] { artifact.Url }
@@ -94,6 +125,7 @@ public sealed class MinecraftDownloadExecutor(
         {
             try
             {
+                progressTracker.ResetArtifact(artifact);
                 await DownloadFromSourceAsync(
                     artifact,
                     source,
@@ -101,6 +133,7 @@ public sealed class MinecraftDownloadExecutor(
                     requestSlots,
                     concurrency,
                     bandwidthLimiter,
+                    progressTracker,
                     cancellationToken).ConfigureAwait(false);
                 return;
             }
@@ -130,6 +163,7 @@ public sealed class MinecraftDownloadExecutor(
         SemaphoreSlim requestSlots,
         int concurrency,
         DownloadBandwidthLimiter bandwidthLimiter,
+        DownloadProgressTracker progressTracker,
         CancellationToken cancellationToken)
     {
         var destinationDirectory = Path.GetDirectoryName(destinationPath)
@@ -146,12 +180,15 @@ public sealed class MinecraftDownloadExecutor(
                 requestSlots,
                 concurrency,
                 bandwidthLimiter,
+                progressTracker,
                 cancellationToken).ConfigureAwait(false);
             result ??= await DownloadSingleConnectionAsync(
                 source,
                 temporaryPath,
                 requestSlots,
                 bandwidthLimiter,
+                progressTracker,
+                artifact,
                 cancellationToken).ConfigureAwait(false);
 
             VerifyArtifact(artifact, result.Value.DownloadedSize, result.Value.Sha1);
@@ -171,6 +208,7 @@ public sealed class MinecraftDownloadExecutor(
         SemaphoreSlim requestSlots,
         int concurrency,
         DownloadBandwidthLimiter bandwidthLimiter,
+        DownloadProgressTracker progressTracker,
         CancellationToken cancellationToken)
     {
         if (artifact.Size is not { } size ||
@@ -222,10 +260,12 @@ public sealed class MinecraftDownloadExecutor(
                             source,
                             range,
                             size,
-                            handle,
-                            requestSlots,
-                            bandwidthLimiter,
-                            token).ConfigureAwait(false);
+                        handle,
+                        requestSlots,
+                        bandwidthLimiter,
+                        progressTracker,
+                        artifact,
+                        token).ConfigureAwait(false);
                     }).ConfigureAwait(false);
                 await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -280,6 +320,8 @@ public sealed class MinecraftDownloadExecutor(
         SafeFileHandle destinationHandle,
         SemaphoreSlim requestSlots,
         DownloadBandwidthLimiter bandwidthLimiter,
+        DownloadProgressTracker progressTracker,
+        MinecraftDownloadArtifact artifact,
         CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, source);
@@ -311,6 +353,7 @@ public sealed class MinecraftDownloadExecutor(
 
                 await bandwidthLimiter.WaitAsync(bytesRead, cancellationToken).ConfigureAwait(false);
                 await RandomAccess.WriteAsync(destinationHandle, buffer.AsMemory(0, bytesRead), offset, cancellationToken).ConfigureAwait(false);
+                progressTracker.AddBytes(artifact, bytesRead);
                 offset += bytesRead;
                 remaining -= bytesRead;
             }
@@ -331,6 +374,8 @@ public sealed class MinecraftDownloadExecutor(
         string temporaryPath,
         SemaphoreSlim requestSlots,
         DownloadBandwidthLimiter bandwidthLimiter,
+        DownloadProgressTracker progressTracker,
+        MinecraftDownloadArtifact artifact,
         CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, source);
@@ -362,6 +407,7 @@ public sealed class MinecraftDownloadExecutor(
                     await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken).ConfigureAwait(false);
                     hash.AppendData(buffer, 0, bytesRead);
                     downloadedSize += bytesRead;
+                    progressTracker.AddBytes(artifact, bytesRead);
                 }
 
                 await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -475,5 +521,107 @@ public sealed class MinecraftDownloadExecutor(
                 await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
             }
         }
+    }
+
+    /// <summary>
+    /// 直接适配 PCL-CE 下载器的 trackedFile 状态：只汇总已收到的字节与活动文件，
+    /// 不在未知长度或来源重试时推导速度、百分比或剩余时间。
+    /// </summary>
+    private sealed class DownloadProgressTracker
+    {
+        private readonly object syncRoot = new();
+        private readonly IProgress<MinecraftDownloadProgress>? progress;
+        private readonly Dictionary<string, long> downloadedByArtifact = new(StringComparer.Ordinal);
+        private readonly int totalArtifacts;
+        private readonly long? totalBytes;
+        private int completedArtifacts;
+        private int activeArtifacts;
+        private string currentDescription = "正在准备下载…";
+
+        public DownloadProgressTracker(IReadOnlyList<MinecraftDownloadArtifact> artifacts, IProgress<MinecraftDownloadProgress>? progress)
+        {
+            this.progress = progress;
+            totalArtifacts = artifacts.Count;
+            totalBytes = artifacts.All(artifact => artifact.Size is not null)
+                ? artifacts.Sum(artifact => artifact.Size!.Value)
+                : null;
+        }
+
+        public void StartArtifact(MinecraftDownloadArtifact artifact)
+        {
+            MinecraftDownloadProgress snapshot;
+            lock (syncRoot)
+            {
+                activeArtifacts++;
+                downloadedByArtifact[artifact.RelativePath] = 0;
+                currentDescription = $"正在下载 {artifact.Description}…";
+                snapshot = CreateSnapshot();
+            }
+
+            progress?.Report(snapshot);
+        }
+
+        public void ResetArtifact(MinecraftDownloadArtifact artifact)
+        {
+            MinecraftDownloadProgress snapshot;
+            lock (syncRoot)
+            {
+                downloadedByArtifact[artifact.RelativePath] = 0;
+                currentDescription = $"正在下载 {artifact.Description}…";
+                snapshot = CreateSnapshot();
+            }
+
+            progress?.Report(snapshot);
+        }
+
+        public void AddBytes(MinecraftDownloadArtifact artifact, int bytes)
+        {
+            MinecraftDownloadProgress snapshot;
+            lock (syncRoot)
+            {
+                downloadedByArtifact.TryGetValue(artifact.RelativePath, out var downloaded);
+                downloadedByArtifact[artifact.RelativePath] = downloaded + bytes;
+                currentDescription = $"正在下载 {artifact.Description}…";
+                snapshot = CreateSnapshot();
+            }
+
+            progress?.Report(snapshot);
+        }
+
+        public void CompleteArtifact(MinecraftDownloadArtifact artifact)
+        {
+            MinecraftDownloadProgress snapshot;
+            lock (syncRoot)
+            {
+                activeArtifacts = Math.Max(0, activeArtifacts - 1);
+                completedArtifacts++;
+                currentDescription = $"已校验 {artifact.Description}。";
+                snapshot = CreateSnapshot();
+            }
+
+            progress?.Report(snapshot);
+        }
+
+        public void StopArtifact(MinecraftDownloadArtifact artifact)
+        {
+            MinecraftDownloadProgress snapshot;
+            lock (syncRoot)
+            {
+                activeArtifacts = Math.Max(0, activeArtifacts - 1);
+                downloadedByArtifact.Remove(artifact.RelativePath);
+                currentDescription = $"已停止 {artifact.Description}。";
+                snapshot = CreateSnapshot();
+            }
+
+            progress?.Report(snapshot);
+        }
+
+        private MinecraftDownloadProgress CreateSnapshot() => new(
+            completedArtifacts,
+            totalArtifacts,
+            activeArtifacts,
+            downloadedByArtifact.Values.Sum(),
+            totalBytes,
+            currentDescription);
     }
 }

@@ -33,6 +33,7 @@ public partial class MainViewModel(
     private LauncherPreferences currentPreferences = LauncherPreferences.Default;
     private bool isRefreshing;
     private bool isLoadingPreferences;
+    private CancellationTokenSource? installationCancellation;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
@@ -146,6 +147,12 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private bool canInstallGame;
+
+    [ObservableProperty]
+    private bool isInstallationRunning;
+
+    [ObservableProperty]
+    private bool canCancelInstallation;
 
     [ObservableProperty]
     private string installationSummary = "选择本地实例后可查看安装计划；不会自动下载。";
@@ -814,12 +821,16 @@ public partial class MainViewModel(
             return;
         }
 
+        using var cancellation = new CancellationTokenSource();
+        installationCancellation = cancellation;
+        IsInstallationRunning = true;
+        CanCancelInstallation = true;
         try
         {
             CanInstallGame = false;
             var progress = new Progress<MinecraftInstallationProgress>(update =>
-                InstallationSummary = $"[{update.CompletedStages}/{update.TotalStages}] {update.Description}");
-            await installationService.InstallAsync(SelectedInstance, progress);
+                InstallationSummary = FormatInstallationProgress(update));
+            await installationService.InstallAsync(SelectedInstance, progress, cancellation.Token);
             InstallationSummary = "安装下载完成。资源映射将在下一次显式启动时准备。";
             await RefreshAsync();
         }
@@ -833,7 +844,51 @@ public partial class MainViewModel(
             InstallationSummary = $"安装失败：{exception.Message}";
             CanInstallGame = true;
         }
+        finally
+        {
+            if (ReferenceEquals(installationCancellation, cancellation))
+            {
+                installationCancellation = null;
+                CanCancelInstallation = false;
+                IsInstallationRunning = false;
+            }
+        }
     }
+
+    [RelayCommand]
+    private void CancelInstallation()
+    {
+        if (installationCancellation is not { IsCancellationRequested: false })
+        {
+            return;
+        }
+
+        CanCancelInstallation = false;
+        InstallationSummary = "正在请求取消下载；已写入的临时文件会被清理。";
+        installationCancellation.Cancel();
+    }
+
+    private static string FormatInstallationProgress(MinecraftInstallationProgress update)
+    {
+        var stage = $"[{update.CompletedStages}/{update.TotalStages}] {update.Description}";
+        if (update.TotalArtifacts == 0)
+        {
+            return stage;
+        }
+
+        var bytes = update.TotalBytes is { } totalBytes
+            ? $"{FormatByteCount(update.DownloadedBytes)} / {FormatByteCount(totalBytes)}"
+            : $"已接收 {FormatByteCount(update.DownloadedBytes)}";
+        return $"{stage} · {update.CompletedArtifacts}/{update.TotalArtifacts} 个文件已校验 · {bytes} · {update.ActiveArtifacts} 个文件下载中";
+    }
+
+    private static string FormatByteCount(long value) => value switch
+    {
+        < 1024 => $"{value} B",
+        < 1024 * 1024 => $"{value / 1024d:0.#} KiB",
+        < 1024L * 1024 * 1024 => $"{value / 1024d / 1024d:0.#} MiB",
+        _ => $"{value / 1024d / 1024d / 1024d:0.#} GiB",
+    };
 
     [RelayCommand]
     private async Task UseOfflineAccount()

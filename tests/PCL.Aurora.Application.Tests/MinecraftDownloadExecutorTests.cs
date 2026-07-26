@@ -104,6 +104,24 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
     }
 
     [Fact]
+    public async Task ExecuteAsync_ReportsReceivedBytesAndVerifiedArtifactCount()
+    {
+        var content = "PCL Aurora progress"u8.ToArray();
+        using var client = new HttpClient(new StaticResponseHandler(content));
+        var executor = new MinecraftDownloadExecutor(client);
+        var updates = new List<MinecraftDownloadProgress>();
+
+        await executor.ExecuteAsync(CreatePlan(content), rootDirectory, new InlineProgress<MinecraftDownloadProgress>(updates.Add));
+
+        Assert.Contains(updates, update => update.ActiveArtifacts == 1 && update.DownloadedBytes == 0);
+        var completed = Assert.Single(updates, update => update.CompletedArtifacts == 1);
+        Assert.Equal(1, completed.TotalArtifacts);
+        Assert.Equal(content.Length, completed.DownloadedBytes);
+        Assert.Equal(content.Length, completed.TotalBytes);
+        Assert.Equal(0, completed.ActiveArtifacts);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_ForVerifiedLargeFile_UsesValidatedParallelRanges()
     {
         var content = Enumerable.Range(0, 2 * 1024 * 1024).Select(index => (byte)(index % 251)).ToArray();
@@ -192,6 +210,11 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
                 Convert.ToHexString(SHA1.HashData(content)),
                 content.Length)],
             []);
+
+    private sealed class InlineProgress<T>(Action<T> report) : IProgress<T>
+    {
+        public void Report(T value) => report(value);
+    }
 
     private sealed class StaticResponseHandler(byte[] content) : HttpMessageHandler
     {

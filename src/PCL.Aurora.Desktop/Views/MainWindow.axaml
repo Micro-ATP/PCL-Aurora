@@ -194,6 +194,9 @@
                                     <Button Command="{Binding RefreshVersionCatalogCommand}" Content="刷新官方版本" />
                                     <Button Command="{Binding ProvisionSelectedVersionCommand}" IsEnabled="{Binding CanProvisionSelectedVersion}" Content="创建所选实例" />
                                     <Button Command="{Binding InstallGameCommand}" IsEnabled="{Binding CanInstallGame}" Content="安装所选本地实例" />
+                                    <Button Command="{Binding CancelInstallationCommand}"
+                                            IsEnabled="{Binding CanCancelInstallation}"
+                                            Content="取消当前下载" />
                                 </StackPanel>
                             </Border>
                             <Border Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
