@@ -14,12 +14,14 @@ services.AddSingleton<ISystemDiagnosticsService, SystemDiagnosticsService>();
 services.AddSingleton<IInstanceCatalogService, InstanceCatalogService>();
 services.AddSingleton<ILaunchReadinessService, LaunchReadinessService>();
 services.AddSingleton<IMinecraftVersionPreparationService, MinecraftVersionPreparationService>();
+services.AddSingleton<IMinecraftLaunchPreparationService, MinecraftLaunchPreparationService>();
 
 await using var provider = services.BuildServiceProvider();
 var diagnosticsService = provider.GetRequiredService<ISystemDiagnosticsService>();
 var instanceCatalogService = provider.GetRequiredService<IInstanceCatalogService>();
 var launchReadinessService = provider.GetRequiredService<ILaunchReadinessService>();
 var versionPreparationService = provider.GetRequiredService<IMinecraftVersionPreparationService>();
+var launchPreparationService = provider.GetRequiredService<IMinecraftLaunchPreparationService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
 switch (command)
@@ -98,6 +100,34 @@ switch (command)
 
         return 1;
     }
+    case "launch arguments":
+    {
+        var instance = (await instanceCatalogService.GetAllAsync())
+            .FirstOrDefault(candidate => candidate.Status == PCL.Aurora.Domain.MinecraftInstanceStatus.Valid);
+        if (instance is null)
+        {
+            Console.WriteLine("未发现可读取版本元数据的本地实例。不会启动游戏进程。");
+            return 1;
+        }
+
+        var preparation = await launchPreparationService.PrepareAsync(instance, account: null);
+        if (!preparation.ArgumentPreparation.IsReady)
+        {
+            Console.WriteLine("启动参数尚未准备：");
+            foreach (var reason in preparation.ArgumentPreparation.BlockingReasons)
+            {
+                Console.WriteLine($"- {reason}");
+            }
+
+            return 1;
+        }
+
+        var arguments = preparation.ArgumentPreparation.Arguments!;
+        Console.WriteLine($"主类：{arguments.MainClass}");
+        Console.WriteLine($"JVM 参数：{arguments.JvmArguments.Count} 项；游戏参数：{arguments.GameArguments.Count} 项。");
+        Console.WriteLine("仅完成参数准备；未启动 Java 或 Minecraft 进程。");
+        break;
+    }
     case "versions inspect":
     {
         var instance = (await instanceCatalogService.GetAllAsync())
@@ -144,7 +174,7 @@ switch (command)
     }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | versions inspect | launch check | doctor");
+        Console.WriteLine("用法：info | java list | instances list | versions inspect | launch check | launch arguments | doctor");
         return command == "help" ? 0 : 64;
 }
 

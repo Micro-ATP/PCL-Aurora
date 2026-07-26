@@ -37,7 +37,8 @@ public static class MinecraftVersionMetadataParser
                     GetString(root, "type"),
                     ParseDateTime(GetString(root, "releaseTime")),
                     clientDownload,
-                    assetIndex),
+                    assetIndex,
+                    ParseLaunchMetadata(root)),
                 errors);
         }
         catch (JsonException exception)
@@ -74,6 +75,53 @@ public static class MinecraftVersionMetadataParser
         return string.IsNullOrWhiteSpace(id) || url is null
             ? null
             : new MinecraftVersionAssetIndex(id, url, GetString(assetIndex, "sha1"), GetInt64(assetIndex, "size"));
+    }
+
+    private static MinecraftLaunchMetadata? ParseLaunchMetadata(JsonElement root)
+    {
+        var hasArguments = TryGetObject(root, "arguments", out var arguments);
+        var hasConditionalJvmArguments = false;
+        var hasConditionalGameArguments = false;
+        var jvmArguments = hasArguments ? ParseStringArray(arguments, "jvm", out hasConditionalJvmArguments) : [];
+        var gameArguments = hasArguments ? ParseStringArray(arguments, "game", out hasConditionalGameArguments) : [];
+        var legacyGameArguments = GetString(root, "minecraftArguments");
+        var mainClass = GetString(root, "mainClass");
+        return hasArguments || !string.IsNullOrWhiteSpace(legacyGameArguments) || !string.IsNullOrWhiteSpace(mainClass)
+            ? new MinecraftLaunchMetadata(
+                mainClass,
+                jvmArguments,
+                gameArguments,
+                hasArguments,
+                hasConditionalJvmArguments || hasConditionalGameArguments,
+                legacyGameArguments)
+            : null;
+    }
+
+    private static IReadOnlyList<string> ParseStringArray(
+        JsonElement arguments,
+        string propertyName,
+        out bool hasConditionalArguments)
+    {
+        hasConditionalArguments = false;
+        if (!arguments.TryGetProperty(propertyName, out var values) || values.ValueKind != JsonValueKind.Array)
+        {
+            return [];
+        }
+
+        var result = new List<string>();
+        foreach (var value in values.EnumerateArray())
+        {
+            if (value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString()))
+            {
+                result.Add(value.GetString()!);
+            }
+            else if (value.ValueKind != JsonValueKind.String)
+            {
+                hasConditionalArguments = true;
+            }
+        }
+
+        return result;
     }
 
     private static Uri? ParseHttpUri(string? value, string fieldName, List<string> errors)

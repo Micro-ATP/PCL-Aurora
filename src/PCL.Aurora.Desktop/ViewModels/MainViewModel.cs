@@ -9,7 +9,8 @@ public partial class MainViewModel(
     ISystemDiagnosticsService diagnosticsService,
     IInstanceCatalogService instanceCatalogService,
     ILaunchReadinessService launchReadinessService,
-    IMinecraftVersionPreparationService versionPreparationService) : ViewModelBase
+    IMinecraftVersionPreparationService versionPreparationService,
+    IMinecraftLaunchPreparationService launchPreparationService) : ViewModelBase
 {
     private MinecraftAccount? selectedAccount;
     private MinecraftInstance? selectedInstance;
@@ -41,6 +42,9 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string downloadPreparationSummary = "版本下载计划尚未生成。";
+
+    [ObservableProperty]
+    private string launchArgumentSummary = "正在等待版本元数据与账户信息。";
 
     [ObservableProperty]
     private string offlinePlayerName = string.Empty;
@@ -76,6 +80,7 @@ public partial class MainViewModel(
                 ? "未在 macOS 默认 Minecraft 目录中发现实例。"
                 : $"发现 {instances.Count} 个本地实例，其中 {instances.Count(instance => instance.Status == MinecraftInstanceStatus.Valid)} 个可读取版本元数据。";
             await RefreshVersionPreparationAsync();
+            await RefreshLaunchArgumentPreparationAsync();
             UpdateLaunchPreflight();
         }
         catch (Exception exception)
@@ -84,6 +89,7 @@ public partial class MainViewModel(
             InstanceSummary = $"实例扫描失败：{exception.Message}";
             VersionMetadataSummary = "无法读取版本元数据。";
             DownloadPreparationSummary = "无法生成下载计划。";
+            LaunchArgumentSummary = "无法准备启动参数。";
         }
     }
 
@@ -111,19 +117,35 @@ public partial class MainViewModel(
             : string.Join(Environment.NewLine, preparation.DownloadPlan.BlockingReasons);
     }
 
+    private async Task RefreshLaunchArgumentPreparationAsync()
+    {
+        if (selectedInstance is null)
+        {
+            LaunchArgumentSummary = "未选择可读取版本元数据的本地实例。";
+            return;
+        }
+
+        var preparation = await launchPreparationService.PrepareAsync(selectedInstance, selectedAccount);
+        LaunchArgumentSummary = preparation.ArgumentPreparation.IsReady
+            ? $"已准备 {preparation.ArgumentPreparation.Arguments!.JvmArguments.Count} 个 JVM 参数与 {preparation.ArgumentPreparation.Arguments.GameArguments.Count} 个游戏参数；游戏进程启动器尚未迁移。"
+            : string.Join(Environment.NewLine, preparation.ArgumentPreparation.BlockingReasons);
+    }
+
     [RelayCommand]
-    private void UseOfflineAccount()
+    private async Task UseOfflineAccount()
     {
         if (!OfflineAccount.TryCreate(OfflinePlayerName, out var account) || account is null)
         {
             AccountSummary = "离线用户名需为 3–16 位英文字母、数字或下划线。";
             UpdateLaunchPreflight();
+            await RefreshLaunchArgumentPreparationAsync();
             return;
         }
 
         selectedAccount = account;
         AccountSummary = $"本次会话使用离线账户：{account.DisplayName}。未写入密码或令牌。";
         UpdateLaunchPreflight();
+        await RefreshLaunchArgumentPreparationAsync();
     }
 
     private void UpdateLaunchPreflight()

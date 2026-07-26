@@ -46,6 +46,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IInstanceCatalogService, InstanceCatalogService>();
         services.AddSingleton<ILaunchReadinessService, LaunchReadinessService>();
         services.AddSingleton<IMinecraftVersionPreparationService, MinecraftVersionPreparationService>();
+        services.AddSingleton<IMinecraftLaunchPreparationService, MinecraftLaunchPreparationService>();
         services.AddTransient<MainViewModel>();
         return services.BuildServiceProvider();
     }

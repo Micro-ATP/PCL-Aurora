@@ -6,4 +6,5 @@ public sealed record MinecraftVersionMetadata(
     string? Type,
     DateTimeOffset? ReleaseTime,
     MinecraftVersionDownload? ClientDownload,
-    MinecraftVersionAssetIndex? AssetIndex);
+    MinecraftVersionAssetIndex? AssetIndex,
+    MinecraftLaunchMetadata? Launch = null);

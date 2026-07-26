@@ -73,6 +73,9 @@
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                            Text="{Binding LaunchPreflightSummary}"
                                            TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding LaunchArgumentSummary}"
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
                     </StackPanel>

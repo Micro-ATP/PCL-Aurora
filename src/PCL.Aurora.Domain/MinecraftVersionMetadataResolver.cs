@@ -30,9 +30,33 @@ public static class MinecraftVersionMetadataResolver
                 ReleaseTime = child.ReleaseTime ?? effective.ReleaseTime,
                 ClientDownload = child.ClientDownload ?? effective.ClientDownload,
                 AssetIndex = child.AssetIndex ?? effective.AssetIndex,
+                Launch = MergeLaunchMetadata(effective.Launch, child.Launch),
             };
         }
 
         return new(inheritanceChain, effective, []);
+    }
+
+    private static MinecraftLaunchMetadata? MergeLaunchMetadata(
+        MinecraftLaunchMetadata? parent,
+        MinecraftLaunchMetadata? child)
+    {
+        if (parent is null)
+        {
+            return child;
+        }
+
+        if (child is null)
+        {
+            return parent;
+        }
+
+        return new(
+            child.MainClass ?? parent.MainClass,
+            [.. parent.JvmArguments, .. child.JvmArguments],
+            [.. parent.GameArguments, .. child.GameArguments],
+            parent.HasModernArguments || child.HasModernArguments,
+            parent.HasConditionalArguments || child.HasConditionalArguments,
+            child.LegacyGameArguments ?? parent.LegacyGameArguments);
     }
 }
