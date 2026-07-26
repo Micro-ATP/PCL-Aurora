@@ -153,6 +153,37 @@
                                     <Button Command="{Binding InstallGameCommand}" IsEnabled="{Binding CanInstallGame}" Content="安装所选本地实例" />
                                 </StackPanel>
                             </Border>
+                            <Border Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock FontWeight="SemiBold" Text="模组加载器" />
+                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                               Text="导入用户指定的本地目录，按所选原版版本筛选 Forge、NeoForge 和 Fabric。"
+                                               TextWrapping="Wrap" />
+                                    <TextBox PlaceholderText="本地 loaders.json 的完整路径"
+                                             Text="{Binding LoaderCatalogPath}" />
+                                    <Button Command="{Binding LoadLoaderCatalogCommand}" Content="读取本地加载器目录" />
+                                    <ComboBox IsEnabled="{Binding HasAvailableLoaders}"
+                                              ItemsSource="{Binding AvailableLoaders}"
+                                              SelectedItem="{Binding SelectedLoader}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Kind}" />
+                                                    <TextBlock Text="{Binding Version}" />
+                                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                               Text="{Binding Channel}" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                               Text="{Binding LoaderCatalogSummary}"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                               Text="{Binding LoaderSelectionSummary}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
                         </UniformGrid>
                         <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                    Text="{Binding DownloadPreparationSummary}"
@@ -306,9 +337,15 @@
 
                         <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
                             <StackPanel Spacing="8">
-                                <TextBlock FontWeight="SemiBold" Text="关于 PCL Aurora" />
+                                <TextBlock FontWeight="SemiBold" Text="PCL 与 PCL-CE 归属说明" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="这是跨平台迁移工程。功能对齐以 PCL-CE 为参照，平台实现与界面代码独立重建。"
+                                           Text="PCL Aurora 是基于 Plain Craft Launcher（PCL）及 PCL-CE 的第三方跨平台迁移与二次创作项目，并非官方项目。"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="原作者：龙腾猫跃（成都瓜皮龙科技有限公司）· 赞助链接：https://meloong.com/afd/a/LTCat"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="直接适配内容及其分发遵循随附的上游许可证和 NOTICE；Micro-ATP 的新增内容适用根目录许可证。"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>

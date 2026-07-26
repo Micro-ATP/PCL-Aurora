@@ -15,6 +15,7 @@ public partial class MainViewModel(
     IMinecraftLaunchPreparationService launchPreparationService,
     IMinecraftInstanceInstallationService installationService,
     IMinecraftVersionCatalogService versionCatalogService,
+    IMinecraftLoaderCatalogService loaderCatalogService,
     IMinecraftVersionProvisioningService versionProvisioningService,
     IMinecraftDirectoryService minecraftDirectoryService,
     IMinecraftGameLaunchService gameLaunchService,
@@ -25,12 +26,15 @@ public partial class MainViewModel(
 
     private readonly List<MinecraftVersionCatalogEntry> allCatalogVersions = [];
     private MinecraftAccount? selectedAccount;
+    private MinecraftLoaderCatalog? loaderCatalog;
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
     private LauncherPreferences currentPreferences = LauncherPreferences.Default;
     private bool isRefreshing;
     private bool isLoadingPreferences;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
+
+    public ObservableCollection<MinecraftLoaderCatalogEntry> AvailableLoaders { get; } = [];
 
     public ObservableCollection<MinecraftInstance> AvailableInstances { get; } = [];
 
@@ -145,6 +149,21 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string versionCatalogSummary = "点击“刷新官方版本”后加载可选版本；不会自动访问网络。";
+
+    [ObservableProperty]
+    private string loaderCatalogPath = string.Empty;
+
+    [ObservableProperty]
+    private string loaderCatalogSummary = "可导入用户指定的本地加载器目录 JSON；不会自动访问网络。";
+
+    [ObservableProperty]
+    private string loaderSelectionSummary = "请先导入目录并选择一个 Minecraft 版本；不会下载或执行安装器。";
+
+    [ObservableProperty]
+    private bool hasAvailableLoaders;
+
+    [ObservableProperty]
+    private MinecraftLoaderCatalogEntry? selectedLoader;
 
     [ObservableProperty]
     private string offlinePlayerName = string.Empty;
@@ -406,6 +425,7 @@ public partial class MainViewModel(
     partial void OnSelectedCatalogVersionChanged(MinecraftVersionCatalogEntry? value)
     {
         CanProvisionSelectedVersion = value is not null;
+        RefreshLoaderEntries();
     }
 
     partial void OnVersionSearchTextChanged(string value) => ApplyVersionFilters();
@@ -446,11 +466,95 @@ public partial class MainViewModel(
 
     partial void OnSelectedInstanceChanged(MinecraftInstance? value)
     {
+        RefreshLoaderEntries();
         if (!isRefreshing)
         {
             _ = RefreshSelectedInstanceStateAsync();
             _ = SaveSelectedInstancePreferenceAsync(value?.Name);
         }
+    }
+
+    [RelayCommand]
+    private async Task LoadLoaderCatalogAsync()
+    {
+        try
+        {
+            LoaderCatalogSummary = "正在读取本地加载器目录…";
+            var result = await loaderCatalogService.ReadAsync(LoaderCatalogPath);
+            if (!result.IsSuccess || result.Catalog is null)
+            {
+                loaderCatalog = null;
+                AvailableLoaders.Clear();
+                HasAvailableLoaders = false;
+                SelectedLoader = null;
+                LoaderCatalogSummary = string.Join(Environment.NewLine, result.Errors);
+                LoaderSelectionSummary = "目录未通过检查；未选择加载器，也不会发起安装。";
+                return;
+            }
+
+            loaderCatalog = result.Catalog;
+            LoaderCatalogPath = Path.GetFullPath(LoaderCatalogPath);
+            LoaderCatalogSummary = $"已读取“{loaderCatalog.SourceName}”：共 {loaderCatalog.Entries.Count} 个加载器版本。";
+            RefreshLoaderEntries();
+        }
+        catch (OperationCanceledException)
+        {
+            LoaderCatalogSummary = "读取本地加载器目录已取消。";
+        }
+        catch (Exception exception)
+        {
+            LoaderCatalogSummary = $"读取本地加载器目录失败：{exception.Message}";
+        }
+    }
+
+    private void RefreshLoaderEntries()
+    {
+        var selectedKey = SelectedLoader is null
+            ? null
+            : $"{SelectedLoader.Kind}:{SelectedLoader.MinecraftVersion}:{SelectedLoader.Version}";
+        AvailableLoaders.Clear();
+        SelectedLoader = null;
+
+        if (loaderCatalog is null)
+        {
+            HasAvailableLoaders = false;
+            LoaderSelectionSummary = "请先导入本地加载器目录；不会自动访问网络。";
+            return;
+        }
+
+        var minecraftVersion = SelectedCatalogVersion?.Id ?? SelectedInstance?.VersionId;
+        if (string.IsNullOrWhiteSpace(minecraftVersion))
+        {
+            HasAvailableLoaders = false;
+            LoaderSelectionSummary = "请先选择下载页中的官方版本，或选择一个本地实例，以筛选兼容的加载器。";
+            return;
+        }
+
+        foreach (var loader in MinecraftLoaderCatalogFilter.ForMinecraftVersion(loaderCatalog, minecraftVersion))
+        {
+            AvailableLoaders.Add(loader);
+        }
+
+        HasAvailableLoaders = AvailableLoaders.Count > 0;
+        SelectedLoader = AvailableLoaders.FirstOrDefault(loader =>
+                string.Equals($"{loader.Kind}:{loader.MinecraftVersion}:{loader.Version}", selectedKey, StringComparison.OrdinalIgnoreCase))
+            ?? AvailableLoaders.FirstOrDefault();
+        LoaderSelectionSummary = HasAvailableLoaders
+            ? $"Minecraft {minecraftVersion} 可选 {AvailableLoaders.Count} 个加载器版本。一次只能选择一个主模组加载器。"
+            : $"本地目录中没有兼容 Minecraft {minecraftVersion} 的 Forge、NeoForge 或 Fabric 版本。";
+    }
+
+    partial void OnSelectedLoaderChanged(MinecraftLoaderCatalogEntry? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        var compatibility = MinecraftLoaderCompatibilityEvaluator.Evaluate(value.MinecraftVersion, [value]);
+        LoaderSelectionSummary = compatibility.IsCompatible
+            ? $"已选择 {value.Kind} {value.Version}（Minecraft {value.MinecraftVersion}，{value.Channel}）。安装器下载与执行尚未启用。"
+            : string.Join(Environment.NewLine, compatibility.Reasons);
     }
 
     partial void OnSelectedJavaChanged(JavaInstallation? value)

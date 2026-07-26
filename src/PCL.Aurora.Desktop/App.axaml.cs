@@ -57,6 +57,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();
         services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceInstallationService>();
         services.AddSingleton<IMinecraftVersionCatalogService, MinecraftVersionCatalogService>();
+        services.AddSingleton<IMinecraftLoaderCatalogService, MinecraftLoaderCatalogService>();
         services.AddSingleton<IMinecraftVersionProvisioningService, MinecraftVersionProvisioningService>();
         services.AddSingleton<IMinecraftDirectoryService, MinecraftDirectoryService>();
         services.AddSingleton<ILauncherPreferencesStore, JsonLauncherPreferencesStore>();

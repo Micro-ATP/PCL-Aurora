@@ -25,6 +25,7 @@ services.AddSingleton<HttpClient>();
 services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();
 services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceInstallationService>();
 services.AddSingleton<IMinecraftVersionCatalogService, MinecraftVersionCatalogService>();
+services.AddSingleton<IMinecraftLoaderCatalogService, MinecraftLoaderCatalogService>();
 services.AddSingleton<IMinecraftVersionProvisioningService, MinecraftVersionProvisioningService>();
 services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
 services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
@@ -39,6 +40,7 @@ var launchPreparationService = provider.GetRequiredService<IMinecraftLaunchPrepa
 var gameLaunchService = provider.GetRequiredService<IMinecraftGameLaunchService>();
 var installationService = provider.GetRequiredService<IMinecraftInstanceInstallationService>();
 var versionCatalogService = provider.GetRequiredService<IMinecraftVersionCatalogService>();
+var loaderCatalogService = provider.GetRequiredService<IMinecraftLoaderCatalogService>();
 var versionProvisioningService = provider.GetRequiredService<IMinecraftVersionProvisioningService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
@@ -110,6 +112,37 @@ switch (command)
             Console.WriteLine($"{version.Id} | {version.Type} | {version.ReleaseTime:yyyy-MM-dd}");
         }
 
+        break;
+    }
+    case "loaders inspect":
+    case var value when value.StartsWith("loaders inspect ", StringComparison.Ordinal):
+    {
+        var catalogPath = args.ElementAtOrDefault(2);
+        if (string.IsNullOrWhiteSpace(catalogPath))
+        {
+            Console.WriteLine("请提供本地加载器目录 JSON 文件路径。不会访问网络或执行安装器。");
+            return 64;
+        }
+
+        var catalog = await loaderCatalogService.ReadAsync(catalogPath);
+        if (!catalog.IsSuccess || catalog.Catalog is null)
+        {
+            Console.WriteLine("加载器目录检查未通过：");
+            foreach (var error in catalog.Errors)
+            {
+                Console.WriteLine($"- {error}");
+            }
+
+            return 1;
+        }
+
+        Console.WriteLine($"来源：{catalog.Catalog.SourceName}；共 {catalog.Catalog.Entries.Count} 个加载器版本。 ");
+        foreach (var entry in catalog.Catalog.Entries)
+        {
+            Console.WriteLine($"{entry.Kind} | Minecraft {entry.MinecraftVersion} | {entry.Version} | {entry.Channel}");
+        }
+
+        Console.WriteLine("仅完成本地目录读取和兼容性建模；未访问网络、下载或执行安装器。");
         break;
     }
     case var value when value.StartsWith("install create ", StringComparison.Ordinal):
@@ -298,7 +331,7 @@ switch (command)
     }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | install create <版本 ID> | install local | launch check | launch arguments | launch run [离线用户名] | doctor");
+        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | loaders inspect <本地目录.json> | install create <版本 ID> | install local | launch check | launch arguments | launch run [离线用户名] | doctor");
         return command == "help" ? 0 : 64;
 }
 
