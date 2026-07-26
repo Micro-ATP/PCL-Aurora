@@ -47,7 +47,10 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IInstanceCatalogService, InstanceCatalogService>();
         services.AddSingleton<ILaunchReadinessService, LaunchReadinessService>();
         services.AddSingleton<IMinecraftVersionPreparationService, MinecraftVersionPreparationService>();
+        services.AddSingleton<IMinecraftAssetPreparationService, MinecraftAssetPreparationService>();
         services.AddSingleton<IMinecraftLaunchPreparationService, MinecraftLaunchPreparationService>();
+        services.AddSingleton<IMinecraftAssetIndexReader, MacOSMinecraftAssetIndexReader>();
+        services.AddSingleton<IAssetMapper, MinecraftAssetMapper>();
         services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
         services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
         services.AddSingleton<IMinecraftGameLaunchService, MinecraftGameLaunchService>();

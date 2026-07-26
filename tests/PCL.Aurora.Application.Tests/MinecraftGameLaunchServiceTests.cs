@@ -12,6 +12,8 @@ public sealed class MinecraftGameLaunchServiceTests
         var service = new MinecraftGameLaunchService(
             new LaunchReadinessService(),
             new UnusedLaunchPreparationService(),
+            new UnusedAssetPreparationService(),
+            new UnusedAssetMapper(),
             new UnusedNativeLibraryPreparer(),
             processRunner);
 
@@ -61,6 +63,8 @@ public sealed class MinecraftGameLaunchServiceTests
             var service = new MinecraftGameLaunchService(
                 new LaunchReadinessService(),
                 new FixedLaunchPreparationService(launchPreparation),
+                new FixedAssetPreparationService(CreateReadyAssetPreparation()),
+                new UnusedAssetMapper(),
                 new UnusedNativeLibraryPreparer(),
                 processRunner);
 
@@ -110,11 +114,41 @@ public sealed class MinecraftGameLaunchServiceTests
             throw new InvalidOperationException("无效实例不应准备 native 库。");
     }
 
+    private sealed class UnusedAssetMapper : IAssetMapper
+    {
+        public Task<MinecraftAssetMappingPreparation> PrepareAsync(
+            MinecraftAssetMappingPlan mappingPlan,
+            CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("阻断状态不应映射资源。");
+    }
+
+    private sealed class UnusedAssetPreparationService : IMinecraftAssetPreparationService
+    {
+        public Task<MinecraftAssetPreparation> PrepareAsync(
+            MinecraftInstance instance,
+            CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("无效实例不应读取资源索引。");
+    }
+
     private sealed class FixedLaunchPreparationService(MinecraftLaunchPreparation preparation) : IMinecraftLaunchPreparationService
     {
         public Task<MinecraftLaunchPreparation> PrepareAsync(
             MinecraftInstance instance,
             MinecraftAccount? account,
             CancellationToken cancellationToken = default) => Task.FromResult(preparation);
+    }
+
+    private sealed class FixedAssetPreparationService(MinecraftAssetPreparation preparation) : IMinecraftAssetPreparationService
+    {
+        public Task<MinecraftAssetPreparation> PrepareAsync(
+            MinecraftInstance instance,
+            CancellationToken cancellationToken = default) => Task.FromResult(preparation);
+    }
+
+    private static MinecraftAssetPreparation CreateReadyAssetPreparation()
+    {
+        var index = new MinecraftAssetIndex("17", [], IsVirtual: false, MapsToResources: false);
+        var inspection = new MinecraftAssetIndexParseResult(index, []);
+        return new(inspection, new("17", [], []), new(null, [], [], []));
     }
 }

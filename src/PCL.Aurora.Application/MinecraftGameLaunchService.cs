@@ -5,6 +5,8 @@ namespace PCL.Aurora.Application;
 public sealed class MinecraftGameLaunchService(
     ILaunchReadinessService launchReadinessService,
     IMinecraftLaunchPreparationService launchPreparationService,
+    IMinecraftAssetPreparationService assetPreparationService,
+    IAssetMapper assetMapper,
     INativeLibraryPreparer nativeLibraryPreparer,
     IGameProcessRunner processRunner) : IMinecraftGameLaunchService
 {
@@ -20,6 +22,7 @@ public sealed class MinecraftGameLaunchService(
             return new(
                 readiness,
                 null,
+                null,
                 new MinecraftNativeLibraryPlan(string.Empty, [], [], readiness.BlockingReasons),
                 new MinecraftGameLaunchRequestPreparation(null, readiness.BlockingReasons),
                 readiness.BlockingReasons);
@@ -27,6 +30,9 @@ public sealed class MinecraftGameLaunchService(
 
         var launchPreparation = await launchPreparationService
             .PrepareAsync(instance, account, cancellationToken)
+            .ConfigureAwait(false);
+        var assetPreparation = await assetPreparationService
+            .PrepareAsync(instance, cancellationToken)
             .ConfigureAwait(false);
         var versionsDirectory = Directory.GetParent(instance.DirectoryPath)?.FullName;
         var minecraftRootDirectory = versionsDirectory is null
@@ -41,12 +47,15 @@ public sealed class MinecraftGameLaunchService(
         var blockingReasons = readiness.BlockingReasons
             .Concat(launchPreparation.ClasspathInspection.BlockingReasons)
             .Concat(launchPreparation.ClasspathInspection.MissingFiles.Select(path => $"缺少文件：{path}"))
+            .Concat(assetPreparation.IndexInspection.Errors)
+            .Concat(assetPreparation.MappingPlan.BlockingReasons)
+            .Concat(assetPreparation.MappingPlan.MissingFiles.Select(path => $"缺少资源对象：{path}"))
             .Concat(nativeLibraryPlan.BlockingReasons)
             .Concat(nativeLibraryPlan.MissingFiles.Select(path => $"缺少 native 文件：{path}"))
             .Concat(requestPreparation.BlockingReasons)
             .Distinct(StringComparer.Ordinal)
             .ToList();
-        return new(readiness, launchPreparation, nativeLibraryPlan, requestPreparation, blockingReasons);
+        return new(readiness, launchPreparation, assetPreparation, nativeLibraryPlan, requestPreparation, blockingReasons);
     }
 
     public Task<GameProcessSession> LaunchAsync(
@@ -66,6 +75,19 @@ public sealed class MinecraftGameLaunchService(
         MinecraftGameLaunchPreparation preparation,
         CancellationToken cancellationToken)
     {
+        if (preparation.AssetPreparation is null)
+        {
+            throw new InvalidOperationException("资源准备状态缺失。");
+        }
+
+        var assetMappingPreparation = await assetMapper
+            .PrepareAsync(preparation.AssetPreparation.MappingPlan, cancellationToken)
+            .ConfigureAwait(false);
+        if (!assetMappingPreparation.IsReady)
+        {
+            throw new InvalidOperationException("资源尚未准备：" + string.Join("；", assetMappingPreparation.BlockingReasons));
+        }
+
         var nativePreparation = await nativeLibraryPreparer
             .PrepareAsync(preparation.NativeLibraryPlan, cancellationToken)
             .ConfigureAwait(false);
