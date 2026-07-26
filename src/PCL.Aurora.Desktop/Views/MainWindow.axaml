@@ -186,6 +186,9 @@
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
+                                    <Button Command="{Binding InstallSelectedLoaderCommand}"
+                                            IsEnabled="{Binding CanInstallSelectedLoader}"
+                                            Content="下载并安装所选加载器" />
                                     <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                                Text="{Binding LoaderCatalogSummary}"
                                                TextWrapping="Wrap" />

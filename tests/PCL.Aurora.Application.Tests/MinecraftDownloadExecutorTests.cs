@@ -57,6 +57,28 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
         Assert.False(Directory.Exists(rootDirectory));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_FallsBackToOfficialSourceAfterMirrorFailure()
+    {
+        var content = "PCL Aurora mirror fallback"u8.ToArray();
+        using var client = new HttpClient(new MirrorFailureHandler(content));
+        var executor = new MinecraftDownloadExecutor(client);
+        var plan = CreatePlan(content) with
+        {
+            Artifacts = [new MinecraftDownloadArtifact(
+                "测试安装器",
+                "cache/installer.jar",
+                new Uri("https://bmclapi2.bangbang93.com/maven/example/installer.jar"),
+                Convert.ToHexString(SHA1.HashData(content)),
+                content.Length,
+                [new Uri("https://official.example.invalid/installer.jar")])],
+        };
+
+        await executor.ExecuteAsync(plan, rootDirectory);
+
+        Assert.Equal(content, await File.ReadAllBytesAsync(Path.Combine(rootDirectory, "cache", "installer.jar")));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(rootDirectory))
@@ -80,5 +102,13 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
             Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(content) });
+    }
+
+    private sealed class MirrorFailureHandler(byte[] content) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(request.RequestUri!.Host == "bmclapi2.bangbang93.com"
+                ? new HttpResponseMessage(HttpStatusCode.BadGateway)
+                : new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(content) });
     }
 }

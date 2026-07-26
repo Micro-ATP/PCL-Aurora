@@ -27,7 +27,10 @@ services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceIn
 services.AddSingleton<IMinecraftVersionCatalogService, MinecraftVersionCatalogService>();
 services.AddSingleton<IMinecraftLoaderCatalogService, MinecraftLoaderCatalogService>();
 services.AddSingleton<IMinecraftOfficialLoaderCatalogService, MinecraftOfficialLoaderCatalogService>();
+services.AddSingleton<IMinecraftLoaderInstallerProcessRunner, MinecraftLoaderInstallerProcessRunner>();
+services.AddSingleton<IMinecraftLoaderInstallerService, MinecraftLoaderInstallerService>();
 services.AddSingleton<IMinecraftVersionProvisioningService, MinecraftVersionProvisioningService>();
+services.AddSingleton<IMinecraftDirectoryService, MinecraftDirectoryService>();
 services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
 services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
 services.AddSingleton<IMinecraftGameLaunchService, MinecraftGameLaunchService>();
@@ -43,6 +46,8 @@ var installationService = provider.GetRequiredService<IMinecraftInstanceInstalla
 var versionCatalogService = provider.GetRequiredService<IMinecraftVersionCatalogService>();
 var loaderCatalogService = provider.GetRequiredService<IMinecraftLoaderCatalogService>();
 var officialLoaderCatalogService = provider.GetRequiredService<IMinecraftOfficialLoaderCatalogService>();
+var loaderInstallerService = provider.GetRequiredService<IMinecraftLoaderInstallerService>();
+var minecraftDirectoryService = provider.GetRequiredService<IMinecraftDirectoryService>();
 var versionProvisioningService = provider.GetRequiredService<IMinecraftVersionProvisioningService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
@@ -181,6 +186,75 @@ switch (command)
         }
 
         Console.WriteLine("仅完成官方目录读取和兼容性建模；未下载或执行安装器。 ");
+        break;
+    }
+    case "loaders install":
+    case var value when value.StartsWith("loaders install ", StringComparison.Ordinal):
+    {
+        if (args.Length != 6 || !string.Equals(args[5], "--confirm", StringComparison.Ordinal))
+        {
+            Console.WriteLine("用法：loaders install <Forge|NeoForge|Fabric> <Minecraft 版本> <加载器版本> --confirm");
+            Console.WriteLine("只有带 --confirm 的命令才会访问官方地址、下载并执行安装器。");
+            return 64;
+        }
+
+        if (!Enum.TryParse<MinecraftLoaderKind>(args[2], ignoreCase: true, out var kind) ||
+            !Enum.IsDefined(kind))
+        {
+            Console.WriteLine("加载器类型必须是 Forge、NeoForge 或 Fabric。未访问网络。 ");
+            return 64;
+        }
+
+        var minecraftVersion = args[3];
+        var loaderVersion = args[4];
+        var catalog = await officialLoaderCatalogService.FetchAsync(minecraftVersion);
+        var loader = catalog.Catalog?.Entries.FirstOrDefault(entry =>
+            entry.Kind == kind &&
+            string.Equals(entry.Version, loaderVersion, StringComparison.OrdinalIgnoreCase));
+        if (loader is null)
+        {
+            Console.WriteLine("未在官方目录中找到指定的兼容加载器；不会下载或执行安装器。 ");
+            foreach (var error in catalog.Errors)
+            {
+                Console.WriteLine($"- {error}");
+            }
+
+            return 1;
+        }
+
+        var diagnostics = await diagnosticsService.GetAsync();
+        var java = diagnostics.JavaInstallations.FirstOrDefault(candidate => candidate.IsCompatible);
+        var minecraftRoot = minecraftDirectoryService.GetRootDirectory();
+        var plan = await loaderInstallerService.PrepareAsync(loader, minecraftRoot, java);
+        if (!plan.CanInstall)
+        {
+            Console.WriteLine("加载器安装计划未通过：");
+            foreach (var reason in plan.BlockingReasons)
+            {
+                Console.WriteLine($"- {reason}");
+            }
+
+            return 1;
+        }
+
+        Console.WriteLine($"正在下载并安装 {loader.Kind} {loader.Version}…");
+        var result = await loaderInstallerService.InstallAsync(plan, minecraftRoot, hasExplicitUserConfirmation: true);
+        foreach (var output in result.Output)
+        {
+            Console.WriteLine(output.Text);
+        }
+
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine($"- {error}");
+            }
+
+            return 1;
+        }
+
+        Console.WriteLine("加载器安装完成。请刷新本地实例列表以检查安装器生成的版本元数据。 ");
         break;
     }
     case var value when value.StartsWith("install create ", StringComparison.Ordinal):
@@ -379,7 +453,7 @@ switch (command)
     }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | loaders inspect <本地目录.json> | loaders refresh <Minecraft 版本> | install create <版本 ID> | install local | launch check | launch arguments | launch run [离线用户名] [--acknowledge-offline] | doctor");
+        Console.WriteLine("用法：info | java list | instances list | versions list | versions inspect | loaders inspect <本地目录.json> | loaders refresh <Minecraft 版本> | loaders install <Forge|NeoForge|Fabric> <Minecraft 版本> <加载器版本> --confirm | install create <版本 ID> | install local | launch check | launch arguments | launch run [离线用户名] [--acknowledge-offline] | doctor");
         return command == "help" ? 0 : 64;
 }
 

@@ -54,6 +54,44 @@ public sealed class MinecraftDownloadExecutor(HttpClient httpClient) : IMinecraf
         string destinationPath,
         CancellationToken cancellationToken)
     {
+        var sources = new[] { artifact.Url }
+            .Concat(artifact.AlternativeUrls ?? [])
+            .Distinct()
+            .ToArray();
+        var failures = new List<string>();
+        Exception? lastFailure = null;
+        foreach (var source in sources)
+        {
+            try
+            {
+                await DownloadFromSourceAsync(artifact, source, destinationPath, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception) when (exception is HttpRequestException or IOException or InvalidDataException)
+            {
+                lastFailure = exception;
+                failures.Add($"{source.Host}：{exception.Message}");
+            }
+        }
+
+        if (sources.Length == 1 && lastFailure is not null)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(lastFailure).Throw();
+        }
+
+        throw new IOException($"{artifact.Description} 的全部下载源均失败：{string.Join("；", failures)}");
+    }
+
+    private async Task DownloadFromSourceAsync(
+        MinecraftDownloadArtifact artifact,
+        Uri source,
+        string destinationPath,
+        CancellationToken cancellationToken)
+    {
         var destinationDirectory = Path.GetDirectoryName(destinationPath)
             ?? throw new IOException("无法确定下载目标目录。");
         Directory.CreateDirectory(destinationDirectory);
@@ -62,13 +100,13 @@ public sealed class MinecraftDownloadExecutor(HttpClient httpClient) : IMinecraf
         try
         {
             using var response = await httpClient.GetAsync(
-                artifact.Url,
+                source,
                 HttpCompletionOption.ResponseHeadersRead,
                 cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             long downloadedSize = 0;
             byte[] sha1;
-            await using (var source = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false))
+            await using (var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false))
             await using (var destination = new FileStream(
                              temporaryPath,
                              FileMode.CreateNew,
@@ -80,7 +118,7 @@ public sealed class MinecraftDownloadExecutor(HttpClient httpClient) : IMinecraf
                 using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
                 var buffer = new byte[81920];
                 int bytesRead;
-                while ((bytesRead = await source.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
+                while ((bytesRead = await contentStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
                 {
                     await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken).ConfigureAwait(false);
                     hash.AppendData(buffer, 0, bytesRead);

@@ -17,6 +17,7 @@ public partial class MainViewModel(
     IMinecraftVersionCatalogService versionCatalogService,
     IMinecraftLoaderCatalogService loaderCatalogService,
     IMinecraftOfficialLoaderCatalogService officialLoaderCatalogService,
+    IMinecraftLoaderInstallerService loaderInstallerService,
     IMinecraftVersionProvisioningService versionProvisioningService,
     IMinecraftDirectoryService minecraftDirectoryService,
     IMinecraftGameLaunchService gameLaunchService,
@@ -165,6 +166,9 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private MinecraftLoaderCatalogEntry? selectedLoader;
+
+    [ObservableProperty]
+    private bool canInstallSelectedLoader;
 
     [ObservableProperty]
     private string offlinePlayerName = string.Empty;
@@ -317,6 +321,7 @@ public partial class MainViewModel(
             DownloadPreparationSummary = "需先发现有效本地实例；不会创建目录或下载文件。";
             InstallationSummary = "未选择可安装的本地实例。";
             CanInstallGame = false;
+            CanInstallSelectedLoader = false;
             return;
         }
 
@@ -483,6 +488,7 @@ public partial class MainViewModel(
     partial void OnSelectedInstanceChanged(MinecraftInstance? value)
     {
         RefreshLoaderEntries();
+        CanInstallSelectedLoader = CanInstallLoaderForSelectedInstance(SelectedLoader);
         if (!isRefreshing)
         {
             _ = RefreshSelectedInstanceStateAsync();
@@ -575,6 +581,7 @@ public partial class MainViewModel(
         if (loaderCatalog is null)
         {
             HasAvailableLoaders = false;
+            CanInstallSelectedLoader = false;
             LoaderSelectionSummary = "请先导入本地加载器目录；不会自动访问网络。";
             return;
         }
@@ -583,6 +590,7 @@ public partial class MainViewModel(
         if (string.IsNullOrWhiteSpace(minecraftVersion))
         {
             HasAvailableLoaders = false;
+            CanInstallSelectedLoader = false;
             LoaderSelectionSummary = "请先选择下载页中的官方版本，或选择一个本地实例，以筛选兼容的加载器。";
             return;
         }
@@ -596,6 +604,7 @@ public partial class MainViewModel(
         SelectedLoader = AvailableLoaders.FirstOrDefault(loader =>
                 string.Equals($"{loader.Kind}:{loader.MinecraftVersion}:{loader.Version}", selectedKey, StringComparison.OrdinalIgnoreCase))
             ?? AvailableLoaders.FirstOrDefault();
+        CanInstallSelectedLoader = CanInstallLoaderForSelectedInstance(SelectedLoader);
         LoaderSelectionSummary = HasAvailableLoaders
             ? $"Minecraft {minecraftVersion} 可选 {AvailableLoaders.Count} 个加载器版本。一次只能选择一个主模组加载器。"
             : $"本地目录中没有兼容 Minecraft {minecraftVersion} 的 Forge、NeoForge 或 Fabric 版本。";
@@ -603,6 +612,7 @@ public partial class MainViewModel(
 
     partial void OnSelectedLoaderChanged(MinecraftLoaderCatalogEntry? value)
     {
+        CanInstallSelectedLoader = CanInstallLoaderForSelectedInstance(value);
         if (value is null)
         {
             return;
@@ -610,17 +620,71 @@ public partial class MainViewModel(
 
         var compatibility = MinecraftLoaderCompatibilityEvaluator.Evaluate(value.MinecraftVersion, [value]);
         LoaderSelectionSummary = compatibility.IsCompatible
-            ? $"已选择 {value.Kind} {value.Version}（Minecraft {value.MinecraftVersion}，{value.Channel}）。安装器下载与执行尚未启用。"
+            ? $"已选择 {value.Kind} {value.Version}（Minecraft {value.MinecraftVersion}，{value.Channel}）。选择本地实例与 Java 后，可由“下载并安装”明确触发。"
             : string.Join(Environment.NewLine, compatibility.Reasons);
     }
 
     partial void OnSelectedJavaChanged(JavaInstallation? value)
     {
+        CanInstallSelectedLoader = CanInstallLoaderForSelectedInstance(SelectedLoader);
         if (!isRefreshing)
         {
             _ = RefreshSelectedInstanceStateAsync();
         }
     }
+
+    [RelayCommand]
+    private async Task InstallSelectedLoaderAsync()
+    {
+        if (SelectedLoader is not { } loader ||
+            SelectedInstance is not { } instance ||
+            SelectedJava is not { } java ||
+            !string.Equals(loader.MinecraftVersion, instance.VersionId, StringComparison.OrdinalIgnoreCase))
+        {
+            LoaderSelectionSummary = "请先选择兼容的加载器、本地实例与 Java；未下载或执行安装器。";
+            return;
+        }
+
+        try
+        {
+            CanInstallSelectedLoader = false;
+            LoaderSelectionSummary = $"正在准备 {loader.Kind} {loader.Version} 官方安装器…";
+            var plan = await loaderInstallerService.PrepareAsync(loader, MinecraftRootDirectory, java);
+            if (!plan.CanInstall)
+            {
+                LoaderSelectionSummary = string.Join(Environment.NewLine, plan.BlockingReasons);
+                return;
+            }
+
+            LoaderSelectionSummary = $"正在下载并执行 {loader.Kind} {loader.Version} 安装器…";
+            var result = await loaderInstallerService.InstallAsync(plan, MinecraftRootDirectory, hasExplicitUserConfirmation: true);
+            LoaderSelectionSummary = result.Succeeded
+                ? $"{loader.Kind} {loader.Version} 安装完成。请刷新本地实例列表以检查新增版本。"
+                : string.Join(Environment.NewLine, result.Errors.Concat(result.Output.TakeLast(5).Select(line => line.Text)));
+            if (result.Succeeded)
+            {
+                await RefreshAsync();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            LoaderSelectionSummary = "加载器安装已取消；安装器进程已终止。";
+        }
+        catch (Exception exception)
+        {
+            LoaderSelectionSummary = $"加载器安装失败：{exception.Message}";
+        }
+        finally
+        {
+            CanInstallSelectedLoader = CanInstallLoaderForSelectedInstance(SelectedLoader);
+        }
+    }
+
+    private bool CanInstallLoaderForSelectedInstance(MinecraftLoaderCatalogEntry? loader) =>
+        loader is not null &&
+        SelectedInstance is not null &&
+        SelectedJava is not null &&
+        string.Equals(loader.MinecraftVersion, SelectedInstance.VersionId, StringComparison.OrdinalIgnoreCase);
 
     partial void OnHasAcknowledgedAccountGuidanceChanged(bool value)
     {
