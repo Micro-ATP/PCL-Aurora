@@ -39,8 +39,10 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IPlatformInfo, MacOSPlatformInfo>();
         services.AddSingleton<IPlatformPaths, MacOSPlatformPaths>();
         services.AddSingleton<IJavaLocator, MacOSJavaLocator>();
+        services.AddSingleton<IMinecraftInstanceLocator, MacOSMinecraftInstanceLocator>();
         services.AddSingleton<IOpenPathService, MacOSOpenPathService>();
         services.AddSingleton<ISystemDiagnosticsService, SystemDiagnosticsService>();
+        services.AddSingleton<IInstanceCatalogService, InstanceCatalogService>();
         services.AddTransient<MainViewModel>();
         return services.BuildServiceProvider();
     }

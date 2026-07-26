@@ -40,9 +40,9 @@
 
                         <Border Padding="24" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
                             <StackPanel Spacing="14">
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="尚未选择实例" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="本地实例" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="实例管理和启动流程将在完成元数据、账户与版本解析迁移后启用。" TextWrapping="Wrap" />
+                                           Text="{Binding InstanceSummary}" TextWrapping="Wrap" />
                                 <StackPanel Orientation="Horizontal" Spacing="12">
                                     <Button IsEnabled="False" Content="选择实例" />
                                     <Button IsEnabled="False" Content="启动游戏" />

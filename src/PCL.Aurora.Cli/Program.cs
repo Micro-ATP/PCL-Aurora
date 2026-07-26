@@ -7,11 +7,14 @@ var services = new ServiceCollection();
 services.AddSingleton<IPlatformInfo, MacOSPlatformInfo>();
 services.AddSingleton<IPlatformPaths, MacOSPlatformPaths>();
 services.AddSingleton<IJavaLocator, MacOSJavaLocator>();
+services.AddSingleton<IMinecraftInstanceLocator, MacOSMinecraftInstanceLocator>();
 services.AddSingleton<IOpenPathService, MacOSOpenPathService>();
 services.AddSingleton<ISystemDiagnosticsService, SystemDiagnosticsService>();
+services.AddSingleton<IInstanceCatalogService, InstanceCatalogService>();
 
 await using var provider = services.BuildServiceProvider();
 var diagnosticsService = provider.GetRequiredService<ISystemDiagnosticsService>();
+var instanceCatalogService = provider.GetRequiredService<IInstanceCatalogService>();
 
 var command = args.Length == 0 ? "help" : string.Join(' ', args);
 switch (command)
@@ -50,9 +53,26 @@ switch (command)
         Console.WriteLine($"Java：发现 {diagnostics.JavaInstallations.Count} 个可执行文件，其中 {diagnostics.JavaInstallations.Count(java => java.IsCompatible)} 个与当前系统架构兼容。");
         return diagnostics.JavaInstallations.Any(java => java.IsCompatible) ? 0 : 1;
     }
+    case "instances list":
+    {
+        var instances = await instanceCatalogService.GetAllAsync();
+        if (instances.Count == 0)
+        {
+            Console.WriteLine("未在 macOS 默认 Minecraft 目录中发现实例。");
+            return 0;
+        }
+
+        foreach (var instance in instances)
+        {
+            Console.WriteLine($"{instance.Name} | {instance.VersionId ?? "未知版本"} | {instance.Type ?? "未知类型"} | {instance.Status}");
+            Console.WriteLine($"  {instance.DirectoryPath}");
+        }
+
+        break;
+    }
     default:
         Console.WriteLine("PCL Aurora 诊断工具");
-        Console.WriteLine("用法：info | java list | doctor");
+        Console.WriteLine("用法：info | java list | instances list | doctor");
         return command == "help" ? 0 : 64;
 }
 
