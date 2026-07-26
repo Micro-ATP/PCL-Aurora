@@ -24,7 +24,6 @@ public partial class MainViewModel(
     private const int MaximumGameLogLines = 500;
 
     private MinecraftAccount? selectedAccount;
-    private JavaInstallation? selectedJava;
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
     private LauncherPreferences currentPreferences = LauncherPreferences.Default;
     private bool isRefreshing;
@@ -33,6 +32,8 @@ public partial class MainViewModel(
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
     public ObservableCollection<MinecraftInstance> AvailableInstances { get; } = [];
+
+    public ObservableCollection<JavaInstallation> AvailableJavaInstallations { get; } = [];
 
     public ObservableCollection<GameLogLine> GameLogLines { get; } = [];
 
@@ -74,6 +75,12 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string javaSummary = "正在扫描 Java…";
+
+    [ObservableProperty]
+    private JavaInstallation? selectedJava;
+
+    [ObservableProperty]
+    private bool hasAvailableJavaInstallations;
 
     [ObservableProperty]
     private string instanceSummary = "正在扫描本地实例…";
@@ -164,7 +171,16 @@ public partial class MainViewModel(
                 currentPreferences.SelectedInstanceName,
                 SelectedInstance?.Name,
                 StringComparison.Ordinal);
-            selectedJava = diagnostics.JavaInstallations.FirstOrDefault(java => java.IsCompatible);
+            var selectedJavaPath = SelectedJava?.ExecutablePath;
+            AvailableJavaInstallations.Clear();
+            foreach (var java in diagnostics.JavaInstallations.Where(java => java.IsCompatible))
+            {
+                AvailableJavaInstallations.Add(java);
+            }
+
+            HasAvailableJavaInstallations = AvailableJavaInstallations.Count > 0;
+            SelectedJava = AvailableJavaInstallations.FirstOrDefault(java => java.ExecutablePath == selectedJavaPath)
+                ?? AvailableJavaInstallations.FirstOrDefault();
             OperatingSystem = $"{diagnostics.Platform.OperatingSystem} ({diagnostics.Platform.Version})";
             Architecture = diagnostics.Platform.Architecture.ToString();
             Runtime = diagnostics.Platform.RuntimeVersion;
@@ -172,7 +188,7 @@ public partial class MainViewModel(
             CacheDirectory = diagnostics.Paths.CacheDirectory;
             JavaSummary = diagnostics.JavaInstallations.Count == 0
                 ? "未发现可用 Java。"
-                : $"发现 {diagnostics.JavaInstallations.Count} 个 Java，其中 {diagnostics.JavaInstallations.Count(java => java.IsCompatible)} 个与当前架构兼容。";
+                : $"发现 {diagnostics.JavaInstallations.Count} 个 Java，其中 {AvailableJavaInstallations.Count} 个与当前架构兼容。";
             InstanceSummary = instances.Count == 0
                 ? "未在 macOS 默认 Minecraft 目录中发现实例。"
                 : $"发现 {instances.Count} 个本地实例，其中 {instances.Count(instance => instance.Status == MinecraftInstanceStatus.Valid)} 个可读取版本元数据。";
@@ -305,7 +321,7 @@ public partial class MainViewModel(
 
     private async Task RefreshGameLaunchPreparationAsync()
     {
-        gameLaunchPreparation = await gameLaunchService.PrepareAsync(SelectedInstance, selectedAccount, selectedJava);
+        gameLaunchPreparation = await gameLaunchService.PrepareAsync(SelectedInstance, selectedAccount, SelectedJava);
         CanLaunchGame = gameLaunchPreparation.CanLaunch;
         GameLaunchSummary = gameLaunchPreparation.CanLaunch
             ? "启动条件和进程请求均已准备。点击“启动游戏”后将先安全准备 native 库，再启动 Java 进程。"
@@ -389,6 +405,14 @@ public partial class MainViewModel(
         {
             _ = RefreshSelectedInstanceStateAsync();
             _ = SaveSelectedInstancePreferenceAsync(value?.Name);
+        }
+    }
+
+    partial void OnSelectedJavaChanged(JavaInstallation? value)
+    {
+        if (!isRefreshing)
+        {
+            _ = RefreshSelectedInstanceStateAsync();
         }
     }
 
@@ -554,7 +578,7 @@ public partial class MainViewModel(
 
     private void UpdateLaunchPreflight()
     {
-        var readiness = launchReadinessService.Evaluate(SelectedInstance, selectedAccount, selectedJava);
+        var readiness = launchReadinessService.Evaluate(SelectedInstance, selectedAccount, SelectedJava);
         LaunchPreflightSummary = readiness.CanLaunch
             ? "启动前检查已通过。进程启动条件将继续检查类路径与版本参数。"
             : string.Join(Environment.NewLine, readiness.BlockingReasons);

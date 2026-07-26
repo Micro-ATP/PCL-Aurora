@@ -180,6 +180,30 @@
                                     <TextBlock Grid.Row="5" Grid.Column="0" Text="Java" />
                                     <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding JavaSummary}" TextWrapping="Wrap" />
                                 </Grid>
+                                <Label Content="启动 Java" Target="{Binding #JavaSelector}" />
+                                <ComboBox x:Name="JavaSelector"
+                                          MinWidth="360"
+                                          HorizontalAlignment="Left"
+                                          AutomationProperties.Name="启动 Java"
+                                          IsEnabled="{Binding HasAvailableJavaInstallations}"
+                                          ItemsSource="{Binding AvailableJavaInstallations}"
+                                          SelectedItem="{Binding SelectedJava}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Spacing="2">
+                                                <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
+                                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                           Text="{Binding Vendor}" />
+                                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                           Text="{Binding ExecutablePath}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="仅显示与当前架构兼容的 Java；选择仅在本次运行生效。"
+                                           TextWrapping="Wrap" />
                                 <Button HorizontalAlignment="Left" Command="{Binding RefreshCommand}" Content="刷新 Java 诊断" />
                             </StackPanel>
                         </Border>
