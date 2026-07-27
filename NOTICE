@@ -33,6 +33,9 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Controls/MyTextBox.vb
 - PCL2: Plain Craft Launcher 2/Controls/MySearchBox.xaml
 - PCL2: Plain Craft Launcher 2/Controls/MySearchBox.xaml.vb
+- PCL2: Plain Craft Launcher 2/Controls/MyComboBox.vb
+- PCL2: Plain Craft Launcher 2/Controls/MyComboBoxItem.vb
+- PCL2: Plain Craft Launcher 2/Application.xaml (ComboBox styles only)
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml
 

@@ -192,9 +192,117 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox">
-            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Background" Value="#FCFCFD" />
             <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="PlaceholderForeground" Value="#7C8794" />
+            <Setter Property="BorderBrush" Value="#A8C9EE" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox /template/ Border#Background">
+            <Setter Property="Background" Value="#FCFCFD" />
+            <Setter Property="BorderBrush" Value="#A8C9EE" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox /template/ ContentControl#ContentPresenter">
+            <Setter Property="Foreground" Value="#36424F" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox /template/ PathIcon#DropDownGlyph">
+            <Setter Property="Foreground" Value="#526170" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox /template/ Border#PopupBorder">
+            <Setter Property="Background" Value="#FCFCFD" />
             <Setter Property="BorderBrush" Value="#83B8F8" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:pointerover">
+            <Setter Property="Background" Value="#F0F7FF" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#5AA0F2" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:pointerover /template/ Border#Background">
+            <Setter Property="Background" Value="#F0F7FF" />
+            <Setter Property="BorderBrush" Value="#5AA0F2" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:pressed">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:pressed /template/ Border#Background">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:focus">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:focus /template/ Border#Background">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:focus-visible /template/ Border#HighlightBackground">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:disabled">
+            <Setter Property="Background" Value="#EDF1F5" />
+            <Setter Property="Foreground" Value="#7C8794" />
+            <Setter Property="PlaceholderForeground" Value="#9AA5B1" />
+            <Setter Property="BorderBrush" Value="#D5DEE8" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:disabled /template/ Border#Background">
+            <Setter Property="Background" Value="#EDF1F5" />
+            <Setter Property="BorderBrush" Value="#D5DEE8" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:disabled /template/ ContentControl#ContentPresenter">
+            <Setter Property="Foreground" Value="#7C8794" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox:disabled /template/ PathIcon#DropDownGlyph">
+            <Setter Property="Foreground" Value="#9AA5B1" />
+        </Style>
+        <Style Selector="ComboBoxItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Padding" Value="9,6" />
+            <Setter Property="MinHeight" Value="30" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="2"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Background="Transparent"
+                                          BorderBrush="Transparent"
+                                          BorderThickness="0"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ComboBoxItem:pointerover">
+            <Setter Property="Background" Value="#F0F7FF" />
+            <Setter Property="Foreground" Value="#36424F" />
+        </Style>
+        <Style Selector="ComboBoxItem:selected">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#36424F" />
+        </Style>
+        <Style Selector="ComboBoxItem:selected:pointerover">
+            <Setter Property="Background" Value="#DCEEFF" />
+            <Setter Property="Foreground" Value="#36424F" />
+        </Style>
+        <Style Selector="ComboBoxItem:disabled">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#9AA5B1" />
         </Style>
         <Style Selector="Grid.pcl-shell CheckBox">
             <Setter Property="Foreground" Value="#36424F" />
@@ -203,9 +311,42 @@
             <Setter Property="Background" Value="#F0F2F5" />
             <Setter Property="Foreground" Value="#36424F" />
             <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Grid.pcl-shell Button:pointerover">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="#83B8F8" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button:pressed">
+            <Setter Property="Background" Value="#D6EAFF" />
+            <Setter Property="Foreground" Value="#0F5FCC" />
+            <Setter Property="BorderBrush" Value="#5AA0F2" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button:focus-visible">
+            <Setter Property="BorderBrush" Value="#1370F3" />
         </Style>
         <Style Selector="Grid.pcl-shell Button:disabled">
             <Setter Property="Opacity" Value="0.62" />
+            <Setter Property="Background" Value="#EDF1F5" />
+            <Setter Property="Foreground" Value="#7C8794" />
+            <Setter Property="BorderBrush" Value="#D5DEE8" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.main-navigation">
             <Setter Property="Background" Value="Transparent" />
