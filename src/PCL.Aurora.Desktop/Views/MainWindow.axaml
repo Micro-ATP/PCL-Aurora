@@ -7,6 +7,8 @@
         x:Class="PCL.Aurora.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/Icons/AppIcon.ico"
+        Width="1060"
+        Height="680"
         MinWidth="800"
         MinHeight="560"
         Title="PCL Aurora">
@@ -15,109 +17,179 @@
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*">
-        <Border Padding="24,18" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Spacing="2">
-                    <TextBlock FontSize="24" FontWeight="SemiBold" Text="PCL Aurora" />
-                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                               Text="跨平台启动器 · 迁移预览" />
+    <Window.Styles>
+        <!-- PCL uses one compact title and navigation band rather than a separate tab strip. -->
+        <Style Selector="TabControl /template/ TabStrip">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="Button.main-navigation">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Foreground" Value="#D9E8FF" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="MinWidth" Value="72" />
+            <Setter Property="Height" Value="48" />
+            <Setter Property="Padding" Value="16,0" />
+        </Style>
+        <Style Selector="Button.main-navigation:pointerover">
+            <Setter Property="Background" Value="#247DF5" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Button.main-navigation.selected">
+            <Setter Property="Background" Value="#0E61D4" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Border.launch-side">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="Border.pcl-card">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Button.launch-button">
+            <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="Border.side-selection">
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Background" Value="#1370F3" />
+        </Style>
+        <Style Selector="Button.secondary-navigation">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="12,9" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+        <Style Selector="Button.secondary-navigation:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
+        </Style>
+        <Style Selector="Button.secondary-navigation.selected">
+            <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="48,*">
+        <Border Background="#1370F3">
+            <Grid ColumnDefinitions="212,Auto,*,Auto">
+                <StackPanel Margin="20,0,0,0" VerticalAlignment="Center" Spacing="0">
+                    <TextBlock FontSize="17" FontWeight="SemiBold" Foreground="White" Text="PCL Aurora" />
+                    <TextBlock FontSize="10" Foreground="#D9E8FF" Text="跨平台迁移版" />
                 </StackPanel>
-                <TextBlock Grid.Column="1" VerticalAlignment="Center"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                           Text="macOS · .NET 10" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="LaunchNavigation" Classes="main-navigation selected" Tag="0" Click="MainNavigationClick" Content="启动" />
+                    <Button x:Name="DownloadNavigation" Classes="main-navigation" Tag="1" Click="MainNavigationClick" Content="下载" />
+                    <Button x:Name="SettingsNavigation" Classes="main-navigation" Tag="2" Click="MainNavigationClick" Content="设置" />
+                    <Button x:Name="MoreNavigation" Classes="main-navigation" Tag="3" Click="MainNavigationClick" Content="更多" />
+                </StackPanel>
+                <TextBlock Grid.Column="3" Margin="0,0,18,0" VerticalAlignment="Center"
+                           Foreground="#D9E8FF" FontSize="12" Text="Minecraft Launcher" />
             </Grid>
         </Border>
 
-        <TabControl Grid.Row="1" Margin="16" TabStripPlacement="Left">
-            <TabItem Header="启动">
+        <TabControl x:Name="MainTabs" Grid.Row="1" Margin="0" SelectedIndex="0">
+            <TabItem>
                 <ScrollViewer>
-                    <StackPanel Margin="28" MaxWidth="860" Spacing="20">
-                        <StackPanel Spacing="6">
-                            <TextBlock FontSize="28" FontWeight="SemiBold" Text="启动游戏" />
-                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                       Text="选择实例、账户和 Java 后启动 Minecraft。" TextWrapping="Wrap" />
-                        </StackPanel>
-
-                        <Border Padding="24" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-                            <StackPanel Spacing="14">
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="本地实例" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding InstanceSummary}" TextWrapping="Wrap" />
-                                <Label Content="启动实例" Target="{Binding #InstanceSelector}" />
-                                <ComboBox x:Name="InstanceSelector"
-                                          Width="360"
-                                          HorizontalAlignment="Left"
-                                          AutomationProperties.Name="启动实例"
-                                          IsEnabled="{Binding HasAvailableInstances}"
-                                          ItemsSource="{Binding AvailableInstances}"
-                                          SelectedItem="{Binding SelectedInstance}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Spacing="2">
-                                                <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
-                                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                           Text="{Binding VersionDisplay}" />
-                                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                           Text="{Binding LoaderDisplay}" />
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
-                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                    <Button Command="{Binding RefreshCommand}" Content="刷新本地实例" />
-                                    <Button Command="{Binding LaunchGameCommand}" IsEnabled="{Binding CanLaunchGame}" Content="启动游戏" />
+                    <StackPanel Margin="24" MaxWidth="1120" Spacing="24">
+                        <Grid ColumnDefinitions="300,24,*" ColumnSpacing="0">
+                            <Border Classes="launch-side" Padding="20,18">
+                                <StackPanel Spacing="14">
+                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="启动配置" />
+                                    <TextBlock FontWeight="SemiBold" Text="账户" />
+                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                               Text="{Binding AccountSummary}" TextWrapping="Wrap" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button Command="{Binding StartMicrosoftLoginCommand}"
+                                                IsEnabled="{Binding CanStartMicrosoftLogin}"
+                                                Content="登录 Microsoft" />
+                                        <Button Command="{Binding RestoreMicrosoftLoginCommand}"
+                                                IsEnabled="{Binding CanRestoreMicrosoftLogin}"
+                                                Content="恢复" />
+                                        <Button Command="{Binding ClearMicrosoftLoginCommand}"
+                                                IsEnabled="{Binding CanClearMicrosoftLogin}"
+                                                Content="清除" />
+                                    </StackPanel>
+                                    <TextBox PlaceholderText="离线用户名（3–16 位）" Text="{Binding OfflinePlayerName}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button Command="{Binding UseOfflineAccountCommand}" Content="使用离线账户" />
+                                        <Button Command="{Binding ClearOfflineAccountCommand}" Content="清除" />
+                                    </StackPanel>
+                                    <Separator />
+                                    <TextBlock FontWeight="SemiBold" Text="游戏版本" />
+                                    <ComboBox x:Name="InstanceSelector"
+                                              AutomationProperties.Name="启动实例"
+                                              IsEnabled="{Binding HasAvailableInstances}"
+                                              ItemsSource="{Binding AvailableInstances}"
+                                              SelectedItem="{Binding SelectedInstance}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Spacing="2">
+                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                               Text="{Binding VersionDisplay}" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                               Text="{Binding InstanceSummary}" TextWrapping="Wrap" />
+                                    <Button Command="{Binding RefreshCommand}" HorizontalAlignment="Left" Content="刷新本地实例" />
+                                    <Button Classes="launch-button" Command="{Binding LaunchGameCommand}"
+                                            IsEnabled="{Binding CanLaunchGame}"
+                                            MinHeight="52"
+                                            FontSize="18"
+                                            FontWeight="SemiBold"
+                                            Content="启动游戏" />
                                 </StackPanel>
+                            </Border>
+                            <StackPanel Grid.Column="2" Spacing="18">
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontSize="24" FontWeight="SemiBold" Text="启动 Minecraft" />
+                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                               Text="实例、账户和 Java 的实际状态会在这里汇总；未满足条件时不会启动进程。"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                                <Border Classes="pcl-card" Padding="18">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock FontSize="17" FontWeight="SemiBold" Text="启动状态" />
+                                        <TextBlock Text="{Binding GameLaunchSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                   Text="{Binding LaunchPreflightSummary}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Classes="pcl-card" Padding="18">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock FontSize="17" FontWeight="SemiBold" Text="版本与运行环境" />
+                                        <TextBlock Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                   Text="{Binding JavaRequirementSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                   Text="{Binding MemoryAllocationSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                   Text="{Binding ClasspathSummary}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Classes="pcl-card" Padding="14" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock FontWeight="SemiBold" Text="正版与来源提示" />
+                                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                   Text="离线账户不代表拥有正版 Minecraft；PCL Aurora 为第三方跨平台迁移项目。"
+                                                   TextWrapping="Wrap" />
+                                        <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
+                                                  IsChecked="{Binding HasAcknowledgedAccountGuidance}"
+                                                  Content="我已知悉正版购买与上游赞助提示。" />
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
-                        </Border>
-
-                        <Border Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-                            <StackPanel Spacing="12">
-                                <TextBlock FontWeight="SemiBold" Text="账户 · Microsoft 与离线模式" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="Microsoft 登录使用设备代码授权；刷新令牌仅保存至 macOS 系统钥匙串，绝不写入普通偏好文件。"
-                                           TextWrapping="Wrap" />
-                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                    <Button Command="{Binding StartMicrosoftLoginCommand}"
-                                            IsEnabled="{Binding CanStartMicrosoftLogin}"
-                                            Content="登录 Microsoft 账户" />
-                                    <Button Command="{Binding RestoreMicrosoftLoginCommand}"
-                                            IsEnabled="{Binding CanRestoreMicrosoftLogin}"
-                                            Content="恢复 Microsoft 登录" />
-                                    <Button Command="{Binding CancelMicrosoftLoginCommand}"
-                                            IsEnabled="{Binding CanCancelMicrosoftLogin}"
-                                            Content="取消登录" />
-                                    <Button Command="{Binding ClearMicrosoftLoginCommand}"
-                                            IsEnabled="{Binding CanClearMicrosoftLogin}"
-                                            Content="清除 Microsoft 登录" />
-                                </StackPanel>
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding MicrosoftLoginSummary}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding MicrosoftDeviceCode}"
-                                           FontFamily="Menlo"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Text="离线用户名" />
-                                <TextBox PlaceholderText="离线用户名（3–16 位）" Text="{Binding OfflinePlayerName}" />
-                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                    <Button Command="{Binding UseOfflineAccountCommand}" Content="使用离线账户" />
-                                    <Button Command="{Binding ClearOfflineAccountCommand}" Content="清除离线账户" />
-                                    <TextBlock VerticalAlignment="Center" Text="{Binding AccountSummary}" TextWrapping="Wrap" />
-                                </StackPanel>
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding AccountLicenseGuidance}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="购买正版：https://www.minecraft.net/store/minecraft-java-bedrock-edition-java-edition · 赞助 PCL/PCL-CE：https://meloong.com/afd/a/LTCat"
-                                           TextWrapping="Wrap" />
-                                <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
-                                          IsChecked="{Binding HasAcknowledgedAccountGuidance}"
-                                          Content="我已知悉：离线或第三方账户不代表拥有正版 Minecraft，且该确认不替代 Microsoft 认证。" />
-                            </StackPanel>
-                        </Border>
+                        </Grid>
 
                         <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
                             <StackPanel Spacing="12">
@@ -253,8 +325,23 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="下载">
-                <ScrollViewer>
+            <TabItem>
+                <Grid ColumnDefinitions="196,*">
+                    <Border Padding="10,14" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+                        <StackPanel Spacing="4">
+                            <TextBlock Margin="10,4,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="社区资源" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="模组 · 待迁移" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="整合包 · 待迁移" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="资源包与光影 · 待迁移" />
+                            <TextBlock Margin="10,16,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="游戏安装" />
+                            <Button x:Name="DownloadGameNavigation" Classes="secondary-navigation selected"
+                                    Click="DownloadNavigationClick" Tag="game" Content="Minecraft 安装" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="OptiFine · 待迁移" />
+                            <Button x:Name="DownloadLoaderNavigation" Classes="secondary-navigation"
+                                    Click="DownloadNavigationClick" Tag="loader" Content="模组加载器" />
+                        </StackPanel>
+                    </Border>
+                    <ScrollViewer Grid.Column="1">
                     <StackPanel Margin="28" MaxWidth="860" Spacing="20">
                         <StackPanel Spacing="6">
                             <TextBlock FontSize="28" FontWeight="SemiBold" Text="下载" />
@@ -263,14 +350,14 @@
                         </StackPanel>
 
                         <UniformGrid Columns="2" Rows="2" HorizontalAlignment="Left">
-                            <Border Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                            <Border x:Name="DownloadCommunityCard" Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="4" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" IsVisible="False">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="社区资源" />
                                     <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="模组、整合包、数据包、资源包、光影与存档。" TextWrapping="Wrap" />
                                     <Button IsEnabled="False" Content="浏览资源" />
                                 </StackPanel>
                             </Border>
-                            <Border Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                            <Border x:Name="DownloadGameCard" Classes="pcl-card" Width="620" Margin="0,0,16,16" Padding="20">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="游戏安装" />
                                     <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="先选择官方 Minecraft 版本，再创建本地实例并下载。" TextWrapping="Wrap" />
@@ -301,7 +388,7 @@
                                             Content="取消当前下载" />
                                 </StackPanel>
                             </Border>
-                            <Border Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                            <Border x:Name="DownloadLoaderCard" Classes="pcl-card" Width="620" Margin="0,0,16,16" Padding="20" IsVisible="False">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="模组加载器" />
                                     <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
@@ -347,11 +434,28 @@
                                    Text="{Binding VersionCatalogSummary}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
-                </ScrollViewer>
+                    </ScrollViewer>
+                </Grid>
             </TabItem>
 
-            <TabItem Header="设置">
-                <ScrollViewer>
+            <TabItem>
+                <Grid ColumnDefinitions="196,*">
+                    <Border Padding="10,14" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+                        <StackPanel Spacing="4">
+                            <TextBlock Margin="10,4,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="游戏" />
+                            <Button x:Name="SettingsLaunchNavigation" Classes="secondary-navigation selected"
+                                    Click="SettingsNavigationClick" Tag="launch" Content="启动与 Java" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="游戏管理 · 待迁移" />
+                            <TextBlock Margin="10,16,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="启动器" />
+                            <Button x:Name="SettingsInterfaceNavigation" Classes="secondary-navigation"
+                                    Click="SettingsNavigationClick" Tag="interface" Content="界面" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="语言 · 待迁移" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="杂项 · 待迁移" />
+                            <TextBlock Margin="10,16,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="关于" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="更新与反馈 · 待迁移" />
+                        </StackPanel>
+                    </Border>
+                    <ScrollViewer Grid.Column="1">
                     <StackPanel Margin="28" MaxWidth="860" Spacing="24">
                         <StackPanel Spacing="6">
                             <TextBlock FontSize="28" FontWeight="SemiBold" Text="设置" />
@@ -359,7 +463,7 @@
                                        Text="游戏、工具、启动器与关于信息。" />
                         </StackPanel>
 
-                        <Border Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                        <Border x:Name="SettingsLaunchSection" Classes="pcl-card" Padding="20" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
                             <StackPanel Spacing="14">
                                 <TextBlock FontSize="18" FontWeight="SemiBold" Text="游戏 · Java" />
                                 <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="160,*" RowSpacing="12">
@@ -404,7 +508,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
+                        <Border x:Name="SettingsInterfaceSection" Classes="pcl-card" Padding="20" IsVisible="False">
                             <StackPanel Spacing="12">
                                 <TextBlock FontWeight="SemiBold" Text="启动器 · 界面" />
                                 <Label Content="主题模式" Target="{Binding #ThemeModeSelector}" />
@@ -429,11 +533,25 @@
                             </StackPanel>
                         </Border>
                     </StackPanel>
-                </ScrollViewer>
+                    </ScrollViewer>
+                </Grid>
             </TabItem>
 
-            <TabItem Header="更多">
-                <ScrollViewer>
+            <TabItem>
+                <Grid ColumnDefinitions="196,*">
+                    <Border Padding="10,14" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+                        <StackPanel Spacing="4">
+                            <TextBlock Margin="10,4,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="工具" />
+                            <Button x:Name="MoreDirectoryNavigation" Classes="secondary-navigation selected"
+                                    Click="MoreNavigationClick" Tag="directory" Content="游戏目录" />
+                            <Button x:Name="MoreLogsNavigation" Classes="secondary-navigation"
+                                    Click="MoreNavigationClick" Tag="logs" Content="游戏日志" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="联机 · 待迁移" />
+                            <TextBlock Margin="10,16,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="关于" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="许可证与归属" />
+                        </StackPanel>
+                    </Border>
+                    <ScrollViewer Grid.Column="1">
                     <StackPanel Margin="28" MaxWidth="860" Spacing="20">
                         <StackPanel Spacing="6">
                             <TextBlock FontSize="28" FontWeight="SemiBold" Text="更多工具" />
@@ -441,7 +559,7 @@
                                        Text="联机、游戏目录、日志与维护工具。" />
                         </StackPanel>
 
-                        <Border Padding="20" CornerRadius="12" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                        <Border x:Name="MoreDirectorySection" Classes="pcl-card" Padding="20" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
                             <StackPanel Spacing="10">
                                 <TextBlock FontWeight="SemiBold" Text="游戏目录" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
@@ -457,7 +575,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
+                        <Border x:Name="MoreLogSection" Classes="pcl-card" Padding="20" IsVisible="False">
                             <StackPanel Spacing="10">
                                 <TextBlock FontWeight="SemiBold" Text="游戏日志" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
@@ -502,7 +620,8 @@
                             </StackPanel>
                         </Border>
                     </StackPanel>
-                </ScrollViewer>
+                    </ScrollViewer>
+                </Grid>
             </TabItem>
         </TabControl>
     </Grid>
