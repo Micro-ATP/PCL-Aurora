@@ -7,6 +7,7 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
     private static readonly Uri ForgeMetadataUri = new("https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml");
     private static readonly Uri NeoForgeReleasesUri = new("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge");
     private static readonly Uri NeoForgeLegacyUri = new("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/forge");
+    private static readonly Uri OptiFineCatalogUri = new("https://bmclapi2.bangbang93.com/optifine/versionList");
 
     public async Task<MinecraftLoaderCatalogParseResult> FetchAsync(
         string minecraftVersion,
@@ -24,20 +25,23 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
             var neoForgeTask = TryFetchAsync("NeoForge", NeoForgeReleasesUri, cancellationToken);
             var neoForgeLegacyTask = TryFetchAsync("NeoForge 遗留目录", NeoForgeLegacyUri, cancellationToken);
             var fabricTask = TryFetchAsync("Fabric", fabricUri, cancellationToken);
-            await Task.WhenAll(forgeTask, neoForgeTask, neoForgeLegacyTask, fabricTask).ConfigureAwait(false);
+            var optiFineTask = TryFetchAsync("OptiFine 公开目录", OptiFineCatalogUri, cancellationToken);
+            await Task.WhenAll(forgeTask, neoForgeTask, neoForgeLegacyTask, fabricTask, optiFineTask).ConfigureAwait(false);
             var responses = new[]
             {
                 await forgeTask.ConfigureAwait(false),
                 await neoForgeTask.ConfigureAwait(false),
                 await neoForgeLegacyTask.ConfigureAwait(false),
                 await fabricTask.ConfigureAwait(false),
+                await optiFineTask.ConfigureAwait(false),
             };
             var parsed = MinecraftOfficialLoaderCatalogParser.Parse(
                 minecraftVersion,
                 responses[0].Content,
                 responses[1].Content,
                 responses[2].Content,
-                responses[3].Content);
+                responses[3].Content,
+                responses[4].Content);
             var errors = responses
                 .Where(response => response.Error is not null)
                 .Select(response => response.Error!)
@@ -51,7 +55,7 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
         }
         catch (Exception exception) when (exception is HttpRequestException or IOException)
         {
-            return new(null, [$"无法获取官方加载器目录：{exception.Message}"]);
+            return new(null, [$"无法获取加载器目录：{exception.Message}"]);
         }
     }
 
@@ -69,7 +73,7 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
         }
         catch (Exception exception) when (exception is HttpRequestException or IOException)
         {
-            return new(null, $"无法获取 {sourceName} 官方目录：{exception.Message}");
+            return new(null, $"无法获取 {sourceName} 目录：{exception.Message}");
         }
     }
 

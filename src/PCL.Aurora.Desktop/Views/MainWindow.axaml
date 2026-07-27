@@ -236,7 +236,7 @@
                             <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="整合包 · 待迁移" />
                             <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="资源包与光影 · 待迁移" />
                             <TextBlock Margin="13,12,5,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="安装" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="OptiFine · 待迁移" />
+                            <Button Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="loader" Content="OptiFine" />
                             <Button x:Name="DownloadLoaderNavigation" Classes="secondary-navigation"
                                     Click="DownloadNavigationClick" Tag="loader" Content="Forge / Fabric" />
                         </StackPanel>
@@ -320,7 +320,7 @@
                                             <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeOptiFine.png" />
                                             <StackPanel Spacing="1">
                                                 <TextBlock FontWeight="SemiBold" Text="OptiFine" />
-                                                <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="待迁移" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="1.14+ 可安装" />
                                             </StackPanel>
                                         </StackPanel>
                                     </Grid>

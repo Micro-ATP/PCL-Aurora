@@ -167,7 +167,7 @@ switch (command)
         var minecraftVersion = args.ElementAtOrDefault(2);
         if (string.IsNullOrWhiteSpace(minecraftVersion))
         {
-            Console.WriteLine("请提供 Minecraft 版本。此命令会访问 Forge、NeoForge 和 Fabric 官方目录，但不会下载或执行安装器。");
+            Console.WriteLine("请提供 Minecraft 版本。此命令会访问 Forge、NeoForge、Fabric 官方目录和 PCL 使用的 OptiFine 公开目录，但不会下载或执行安装器。");
             return 64;
         }
 
@@ -194,7 +194,7 @@ switch (command)
             Console.WriteLine($"警告：{warning}");
         }
 
-        Console.WriteLine("仅完成官方目录读取和兼容性建模；未下载或执行安装器。 ");
+        Console.WriteLine("仅完成公开目录读取和兼容性建模；未下载或执行安装器。 ");
         break;
     }
     case "loaders install":
@@ -202,15 +202,15 @@ switch (command)
     {
         if (args.Length != 6 || !string.Equals(args[5], "--confirm", StringComparison.Ordinal))
         {
-            Console.WriteLine("用法：loaders install <Forge|NeoForge|Fabric> <Minecraft 版本> <加载器版本> --confirm");
-            Console.WriteLine("只有带 --confirm 的命令才会访问官方地址、下载并执行安装器。");
+            Console.WriteLine("用法：loaders install <Forge|NeoForge|Fabric|OptiFine> <Minecraft 版本> <加载器版本> --confirm");
+            Console.WriteLine("只有带 --confirm 的命令才会访问公开地址、下载并执行安装器。");
             return 64;
         }
 
         if (!Enum.TryParse<MinecraftLoaderKind>(args[2], ignoreCase: true, out var kind) ||
             !Enum.IsDefined(kind))
         {
-            Console.WriteLine("加载器类型必须是 Forge、NeoForge 或 Fabric。未访问网络。 ");
+            Console.WriteLine("加载器类型必须是 Forge、NeoForge、Fabric 或 OptiFine。未访问网络。 ");
             return 64;
         }
 

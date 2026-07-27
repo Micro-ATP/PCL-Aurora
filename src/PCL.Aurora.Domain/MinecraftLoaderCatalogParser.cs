@@ -56,6 +56,13 @@ public static class MinecraftLoaderCatalogParser
                     continue;
                 }
 
+                var optiFine = CreateOptiFineEntry(kind, loader, out constructionError);
+                if (constructionError is not null)
+                {
+                    errors.Add(constructionError);
+                    continue;
+                }
+
                 var channel = GetChannel(GetString(loader, "channel"), version!, forgelike);
                 if (channel is null)
                 {
@@ -70,7 +77,7 @@ public static class MinecraftLoaderCatalogParser
                     continue;
                 }
 
-                entries.Add(new(kind, minecraftVersion!, version!, channel.Value, GetBoolean(loader, "recommended"), forgelike));
+                entries.Add(new(kind, minecraftVersion!, version!, channel.Value, GetBoolean(loader, "recommended"), forgelike, optiFine));
             }
 
             if (entries.Count == 0)
@@ -102,6 +109,7 @@ public static class MinecraftLoaderCatalogParser
                 MinecraftLoaderKind.Forge => new PclCeForgeVersionEntry(version, branch: null, minecraftVersion),
                 MinecraftLoaderKind.NeoForge => ValidateNeoForge(minecraftVersion, version),
                 MinecraftLoaderKind.Fabric => null,
+                MinecraftLoaderKind.OptiFine => null,
                 _ => throw new ArgumentOutOfRangeException(nameof(kind)),
             };
         }
@@ -110,6 +118,29 @@ public static class MinecraftLoaderCatalogParser
             error = $"加载器版本 {version} 无法与 Minecraft {minecraftVersion} 兼容：{exception.Message}";
             return null;
         }
+    }
+
+    private static PclCeOptiFineVersionEntry? CreateOptiFineEntry(
+        MinecraftLoaderKind kind,
+        JsonElement loader,
+        out string? error)
+    {
+        error = null;
+        if (kind != MinecraftLoaderKind.OptiFine)
+        {
+            return null;
+        }
+
+        var fileName = GetString(loader, "fileName");
+        var type = GetString(loader, "type");
+        var patch = GetString(loader, "patch");
+        if (!IsSafeFileName(fileName) || !IsSafeToken(type, 32) || !IsSafeToken(patch, 96))
+        {
+            error = "OptiFine 条目缺少安全的 fileName、type 或 patch 字段。";
+            return null;
+        }
+
+        return new(fileName!, type!, patch!, GetBoolean(loader, "preview"), GetString(loader, "requiredForgeVersion"));
     }
 
     private static PclCeNeoForgeListEntry ValidateNeoForge(string minecraftVersion, string version)
@@ -159,6 +190,7 @@ public static class MinecraftLoaderCatalogParser
             "forge" => MinecraftLoaderKind.Forge,
             "neoforge" => MinecraftLoaderKind.NeoForge,
             "fabric" => MinecraftLoaderKind.Fabric,
+            "optifine" => MinecraftLoaderKind.OptiFine,
             _ => default,
         };
         return value is not null && value.Equals(kind.ToString(), StringComparison.OrdinalIgnoreCase);
@@ -168,6 +200,12 @@ public static class MinecraftLoaderCatalogParser
         !string.IsNullOrWhiteSpace(value) &&
         value.Length <= maximumLength &&
         value.All(character => char.IsLetterOrDigit(character) || character is '.' or '-' or '_' or '+' or ' ');
+
+    private static bool IsSafeFileName(string? value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Length <= 160 &&
+        value.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) &&
+        value.All(character => char.IsLetterOrDigit(character) || character is '.' or '-' or '_');
 
     private static string? GetString(JsonElement element, string propertyName) =>
         element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String ? property.GetString()?.Trim() : null;

@@ -14,7 +14,8 @@ public static class MinecraftOfficialLoaderCatalogParser
         string? forgeMetadataXml,
         string? neoForgeReleasesJson,
         string? neoForgeLegacyJson,
-        string? fabricLoaderJson)
+        string? fabricLoaderJson,
+        string? optiFineVersionListJson = null)
     {
         if (!IsSafeToken(minecraftVersion, 64))
         {
@@ -28,6 +29,7 @@ public static class MinecraftOfficialLoaderCatalogParser
             if (!string.IsNullOrWhiteSpace(neoForgeReleasesJson)) AddNeoForgeEntries(entries, minecraftVersion, neoForgeReleasesJson);
             if (!string.IsNullOrWhiteSpace(neoForgeLegacyJson)) AddNeoForgeEntries(entries, minecraftVersion, neoForgeLegacyJson);
             if (!string.IsNullOrWhiteSpace(fabricLoaderJson)) AddFabricEntries(entries, minecraftVersion, fabricLoaderJson);
+            if (!string.IsNullOrWhiteSpace(optiFineVersionListJson)) AddOptiFineEntries(entries, minecraftVersion, optiFineVersionListJson);
 
             var ordered = entries
                 .GroupBy(entry => $"{entry.Kind}:{entry.MinecraftVersion}:{entry.Version}", StringComparer.OrdinalIgnoreCase)
@@ -38,7 +40,7 @@ public static class MinecraftOfficialLoaderCatalogParser
                 .ToArray();
             return ordered.Length == 0
                 ? new(null, [$"官方目录中没有兼容 Minecraft {minecraftVersion} 的加载器版本。"])
-                : new(new("Forge / NeoForge / Fabric 官方目录", ordered), []);
+                : new(new("Forge / NeoForge / Fabric 官方目录与 OptiFine 公开目录", ordered), []);
         }
         catch (Exception exception) when (exception is JsonException or FormatException or InvalidOperationException or ArgumentException)
         {
@@ -153,8 +155,65 @@ public static class MinecraftOfficialLoaderCatalogParser
         }
     }
 
+    private static void AddOptiFineEntries(List<MinecraftLoaderCatalogEntry> entries, string minecraftVersion, string responseJson)
+    {
+        using var document = JsonDocument.Parse(responseJson);
+        if (document.RootElement.ValueKind != JsonValueKind.Array)
+        {
+            throw new FormatException("OptiFine 公开目录响应不是数组。 ");
+        }
+
+        foreach (var item in document.RootElement.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object ||
+                !TryGetString(item, "mcversion", out var inheritedVersion) ||
+                !TryGetString(item, "type", out var type) ||
+                !TryGetString(item, "patch", out var patch) ||
+                !TryGetString(item, "filename", out var fileName) ||
+                !string.Equals(inheritedVersion, minecraftVersion, StringComparison.OrdinalIgnoreCase) ||
+                !IsSafeToken(type, 32) ||
+                !IsSafeToken(patch, 96) ||
+                !IsSafeFileName(fileName))
+            {
+                continue;
+            }
+
+            var isPreview = patch.Contains("pre", StringComparison.OrdinalIgnoreCase);
+            var requiredForgeVersion = TryGetString(item, "forge", out var forge) &&
+                                       !forge.Contains("N/A", StringComparison.OrdinalIgnoreCase)
+                ? forge.Replace("Forge ", string.Empty, StringComparison.OrdinalIgnoreCase).Replace("#", string.Empty, StringComparison.Ordinal)
+                : null;
+            var displayType = type.StartsWith("HD_U_", StringComparison.OrdinalIgnoreCase)
+                ? type["HD_U_".Length..]
+                : type.Replace("HD_U", string.Empty, StringComparison.OrdinalIgnoreCase).Trim('_', ' ');
+            var displayVersion = $"{displayType} {patch}".Trim();
+            entries.Add(new(
+                MinecraftLoaderKind.OptiFine,
+                minecraftVersion,
+                displayVersion,
+                isPreview ? MinecraftLoaderChannel.Beta : MinecraftLoaderChannel.Release,
+                IsRecommended: !isPreview,
+                ForgelikeEntry: null,
+                new(fileName, type, patch, isPreview, requiredForgeVersion)));
+        }
+    }
+
     private static bool IsSafeToken(string? value, int maximumLength) =>
         !string.IsNullOrWhiteSpace(value) &&
         value.Length <= maximumLength &&
         value.All(character => char.IsLetterOrDigit(character) || character is '.' or '-' or '_' or '+' or ' ');
+
+    private static bool IsSafeFileName(string? value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Length <= 160 &&
+        value.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) &&
+        value.All(character => char.IsLetterOrDigit(character) || character is '.' or '-' or '_');
+
+    private static bool TryGetString(JsonElement element, string propertyName, out string value)
+    {
+        value = element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String
+            ? property.GetString()?.Trim() ?? string.Empty
+            : string.Empty;
+        return value.Length > 0;
+    }
 }

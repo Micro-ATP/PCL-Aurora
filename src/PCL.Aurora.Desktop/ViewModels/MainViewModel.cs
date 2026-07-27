@@ -686,7 +686,7 @@ public partial class MainViewModel(
                 HasAvailableLoaders = false;
                 SelectedLoader = null;
                 LoaderCatalogSummary = string.Join(Environment.NewLine, result.Errors);
-                LoaderSelectionSummary = "官方目录未通过检查；未选择加载器，也不会发起安装。";
+                LoaderSelectionSummary = "加载器目录未通过检查；未选择加载器，也不会发起安装。";
                 return;
             }
 
@@ -742,8 +742,8 @@ public partial class MainViewModel(
             ?? AvailableLoaders.FirstOrDefault();
         CanInstallSelectedLoader = CanInstallLoaderForSelectedInstance(SelectedLoader);
         LoaderSelectionSummary = HasAvailableLoaders
-            ? $"Minecraft {minecraftVersion} 可选 {AvailableLoaders.Count} 个加载器版本。一次只能选择一个主模组加载器。"
-            : $"本地目录中没有兼容 Minecraft {minecraftVersion} 的 Forge、NeoForge 或 Fabric 版本。";
+            ? $"Minecraft {minecraftVersion} 可选 {AvailableLoaders.Count} 个加载器版本。一次只能选择一个加载器安装器。"
+            : $"本地目录中没有兼容 Minecraft {minecraftVersion} 的 Forge、NeoForge、Fabric 或 OptiFine 版本。";
     }
 
     partial void OnSelectedLoaderChanged(MinecraftLoaderCatalogEntry? value)
@@ -756,7 +756,9 @@ public partial class MainViewModel(
 
         var compatibility = MinecraftLoaderCompatibilityEvaluator.Evaluate(value.MinecraftVersion, [value]);
         LoaderSelectionSummary = compatibility.IsCompatible
-            ? $"已选择 {value.Kind} {value.Version}（Minecraft {value.MinecraftVersion}，{value.Channel}）。选择本地实例与 Java 后，可由“下载并安装”明确触发。"
+            ? value.Kind == MinecraftLoaderKind.OptiFine
+                ? $"已选择 OptiFine {value.Version}（Minecraft {value.MinecraftVersion}，{value.Channel}）。目录来自 PCL 使用的公开源；该源未提供稳定 SHA-1，Aurora 会执行最小体积检查。仅 1.14+ 可由“下载并安装”明确触发。"
+                : $"已选择 {value.Kind} {value.Version}（Minecraft {value.MinecraftVersion}，{value.Channel}）。选择本地实例与 Java 后，可由“下载并安装”明确触发。"
             : string.Join(Environment.NewLine, compatibility.Reasons);
     }
 

@@ -2,6 +2,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 
 - PCL.Core/Utils/RegexPatterns.cs (Apache License 2.0)
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModDownload.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/ModDownloadLib.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModLibrary.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/McVersionComparer.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Base/ModSetup.cs
@@ -31,7 +32,7 @@ PCL Aurora also contains the following directly reused image asset:
   displayed as the Fabric loader image.
 - PCL-CE: Plain Craft Launcher 2/Images/Blocks/GrassPath.png
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeOptiFine.png;
-  displayed as the OptiFine loader image for the clearly marked pending migration entry.
+  displayed as the OptiFine loader image for the 1.14+ installer entry.
 
 PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 

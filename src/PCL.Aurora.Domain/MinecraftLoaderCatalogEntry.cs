@@ -6,7 +6,8 @@ public sealed record MinecraftLoaderCatalogEntry(
     string Version,
     MinecraftLoaderChannel Channel,
     bool IsRecommended,
-    PclCeForgelikeEntry? ForgelikeEntry)
+    PclCeForgelikeEntry? ForgelikeEntry,
+    PclCeOptiFineVersionEntry? OptiFineEntry = null)
 {
     public bool IsPrerelease => Channel is not MinecraftLoaderChannel.Release;
 }

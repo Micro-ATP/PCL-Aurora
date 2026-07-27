@@ -457,6 +457,11 @@ public sealed class MinecraftDownloadExecutor(
             throw new InvalidDataException($"{artifact.Description} 的文件大小校验失败。");
         }
 
+        if (artifact.MinimumSize is { } minimumSize && downloadedSize < minimumSize)
+        {
+            throw new InvalidDataException($"{artifact.Description} 未达到最小文件大小。 ");
+        }
+
         if (string.IsNullOrWhiteSpace(artifact.Sha1))
         {
             return;

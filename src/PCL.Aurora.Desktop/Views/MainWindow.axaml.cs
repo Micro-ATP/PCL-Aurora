@@ -71,9 +71,9 @@ public partial class MainWindow : Window
         DownloadCommunityCard.IsVisible = false;
         DownloadGameCard.IsVisible = !showLoader;
         DownloadLoaderCard.IsVisible = showLoader;
-        DownloadPageTitle.Text = showLoader ? "Forge / NeoForge / Fabric" : "原版游戏";
+        DownloadPageTitle.Text = showLoader ? "Forge / NeoForge / Fabric / OptiFine" : "原版游戏";
         DownloadPageDescription.Text = showLoader
-            ? "选择当前实例兼容的加载器版本后，执行已验证的安装流程。"
+            ? "选择当前实例兼容的加载器版本后，执行已验证的安装流程。OptiFine 当前支持 1.14+ 安装器路径。"
             : "选择官方 Minecraft 版本，再创建本地实例并执行已验证的安装流程。";
         DownloadGameNavigation.Classes.Set("selected", !showLoader);
         DownloadLoaderNavigation.Classes.Set("selected", showLoader);

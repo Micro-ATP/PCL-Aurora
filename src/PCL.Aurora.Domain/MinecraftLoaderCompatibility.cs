@@ -14,7 +14,7 @@ public static class MinecraftLoaderCompatibilityEvaluator
         var reasons = new List<string>();
         if (selectedLoaders.Count > 1)
         {
-            reasons.Add("一次只能选择一个主模组加载器。Forge、NeoForge 与 Fabric 不能同时安装。");
+            reasons.Add("一次只能选择一个加载器安装器。Forge、NeoForge、Fabric 与 OptiFine 不能同时安装。");
         }
 
         foreach (var selected in selectedLoaders)

@@ -5,4 +5,5 @@ public enum MinecraftLoaderKind
     Forge,
     NeoForge,
     Fabric,
+    OptiFine,
 }

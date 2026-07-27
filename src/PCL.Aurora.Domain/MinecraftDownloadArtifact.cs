@@ -7,4 +7,5 @@ public sealed record MinecraftDownloadArtifact(
     string? Sha1,
     long? Size,
     IReadOnlyList<Uri>? AlternativeUrls = null,
-    Uri? Sha1Url = null);
+    Uri? Sha1Url = null,
+    long? MinimumSize = null);

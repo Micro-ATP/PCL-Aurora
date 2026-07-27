@@ -4,8 +4,8 @@ using System.Text;
 namespace PCL.Aurora.Domain;
 
 /// <summary>
-/// Forge/NeoForge URL 字段组合直接参照 PCL-CE 的 ForgelikeInjector，保留官方 Maven
-/// 源和 installer 命名规则；已移除 Windows 路径、镜像回退及 Java Wrapper。
+/// Forge/NeoForge URL 组合直接参照 PCL-CE 的 ForgelikeInjector，OptiFine 公开目录与
+/// 安装器主类参照 PCL-CE 的 ModDownload/ModDownloadLib；移除 Windows 路径与 Java Wrapper。
 /// </summary>
 public static class MinecraftLoaderInstallerPlanBuilder
 {
@@ -17,7 +17,7 @@ public static class MinecraftLoaderInstallerPlanBuilder
     {
         ArgumentNullException.ThrowIfNull(loader);
         var errors = new List<string>();
-        if (!IsSafeToken(loader.MinecraftVersion, 64) || !IsSafeToken(loader.Version, 128))
+        if (!IsSafeToken(loader.MinecraftVersion, 64) || !IsSafeLoaderVersion(loader.Version, 128))
         {
             errors.Add("加载器版本包含不安全字符。 ");
         }
@@ -46,6 +46,8 @@ public static class MinecraftLoaderInstallerPlanBuilder
             ["-jar", installerPath, "--installClient", root],
             MinecraftLoaderKind.Fabric =>
             ["-jar", installerPath, "client", "-dir", root, "-mcversion", loader.MinecraftVersion, "-loader", loader.Version, "-noprofile"],
+            MinecraftLoaderKind.OptiFine =>
+            ["-cp", installerPath, "optifine.Installer"],
             _ => throw new ArgumentOutOfRangeException(nameof(loader)),
         };
 
@@ -67,13 +69,17 @@ public static class MinecraftLoaderInstallerPlanBuilder
             MinecraftLoaderKind.NeoForge => CreateNeoForgeUrl(loader, errors),
             MinecraftLoaderKind.Fabric when fabricInstallerUri is not null => fabricInstallerUri.AbsoluteUri,
             MinecraftLoaderKind.Fabric => null,
+            MinecraftLoaderKind.OptiFine => CreateOptiFineUrl(loader, errors),
             _ => null,
         };
         if (string.IsNullOrWhiteSpace(officialSource) || !Uri.TryCreate(officialSource, UriKind.Absolute, out var officialUri) || officialUri.Scheme != Uri.UriSchemeHttps)
         {
-            errors.Add(loader.Kind == MinecraftLoaderKind.Fabric
-                ? "未找到可验证的 Fabric 官方稳定安装器。"
-                : "无法构造加载器官方安装器地址。");
+            errors.Add(loader.Kind switch
+            {
+                MinecraftLoaderKind.Fabric => "未找到可验证的 Fabric 官方稳定安装器。",
+                MinecraftLoaderKind.OptiFine => "无法构造 OptiFine 公开下载地址。",
+                _ => "无法构造加载器官方安装器地址。",
+            });
             return null;
         }
 
@@ -86,7 +92,31 @@ public static class MinecraftLoaderInstallerPlanBuilder
             Sha1: null,
             Size: null,
             AlternativeUrls: mirrorUri is null ? [] : [officialUri],
-            Sha1Url: new Uri(officialUri.AbsoluteUri + ".sha1"));
+            Sha1Url: loader.Kind == MinecraftLoaderKind.OptiFine ? null : new Uri(officialUri.AbsoluteUri + ".sha1"),
+            MinimumSize: loader.Kind == MinecraftLoaderKind.OptiFine ? 300 * 1024 : null);
+    }
+
+    private static string? CreateOptiFineUrl(MinecraftLoaderCatalogEntry loader, ICollection<string> errors)
+    {
+        if (loader.OptiFineEntry is not { } optiFine ||
+            !IsSafeFileName(optiFine.FileName) ||
+            !IsSafeToken(optiFine.Type, 32) ||
+            !IsSafeToken(optiFine.Patch, 96))
+        {
+            errors.Add("OptiFine 目录条目缺少可验证的公开下载字段。 ");
+            return null;
+        }
+
+        if (!IsModernOptiFineMinecraftVersion(loader.MinecraftVersion))
+        {
+            errors.Add("Aurora 当前仅支持 Minecraft 1.14+ 的 OptiFine 安装器路径；旧版继承 JSON 安装尚未迁移。 ");
+            return null;
+        }
+
+        var minecraftVersion = loader.MinecraftVersion is "1.8" or "1.9"
+            ? loader.MinecraftVersion + ".0"
+            : loader.MinecraftVersion;
+        return $"https://bmclapi2.bangbang93.com/optifine/{Uri.EscapeDataString(minecraftVersion)}/{optiFine.DownloadPath}";
     }
 
     private static string? CreateNeoForgeUrl(MinecraftLoaderCatalogEntry loader, ICollection<string> errors)
@@ -121,4 +151,24 @@ public static class MinecraftLoaderInstallerPlanBuilder
         !string.IsNullOrWhiteSpace(value) &&
         value.Length <= maximumLength &&
         value.All(character => char.IsLetterOrDigit(character) || character is '.' or '-' or '_' or '+');
+
+    private static bool IsSafeLoaderVersion(string? value, int maximumLength) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Length <= maximumLength &&
+        value.All(character => char.IsLetterOrDigit(character) || character is '.' or '-' or '_' or '+' or ' ');
+
+    private static bool IsSafeFileName(string? value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Length <= 160 &&
+        value.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) &&
+        value.All(character => char.IsLetterOrDigit(character) || character is '.' or '-' or '_');
+
+    private static bool IsModernOptiFineMinecraftVersion(string value)
+    {
+        var segments = value.Split('.');
+        return segments.Length >= 2 &&
+               string.Equals(segments[0], "1", StringComparison.Ordinal) &&
+               int.TryParse(segments[1], out var minorVersion) &&
+               minorVersion >= 14;
+    }
 }
