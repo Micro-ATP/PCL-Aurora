@@ -236,9 +236,10 @@
                             <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="整合包 · 待迁移" />
                             <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="资源包与光影 · 待迁移" />
                             <TextBlock Margin="13,12,5,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="安装" />
-                            <Button Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="loader" Content="OptiFine" />
+                            <Button x:Name="DownloadOptiFineNavigation" Classes="secondary-navigation"
+                                    Click="DownloadNavigationClick" Tag="optifine" Content="OptiFine" />
                             <Button x:Name="DownloadLoaderNavigation" Classes="secondary-navigation"
-                                    Click="DownloadNavigationClick" Tag="loader" Content="Forge / Fabric" />
+                                    Click="DownloadNavigationClick" Tag="loader" Content="Forge / NeoForge / Fabric" />
                         </StackPanel>
                     </Border>
                     <ScrollViewer Grid.Column="1">
@@ -328,7 +329,7 @@
                                     <TextBox PlaceholderText="本地 loaders.json 的完整路径"
                                              Text="{Binding LoaderCatalogPath}" />
                                     <Button Command="{Binding LoadLoaderCatalogCommand}" Content="读取本地加载器目录" />
-                                    <Button Command="{Binding RefreshOfficialLoaderCatalogCommand}" Content="刷新官方加载器目录" />
+                                    <Button Command="{Binding RefreshOfficialLoaderCatalogCommand}" Content="刷新加载器目录" />
                                     <ComboBox IsEnabled="{Binding HasAvailableLoaders}"
                                               ItemsSource="{Binding AvailableLoaders}"
                                               SelectedItem="{Binding SelectedLoader}">

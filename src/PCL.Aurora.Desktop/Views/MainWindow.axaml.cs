@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Desktop.Views;
 
@@ -67,16 +68,25 @@ public partial class MainWindow : Window
             return;
         }
 
-        var showLoader = section == "loader";
+        var showOptiFine = section == "optifine";
+        var showLoader = section is "loader" or "optifine";
         DownloadCommunityCard.IsVisible = false;
         DownloadGameCard.IsVisible = !showLoader;
         DownloadLoaderCard.IsVisible = showLoader;
-        DownloadPageTitle.Text = showLoader ? "Forge / NeoForge / Fabric / OptiFine" : "原版游戏";
-        DownloadPageDescription.Text = showLoader
-            ? "选择当前实例兼容的加载器版本后，执行已验证的安装流程。OptiFine 当前支持 1.14+ 安装器路径。"
+        DownloadPageTitle.Text = showOptiFine ? "OptiFine" : showLoader ? "Forge / NeoForge / Fabric / OptiFine" : "原版游戏";
+        DownloadPageDescription.Text = showOptiFine
+            ? "选择与当前实例兼容的 OptiFine 版本。Aurora 当前支持 1.14+ 安装器路径。"
+            : showLoader
+                ? "选择当前实例兼容的加载器版本后，执行已验证的安装流程。"
             : "选择官方 Minecraft 版本，再创建本地实例并执行已验证的安装流程。";
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.SetLoaderKindFilter(showOptiFine ? MinecraftLoaderKind.OptiFine : null);
+        }
+
         DownloadGameNavigation.Classes.Set("selected", !showLoader);
-        DownloadLoaderNavigation.Classes.Set("selected", showLoader);
+        DownloadOptiFineNavigation.Classes.Set("selected", showOptiFine);
+        DownloadLoaderNavigation.Classes.Set("selected", showLoader && !showOptiFine);
     }
 
     private void SettingsNavigationClick(object? sender, RoutedEventArgs e)

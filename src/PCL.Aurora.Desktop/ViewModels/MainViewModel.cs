@@ -34,6 +34,7 @@ public partial class MainViewModel(
     private readonly List<MinecraftVersionCatalogEntry> allCatalogVersions = [];
     private MinecraftAccount? selectedAccount;
     private MinecraftLoaderCatalog? loaderCatalog;
+    private MinecraftLoaderKind? loaderKindFilter;
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
     private LauncherPreferences currentPreferences = LauncherPreferences.Default;
     private bool isRefreshing;
@@ -731,7 +732,7 @@ public partial class MainViewModel(
             return;
         }
 
-        foreach (var loader in MinecraftLoaderCatalogFilter.ForMinecraftVersion(loaderCatalog, minecraftVersion))
+        foreach (var loader in MinecraftLoaderCatalogFilter.ForMinecraftVersion(loaderCatalog, minecraftVersion, loaderKindFilter))
         {
             AvailableLoaders.Add(loader);
         }
@@ -741,9 +742,10 @@ public partial class MainViewModel(
                 string.Equals($"{loader.Kind}:{loader.MinecraftVersion}:{loader.Version}", selectedKey, StringComparison.OrdinalIgnoreCase))
             ?? AvailableLoaders.FirstOrDefault();
         CanInstallSelectedLoader = CanInstallLoaderForSelectedInstance(SelectedLoader);
+        var filterName = loaderKindFilter?.ToString() ?? "加载器";
         LoaderSelectionSummary = HasAvailableLoaders
-            ? $"Minecraft {minecraftVersion} 可选 {AvailableLoaders.Count} 个加载器版本。一次只能选择一个加载器安装器。"
-            : $"本地目录中没有兼容 Minecraft {minecraftVersion} 的 Forge、NeoForge、Fabric 或 OptiFine 版本。";
+            ? $"Minecraft {minecraftVersion} 可选 {AvailableLoaders.Count} 个 {filterName} 版本。一次只能选择一个加载器安装器。"
+            : $"当前目录中没有兼容 Minecraft {minecraftVersion} 的 {filterName} 版本。";
     }
 
     partial void OnSelectedLoaderChanged(MinecraftLoaderCatalogEntry? value)
@@ -850,6 +852,17 @@ public partial class MainViewModel(
 
     private static string? GetMinecraftVersionForLoaders(MinecraftInstance? instance) =>
         instance?.BaseVersionId ?? instance?.VersionId;
+
+    public void SetLoaderKindFilter(MinecraftLoaderKind? kind)
+    {
+        if (loaderKindFilter == kind)
+        {
+            return;
+        }
+
+        loaderKindFilter = kind;
+        RefreshLoaderEntries();
+    }
 
     partial void OnHasAcknowledgedAccountGuidanceChanged(bool value)
     {

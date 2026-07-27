@@ -5,7 +5,7 @@ namespace PCL.Aurora.Domain.Tests;
 public sealed class MinecraftLoaderCatalogTests
 {
     [Fact]
-    public void Parse_ReadsForgeNeoForgeAndFabricEntries()
+    public void Parse_ReadsForgeNeoForgeFabricAndOptiFineEntries()
     {
         var result = MinecraftLoaderCatalogParser.Parse(
             """
@@ -14,17 +14,19 @@ public sealed class MinecraftLoaderCatalogTests
               "loaders": [
                 { "kind": "forge", "minecraftVersion": "1.20.1", "version": "47.2.0", "recommended": true },
                 { "kind": "neoforge", "minecraftVersion": "1.20.1", "version": "1.20.1-47.1.99" },
-                { "kind": "fabric", "minecraftVersion": "1.20.1", "version": "0.16.10" }
+                { "kind": "fabric", "minecraftVersion": "1.20.1", "version": "0.16.10" },
+                { "kind": "optifine", "minecraftVersion": "1.20.1", "version": "I6", "fileName": "OptiFine_1.20.1_HD_U_I6.jar", "type": "HD_U", "patch": "I6", "recommended": true }
               ]
             }
             """);
 
         Assert.True(result.IsSuccess);
         Assert.Equal("本地测试目录", result.Catalog!.SourceName);
-        Assert.Equal(3, result.Catalog.Entries.Count);
+        Assert.Equal(4, result.Catalog.Entries.Count);
         Assert.IsType<PclCeForgeVersionEntry>(result.Catalog.Entries[0].ForgelikeEntry);
         Assert.IsType<PclCeNeoForgeListEntry>(result.Catalog.Entries[1].ForgelikeEntry);
         Assert.Null(result.Catalog.Entries[2].ForgelikeEntry);
+        Assert.Equal("HD_U/I6", result.Catalog.Entries[3].OptiFineEntry!.DownloadPath);
     }
 
     [Fact]
@@ -66,5 +68,24 @@ public sealed class MinecraftLoaderCatalogTests
         var compatibility = MinecraftLoaderCompatibilityEvaluator.Evaluate("1.20.1", [entries[0], result.Catalog!.Entries.Single(entry => entry.Kind == MinecraftLoaderKind.Fabric)]);
         Assert.False(compatibility.IsCompatible);
         Assert.Contains(compatibility.Reasons, reason => reason.Contains("一次只能选择", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Filter_CanRestrictCatalogToOptiFine()
+    {
+        var result = MinecraftLoaderCatalogParser.Parse(
+            """
+            {
+              "loaders": [
+                { "kind": "forge", "minecraftVersion": "1.20.1", "version": "47.2.0" },
+                { "kind": "optifine", "minecraftVersion": "1.20.1", "version": "I6", "fileName": "OptiFine_1.20.1_HD_U_I6.jar", "type": "HD_U", "patch": "I6" }
+              ]
+            }
+            """);
+
+        var entries = MinecraftLoaderCatalogFilter.ForMinecraftVersion(result.Catalog!, "1.20.1", MinecraftLoaderKind.OptiFine);
+
+        var optiFine = Assert.Single(entries);
+        Assert.Equal(MinecraftLoaderKind.OptiFine, optiFine.Kind);
     }
 }
