@@ -143,6 +143,47 @@
         <Style Selector="Grid.pcl-shell Button:disabled">
             <Setter Property="Opacity" Value="0.62" />
         </Style>
+        <Style Selector="Grid.pcl-shell Button.main-navigation">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.main-navigation.selected">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.login-mode">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.login-mode.selected">
+            <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.login-mode:disabled">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Foreground" Value="#6F7C8B" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.launch-button">
+            <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.launch-download-button">
+            <Setter Property="Background" Value="#FCFCFD" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.secondary-navigation">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="#36424F" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.secondary-navigation.selected">
+            <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
         <Style Selector="Button.version-group">
             <Setter Property="Background" Value="#FCFDFF" />
             <Setter Property="Foreground" Value="#36424F" />
