@@ -29,6 +29,7 @@ public partial class MainViewModel(
     IThemeService themeService) : ViewModelBase
 {
     private const int MaximumGameLogLines = 500;
+    private static readonly Uri AuroraReleasesUri = new("https://github.com/Micro-ATP/PCL-Aurora/releases");
 
     private readonly List<MinecraftVersionCatalogEntry> allCatalogVersions = [];
     private MinecraftAccount? selectedAccount;
@@ -197,6 +198,9 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string gameDirectorySummary = "仅在点击“打开游戏目录”后调用系统文件管理器；不会创建目录。";
+
+    [ObservableProperty]
+    private string auroraReleaseSummary = "发行版本与更新说明由 PCL Aurora 的 GitHub Releases 提供。";
 
     [ObservableProperty]
     private string gameLogSummary = "尚未启动游戏，本次会话没有可查看的进程输出。";
@@ -1418,6 +1422,21 @@ public partial class MainViewModel(
         catch (Exception exception)
         {
             GameDirectorySummary = $"无法打开游戏目录：{exception.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenAuroraReleasesAsync()
+    {
+        try
+        {
+            AuroraReleaseSummary = "正在打开 PCL Aurora 的发行页…";
+            await openPathService.OpenUriAsync(AuroraReleasesUri);
+            AuroraReleaseSummary = "已请求系统浏览器打开 PCL Aurora 的发行页。";
+        }
+        catch (Exception exception)
+        {
+            AuroraReleaseSummary = $"无法打开 PCL Aurora 的发行页：{exception.Message}";
         }
     }
 

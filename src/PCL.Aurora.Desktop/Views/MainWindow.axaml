@@ -114,8 +114,21 @@
                                 <Button Classes="launch-button" Command="{Binding UseOfflineAccountCommand}" Content="离线" />
                             </StackPanel>
                             <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="14">
-                                <Border Width="56" Height="56" CornerRadius="3" HorizontalAlignment="Center" Background="#F0B07A">
-                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontWeight="SemiBold" Foreground="White" Text="A" />
+                                <Border Width="56" Height="56" CornerRadius="3" HorizontalAlignment="Center" Background="#F3C7A5">
+                                    <Grid RowDefinitions="10,11,18,*" ColumnDefinitions="12,10,12,10,*">
+                                        <Border Grid.Row="0" Grid.ColumnSpan="5" Background="#E99740" />
+                                        <Border Grid.Row="1" Grid.ColumnSpan="5" Background="#EF9E46" />
+                                        <Border Grid.Row="2" Grid.Column="0" Background="#ED9A43" />
+                                        <Border Grid.Row="2" Grid.Column="4" Background="#ED9A43" />
+                                        <Border Grid.Row="2" Grid.Column="1" Background="#F8E1C5" />
+                                        <Border Grid.Row="2" Grid.Column="2" Background="#F8E1C5" />
+                                        <Border Grid.Row="2" Grid.Column="3" Background="#F8E1C5" />
+                                        <Border Grid.Row="2" Grid.Column="1" Width="5" Height="6" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#34794A" />
+                                        <Border Grid.Row="2" Grid.Column="3" Width="5" Height="6" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#34794A" />
+                                        <Border Grid.Row="3" Grid.ColumnSpan="5" Background="#F8E1C5">
+                                            <Border Width="18" Height="6" Margin="0,3,0,0" VerticalAlignment="Top" Background="#EFA9A0" />
+                                        </Border>
+                                    </Grid>
                                 </Border>
                                 <TextBox PlaceholderText="游戏用户名" Text="{Binding OfflinePlayerName}" />
                                 <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
@@ -447,7 +460,7 @@
                                            Text="{Binding ThemeSummary}"
                                            TextWrapping="Wrap" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="主题偏好只保存在本机；不保存账户密码或令牌。语言、更新与反馈将在对应服务完成后启用。"
+                                           Text="主题偏好只保存在本机；不保存账户密码或令牌。更新入口位于“更多 → 关于与鸣谢”。"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
@@ -524,8 +537,18 @@
                         </Border>
 
                         <Border x:Name="MoreAboutSection" Classes="pcl-card" Padding="20" IsVisible="False">
-                            <StackPanel Spacing="8">
-                                <TextBlock FontWeight="SemiBold" Text="PCL 与 PCL-CE 归属说明" />
+                            <StackPanel Spacing="10">
+                                <TextBlock FontWeight="SemiBold" Text="PCL Aurora" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="当前发行、更新说明与安装包均由 PCL Aurora 的 GitHub Releases 提供。"
+                                           TextWrapping="Wrap" />
+                                <Button HorizontalAlignment="Left"
+                                        Command="{Binding OpenAuroraReleasesCommand}"
+                                        Content="获取 PCL Aurora 最新版本" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding AuroraReleaseSummary}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="PCL 与 PCL-CE 归属说明" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                            Text="PCL Aurora 是基于 Plain Craft Launcher（PCL）及 PCL-CE 的第三方跨平台迁移与二次创作项目，并非官方项目。"
                                            TextWrapping="Wrap" />
