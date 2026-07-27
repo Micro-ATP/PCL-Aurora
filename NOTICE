@@ -20,6 +20,15 @@ PCL Aurora also contains the following directly reused image asset:
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Skins/PclCeAlex.png;
   displayed as a cropped face and outer-layer avatar.
 
+PCL Aurora also adapts the following PCL-CE Lucide icon paths:
+
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/play.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/download.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/settings.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/grid-2x2.svg
+  adapted as Avalonia Paths in src/PCL.Aurora.Desktop/Views/MainWindow.axaml.
+  The applicable ISC and MIT license text is provided in LICENSES/Lucide-Icons.txt.
+
 The original license texts are provided in LICENSES/Apache-2.0.txt,
 LICENSES/PCL-CE-Plain-Craft-Launcher-2-LICENCE.txt and LICENSES/PCL2-LICENCE.txt.
 Adapted source files identify their origin and modifications in file headers.
