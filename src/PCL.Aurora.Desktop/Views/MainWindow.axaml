@@ -13,6 +13,7 @@
         MinHeight="470"
         WindowDecorations="None"
         ExtendClientAreaToDecorationsHint="True"
+        Background="#D0D0D0"
         Title="PCL Aurora">
 
     <Design.DataContext>
@@ -160,6 +161,9 @@
             <Setter Property="Background" Value="#E4F1FF" />
             <Setter Property="Foreground" Value="#1370F3" />
         </Style>
+        <Style Selector="Grid.pcl-shell Button.main-navigation TextBlock">
+            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+        </Style>
         <Style Selector="Grid.pcl-shell Button.login-mode">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -176,6 +180,9 @@
         <Style Selector="Grid.pcl-shell Button.login-mode.selected:pointerover">
             <Setter Property="Background" Value="#2B86ED" />
             <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.login-mode TextBlock">
+            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.login-mode:disabled">
             <Setter Property="Opacity" Value="1" />
@@ -200,6 +207,16 @@
             <Setter Property="Background" Value="#1370F3" />
             <Setter Property="Foreground" Value="White" />
         </Style>
+        <Style Selector="Grid.pcl-shell Button.window-control">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="CornerRadius" Value="16" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.window-control:pointerover">
+            <Setter Property="Background" Value="#4A96EE" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
         <Style Selector="Button.version-group">
             <Setter Property="Background" Value="#FCFDFF" />
             <Setter Property="Foreground" Value="#36424F" />
@@ -220,6 +237,7 @@
         </Style>
     </Window.Styles>
 
+    <Border Margin="18" CornerRadius="8" ClipToBounds="True">
     <Grid Classes="pcl-shell" RowDefinitions="48,*">
         <Border Background="#1370F3" PointerPressed="TitleBarPointerPressed">
             <Grid ColumnDefinitions="*,Auto,*">
@@ -283,7 +301,7 @@
             <Grid x:Name="LaunchPage">
                 <Grid ColumnDefinitions="300,*" Background="#D9EAF9">
                     <Border Background="#FCFCFD" BorderBrush="#D7DCE2" BorderThickness="0,0,1,0">
-                        <Grid Margin="20,40,20,20" RowDefinitions="Auto,*,Auto,Auto">
+                        <Grid Margin="20,22,20,20" RowDefinitions="Auto,*,Auto,Auto">
                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
                                 <Button Classes="login-mode" Click="OfficialLoginClick"
                                         ToolTip.Tip="{Binding MicrosoftLoginSummary}" Content="正版" />
@@ -805,5 +823,6 @@
             </Grid>
         </Grid>
     </Grid>
+    </Border>
 
 </Window>
