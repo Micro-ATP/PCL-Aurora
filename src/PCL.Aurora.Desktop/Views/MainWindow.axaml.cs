@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using PCL.Aurora.Domain;
 
@@ -33,9 +34,30 @@ public partial class MainWindow : Window
         SelectMainPage(1);
     }
 
+    private void TitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Source is not Button && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
+    }
+
+    private void MinimizeWindowClick(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void CloseWindowClick(object? sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
     private void SelectMainPage(int page)
     {
-        MainTabs.SelectedIndex = page;
+        LaunchPage.IsVisible = page == 0;
+        DownloadPage.IsVisible = page == 1;
+        SettingsPage.IsVisible = page == 2;
+        MorePage.IsVisible = page == 3;
 
         var navigation = new[] { LaunchNavigation, DownloadNavigation, SettingsNavigation, MoreNavigation };
         for (var index = 0; index < navigation.Length; index++)

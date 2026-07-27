@@ -7,10 +7,12 @@
         x:Class="PCL.Aurora.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/Icons/AppIcon.ico"
-        Width="1060"
-        Height="680"
-        MinWidth="800"
-        MinHeight="560"
+        Width="850"
+        Height="500"
+        MinWidth="810"
+        MinHeight="470"
+        WindowDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
         Title="PCL Aurora">
 
     <Design.DataContext>
@@ -18,10 +20,8 @@
     </Design.DataContext>
 
     <Window.Styles>
-        <!-- PCL uses one compact title and navigation band rather than a separate tab strip. -->
-        <Style Selector="TabControl /template/ TabStrip">
-            <Setter Property="IsVisible" Value="False" />
-        </Style>
+        <!-- Visual structure adapted for Avalonia from PCL2 FormMain.xaml and PageLaunch/*.xaml.
+             The implementation stays cross-platform and retains Aurora's own command bindings. -->
         <Style Selector="Button.main-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -31,7 +31,7 @@
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="MinWidth" Value="84" />
             <Setter Property="Height" Value="30" />
-            <Setter Property="Margin" Value="8,9" />
+            <Setter Property="Margin" Value="5,9" />
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.main-navigation:pointerover">
@@ -48,7 +48,8 @@
         </Style>
         <Style Selector="Border.pcl-card">
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+            <Setter Property="Background" Value="#FCFDFF" />
+            <Setter Property="BorderBrush" Value="#D1DDEA" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Button.launch-button">
@@ -63,6 +64,34 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
         </Style>
+        <Style Selector="Button.login-mode">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="CornerRadius" Value="18" />
+        </Style>
+        <Style Selector="Button.login-mode.selected">
+            <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Button.window-control">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Light" />
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="Button.window-control:pointerover">
+            <Setter Property="Background" Value="#4192F7" />
+        </Style>
         <Style Selector="Border.side-selection">
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="Background" Value="#1370F3" />
@@ -75,6 +104,7 @@
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="Padding" Value="12,9" />
             <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="36" />
         </Style>
         <Style Selector="Button.secondary-navigation:pointerover">
             <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
@@ -86,11 +116,10 @@
     </Window.Styles>
 
     <Grid RowDefinitions="48,*">
-        <Border Background="#1370F3">
-            <Grid ColumnDefinitions="260,Auto,*,Auto">
-                <StackPanel Margin="20,0,0,0" VerticalAlignment="Center" Spacing="0">
+        <Border Background="#1370F3" PointerPressed="TitleBarPointerPressed">
+            <Grid ColumnDefinitions="*,Auto,*">
+                <StackPanel Margin="18,0,0,0" VerticalAlignment="Center" Spacing="0">
                     <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="White" Text="PCL Aurora" />
-                    <TextBlock FontSize="10" Foreground="#D9E8FF" Text="跨平台迁移版" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button x:Name="LaunchNavigation" Classes="main-navigation selected" Tag="0" Click="MainNavigationClick">
@@ -138,22 +167,24 @@
                         </StackPanel>
                     </Button>
                 </StackPanel>
-                <TextBlock Grid.Column="3" Margin="0,0,18,0" VerticalAlignment="Center"
-                           Foreground="#D9E8FF" FontSize="12" Text="Minecraft Launcher" />
+                <StackPanel Grid.Column="2" Margin="0,0,8,0" HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Classes="window-control" Click="MinimizeWindowClick" Content="-" />
+                    <Button Classes="window-control" Click="CloseWindowClick" Content="x" />
+                </StackPanel>
             </Grid>
         </Border>
 
-        <TabControl x:Name="MainTabs" Grid.Row="1" Margin="0" SelectedIndex="0">
-            <TabItem Header="">
+        <Grid x:Name="MainPages" Grid.Row="1">
+            <Grid x:Name="LaunchPage">
                 <Grid ColumnDefinitions="300,*" Background="#D9EAF9">
                     <Border Background="#FCFCFD" BorderBrush="#D7DCE2" BorderThickness="0,0,1,0">
-                        <Grid Margin="20,22" RowDefinitions="Auto,*,Auto,Auto">
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="18">
-                                <Button Command="{Binding StartMicrosoftLoginCommand}"
+                        <Grid Margin="20,22,20,20" RowDefinitions="Auto,*,Auto,Auto">
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
+                                <Button Classes="login-mode" Command="{Binding StartMicrosoftLoginCommand}"
                                         IsEnabled="{Binding CanStartMicrosoftLogin}" Content="正版" />
-                                <Button Classes="launch-button" Command="{Binding UseOfflineAccountCommand}" Content="离线" />
+                                <Button Classes="login-mode selected" Command="{Binding UseOfflineAccountCommand}" Content="离线" />
                             </StackPanel>
-                            <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="14">
+                            <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="12">
                                 <Border Width="56" Height="56" CornerRadius="3" HorizontalAlignment="Center" ClipToBounds="True">
                                     <Grid>
                                         <Image Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -170,26 +201,23 @@
                                         </Image>
                                     </Grid>
                                 </Border>
-                                <TextBox PlaceholderText="游戏用户名" Text="{Binding OfflinePlayerName}" />
-                                <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding AccountSummary}" TextWrapping="Wrap" />
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
-                                    <Button Command="{Binding RestoreMicrosoftLoginCommand}" IsEnabled="{Binding CanRestoreMicrosoftLogin}" Content="恢复" />
-                                    <Button Command="{Binding ClearMicrosoftLoginCommand}" IsEnabled="{Binding CanClearMicrosoftLogin}" Content="清除" />
-                                </StackPanel>
+                                <TextBox Height="35" PlaceholderText="游戏用户名" Text="{Binding OfflinePlayerName}" />
                             </StackPanel>
-                            <StackPanel Grid.Row="2" Spacing="6">
+                            <StackPanel Grid.Row="2" Spacing="8">
                                 <Button Classes="launch-download-button" Click="OpenDownloadPageClick"
-                                        IsVisible="{Binding NeedsGameDownload}" Height="52" FontSize="16" Content="下载游戏" />
+                                        IsVisible="{Binding NeedsGameDownload}" Height="54" FontSize="16">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock HorizontalAlignment="Center" Text="下载游戏" />
+                                        <TextBlock HorizontalAlignment="Center" FontSize="11" Opacity="0.65" Text="未找到可用的游戏版本" />
+                                    </StackPanel>
+                                </Button>
                                 <Button Classes="launch-button" Command="{Binding LaunchGameCommand}"
                                         IsVisible="{Binding HasAvailableInstances}"
                                         IsEnabled="{Binding CanLaunchGame}" Height="52" FontSize="16" Content="启动游戏" />
-                                <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding InstanceSummary}" TextWrapping="Wrap" />
                                 <Button Classes="launch-download-button" Click="OpenDownloadPageClick"
-                                        Height="42" FontSize="15" Content="版本选择" />
+                                        Height="35" FontSize="14" Content="版本选择" />
                             </StackPanel>
-                            <ComboBox Grid.Row="3" x:Name="InstanceSelector" Margin="0,12,0,0"
+                            <ComboBox Grid.Row="3" x:Name="InstanceSelector" Margin="0,10,0,0"
                                       AutomationProperties.Name="启动实例"
                                       IsVisible="{Binding HasAvailableInstances}"
                                       ItemsSource="{Binding AvailableInstances}"
@@ -223,11 +251,11 @@
                         </StackPanel>
                     </Border>
                 </Grid>
-            </TabItem>
+            </Grid>
 
-            <TabItem Header="">
-                <Grid ColumnDefinitions="152,*">
-                    <Border Padding="0,12,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+            <Grid x:Name="DownloadPage" IsVisible="False">
+                <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
+                    <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <StackPanel Spacing="4">
                             <Button x:Name="DownloadGameNavigation" Classes="secondary-navigation selected"
                                     Click="DownloadNavigationClick" Tag="game" Content="原版游戏" />
@@ -242,7 +270,7 @@
                                     Click="DownloadNavigationClick" Tag="loader" Content="Forge / NeoForge / Fabric" />
                         </StackPanel>
                     </Border>
-                    <ScrollViewer Grid.Column="1">
+                    <ScrollViewer Grid.Column="1" Background="#D9EAF9">
                     <StackPanel Margin="25,10,25,25" MaxWidth="860" Spacing="15">
                         <StackPanel Spacing="6">
                             <TextBlock x:Name="DownloadPageTitle" FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="原版游戏" />
@@ -368,11 +396,11 @@
                     </StackPanel>
                     </ScrollViewer>
                 </Grid>
-            </TabItem>
+            </Grid>
 
-            <TabItem Header="">
-                <Grid ColumnDefinitions="152,*">
-                    <Border Padding="0,12,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+            <Grid x:Name="SettingsPage" IsVisible="False">
+                <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
+                    <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <StackPanel Spacing="4">
                             <Button x:Name="SettingsLaunchNavigation" Classes="secondary-navigation selected"
                                     Click="SettingsNavigationClick" Tag="launch" Content="启动" />
@@ -382,7 +410,7 @@
                             <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="其他 · 待迁移" />
                         </StackPanel>
                     </Border>
-                    <ScrollViewer Grid.Column="1">
+                    <ScrollViewer Grid.Column="1" Background="#D9EAF9">
                     <StackPanel Margin="25,25,25,10" MaxWidth="860" Spacing="15">
 
                         <Border x:Name="SettingsLaunchSection" Classes="pcl-card" Padding="20" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
@@ -539,11 +567,11 @@
                     </StackPanel>
                     </ScrollViewer>
                 </Grid>
-            </TabItem>
+            </Grid>
 
-            <TabItem Header="">
-                <Grid ColumnDefinitions="152,*">
-                    <Border Padding="0,12,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+            <Grid x:Name="MorePage" IsVisible="False">
+                <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
+                    <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <StackPanel Spacing="4">
                             <Button x:Name="MoreDirectoryNavigation" Classes="secondary-navigation selected"
                                     Click="MoreNavigationClick" Tag="directory" Content="游戏目录" />
@@ -554,7 +582,7 @@
                             <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="帮助与反馈 · 待迁移" />
                         </StackPanel>
                     </Border>
-                    <ScrollViewer Grid.Column="1">
+                    <ScrollViewer Grid.Column="1" Background="#D9EAF9">
                     <StackPanel Margin="25,25,25,10" MaxWidth="860" Spacing="15">
                         <StackPanel Spacing="6">
                             <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="更多" />
@@ -635,8 +663,8 @@
                     </StackPanel>
                     </ScrollViewer>
                 </Grid>
-            </TabItem>
-        </TabControl>
+            </Grid>
+        </Grid>
     </Grid>
 
 </Window>
