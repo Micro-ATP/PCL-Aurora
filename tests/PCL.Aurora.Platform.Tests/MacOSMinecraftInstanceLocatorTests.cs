@@ -50,7 +50,10 @@ public sealed class MacOSMinecraftInstanceLocatorTests : IDisposable
             {
               "id": "1.20.1-forge-47.2.0",
               "inheritsFrom": "1.20.1",
-              "libraries": [{ "name": "net.minecraftforge:forge:1.20.1-47.2.0" }]
+              "libraries": [
+                { "name": "net.minecraftforge:forge:1.20.1-47.2.0" },
+                { "name": "optifine:OptiFine:1.20.1_HD_U_I6" }
+              ]
             }
             """);
 
@@ -60,8 +63,9 @@ public sealed class MacOSMinecraftInstanceLocatorTests : IDisposable
         Assert.Equal("1.20.1", instance.InheritsFrom);
         Assert.Equal(MinecraftLoaderKind.Forge, instance.InstalledLoader!.Kind);
         Assert.Equal("47.2.0", instance.InstalledLoader.Version);
+        Assert.True(instance.HasOptiFine);
         Assert.Contains("1.20.1", instance.VersionDisplay, StringComparison.Ordinal);
-        Assert.Equal("Forge 47.2.0", instance.LoaderDisplay);
+        Assert.Equal("Forge 47.2.0 + OptiFine", instance.LoaderDisplay);
     }
 
     public void Dispose()

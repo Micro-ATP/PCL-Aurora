@@ -32,7 +32,7 @@ public sealed class MinecraftLaunchPreparationService(
             ? null
             : Directory.GetParent(versionsDirectory)?.FullName;
         var launchOptions = preferencesService?.Current.EffectiveLaunchOptions ?? MinecraftLaunchOptions.Default;
-        var javaRequirement = Pcl2MinecraftJavaRequirementEvaluator.Evaluate(metadata);
+        var javaRequirement = Pcl2MinecraftJavaRequirementEvaluator.Evaluate(metadata, instance);
         var memoryAllocation = PrepareMemoryAllocation(
             launchOptions,
             systemMemoryInfo?.Get(),

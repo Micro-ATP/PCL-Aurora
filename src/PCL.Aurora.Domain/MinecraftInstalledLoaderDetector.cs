@@ -8,6 +8,14 @@ namespace PCL.Aurora.Domain;
 
 public static class MinecraftInstalledLoaderDetector
 {
+    public static bool HasOptiFine(IEnumerable<string> libraryNames)
+    {
+        ArgumentNullException.ThrowIfNull(libraryNames);
+        return libraryNames.Any(name =>
+            !string.IsNullOrWhiteSpace(name) &&
+            name.StartsWith("optifine:OptiFine:", StringComparison.OrdinalIgnoreCase));
+    }
+
     public static MinecraftInstalledLoader? Detect(IEnumerable<string> libraryNames)
     {
         ArgumentNullException.ThrowIfNull(libraryNames);

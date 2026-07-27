@@ -72,4 +72,76 @@ public sealed class Pcl2MinecraftJavaRequirementEvaluatorTests
         Assert.Equal(8, requirement.MaximumMajorVersion);
         Assert.Contains(reasons, reason => reason.Contains("高于", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public void Evaluate_Forge34To36RequiresJava8UpdateAtMost320()
+    {
+        var requirement = Pcl2MinecraftJavaRequirementEvaluator.Evaluate(
+            CreateMetadata(),
+            CreateInstance(
+                "1.16.5",
+                new MinecraftInstalledLoader(MinecraftLoaderKind.Forge, "36.2.25", "1.16.5")));
+
+        Assert.Equal(8, requirement.MaximumMajorVersion);
+        Assert.Equal(new Version(8, 0, 320), requirement.MaximumVersion);
+        Assert.Empty(requirement.GetBlockingReasons(CreateJava("8u320", 8)));
+        Assert.Contains(
+            requirement.GetBlockingReasons(CreateJava("8u321", 8)),
+            reason => reason.Contains("8u320", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Evaluate_ForgeAndOptiFineOn118CapsJavaAt18()
+    {
+        var requirement = Pcl2MinecraftJavaRequirementEvaluator.Evaluate(
+            CreateMetadata(),
+            CreateInstance(
+                "1.18.2",
+                new MinecraftInstalledLoader(MinecraftLoaderKind.Forge, "40.2.0", "1.18.2"),
+                hasOptiFine: true));
+
+        Assert.Equal(18, requirement.MaximumMajorVersion);
+        Assert.Contains(
+            requirement.GetBlockingReasons(CreateJava("19.0.2", 19)),
+            reason => reason.Contains("高于", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Evaluate_NeoForgeEarlyVersionAndFabricApplyPcl2Ranges()
+    {
+        var neoForgeRequirement = Pcl2MinecraftJavaRequirementEvaluator.Evaluate(
+            CreateMetadata(),
+            CreateInstance(
+                "1.20.2",
+                new MinecraftInstalledLoader(MinecraftLoaderKind.NeoForge, "20.2.62-beta", null)));
+        var fabricRequirement = Pcl2MinecraftJavaRequirementEvaluator.Evaluate(
+            CreateMetadata(),
+            CreateInstance(
+                "1.18.2",
+                new MinecraftInstalledLoader(MinecraftLoaderKind.Fabric, "0.14.25", null)));
+
+        Assert.Equal(21, neoForgeRequirement.MaximumMajorVersion);
+        Assert.Equal(17, fabricRequirement.MinimumMajorVersion);
+    }
+
+    private static MinecraftVersionMetadata CreateMetadata() =>
+        new("derived", null, "release", null, null, null);
+
+    private static MinecraftInstance CreateInstance(
+        string baseVersion,
+        MinecraftInstalledLoader loader,
+        bool hasOptiFine = false) =>
+        new(
+            $"{baseVersion}-{loader.Kind}",
+            "/minecraft/versions/example",
+            "derived",
+            "release",
+            null,
+            MinecraftInstanceStatus.Valid,
+            BaseVersionId: baseVersion,
+            InstalledLoader: loader,
+            HasOptiFine: hasOptiFine);
+
+    private static JavaInstallation CreateJava(string version, int majorVersion) =>
+        new("/java", version, majorVersion, "Temurin", JavaArchitecture.Arm64, JavaSource.Path, true);
 }

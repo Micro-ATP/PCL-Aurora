@@ -62,7 +62,8 @@ public sealed class MacOSMinecraftInstanceLocator(string? minecraftDirectory = n
             var type = GetString(root, "type");
             var releaseTime = ParseReleaseTime(GetString(root, "releaseTime"));
             var inheritsFrom = GetString(root, "inheritsFrom");
-            var installedLoader = MinecraftInstalledLoaderDetector.Detect(GetLibraryNames(root));
+            var libraryNames = GetLibraryNames(root).ToArray();
+            var installedLoader = MinecraftInstalledLoaderDetector.Detect(libraryNames);
             var baseVersionId = inheritsFrom ?? installedLoader?.MinecraftVersion ?? versionId;
             return new MinecraftInstance(
                 name,
@@ -73,7 +74,8 @@ public sealed class MacOSMinecraftInstanceLocator(string? minecraftDirectory = n
                 MinecraftInstanceStatus.Valid,
                 inheritsFrom,
                 baseVersionId,
-                installedLoader);
+                installedLoader,
+                MinecraftInstalledLoaderDetector.HasOptiFine(libraryNames));
         }
         catch (OperationCanceledException)
         {

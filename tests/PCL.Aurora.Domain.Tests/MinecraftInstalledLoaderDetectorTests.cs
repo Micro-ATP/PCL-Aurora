@@ -33,4 +33,16 @@ public sealed class MinecraftInstalledLoaderDetectorTests
 
         Assert.Equal(MinecraftLoaderKind.Fabric, result!.Kind);
     }
+
+    [Fact]
+    public void HasOptiFine_RecognizesPcl2LibraryCoordinateAlongsideForge()
+    {
+        var result = MinecraftInstalledLoaderDetector.HasOptiFine(
+        [
+            "net.minecraftforge:forge:1.18.2-40.2.0",
+            "optifine:OptiFine:1.18.2_HD_U_H9",
+        ]);
+
+        Assert.True(result);
+    }
 }

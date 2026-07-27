@@ -469,7 +469,7 @@ public partial class MainViewModel(
         }
 
         var metadata = preparation.Inspection.EffectiveMetadata;
-        currentJavaRequirement = Pcl2MinecraftJavaRequirementEvaluator.Evaluate(metadata);
+        currentJavaRequirement = Pcl2MinecraftJavaRequirementEvaluator.Evaluate(metadata, SelectedInstance);
         VersionMetadataSummary = $"{metadata.Id} · {metadata.Type ?? "未知类型"} · 继承链：{string.Join(" → ", preparation.Inspection.InheritanceChain.Select(item => item.Id))}";
         DownloadPreparationSummary = preparation.DownloadPlan.IsReady
             ? $"已生成 {preparation.DownloadPlan.Artifacts.Count} 个游戏与库下载计划项；等待用户确认安装。"
@@ -1035,11 +1035,28 @@ public partial class MainViewModel(
             return "版本元数据未提供可验证的 Java 版本要求。";
         }
 
-        var requirementText = requirement.MinimumMajorVersion is { } minimum
-            ? $"至少 Java {minimum}"
-            : requirement.MaximumMajorVersion is { } maximum
-                ? $"最高 Java {maximum}"
-                : "未设定 Java 主版本上下限";
+        var rangeDescriptions = new List<string>();
+        if (requirement.MinimumVersion is { } minimumVersion)
+        {
+            rangeDescriptions.Add($"至少 Java {FormatJavaVersion(minimumVersion)}");
+        }
+        else if (requirement.MinimumMajorVersion is { } minimum)
+        {
+            rangeDescriptions.Add($"至少 Java {minimum}");
+        }
+
+        if (requirement.MaximumVersion is { } maximumVersion)
+        {
+            rangeDescriptions.Add($"最高 Java {FormatJavaVersion(maximumVersion)}");
+        }
+        else if (requirement.MaximumMajorVersion is { } maximum)
+        {
+            rangeDescriptions.Add($"最高 Java {maximum}");
+        }
+
+        var requirementText = rangeDescriptions.Count == 0
+            ? "未设定 Java 主版本上下限"
+            : string.Join("；", rangeDescriptions);
         var status = java is null
             ? "尚未选择 Java。"
             : requirement.GetBlockingReasons(java) is { Count: > 0 } reasons
@@ -1047,6 +1064,11 @@ public partial class MainViewModel(
                 : $"所选 Java {java.MajorVersion?.ToString() ?? "未知"} 满足要求。";
         return $"Java 要求：{requirementText}（{requirement.Source}）。{status}";
     }
+
+    private static string FormatJavaVersion(Version version) =>
+        version.Minor == 0 && version.Build > 0
+            ? $"{version.Major}u{version.Build}"
+            : version.ToString();
 
     private static string GetMemoryAllocationSummary(MinecraftLaunchPreparation preparation)
     {
