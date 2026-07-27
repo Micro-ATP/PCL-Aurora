@@ -1,5 +1,6 @@
 using PCL.Aurora.Application;
 using PCL.Aurora.Domain;
+using PCL.Aurora.Platform.Abstractions;
 
 namespace PCL.Aurora.Application.Tests;
 
@@ -86,23 +87,102 @@ public sealed class MinecraftLaunchPreparationServiceTests
                 ]);
             var inspection = new MinecraftVersionMetadataInspection([metadata], metadata, []);
             var options = new MinecraftLaunchOptions(
-                AdditionalJvmArguments: "-Xmx4G",
+                AdditionalJvmArguments: "-Dmemory.test=true",
                 AdditionalGameArguments: "--demo",
                 WindowMode: MinecraftGameWindowMode.Custom,
                 WindowWidth: 1280,
                 WindowHeight: 720);
             var service = new MinecraftLaunchPreparationService(
                 new FakeVersionPreparationService(new MinecraftVersionPreparation(inspection, new MinecraftDownloadPlan("1.21.4", [], []))),
-                new FixedLauncherPreferencesService(new LauncherPreferences(LauncherThemeMode.System, LaunchOptions: options)));
+                new FixedLauncherPreferencesService(new LauncherPreferences(LauncherThemeMode.System, LaunchOptions: options)),
+                new FixedSystemMemoryInfo(16L * 1024 * 1024 * 1024, 8L * 1024 * 1024 * 1024));
             OfflineAccount.TryCreate("AuroraPlayer", out var account);
 
             var preparation = await service.PrepareAsync(instance, account);
 
-            Assert.True(preparation.ArgumentPreparation.IsReady);
-            Assert.Contains("-Xmx4G", preparation.ArgumentPreparation.Arguments!.JvmArguments);
+            Assert.True(
+                preparation.ArgumentPreparation.IsReady,
+                string.Join("；", preparation.ArgumentPreparation.BlockingReasons));
+            Assert.Contains("-Dmemory.test=true", preparation.ArgumentPreparation.Arguments!.JvmArguments);
+            Assert.Contains("-Xmx4300M", preparation.ArgumentPreparation.Arguments.JvmArguments);
             Assert.Equal(
                 ["--width", "1280", "--height", "720", "--demo"],
                 preparation.ArgumentPreparation.Arguments.GameArguments);
+        }
+        finally
+        {
+            if (Directory.Exists(rootDirectory))
+            {
+                Directory.Delete(rootDirectory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task PrepareAsync_LimitsActualHeapArgumentFor32BitJava()
+    {
+        var rootDirectory = Path.Combine(Path.GetTempPath(), $"pcl-aurora-memory-x86-{Guid.NewGuid():N}");
+        var instanceDirectory = Path.Combine(rootDirectory, "versions", "1.12.2");
+        try
+        {
+            Directory.CreateDirectory(instanceDirectory);
+            var libraryPath = Path.Combine(rootDirectory, "libraries", "example", "library.jar");
+            Directory.CreateDirectory(Path.GetDirectoryName(libraryPath)!);
+            await File.WriteAllBytesAsync(libraryPath, []);
+            await File.WriteAllBytesAsync(Path.Combine(instanceDirectory, "1.12.2.jar"), []);
+            var instance = new MinecraftInstance(
+                "1.12.2",
+                instanceDirectory,
+                "1.12.2",
+                "release",
+                null,
+                MinecraftInstanceStatus.Valid);
+            var metadata = new MinecraftVersionMetadata(
+                "1.12.2",
+                null,
+                "release",
+                null,
+                new MinecraftVersionDownload(new Uri("https://example.invalid/client.jar"), null, null),
+                null,
+                new MinecraftLaunchMetadata(
+                    "net.minecraft.client.main.Main",
+                    ["-cp", "${classpath}"],
+                    [],
+                    HasModernArguments: true,
+                    HasConditionalArguments: false,
+                    LegacyGameArguments: null),
+                [
+                    new MinecraftVersionLibrary(
+                        "example:library:1.0",
+                        "example/library.jar",
+                        new MinecraftVersionDownload(new Uri("https://example.invalid/library.jar"), null, null),
+                        HasConditionalRules: false),
+                ]);
+            var inspection = new MinecraftVersionMetadataInspection([metadata], metadata, []);
+            var options = MinecraftLaunchOptions.Default with
+            {
+                MemoryAllocationMode = MinecraftMemoryAllocationMode.Custom,
+                CustomMemoryMiB = 4096,
+            };
+            var service = new MinecraftLaunchPreparationService(
+                new FakeVersionPreparationService(new MinecraftVersionPreparation(inspection, new MinecraftDownloadPlan("1.12.2", [], []))),
+                new FixedLauncherPreferencesService(new LauncherPreferences(LauncherThemeMode.System, LaunchOptions: options)));
+            var java = new JavaInstallation(
+                "/usr/bin/java",
+                "8",
+                8,
+                "Test",
+                JavaArchitecture.X86,
+                JavaSource.Path,
+                IsCompatible: true);
+
+            var preparation = await service.PrepareAsync(instance, account: null, java);
+
+            Assert.True(
+                preparation.ArgumentPreparation.IsReady,
+                string.Join("；", preparation.ArgumentPreparation.BlockingReasons));
+            Assert.Contains("-Xmx1024M", preparation.ArgumentPreparation.Arguments!.JvmArguments);
+            Assert.True(preparation.MemoryAllocation!.Allocation!.IsLimitedFor32BitJava);
         }
         finally
         {
@@ -140,5 +220,10 @@ public sealed class MinecraftLaunchPreparationServiceTests
         public Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         public Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class FixedSystemMemoryInfo(long totalBytes, long availableBytes) : ISystemMemoryInfo
+    {
+        public SystemMemoryInformation Get() => new(totalBytes, availableBytes);
     }
 }

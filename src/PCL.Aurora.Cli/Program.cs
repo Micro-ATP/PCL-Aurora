@@ -8,6 +8,7 @@ using PCL.Aurora.Platform.MacOS;
 var services = new ServiceCollection();
 services.AddSingleton<IPlatformInfo, MacOSPlatformInfo>();
 services.AddSingleton<IPlatformPaths, MacOSPlatformPaths>();
+services.AddSingleton<ISystemMemoryInfo, MacOSSystemMemoryInfo>();
 services.AddSingleton<IJavaLocator, MacOSJavaLocator>();
 services.AddSingleton<IMinecraftInstanceLocator, MacOSMinecraftInstanceLocator>();
 services.AddSingleton<IMinecraftRootDirectoryProvider, MacOSMinecraftRootDirectoryProvider>();

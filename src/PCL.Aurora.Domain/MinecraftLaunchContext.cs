@@ -13,7 +13,8 @@ public sealed record MinecraftLaunchContext(
     MinecraftAccount? Account,
     int ResolutionWidth,
     int ResolutionHeight,
-    MinecraftLaunchRuleEnvironment? RuleEnvironment = null)
+    MinecraftLaunchRuleEnvironment? RuleEnvironment = null,
+    int? MaximumMemoryMiB = null)
 {
     public static MinecraftLaunchContext CreateDefault(string versionName) => new(
         Classpath: null,

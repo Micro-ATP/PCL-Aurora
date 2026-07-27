@@ -8,4 +8,5 @@ public sealed record MinecraftVersionMetadata(
     MinecraftVersionDownload? ClientDownload,
     MinecraftVersionAssetIndex? AssetIndex,
     MinecraftLaunchMetadata? Launch = null,
-    IReadOnlyList<MinecraftVersionLibrary>? Libraries = null);
+    IReadOnlyList<MinecraftVersionLibrary>? Libraries = null,
+    MinecraftJavaVersionRequirement? JavaVersionRequirement = null);

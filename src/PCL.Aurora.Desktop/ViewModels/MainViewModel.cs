@@ -37,6 +37,8 @@ public partial class MainViewModel(
     private LauncherPreferences currentPreferences = LauncherPreferences.Default;
     private bool isRefreshing;
     private bool isLoadingPreferences;
+    private bool isSelectingJavaForRequirement;
+    private MinecraftJavaRequirement? currentJavaRequirement;
     private CancellationTokenSource? installationCancellation;
     private CancellationTokenSource? microsoftLoginCancellation;
 
@@ -72,6 +74,12 @@ public partial class MainViewModel(
         new(MinecraftGameWindowMode.Default, "默认窗口（854 × 480）"),
         new(MinecraftGameWindowMode.Fullscreen, "全屏"),
         new(MinecraftGameWindowMode.Custom, "自定义尺寸"),
+    ];
+
+    public IReadOnlyList<MinecraftMemoryAllocationModeOption> MemoryAllocationModes { get; } =
+    [
+        new(MinecraftMemoryAllocationMode.Automatic, "自动分配"),
+        new(MinecraftMemoryAllocationMode.Custom, "自定义 MiB"),
     ];
 
     [ObservableProperty]
@@ -118,7 +126,24 @@ public partial class MainViewModel(
     private bool usesCustomGameWindowSize;
 
     [ObservableProperty]
+    private MinecraftMemoryAllocationModeOption selectedMemoryAllocationMode = new(
+        MinecraftMemoryAllocationMode.Automatic,
+        "自动分配");
+
+    [ObservableProperty]
+    private string customMemoryMiB = MinecraftLaunchOptions.DefaultCustomMemoryMiB.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    [ObservableProperty]
+    private bool usesCustomMemoryAllocation;
+
+    [ObservableProperty]
     private string launchOptionsSummary = "正在读取本地启动选项…";
+
+    [ObservableProperty]
+    private string javaRequirementSummary = "将在读取版本元数据后检查 Java 版本要求。";
+
+    [ObservableProperty]
+    private string memoryAllocationSummary = "将在读取版本元数据和系统内存后计算堆大小。";
 
     [ObservableProperty]
     private string operatingSystem = "正在读取系统信息…";
@@ -369,6 +394,9 @@ public partial class MainViewModel(
             CustomGameWindowWidth = launchOptions.WindowWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
             CustomGameWindowHeight = launchOptions.WindowHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
             UsesCustomGameWindowSize = launchOptions.WindowMode == MinecraftGameWindowMode.Custom;
+            SelectedMemoryAllocationMode = MemoryAllocationModes.Single(option => option.Mode == launchOptions.MemoryAllocationMode);
+            CustomMemoryMiB = launchOptions.CustomMemoryMiB.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            UsesCustomMemoryAllocation = launchOptions.MemoryAllocationMode == MinecraftMemoryAllocationMode.Custom;
             LaunchOptionsSummary = result.Warning ?? GetLaunchOptionsSummary(launchOptions);
             RestoreOfflineAccount(result.Preferences.OfflinePlayerName);
             UpdateMicrosoftLoginAvailability(result.Preferences.MicrosoftAccount);
@@ -378,6 +406,8 @@ public partial class MainViewModel(
             ThemeSummary = $"无法读取本地主题偏好：{exception.Message}；当前跟随系统主题。";
             DownloadSettingsSummary = "无法读取本地下载设置；已使用安全默认值。";
             LaunchOptionsSummary = "无法读取本地启动选项；已使用安全默认值。";
+            JavaRequirementSummary = "无法读取版本元数据中的 Java 版本要求。";
+            MemoryAllocationSummary = "无法读取内存分配设置。";
             MicrosoftLoginSummary = "无法读取本地 Microsoft 账户档案。";
         }
         finally
@@ -391,6 +421,7 @@ public partial class MainViewModel(
         try
         {
             await RefreshVersionPreparationAsync();
+            SelectJavaForCurrentRequirement();
             await RefreshLaunchArgumentPreparationAsync();
             UpdateLaunchPreflight();
             await RefreshGameLaunchPreparationAsync();
@@ -411,6 +442,7 @@ public partial class MainViewModel(
     {
         if (SelectedInstance is null)
         {
+            currentJavaRequirement = null;
             VersionMetadataSummary = "未选择可读取版本元数据的本地实例。";
             DownloadPreparationSummary = "需先发现有效本地实例；不会创建目录或下载文件。";
             InstallationSummary = "未选择可安装的本地实例。";
@@ -422,6 +454,7 @@ public partial class MainViewModel(
         var preparation = await versionPreparationService.PrepareAsync(SelectedInstance);
         if (!preparation.Inspection.IsSuccess || preparation.Inspection.EffectiveMetadata is null)
         {
+            currentJavaRequirement = null;
             VersionMetadataSummary = string.Join(Environment.NewLine, preparation.Inspection.Errors);
             DownloadPreparationSummary = "版本元数据无效，未生成下载计划。";
             InstallationSummary = "版本元数据无效，无法开始下载。";
@@ -430,6 +463,7 @@ public partial class MainViewModel(
         }
 
         var metadata = preparation.Inspection.EffectiveMetadata;
+        currentJavaRequirement = Pcl2MinecraftJavaRequirementEvaluator.Evaluate(metadata);
         VersionMetadataSummary = $"{metadata.Id} · {metadata.Type ?? "未知类型"} · 继承链：{string.Join(" → ", preparation.Inspection.InheritanceChain.Select(item => item.Id))}";
         DownloadPreparationSummary = preparation.DownloadPlan.IsReady
             ? $"已生成 {preparation.DownloadPlan.Artifacts.Count} 个游戏与库下载计划项；等待用户确认安装。"
@@ -449,7 +483,7 @@ public partial class MainViewModel(
             return;
         }
 
-        var preparation = await launchPreparationService.PrepareAsync(SelectedInstance, selectedAccount);
+        var preparation = await launchPreparationService.PrepareAsync(SelectedInstance, selectedAccount, SelectedJava);
         ClasspathSummary = preparation.ClasspathInspection.IsReady
             ? $"已发现 {preparation.ClasspathInspection.Entries.Count} 个本地类路径条目。"
             : string.Join(
@@ -459,6 +493,8 @@ public partial class MainViewModel(
         LaunchArgumentSummary = preparation.ArgumentPreparation.IsReady
             ? $"已准备 {preparation.ArgumentPreparation.Arguments!.JvmArguments.Count} 个 JVM 参数与 {preparation.ArgumentPreparation.Arguments.GameArguments.Count} 个游戏参数；等待进程启动条件检查。"
             : string.Join(Environment.NewLine, preparation.ArgumentPreparation.BlockingReasons);
+        JavaRequirementSummary = GetJavaRequirementSummary(preparation.JavaRequirement, SelectedJava);
+        MemoryAllocationSummary = GetMemoryAllocationSummary(preparation);
     }
 
     private async Task RefreshGameLaunchPreparationAsync()
@@ -721,9 +757,35 @@ public partial class MainViewModel(
     partial void OnSelectedJavaChanged(JavaInstallation? value)
     {
         CanInstallSelectedLoader = CanInstallLoaderForSelectedInstance(SelectedLoader);
-        if (!isRefreshing)
+        if (!isRefreshing && !isSelectingJavaForRequirement)
         {
             _ = RefreshSelectedInstanceStateAsync();
+        }
+    }
+
+    private void SelectJavaForCurrentRequirement()
+    {
+        if (currentJavaRequirement is null ||
+            (SelectedJava is not null && currentJavaRequirement.GetBlockingReasons(SelectedJava).Count == 0))
+        {
+            return;
+        }
+
+        var compatibleJava = AvailableJavaInstallations.FirstOrDefault(java =>
+            currentJavaRequirement.GetBlockingReasons(java).Count == 0);
+        if (compatibleJava is null)
+        {
+            return;
+        }
+
+        try
+        {
+            isSelectingJavaForRequirement = true;
+            SelectedJava = compatibleJava;
+        }
+        finally
+        {
+            isSelectingJavaForRequirement = false;
         }
     }
 
@@ -879,6 +941,9 @@ public partial class MainViewModel(
     partial void OnSelectedGameWindowModeChanged(MinecraftGameWindowModeOption value) =>
         UsesCustomGameWindowSize = value.Mode == MinecraftGameWindowMode.Custom;
 
+    partial void OnSelectedMemoryAllocationModeChanged(MinecraftMemoryAllocationModeOption value) =>
+        UsesCustomMemoryAllocation = value.Mode == MinecraftMemoryAllocationMode.Custom;
+
     [RelayCommand]
     private async Task SaveLaunchOptionsAsync()
     {
@@ -897,15 +962,27 @@ public partial class MainViewModel(
             return;
         }
 
+        if (!int.TryParse(
+                CustomMemoryMiB,
+                System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var customMemory))
+        {
+            LaunchOptionsSummary = "自定义内存必须是 MiB 整数；未保存也不会影响当前启动配置。";
+            return;
+        }
+
         var options = new MinecraftLaunchOptions(
             AdditionalJvmArguments,
             AdditionalGameArguments,
             SelectedGameWindowMode.Mode,
             width,
-            height);
+            height,
+            SelectedMemoryAllocationMode.Mode,
+            customMemory);
         if (!options.IsValid)
         {
-            LaunchOptionsSummary = $"启动选项无效：自定义参数最多 {MinecraftLaunchOptions.MaximumArgumentTextLength} 个字符，窗口尺寸范围为 {MinecraftLaunchOptions.MinimumWindowDimension}–{MinecraftLaunchOptions.MaximumWindowDimension}。";
+            LaunchOptionsSummary = $"启动选项无效：自定义参数最多 {MinecraftLaunchOptions.MaximumArgumentTextLength} 个字符，窗口尺寸范围为 {MinecraftLaunchOptions.MinimumWindowDimension}–{MinecraftLaunchOptions.MaximumWindowDimension}，内存范围为 {MinecraftLaunchOptions.MinimumCustomMemoryMiB}–{MinecraftLaunchOptions.MaximumCustomMemoryMiB} MiB。";
             return;
         }
 
@@ -934,7 +1011,54 @@ public partial class MainViewModel(
         };
         var jvmDescription = string.IsNullOrWhiteSpace(options.AdditionalJvmArguments) ? "未设置额外 JVM 参数" : "已设置额外 JVM 参数";
         var gameDescription = string.IsNullOrWhiteSpace(options.AdditionalGameArguments) ? "未设置额外游戏参数" : "已设置额外游戏参数";
-        return $"{windowDescription}；{jvmDescription}；{gameDescription}。保存后立即用于下一次启动准备。";
+        var memoryDescription = options.MemoryAllocationMode == MinecraftMemoryAllocationMode.Automatic
+            ? "自动内存分配"
+            : $"自定义内存 {options.CustomMemoryMiB} MiB";
+        return $"{windowDescription}；{memoryDescription}；{jvmDescription}；{gameDescription}。保存后立即用于下一次启动准备。";
+    }
+
+    private static string GetJavaRequirementSummary(MinecraftJavaRequirement? requirement, JavaInstallation? java)
+    {
+        if (requirement is null)
+        {
+            return "版本元数据未提供可验证的 Java 版本要求。";
+        }
+
+        var requirementText = requirement.MinimumMajorVersion is { } minimum
+            ? $"至少 Java {minimum}"
+            : requirement.MaximumMajorVersion is { } maximum
+                ? $"最高 Java {maximum}"
+                : "未设定 Java 主版本上下限";
+        var status = java is null
+            ? "尚未选择 Java。"
+            : requirement.GetBlockingReasons(java) is { Count: > 0 } reasons
+                ? string.Join("；", reasons)
+                : $"所选 Java {java.MajorVersion?.ToString() ?? "未知"} 满足要求。";
+        return $"Java 要求：{requirementText}（{requirement.Source}）。{status}";
+    }
+
+    private static string GetMemoryAllocationSummary(MinecraftLaunchPreparation preparation)
+    {
+        if (preparation.MemoryAllocation is { BlockingReasons.Count: > 0 } blocked)
+        {
+            return string.Join(Environment.NewLine, blocked.BlockingReasons);
+        }
+
+        if (preparation.MemoryAllocation is not { IsReady: true, Allocation: { } allocation })
+        {
+            return "当前平台未提供内存信息；未额外注入 -Xmx。";
+        }
+
+        var expectedArgument = $"-Xmx{allocation.MaximumMemoryMiB}M";
+        var effectiveArgument = preparation.ArgumentPreparation.Arguments?.JvmArguments
+            .FirstOrDefault(argument => argument.StartsWith("-Xmx", StringComparison.OrdinalIgnoreCase));
+        if (effectiveArgument is not null &&
+            !string.Equals(effectiveArgument, expectedArgument, StringComparison.OrdinalIgnoreCase))
+        {
+            return $"高级 JVM 参数将使用 {effectiveArgument}；内存设置计算出的 {allocation.MaximumMemoryMiB} MiB 未重复注入。";
+        }
+
+        return $"当前堆内存为 {allocation.MaximumMemoryMiB} MiB（{(allocation.IsAutomatic ? "自动计算" : "自定义")}{(allocation.IsLimitedFor32BitJava ? "；32 位 Java 上限" : string.Empty)}）。";
     }
 
     [RelayCommand]
@@ -1329,3 +1453,5 @@ public partial class MainViewModel(
 }
 
 public sealed record MinecraftGameWindowModeOption(MinecraftGameWindowMode Mode, string DisplayName);
+
+public sealed record MinecraftMemoryAllocationModeOption(MinecraftMemoryAllocationMode Mode, string DisplayName);

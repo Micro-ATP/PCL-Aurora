@@ -71,6 +71,13 @@ public static partial class MinecraftLaunchArgumentBuilder
             gameTemplates = gameTemplates.Concat(["--fullscreen"]).ToArray();
         }
 
+        if (context.MaximumMemoryMiB is { } maximumMemoryMiB &&
+            maximumMemoryMiB > 0 &&
+            !jvmTemplates.Any(argument => argument.StartsWith("-Xmx", StringComparison.OrdinalIgnoreCase)))
+        {
+            jvmTemplates = jvmTemplates.Concat([$"-Xmx{maximumMemoryMiB}M"]).ToArray();
+        }
+
         var jvmArguments = Pcl2MinecraftLaunchArgumentDeduplicator.Deduplicate(
             ReplaceAll(jvmTemplates, replacements, blockingReasons),
             isJvmArgument: true);

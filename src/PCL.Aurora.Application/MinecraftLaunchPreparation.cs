@@ -5,4 +5,6 @@ namespace PCL.Aurora.Application;
 public sealed record MinecraftLaunchPreparation(
     MinecraftVersionPreparation VersionPreparation,
     MinecraftClasspathInspection ClasspathInspection,
-    MinecraftLaunchArgumentPreparation ArgumentPreparation);
+    MinecraftLaunchArgumentPreparation ArgumentPreparation,
+    MinecraftJavaRequirement? JavaRequirement = null,
+    MinecraftMemoryAllocationPreparation? MemoryAllocation = null);

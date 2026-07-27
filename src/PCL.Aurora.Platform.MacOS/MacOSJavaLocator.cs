@@ -169,6 +169,7 @@ public sealed partial class MacOSJavaLocator : IJavaLocator
         var architecture = ArchitecturePattern().Match(output).Groups["architecture"].Value;
         return architecture.ToLowerInvariant() switch
         {
+            "x86" or "i386" => JavaArchitecture.X86,
             "aarch64" or "arm64" => JavaArchitecture.Arm64,
             "amd64" or "x86_64" or "x64" => JavaArchitecture.X64,
             _ => JavaArchitecture.Unknown,

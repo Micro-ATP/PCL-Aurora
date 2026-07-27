@@ -13,6 +13,7 @@ public sealed class MinecraftVersionMetadataTests
               "id": "1.21.4",
               "type": "release",
               "releaseTime": "2024-12-03T00:00:00Z",
+              "javaVersion": { "majorVersion": 21, "component": "java-runtime-gamma" },
               "downloads": { "client": { "url": "https://example.invalid/client.jar", "sha1": "client-sha", "size": 123 } },
               "assetIndex": { "id": "17", "url": "https://example.invalid/assets.json", "sha1": "assets-sha", "size": 456 }
             }
@@ -23,6 +24,8 @@ public sealed class MinecraftVersionMetadataTests
         Assert.Equal("release", result.Metadata.Type);
         Assert.Equal(123, result.Metadata.ClientDownload!.Size);
         Assert.Equal("17", result.Metadata.AssetIndex!.Id);
+        Assert.Equal(21, result.Metadata.JavaVersionRequirement!.MajorVersion);
+        Assert.Equal("java-runtime-gamma", result.Metadata.JavaVersionRequirement.Component);
     }
 
     [Fact]
@@ -31,7 +34,8 @@ public sealed class MinecraftVersionMetadataTests
         var child = new MinecraftVersionMetadata("fabric-1.21.4", "1.21.4", null, null, null,
             new MinecraftVersionAssetIndex("17", new Uri("https://example.invalid/assets.json"), null, null));
         var parent = new MinecraftVersionMetadata("1.21.4", null, "release", null,
-            new MinecraftVersionDownload(new Uri("https://example.invalid/client.jar"), null, null), null);
+            new MinecraftVersionDownload(new Uri("https://example.invalid/client.jar"), null, null), null,
+            JavaVersionRequirement: new MinecraftJavaVersionRequirement(21, "java-runtime-gamma"));
 
         var inspection = MinecraftVersionMetadataResolver.Resolve([child, parent]);
         var plan = MinecraftDownloadPlanBuilder.Create(inspection.EffectiveMetadata);
@@ -40,6 +44,7 @@ public sealed class MinecraftVersionMetadataTests
         Assert.Equal("fabric-1.21.4", inspection.EffectiveMetadata!.Id);
         Assert.NotNull(inspection.EffectiveMetadata.ClientDownload);
         Assert.NotNull(inspection.EffectiveMetadata.AssetIndex);
+        Assert.Equal(21, inspection.EffectiveMetadata.JavaVersionRequirement!.MajorVersion);
         Assert.True(plan.IsReady);
         Assert.Equal(2, plan.Artifacts.Count);
     }
@@ -324,6 +329,40 @@ public sealed class MinecraftVersionMetadataTests
 
         Assert.False(preparation.IsReady);
         Assert.Contains(preparation.BlockingReasons, reason => reason.Contains("额外 JVM 参数", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Prepare_AddsCalculatedHeapUnlessAdvancedJvmArgumentsAlreadySetHeap()
+    {
+        var metadata = new MinecraftVersionMetadata(
+            "1.21.4",
+            null,
+            "release",
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                "net.minecraft.client.main.Main",
+                ["-cp", "${classpath}"],
+                [],
+                HasModernArguments: true,
+                HasConditionalArguments: false,
+                LegacyGameArguments: null));
+        var context = MinecraftLaunchContext.CreateDefault("1.21.4") with
+        {
+            Classpath = "/libraries/example.jar",
+            MaximumMemoryMiB = 4096,
+        };
+
+        var automatic = MinecraftLaunchArgumentBuilder.Prepare(metadata, context);
+        var advanced = MinecraftLaunchArgumentBuilder.Prepare(
+            metadata,
+            context,
+            new MinecraftLaunchOptions(AdditionalJvmArguments: "-Xmx6G"));
+
+        Assert.Contains("-Xmx4096M", automatic.Arguments!.JvmArguments);
+        Assert.DoesNotContain("-Xmx4096M", advanced.Arguments!.JvmArguments);
+        Assert.Contains("-Xmx6G", advanced.Arguments.JvmArguments);
     }
 
     [Fact]

@@ -35,7 +35,7 @@ public sealed class MinecraftGameLaunchService(
         }
 
         var launchPreparation = await launchPreparationService
-            .PrepareAsync(instance, account, cancellationToken)
+            .PrepareAsync(instance, account, java, cancellationToken)
             .ConfigureAwait(false);
         var assetPreparation = await assetPreparationService
             .PrepareAsync(instance, cancellationToken)
@@ -60,6 +60,8 @@ public sealed class MinecraftGameLaunchService(
             .Concat(assetPreparation.MappingPlan.MissingFiles.Select(path => $"缺少资源对象：{path}"))
             .Concat(nativeLibraryPlan.BlockingReasons)
             .Concat(nativeLibraryPlan.MissingFiles.Select(path => $"缺少 native 文件：{path}"))
+            .Concat(launchPreparation.JavaRequirement?.GetBlockingReasons(java) ?? [])
+            .Concat(launchPreparation.MemoryAllocation?.BlockingReasons ?? [])
             .Concat(requestPreparation.BlockingReasons)
             .Distinct(StringComparer.Ordinal)
             .ToList();

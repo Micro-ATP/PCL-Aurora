@@ -32,6 +32,7 @@ public static class MinecraftVersionMetadataResolver
                 AssetIndex = child.AssetIndex ?? effective.AssetIndex,
                 Launch = MergeLaunchMetadata(effective.Launch, child.Launch),
                 Libraries = MergeLibraries(effective.Libraries, child.Libraries),
+                JavaVersionRequirement = child.JavaVersionRequirement ?? effective.JavaVersionRequirement,
             };
         }
 

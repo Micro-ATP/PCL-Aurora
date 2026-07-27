@@ -8,7 +8,9 @@ public sealed record MinecraftLaunchOptions(
     string? AdditionalGameArguments = null,
     MinecraftGameWindowMode WindowMode = MinecraftGameWindowMode.Default,
     int WindowWidth = 854,
-    int WindowHeight = 480)
+    int WindowHeight = 480,
+    MinecraftMemoryAllocationMode MemoryAllocationMode = MinecraftMemoryAllocationMode.Automatic,
+    int CustomMemoryMiB = 4096)
 {
     public const int DefaultWindowWidth = 854;
 
@@ -20,6 +22,12 @@ public sealed record MinecraftLaunchOptions(
 
     public const int MaximumArgumentTextLength = 4000;
 
+    public const int DefaultCustomMemoryMiB = 4096;
+
+    public const int MinimumCustomMemoryMiB = 256;
+
+    public const int MaximumCustomMemoryMiB = 262144;
+
     public static MinecraftLaunchOptions Default { get; } = new();
 
     public bool IsValid =>
@@ -27,11 +35,16 @@ public sealed record MinecraftLaunchOptions(
         IsValidArgumentText(AdditionalGameArguments) &&
         Enum.IsDefined(WindowMode) &&
         IsValidWindowDimension(WindowWidth) &&
-        IsValidWindowDimension(WindowHeight);
+        IsValidWindowDimension(WindowHeight) &&
+        Enum.IsDefined(MemoryAllocationMode) &&
+        IsValidCustomMemoryMiB(CustomMemoryMiB);
 
     public static bool IsValidArgumentText(string? value) =>
         value is null || value.Length <= MaximumArgumentTextLength;
 
     public static bool IsValidWindowDimension(int value) =>
         value >= MinimumWindowDimension && value <= MaximumWindowDimension;
+
+    public static bool IsValidCustomMemoryMiB(int value) =>
+        value >= MinimumCustomMemoryMiB && value <= MaximumCustomMemoryMiB;
 }

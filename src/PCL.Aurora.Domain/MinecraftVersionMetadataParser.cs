@@ -39,7 +39,8 @@ public static class MinecraftVersionMetadataParser
                     clientDownload,
                     assetIndex,
                     ParseLaunchMetadata(root),
-                    ParseLibraries(root)),
+                    ParseLibraries(root),
+                    ParseJavaVersionRequirement(root)),
                 errors);
         }
         catch (JsonException exception)
@@ -76,6 +77,19 @@ public static class MinecraftVersionMetadataParser
         return string.IsNullOrWhiteSpace(id) || url is null
             ? null
             : new MinecraftVersionAssetIndex(id, url, GetString(assetIndex, "sha1"), GetInt64(assetIndex, "size"));
+    }
+
+    private static MinecraftJavaVersionRequirement? ParseJavaVersionRequirement(JsonElement root)
+    {
+        if (!TryGetObject(root, "javaVersion", out var javaVersion) ||
+            !javaVersion.TryGetProperty("majorVersion", out var majorVersion) ||
+            !majorVersion.TryGetInt32(out var major) ||
+            major is < 1 or > 100)
+        {
+            return null;
+        }
+
+        return new MinecraftJavaVersionRequirement(major, GetString(javaVersion, "component"));
     }
 
     private static MinecraftLaunchMetadata? ParseLaunchMetadata(JsonElement root)

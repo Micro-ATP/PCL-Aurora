@@ -181,6 +181,26 @@
                                              Text="{Binding CustomGameWindowHeight}" />
                                     <TextBlock VerticalAlignment="Center" Text="高度" />
                                 </StackPanel>
+                                <Label Content="内存分配" Target="{Binding #MemoryAllocationModeSelector}" />
+                                <ComboBox x:Name="MemoryAllocationModeSelector"
+                                          Width="280"
+                                          HorizontalAlignment="Left"
+                                          AutomationProperties.Name="Minecraft 内存分配模式"
+                                          ItemsSource="{Binding MemoryAllocationModes}"
+                                          SelectedItem="{Binding SelectedMemoryAllocationMode}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <StackPanel IsEnabled="{Binding UsesCustomMemoryAllocation}" Orientation="Horizontal" Spacing="8">
+                                    <TextBlock VerticalAlignment="Center" Text="自定义堆内存" />
+                                    <TextBox Width="120"
+                                             AutomationProperties.Name="自定义 Minecraft 堆内存（MiB）"
+                                             Text="{Binding CustomMemoryMiB}" />
+                                    <TextBlock VerticalAlignment="Center" Text="MiB" />
+                                </StackPanel>
                                 <TextBlock Text="额外 JVM 参数" />
                                 <TextBox AcceptsReturn="True"
                                          Height="80"
@@ -214,6 +234,12 @@
                                            TextWrapping="Wrap" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                            Text="{Binding LaunchArgumentSummary}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding JavaRequirementSummary}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding MemoryAllocationSummary}"
                                            TextWrapping="Wrap" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                            Text="{Binding ClasspathSummary}"
