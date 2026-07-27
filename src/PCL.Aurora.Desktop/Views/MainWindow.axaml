@@ -274,33 +274,24 @@
             </TabItem>
 
             <TabItem>
-                <Grid ColumnDefinitions="196,*">
-                    <Border Padding="10,14" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+                <Grid ColumnDefinitions="152,*">
+                    <Border Padding="0,12,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
                         <StackPanel Spacing="4">
-                            <TextBlock Margin="10,4,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="游戏" />
                             <Button x:Name="SettingsLaunchNavigation" Classes="secondary-navigation selected"
-                                    Click="SettingsNavigationClick" Tag="launch" Content="启动与 Java" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="游戏管理 · 待迁移" />
-                            <TextBlock Margin="10,16,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="启动器" />
+                                    Click="SettingsNavigationClick" Tag="launch" Content="启动" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="联机 · 待迁移" />
                             <Button x:Name="SettingsInterfaceNavigation" Classes="secondary-navigation"
-                                    Click="SettingsNavigationClick" Tag="interface" Content="界面" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="语言 · 待迁移" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="杂项 · 待迁移" />
-                            <TextBlock Margin="10,16,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="关于" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="更新与反馈 · 待迁移" />
+                                    Click="SettingsNavigationClick" Tag="interface" Content="个性化" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="其他 · 待迁移" />
                         </StackPanel>
                     </Border>
                     <ScrollViewer Grid.Column="1">
-                    <StackPanel Margin="28" MaxWidth="860" Spacing="24">
-                        <StackPanel Spacing="6">
-                            <TextBlock FontSize="28" FontWeight="SemiBold" Text="设置" />
-                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                       Text="游戏、工具、启动器与关于信息。" />
-                        </StackPanel>
+                    <StackPanel Margin="25,25,25,10" MaxWidth="860" Spacing="15">
 
                         <Border x:Name="SettingsLaunchSection" Classes="pcl-card" Padding="20" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
                             <StackPanel Spacing="14">
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="游戏 · Java" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#1370F3" Text="启动选项" />
+                                <TextBlock FontWeight="SemiBold" Text="Java 与运行环境" />
                                 <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="160,*" RowSpacing="12">
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="操作系统" />
                                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OperatingSystem}" TextWrapping="Wrap" />
@@ -342,7 +333,7 @@
                                 <Button HorizontalAlignment="Left" Command="{Binding RefreshCommand}" Content="刷新 Java 诊断" />
 
                                 <Separator Margin="0,6" />
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="游戏 · 启动" />
+                                <TextBlock FontSize="17" FontWeight="SemiBold" Text="游戏启动" />
                                 <Label Content="窗口模式" Target="{Binding #GameWindowModeSelector}" />
                                 <ComboBox x:Name="GameWindowModeSelector"
                                           Width="280"
@@ -400,7 +391,7 @@
                                            Text="{Binding LaunchOptionsSummary}" TextWrapping="Wrap" />
 
                                 <Separator Margin="0,6" />
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="游戏下载" />
+                                <TextBlock FontSize="17" FontWeight="SemiBold" Text="下载设置" />
                                 <Label Content="最大下载连接数" Target="{Binding #DownloadConcurrencySelector}" />
                                 <ComboBox x:Name="DownloadConcurrencySelector"
                                           Width="240" HorizontalAlignment="Left"
@@ -426,7 +417,7 @@
 
                         <Border x:Name="SettingsInterfaceSection" Classes="pcl-card" Padding="20" IsVisible="False">
                             <StackPanel Spacing="12">
-                                <TextBlock FontWeight="SemiBold" Text="启动器 · 界面" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#1370F3" Text="个性化" />
                                 <Label Content="主题模式" Target="{Binding #ThemeModeSelector}" />
                                 <ComboBox x:Name="ThemeModeSelector"
                                           Width="240"
