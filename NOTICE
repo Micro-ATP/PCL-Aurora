@@ -28,6 +28,11 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherAbout.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherHelp.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherTest.xaml
+- PCL2: Plain Craft Launcher 2/Controls/MyButton.xaml
+- PCL2: Plain Craft Launcher 2/Controls/MyButton.xaml.vb
+- PCL2: Plain Craft Launcher 2/Controls/MyTextBox.vb
+- PCL2: Plain Craft Launcher 2/Controls/MySearchBox.xaml
+- PCL2: Plain Craft Launcher 2/Controls/MySearchBox.xaml.vb
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml
 

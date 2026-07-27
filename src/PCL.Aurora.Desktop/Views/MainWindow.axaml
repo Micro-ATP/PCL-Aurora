@@ -146,19 +146,50 @@
             <Setter Property="Foreground" Value="#36424F" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox">
-            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Background" Value="#FCFCFD" />
             <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#83B8F8" />
+            <Setter Property="CaretBrush" Value="#1370F3" />
+            <Setter Property="SelectionBrush" Value="#B8D8FF" />
+            <Setter Property="PlaceholderForeground" Value="#7C8794" />
+            <Setter Property="BorderBrush" Value="#A8C9EE" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#FCFCFD" />
+            <Setter Property="BorderBrush" Value="#A8C9EE" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox:pointerover">
+            <Setter Property="Background" Value="#F0F7FF" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#5AA0F2" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#F0F7FF" />
+            <Setter Property="BorderBrush" Value="#5AA0F2" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:focus">
-            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Background" Value="#E4F1FF" />
             <Setter Property="Foreground" Value="#36424F" />
             <Setter Property="BorderBrush" Value="#1370F3" />
         </Style>
-        <Style Selector="Grid.pcl-shell TextBox:focus-within">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="Foreground" Value="#36424F" />
+        <Style Selector="Grid.pcl-shell TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#E4F1FF" />
             <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox:disabled">
+            <Setter Property="Background" Value="#EDF1F5" />
+            <Setter Property="Foreground" Value="#7C8794" />
+            <Setter Property="PlaceholderForeground" Value="#9AA5B1" />
+            <Setter Property="BorderBrush" Value="#D5DEE8" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox:disabled /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#EDF1F5" />
+            <Setter Property="BorderBrush" Value="#D5DEE8" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox">
             <Setter Property="Background" Value="#FFFFFF" />
@@ -246,10 +277,54 @@
             <Setter Property="Foreground" Value="White" />
             <Setter Property="BorderBrush" Value="#1370F3" />
         </Style>
+        <Style Selector="Grid.pcl-shell Button.launch-button:pointerover">
+            <Setter Property="Background" Value="#2B86ED" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#2B86ED" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.launch-button:pressed">
+            <Setter Property="Background" Value="#0F5FCC" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#0F5FCC" />
+        </Style>
         <Style Selector="Grid.pcl-shell Button.launch-download-button">
             <Setter Property="Background" Value="#FCFCFD" />
             <Setter Property="Foreground" Value="#1370F3" />
             <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.launch-download-button:pointerover">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#0F5FCC" />
+            <Setter Property="BorderBrush" Value="#0F5FCC" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.launch-download-button:pressed">
+            <Setter Property="Background" Value="#D6EAFF" />
+            <Setter Property="Foreground" Value="#0B55B7" />
+            <Setter Property="BorderBrush" Value="#0B55B7" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.launch-action">
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.launch-action TextBlock">
+            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
         </Style>
         <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation">
             <Setter Property="Background" Value="Transparent" />
@@ -434,7 +509,7 @@
                                 <TextBox Height="35" PlaceholderText="游戏用户名" Text="{Binding OfflinePlayerName}" />
                             </StackPanel>
                             <StackPanel Grid.Row="3" HorizontalAlignment="Stretch" Spacing="8">
-                                <Button Classes="launch-download-button" Click="OpenDownloadPageClick"
+                                <Button Classes="launch-action launch-download-button" Click="OpenDownloadPageClick"
                                         HorizontalAlignment="Stretch"
                                         IsVisible="{Binding NeedsGameDownload}" Height="54" FontSize="16">
                                     <StackPanel Spacing="2">
@@ -442,11 +517,11 @@
                                         <TextBlock HorizontalAlignment="Center" FontSize="11" Opacity="0.65" Text="未找到可用的游戏版本" />
                                     </StackPanel>
                                 </Button>
-                                <Button Classes="launch-button" Command="{Binding LaunchGameCommand}"
+                                <Button Classes="launch-action launch-button" Command="{Binding LaunchGameCommand}"
                                         HorizontalAlignment="Stretch"
                                         IsVisible="{Binding HasAvailableInstances}"
                                         IsEnabled="{Binding CanLaunchGame}" Height="52" FontSize="16" Content="启动游戏" />
-                                <Button Classes="launch-download-button" Click="OpenDownloadPageClick"
+                                <Button Classes="launch-action launch-download-button" Click="OpenDownloadPageClick"
                                         HorizontalAlignment="Stretch"
                                         Height="35" FontSize="14" Content="版本选择" />
                             </StackPanel>
@@ -1091,10 +1166,8 @@
                                 <TextBlock x:Name="MorePlaceholderTitle" FontSize="17" FontWeight="SemiBold" Text="帮助" />
                                 <TextBlock x:Name="MorePlaceholderDescription" Foreground="#6F7C8B" TextWrapping="Wrap" />
                                 <!-- PCL2 PageOtherHelp.xaml uses a search field above its local help topics. -->
-                                <ThemeVariantScope RequestedThemeVariant="Light">
-                                    <TextBox x:Name="MoreHelpSearchBox" Height="34" IsVisible="False"
-                                             PlaceholderText="搜索帮助" TextChanged="MoreHelpSearchTextChanged" />
-                                </ThemeVariantScope>
+                                <TextBox x:Name="MoreHelpSearchBox" Height="34" IsVisible="False"
+                                         PlaceholderText="搜索帮助" TextChanged="MoreHelpSearchTextChanged" />
                                 <Separator />
                                 <ItemsControl x:Name="MorePlaceholderItems">
                                     <ItemsControl.ItemTemplate>
