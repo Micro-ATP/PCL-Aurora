@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PCL.Aurora.Desktop.ViewModels"
+        xmlns:controls="using:PCL.Aurora.Desktop.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1120" d:DesignHeight="720"
@@ -13,7 +14,8 @@
         MinHeight="470"
         WindowDecorations="None"
         ExtendClientAreaToDecorationsHint="True"
-        Background="#D0D0D0"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
         Title="PCL Aurora">
 
     <Design.DataContext>
@@ -21,8 +23,9 @@
     </Design.DataContext>
 
     <Window.Styles>
-        <!-- Visual structure adapted for Avalonia from PCL2 FormMain.xaml and PageLaunch/*.xaml.
-             The implementation stays cross-platform and retains Aurora's own command bindings. -->
+        <!-- Visual structure adapted for Avalonia from PCL2 FormMain.xaml and its
+             PageLaunch, PageDownload, PageSetup and PageOther XAML, with PCL-CE's
+             expanded download/setup navigation. Aurora retains cross-platform bindings. -->
         <Style Selector="Button.main-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -55,6 +58,23 @@
             <Setter Property="BorderBrush" Value="#D1DDEA" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
+        <Style Selector="Border.pcl-notice">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="#FCFDFF" />
+            <Setter Property="BorderBrush" Value="#CADBEA" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+        <Style Selector="Border.pcl-status-strip">
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Padding" Value="10,7" />
+        </Style>
+        <Style Selector="Border.pcl-option-row">
+            <Setter Property="Background" Value="#F7FAFD" />
+            <Setter Property="BorderBrush" Value="#E0E8F0" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
         <Style Selector="Button.launch-button">
             <Setter Property="Background" Value="#1370F3" />
             <Setter Property="Foreground" Value="White" />
@@ -67,58 +87,60 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
         </Style>
-        <Style Selector="Button.login-mode">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Foreground" Value="#1370F3" />
-            <Setter Property="FontSize" Value="15" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Height" Value="34" />
-            <Setter Property="Padding" Value="14,0" />
-            <Setter Property="CornerRadius" Value="18" />
-        </Style>
-        <Style Selector="Button.login-mode.selected">
-            <Setter Property="Background" Value="#1370F3" />
-            <Setter Property="Foreground" Value="White" />
-        </Style>
-        <Style Selector="Button.login-mode:disabled">
-            <Setter Property="Opacity" Value="1" />
-            <Setter Property="Foreground" Value="#6F7C8B" />
-        </Style>
-        <Style Selector="Button.window-control">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="3" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="FontSize" Value="20" />
-            <Setter Property="FontWeight" Value="Light" />
-            <Setter Property="Width" Value="32" />
-            <Setter Property="Height" Value="32" />
-            <Setter Property="Padding" Value="0" />
-        </Style>
-        <Style Selector="Button.window-control:pointerover">
-            <Setter Property="Background" Value="#4192F7" />
-        </Style>
         <Style Selector="Border.side-selection">
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="Background" Value="#1370F3" />
         </Style>
-        <Style Selector="Button.secondary-navigation">
+        <Style Selector="controls|PclNavigationButton.secondary-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="Padding" Value="12,9" />
+            <Setter Property="Padding" Value="12,0" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Height" Value="36" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="controls:PclNavigationButton">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <Grid ColumnDefinitions="20,*" ColumnSpacing="8">
+                            <Path Width="16" Height="16" VerticalAlignment="Center"
+                                  Data="{TemplateBinding IconData}"
+                                  Stretch="Uniform"
+                                  Fill="Transparent"
+                                  Stroke="{TemplateBinding Foreground}"
+                                  StrokeThickness="2"
+                                  StrokeLineCap="Round"
+                                  StrokeJoin="Round" />
+                            <TextBlock Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       Text="{TemplateBinding Label}" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
         </Style>
-        <Style Selector="Button.secondary-navigation:pointerover">
-            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
+        <Style Selector="controls|PclNavigationButton.secondary-navigation:pointerover">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#1370F3" />
         </Style>
-        <Style Selector="Button.secondary-navigation.selected">
+        <Style Selector="controls|PclNavigationButton.secondary-navigation.selected">
             <Setter Property="Background" Value="#1370F3" />
             <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="controls|PclNavigationButton.secondary-navigation.selected:pointerover">
+            <Setter Property="Background" Value="#2B86ED" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="controls|PclNavigationButton.secondary-navigation:focus-visible">
+            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBlock">
             <Setter Property="Foreground" Value="#36424F" />
@@ -127,6 +149,16 @@
             <Setter Property="Background" Value="#FFFFFF" />
             <Setter Property="Foreground" Value="#36424F" />
             <Setter Property="BorderBrush" Value="#83B8F8" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox:focus">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox:focus-within">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox">
             <Setter Property="Background" Value="#FFFFFF" />
@@ -164,27 +196,48 @@
         <Style Selector="Grid.pcl-shell Button.main-navigation TextBlock">
             <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
         </Style>
-        <Style Selector="Grid.pcl-shell Button.login-mode">
+        <Style Selector="Grid.pcl-shell Button.account-mode">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="MinWidth" Value="82" />
+            <Setter Property="Padding" Value="13,0" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
         </Style>
-        <Style Selector="Grid.pcl-shell Button.login-mode.selected">
+        <Style Selector="Grid.pcl-shell Button.account-mode.selected">
             <Setter Property="Background" Value="#1370F3" />
             <Setter Property="Foreground" Value="White" />
         </Style>
-        <Style Selector="Grid.pcl-shell Button.login-mode:pointerover">
+        <Style Selector="Grid.pcl-shell Button.account-mode:pointerover">
             <Setter Property="Background" Value="#E4F1FF" />
             <Setter Property="Foreground" Value="#1370F3" />
         </Style>
-        <Style Selector="Grid.pcl-shell Button.login-mode.selected:pointerover">
+        <Style Selector="Grid.pcl-shell Button.account-mode.selected:pointerover">
             <Setter Property="Background" Value="#2B86ED" />
             <Setter Property="Foreground" Value="White" />
         </Style>
-        <Style Selector="Grid.pcl-shell Button.login-mode TextBlock">
+        <Style Selector="Grid.pcl-shell Button.account-mode TextBlock">
             <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
         </Style>
-        <Style Selector="Grid.pcl-shell Button.login-mode:disabled">
+        <Style Selector="Grid.pcl-shell Button.account-mode:disabled">
             <Setter Property="Opacity" Value="1" />
             <Setter Property="Foreground" Value="#6F7C8B" />
         </Style>
@@ -198,20 +251,43 @@
             <Setter Property="Foreground" Value="#1370F3" />
             <Setter Property="BorderBrush" Value="#1370F3" />
         </Style>
-        <Style Selector="Grid.pcl-shell Button.secondary-navigation">
+        <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Foreground" Value="#36424F" />
         </Style>
-        <Style Selector="Grid.pcl-shell Button.secondary-navigation.selected">
+        <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation:pointerover">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation.selected">
             <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation.selected:pointerover">
+            <Setter Property="Background" Value="#2B86ED" />
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.window-control">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Foreground" Value="White" />
-            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          HorizontalContentAlignment="Center"
+                                          VerticalContentAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
         </Style>
         <Style Selector="Grid.pcl-shell Button.window-control:pointerover">
             <Setter Property="Background" Value="#4A96EE" />
@@ -237,7 +313,7 @@
         </Style>
     </Window.Styles>
 
-    <Border Margin="18" CornerRadius="8" ClipToBounds="True">
+    <Border CornerRadius="8" ClipToBounds="True">
     <Grid Classes="pcl-shell" RowDefinitions="48,*">
         <Border Background="#1370F3" PointerPressed="TitleBarPointerPressed">
             <Grid ColumnDefinitions="*,Auto,*">
@@ -290,9 +366,17 @@
                         </StackPanel>
                     </Button>
                 </StackPanel>
-                <StackPanel Grid.Column="2" Margin="0,0,8,0" HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Classes="window-control" Click="MinimizeWindowClick" Content="-" />
-                    <Button Classes="window-control" Click="CloseWindowClick" Content="x" />
+                <StackPanel Grid.Column="2" Margin="0,0,12,0" Spacing="4"
+                            HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Paths and 28 px sizing follow PCL2 FormMain.xaml title controls. -->
+                    <Button Classes="window-control" Click="MinimizeWindowClick" ToolTip.Tip="最小化">
+                        <Path Width="15" Height="2" Stretch="Fill" Fill="White"
+                              Data="M0,0 h15 v2 h-15 v-2 Z" />
+                    </Button>
+                    <Button Classes="window-control" Click="CloseWindowClick" ToolTip.Tip="关闭">
+                        <Path Width="14.4" Height="14.4" Stretch="Uniform" Fill="White"
+                              Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
@@ -301,13 +385,36 @@
             <Grid x:Name="LaunchPage">
                 <Grid ColumnDefinitions="300,*" Background="#D9EAF9">
                     <Border Background="#FCFCFD" BorderBrush="#D7DCE2" BorderThickness="0,0,1,0">
-                        <Grid Margin="20,22,20,20" RowDefinitions="Auto,*,Auto,Auto">
+                        <Grid Margin="20,20" RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="8">
                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
-                                <Button Classes="login-mode" Click="OfficialLoginClick"
-                                        ToolTip.Tip="{Binding MicrosoftLoginSummary}" Content="正版" />
-                                <Button Classes="login-mode selected" Command="{Binding UseOfflineAccountCommand}" Content="离线" />
+                                <!-- Icons reused from PCL2 PageLaunchLeft.xaml under the upstream project license. -->
+                                <Button Classes="account-mode" Click="OfficialLoginClick"
+                                        ToolTip.Tip="{Binding MicrosoftLoginSummary}">
+                                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <Path Width="18" Height="18" Stretch="Uniform"
+                                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                              Data="M511.488256 95.184408c35.310345 22.516742 95.184408 55.78011 167.34033 84.437781 75.738131 29.681159 148.405797 40.93953 191.392304 45.033483v353.615193c0 73.691154-50.662669 164.781609-136.123938 244.101949C649.65917 901.181409 558.568716 942.12094 512 942.12094c-46.568716 0-137.65917-40.93953-222.096952-119.748126C204.441779 742.54073 153.77911 651.450275 153.77911 577.247376v-353.103448c42.474763-4.093953 116.165917-15.352324 191.904048-45.545227 75.226387-30.192904 133.565217-63.456272 165.805098-83.414293M512 0c-4.093953 0-8.187906 1.535232-11.258371 3.582209l-14.84058 10.234882c-1.023488 0.511744-67.550225 47.592204-170.410794 88.531735-100.813593 39.916042-198.556722 41.963018-199.58021 41.963018l-25.075462 0.511744c-10.746627 0.511744-18.934533 8.187906-18.934533 18.422789v414.000999c0 216.97951 286.064968 446.24088 440.09995 446.24088s440.09995-229.261369 440.09995-445.729136V163.758121c0-10.234883-8.69965-18.422789-18.934533-18.422789l-24.563718-0.511744c-1.023488 0-98.766617-2.046977-199.58021-41.963018-103.372314-40.93953-170.410795-88.01999-170.922538-88.531734L523.258371 3.582209c-3.070465-2.558721-7.164418-3.582209-11.258371-3.582209z M743.308346 410.930535l-260.477761 260.477761c-15.864068 15.864068-41.963018 15.864068-57.827087 0l-144.823588-144.823588c-15.864068-15.864068-15.864068-41.963018 0-57.827087 8.187906-8.187906 18.422789-11.770115 29.169415-11.770115 10.234883 0 20.981509 4.093953 29.169416 11.770115l115.654173 115.654173L685.993003 352.591704c15.864068-15.864068 41.963018-15.864068 57.827087 0 15.352324 16.375812 15.352324 42.474763-0.511744 58.338831z" />
+                                        <TextBlock Text="正版" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="account-mode selected" Command="{Binding UseOfflineAccountCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <Path Width="17" Height="17" Stretch="Uniform"
+                                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                              Data="M533.293176 788.841412a60.235294 60.235294 0 1 1 85.202824 85.202823l-42.616471 42.586353c-129.355294 129.385412-339.124706 129.385412-468.510117 0-129.385412-129.385412-129.385412-339.124706 0-468.510117l42.586353-42.616471a60.235294 60.235294 0 1 1 85.202823 85.202824l-42.61647 42.586352a210.823529 210.823529 0 1 0 298.164706 298.164706l42.586352-42.61647z m255.548236-255.548236l42.61647-42.586352a210.823529 210.823529 0 1 0-298.164706-298.164706l-42.586352 42.61647a60.235294 60.235294 0 1 1-85.202824-85.202823l42.616471-42.586353c129.355294-129.385412 339.124706-129.385412 468.510117 0 129.385412 129.385412 129.385412 339.124706 0 468.510117l-42.586353 42.616471a60.235294 60.235294 0 1 1-85.202823-85.202824zM192.542118 192.542118a60.235294 60.235294 0 0 1 85.202823 0l553.712941 553.712941a60.235294 60.235294 0 0 1-85.202823 85.202823L192.542118 277.744941a60.235294 60.235294 0 0 1 0-85.202823z" />
+                                        <TextBlock Text="离线" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
-                            <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="12">
+                            <StackPanel Grid.Row="1" Margin="0,8,0,0" Spacing="6">
+                                <Border Classes="pcl-status-strip" Background="#E8F3FF">
+                                    <TextBlock FontSize="12" Foreground="#2472C8" Text="选择账户与游戏实例后即可启动" TextWrapping="Wrap" />
+                                </Border>
+                                <Border Classes="pcl-status-strip" Background="#FFF4D7" IsVisible="{Binding NeedsGameDownload}">
+                                    <TextBlock FontSize="12" Foreground="#9A6A00" Text="尚未发现可用实例，请先下载或选择游戏版本" TextWrapping="Wrap" />
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" VerticalAlignment="Center" Spacing="12">
                                 <Border Width="56" Height="56" CornerRadius="3" HorizontalAlignment="Center" ClipToBounds="True">
                                     <Grid>
                                         <Image Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -326,8 +433,9 @@
                                 </Border>
                                 <TextBox Height="35" PlaceholderText="游戏用户名" Text="{Binding OfflinePlayerName}" />
                             </StackPanel>
-                            <StackPanel Grid.Row="2" Spacing="8">
+                            <StackPanel Grid.Row="3" HorizontalAlignment="Stretch" Spacing="8">
                                 <Button Classes="launch-download-button" Click="OpenDownloadPageClick"
+                                        HorizontalAlignment="Stretch"
                                         IsVisible="{Binding NeedsGameDownload}" Height="54" FontSize="16">
                                     <StackPanel Spacing="2">
                                         <TextBlock HorizontalAlignment="Center" Text="下载游戏" />
@@ -335,12 +443,14 @@
                                     </StackPanel>
                                 </Button>
                                 <Button Classes="launch-button" Command="{Binding LaunchGameCommand}"
+                                        HorizontalAlignment="Stretch"
                                         IsVisible="{Binding HasAvailableInstances}"
                                         IsEnabled="{Binding CanLaunchGame}" Height="52" FontSize="16" Content="启动游戏" />
                                 <Button Classes="launch-download-button" Click="OpenDownloadPageClick"
+                                        HorizontalAlignment="Stretch"
                                         Height="35" FontSize="14" Content="版本选择" />
                             </StackPanel>
-                            <ComboBox Grid.Row="3" x:Name="InstanceSelector" Margin="0,10,0,0"
+                            <ComboBox Grid.Row="4" x:Name="InstanceSelector"
                                       AutomationProperties.Name="启动实例"
                                       IsVisible="{Binding HasAvailableInstances}"
                                       ItemsSource="{Binding AvailableInstances}"
@@ -358,19 +468,39 @@
                         </Grid>
                     </Border>
                     <Border Grid.Column="1" Background="#D9EAF9">
-                        <StackPanel Margin="28" Width="460" HorizontalAlignment="Left" VerticalAlignment="Top"
-                                    IsVisible="{Binding HasAvailableInstances}" Spacing="12">
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#1370F3" Text="启动状态" />
-                            <TextBlock Text="{Binding GameLaunchSummary}" TextWrapping="Wrap" />
-                            <TextBlock Foreground="#6F7C8B"
-                                       Text="{Binding LaunchPreflightSummary}" TextWrapping="Wrap" />
-                            <TextBlock Foreground="#6F7C8B"
-                                       Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
-                            <TextBlock Foreground="#6F7C8B"
-                                       Text="{Binding JavaRequirementSummary}" TextWrapping="Wrap" />
-                            <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
-                                      IsChecked="{Binding HasAcknowledgedAccountGuidance}"
-                                      Content="我已知悉正版购买与上游赞助提示。" />
+                        <StackPanel Margin="28" MaxWidth="520" HorizontalAlignment="Stretch" VerticalAlignment="Top" Spacing="14">
+                            <!-- PCL-CE places a compact notice card in the otherwise empty PCL2 launch-right region. -->
+                            <Border Classes="pcl-notice">
+                                <StackPanel Spacing="9">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="PCL Aurora 提示" />
+                                        <Border Grid.Column="1" CornerRadius="10" Background="#E4F1FF" Padding="8,3">
+                                            <TextBlock FontSize="11" Foreground="#1370F3" Text="跨平台迁移中" />
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Foreground="#536273" TextWrapping="Wrap"
+                                               Text="PCL Aurora 正在将 PCL2 的启动体验迁移到 macOS、Linux 与 Windows。当前可先创建或选择实例，再配置离线账户与本机 Java。" />
+                                    <Border Height="1" Background="#E2E8F0" />
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <Path Width="16" Height="16" VerticalAlignment="Top" Stroke="#1370F3" StrokeThickness="2"
+                                              Data="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
+                                        <TextBlock Grid.Column="1" FontSize="12" Foreground="#6F7C8B" TextWrapping="Wrap"
+                                                   Text="正版登录需要配置 Aurora 自有的 Microsoft OAuth Client ID；未配置时不会借用上游凭据。" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                            <Border Classes="pcl-notice" IsVisible="{Binding HasAvailableInstances}">
+                                <StackPanel Spacing="9">
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#1370F3" Text="启动状态" />
+                                    <TextBlock Text="{Binding GameLaunchSummary}" TextWrapping="Wrap" />
+                                    <TextBlock Foreground="#6F7C8B" Text="{Binding LaunchPreflightSummary}" TextWrapping="Wrap" />
+                                    <TextBlock Foreground="#6F7C8B" Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
+                                    <TextBlock Foreground="#6F7C8B" Text="{Binding JavaRequirementSummary}" TextWrapping="Wrap" />
+                                    <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
+                                              IsChecked="{Binding HasAcknowledgedAccountGuidance}"
+                                              Content="我已知悉正版购买与上游赞助提示。" />
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -379,19 +509,46 @@
             <Grid x:Name="DownloadPage" IsVisible="False">
                 <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
                     <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
-                        <StackPanel Spacing="4">
-                            <Button x:Name="DownloadGameNavigation" Classes="secondary-navigation selected"
-                                    Click="DownloadNavigationClick" Tag="game" Content="原版游戏" />
-                            <TextBlock Margin="13,12,5,4" FontSize="12" Foreground="#6F7C8B" Text="社区资源" />
-                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="模组 · 待迁移" />
-                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="整合包 · 待迁移" />
-                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="资源包与光影 · 待迁移" />
-                            <TextBlock Margin="13,12,5,4" FontSize="12" Foreground="#6F7C8B" Text="安装" />
-                            <Button x:Name="DownloadOptiFineNavigation" Classes="secondary-navigation"
-                                    Click="DownloadNavigationClick" Tag="optifine" Content="OptiFine" />
-                            <Button x:Name="DownloadLoaderNavigation" Classes="secondary-navigation"
-                                    Click="DownloadNavigationClick" Tag="loader" Content="Forge / NeoForge / Fabric" />
-                        </StackPanel>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <!-- Column names follow PCL2 PageDownloadLeft.xaml with PCL-CE installer additions. -->
+                            <StackPanel x:Name="DownloadNavigationPanel" Spacing="2">
+                                <controls:PclNavigationButton Classes="secondary-navigation selected" Click="DownloadNavigationClick"
+                                                              Tag="game" Label="原版游戏"
+                                                              IconData="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.3 7 12 12l8.7-5 M12 22V12" />
+                                <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="社区资源" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="mod" Label="模组"
+                                                              IconData="M14.7 6.3 17.7 3.3 20.7 6.3 17.7 9.3 M14.7 6.3 4 17v3h3l10.7-10.7" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="pack" Label="整合包"
+                                                              IconData="M21 8v13H3V8 M1 3h22v5H1z M10 12h4" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="datapack" Label="数据包"
+                                                              IconData="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M9 13h6 M9 17h6" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="resourcepack" Label="资源包"
+                                                              IconData="M12 2 2 7l10 5 10-5-10-5z M2 12l10 5 10-5 M2 17l10 5 10-5" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="shader" Label="光影包"
+                                                              IconData="M12 2v2 M12 20v2 M4.93 4.93l1.42 1.42 M17.66 17.66l1.41 1.41 M2 12h2 M20 12h2 M4.93 19.07l1.42-1.41 M17.66 6.34l1.41-1.41 M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="world" Label="世界"
+                                                              IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M2 12h20 M12 2a15.3 15.3 0 0 1 0 20 M12 2a15.3 15.3 0 0 0 0 20" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="favorites" Label="收藏夹"
+                                                              IconData="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
+                                <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="安装包" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="optifine" Label="OptiFine"
+                                                              IconData="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="forge" Label="Forge"
+                                                              IconData="M14.7 6.3 17.7 3.3 20.7 6.3 17.7 9.3 M14.7 6.3 4 17v3h3l10.7-10.7" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="neoforge" Label="NeoForge"
+                                                              IconData="M21 16V8l-9-5-9 5v8l9 5 9-5z M3.3 7 12 12l8.7-5 M12 22V12" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="fabric" Label="Fabric"
+                                                              IconData="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76z M16 8 2 22 M17.5 15H9" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="cleanroom" Label="Cleanroom"
+                                                              IconData="M3 6h18 M7 6V4h10v2 M5 6l1 16h12l1-16 M9 10v8 M15 10v8" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="legacy-fabric" Label="Legacy Fabric"
+                                                              IconData="M12 2v20 M5 5h14 M5 19h14 M7 9h10 M7 15h10" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="labymod" Label="LabyMod"
+                                                              IconData="M4 4h16v16H4z M8 8v8h8" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="liteloader" Label="LiteLoader"
+                                                              IconData="M13 2 3 14h9l-1 8 10-12h-9z" />
+                            </StackPanel>
+                        </ScrollViewer>
                     </Border>
                     <ScrollViewer Grid.Column="1" Background="#D9EAF9">
                     <StackPanel Margin="25,10,25,25" MaxWidth="860" Spacing="15">
@@ -402,11 +559,44 @@
                         </StackPanel>
 
                         <StackPanel HorizontalAlignment="Stretch" Spacing="15">
-                            <Border x:Name="DownloadCommunityCard" Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="4" Background="#FCFDFF" IsVisible="False">
-                                <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="SemiBold" Text="社区资源" />
-                                    <TextBlock Foreground="#6F7C8B" Text="模组、整合包、数据包、资源包、光影与存档。" TextWrapping="Wrap" />
-                                    <Button IsEnabled="False" Content="浏览资源" />
+                            <Border x:Name="DownloadCommunityCard" Classes="pcl-card" Padding="20" IsVisible="False">
+                                <StackPanel Spacing="12">
+                                    <TextBlock x:Name="DownloadCommunityTitle" FontSize="17" FontWeight="SemiBold" Text="社区资源" />
+                                    <TextBlock x:Name="DownloadCommunityDescription" Foreground="#6F7C8B"
+                                               Text="浏览来自主流资源平台的项目。" TextWrapping="Wrap" />
+                                    <Grid ColumnDefinitions="*,180" ColumnSpacing="10">
+                                        <TextBox IsEnabled="False" PlaceholderText="搜索名称、作者或版本" />
+                                        <ComboBox Grid.Column="1" IsEnabled="False" SelectedIndex="0">
+                                            <ComboBoxItem Content="综合排序" />
+                                            <ComboBoxItem Content="最近更新" />
+                                            <ComboBoxItem Content="下载量" />
+                                        </ComboBox>
+                                    </Grid>
+                                    <Border Background="#F2F7FC" CornerRadius="3" Padding="18">
+                                        <Grid ColumnDefinitions="40,*" ColumnSpacing="12">
+                                            <Border Width="40" Height="40" CornerRadius="3" Background="#DCEBFA" />
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock FontWeight="SemiBold" Text="资源目录界面已就绪" />
+                                                <TextBlock FontSize="12" Foreground="#6F7C8B"
+                                                           Text="目录数据与安装流程将在对应迁移阶段接入。" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="DownloadDeferredCard" Classes="pcl-card" Padding="20" IsVisible="False">
+                                <StackPanel Spacing="12">
+                                    <TextBlock FontSize="17" FontWeight="SemiBold" Text="安装器" />
+                                    <TextBlock Foreground="#6F7C8B" Text="选择目标 Minecraft 版本与安装器通道。" />
+                                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+                                        <TextBlock VerticalAlignment="Center" Text="游戏版本" />
+                                        <ComboBox Grid.Column="1" IsEnabled="False" SelectedIndex="0"><ComboBoxItem Content="选择 Minecraft 版本" /></ComboBox>
+                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="安装通道" />
+                                        <ComboBox Grid.Row="1" Grid.Column="1" IsEnabled="False" SelectedIndex="0"><ComboBoxItem Content="稳定版" /></ComboBox>
+                                        <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="安装位置" />
+                                        <TextBox Grid.Row="2" Grid.Column="1" IsEnabled="False" Text="当前实例" />
+                                    </Grid>
+                                    <Button HorizontalAlignment="Left" IsEnabled="False" Content="安装" />
                                 </StackPanel>
                             </Border>
                             <Border x:Name="DownloadGameCard" Classes="pcl-card" Padding="16">
@@ -452,7 +642,7 @@
                                     <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="16" Text="v" />
                                 </Grid>
                             </Button>
-                            <Border Classes="pcl-card" Padding="16">
+                            <Border x:Name="DownloadVersionSelectionCard" Classes="pcl-card" Padding="16">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="版本选择" />
                                     <TextBox PlaceholderText="搜索版本 ID，例如 1.21.4 或 24w14a" Text="{Binding VersionSearchText}" />
@@ -474,7 +664,7 @@
                                     <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding InstallationSummary}" TextWrapping="Wrap" />
                                 </StackPanel>
                             </Border>
-                            <Border x:Name="DownloadLoaderCard" Classes="pcl-card" Width="620" Margin="0,0,16,16" Padding="20" IsVisible="False">
+                            <Border x:Name="DownloadLoaderCard" Classes="pcl-card" Padding="20" IsVisible="False">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="模组加载器" />
                                     <TextBlock Foreground="#6F7C8B"
@@ -541,15 +731,17 @@
                                 </StackPanel>
                             </Border>
                         </StackPanel>
-                        <TextBlock Foreground="#6F7C8B"
-                                   Text="{Binding DownloadPreparationSummary}"
-                                   TextWrapping="Wrap" />
-                        <TextBlock Foreground="#6F7C8B"
-                                   Text="{Binding InstallationSummary}"
-                                   TextWrapping="Wrap" />
-                        <TextBlock Foreground="#6F7C8B"
-                                   Text="{Binding VersionCatalogSummary}"
-                                   TextWrapping="Wrap" />
+                        <StackPanel x:Name="DownloadGameStatusPanel" Spacing="6">
+                            <TextBlock Foreground="#6F7C8B"
+                                       Text="{Binding DownloadPreparationSummary}"
+                                       TextWrapping="Wrap" />
+                            <TextBlock Foreground="#6F7C8B"
+                                       Text="{Binding InstallationSummary}"
+                                       TextWrapping="Wrap" />
+                            <TextBlock Foreground="#6F7C8B"
+                                       Text="{Binding VersionCatalogSummary}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
                     </ScrollViewer>
                 </Grid>
@@ -558,41 +750,170 @@
             <Grid x:Name="SettingsPage" IsVisible="False">
                 <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
                     <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
-                        <StackPanel Spacing="4">
-                            <Button x:Name="SettingsLaunchNavigation" Classes="secondary-navigation selected"
-                                    Click="SettingsNavigationClick" Tag="launch" Content="启动" />
-                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="联机 · 待迁移" />
-                            <Button x:Name="SettingsInterfaceNavigation" Classes="secondary-navigation"
-                                    Click="SettingsNavigationClick" Tag="interface" Content="个性化" />
-                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="其他 · 待迁移" />
-                        </StackPanel>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <!-- Category structure follows PCL-CE PageSetupLeft.xaml; visual treatment follows PCL2. -->
+                            <StackPanel x:Name="SettingsNavigationPanel" Spacing="2">
+                                <TextBlock Margin="13,0,5,3" FontSize="12" Foreground="#6F7C8B" Text="游戏" />
+                                <controls:PclNavigationButton Classes="secondary-navigation selected" Click="SettingsNavigationClick" Tag="launch" Label="启动"
+                                                              IconData="M5 5a2 2 0 0 1 3-1.73l12 7a2 2 0 0 1 0 3.46l-12 7A2 2 0 0 1 5 19z" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="java" Label="Java"
+                                                              IconData="M8 2h8 M9 2v5a3 3 0 0 0 6 0V2 M7 12h10v3a5 5 0 0 1-10 0z M5 22h14" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="manage" Label="管理"
+                                                              IconData="M4 4h16v16H4z M4 9h16 M9 9v11" />
+                                <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="#6F7C8B" Text="工具" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="link" Label="联机"
+                                                              IconData="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                                <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="#6F7C8B" Text="启动器" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="interface" Label="个性化"
+                                                              IconData="M12 22a10 10 0 1 0 0-20 7 7 0 0 0 0 14h1.5a2.5 2.5 0 0 1 0 5z M7.5 10h.01 M12 7h.01 M16.5 10h.01" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="language" Label="语言"
+                                                              IconData="M5 8l6 6 M4 14l6-7 2-3 M2 5h12 M12 22l4-9 4 9 M14 18h4" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="misc" Label="杂项"
+                                                              IconData="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915 M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6" />
+                                <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="#6F7C8B" Text="关于" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="about" Label="软件信息"
+                                                              IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="update" Label="软件更新"
+                                                              IconData="M21 12a9 9 0 1 1-3-6.7 M21 3v6h-6" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="feedback" Label="反馈"
+                                                              IconData="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="log" Label="查看日志"
+                                                              IconData="M4 2h16v20H4z M8 7h8 M8 11h8 M8 15h5" />
+                            </StackPanel>
+                        </ScrollViewer>
                     </Border>
                     <ScrollViewer Grid.Column="1" Background="#D9EAF9">
                     <StackPanel Margin="25,25,25,10" MaxWidth="860" Spacing="15">
 
-                        <Border x:Name="SettingsLaunchSection" Classes="pcl-card" Padding="20" Background="#FCFDFF">
+                        <StackPanel x:Name="SettingsLaunchSection" Spacing="15">
+                            <StackPanel Spacing="5">
+                                <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="启动" />
+                                <TextBlock Foreground="#6F7C8B" Text="配置游戏运行环境、窗口、内存与下载行为。" />
+                            </StackPanel>
+
+                            <Border Classes="pcl-card" Padding="18">
+                                <StackPanel Spacing="12">
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Java 与运行环境" />
+                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="150,*" RowSpacing="10">
+                                        <TextBlock Text="当前平台" />
+                                        <TextBlock Grid.Column="1" Text="{Binding OperatingSystem}" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Row="1" Text="系统架构" />
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Architecture}" />
+                                        <TextBlock Grid.Row="2" Text="Java 状态" />
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding JavaSummary}" TextWrapping="Wrap" />
+                                    </Grid>
+                                    <Grid ColumnDefinitions="150,*" ColumnSpacing="10">
+                                        <TextBlock VerticalAlignment="Center" Text="启动 Java" />
+                                        <ComboBox x:Name="JavaSelector" Grid.Column="1"
+                                                  AutomationProperties.Name="启动 Java"
+                                                  IsEnabled="{Binding HasAvailableJavaInstallations}"
+                                                  ItemsSource="{Binding AvailableJavaInstallations}"
+                                                  SelectedItem="{Binding SelectedJava}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
+                                                        <TextBlock Grid.Column="1" Foreground="#6F7C8B" Text="{Binding Vendor}" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="150,*">
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                            <Button Command="{Binding RefreshCommand}" Content="重新搜索" />
+                                            <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="#6F7C8B"
+                                                       Text="仅显示与当前架构兼容的 Java" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="pcl-card" Padding="18">
+                                <StackPanel Spacing="12">
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="游戏启动" />
+                                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
+                                          ColumnSpacing="10" RowSpacing="10">
+                                        <TextBlock VerticalAlignment="Center" Text="窗口模式" />
+                                        <ComboBox x:Name="GameWindowModeSelector" Grid.Column="1"
+                                                  AutomationProperties.Name="Minecraft 窗口模式"
+                                                  ItemsSource="{Binding GameWindowModes}"
+                                                  SelectedItem="{Binding SelectedGameWindowMode}">
+                                            <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="窗口尺寸" />
+                                        <StackPanel Grid.Row="1" Grid.Column="1" IsEnabled="{Binding UsesCustomGameWindowSize}" Orientation="Horizontal" Spacing="8">
+                                            <TextBox Width="90" AutomationProperties.Name="自定义 Minecraft 窗口宽度" Text="{Binding CustomGameWindowWidth}" />
+                                            <TextBlock VerticalAlignment="Center" Text="×" />
+                                            <TextBox Width="90" AutomationProperties.Name="自定义 Minecraft 窗口高度" Text="{Binding CustomGameWindowHeight}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="内存分配" />
+                                        <ComboBox x:Name="MemoryAllocationModeSelector" Grid.Row="2" Grid.Column="1"
+                                                  AutomationProperties.Name="Minecraft 内存分配模式"
+                                                  ItemsSource="{Binding MemoryAllocationModes}"
+                                                  SelectedItem="{Binding SelectedMemoryAllocationMode}">
+                                            <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <TextBlock Grid.Row="3" VerticalAlignment="Center" Text="自定义内存" />
+                                        <StackPanel Grid.Row="3" Grid.Column="1" IsEnabled="{Binding UsesCustomMemoryAllocation}" Orientation="Horizontal" Spacing="8">
+                                            <TextBox Width="120" AutomationProperties.Name="自定义 Minecraft 堆内存（MiB）" Text="{Binding CustomMemoryMiB}" />
+                                            <TextBlock VerticalAlignment="Center" Text="MiB" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="4" VerticalAlignment="Top" Margin="0,8,0,0" Text="额外 JVM 参数" />
+                                        <TextBox Grid.Row="4" Grid.Column="1" AcceptsReturn="True" Height="66" MaxLength="4000"
+                                                 PlaceholderText="例如：-Xmx4G -Dexample=value" Text="{Binding AdditionalJvmArguments}"
+                                                 TextWrapping="Wrap" VerticalContentAlignment="Top" />
+                                        <TextBlock Grid.Row="5" VerticalAlignment="Top" Margin="0,8,0,0" Text="额外游戏参数" />
+                                        <TextBox Grid.Row="5" Grid.Column="1" AcceptsReturn="True" Height="66" MaxLength="4000"
+                                                 PlaceholderText="例如：--demo" Text="{Binding AdditionalGameArguments}"
+                                                 TextWrapping="Wrap" VerticalContentAlignment="Top" />
+                                    </Grid>
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                        <Button Command="{Binding SaveLaunchOptionsCommand}" Content="保存启动选项" />
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Foreground="#6F7C8B"
+                                                   Text="{Binding LaunchOptionsSummary}" TextWrapping="Wrap" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="pcl-card" Padding="18">
+                                <StackPanel Spacing="12">
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="下载设置" />
+                                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                                        <TextBlock VerticalAlignment="Center" Text="最大下载连接数" />
+                                        <ComboBox x:Name="DownloadConcurrencySelector" Grid.Column="1"
+                                                  AutomationProperties.Name="最大下载连接数"
+                                                  ItemsSource="{Binding DownloadConcurrencyOptions}"
+                                                  SelectedItem="{Binding SelectedDownloadConcurrency}" />
+                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="总下载限速" />
+                                        <ComboBox x:Name="DownloadSpeedSelector" Grid.Row="1" Grid.Column="1"
+                                                  AutomationProperties.Name="总下载限速"
+                                                  ItemsSource="{Binding DownloadSpeedOptions}"
+                                                  SelectedItem="{Binding SelectedDownloadSpeedLimit}">
+                                            <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </Grid>
+                                    <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding DownloadSettingsSummary}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <Border x:Name="SettingsJavaSection" Classes="pcl-card" Padding="20" IsVisible="False">
                             <StackPanel Spacing="14">
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#1370F3" Text="启动选项" />
-                                <TextBlock FontWeight="SemiBold" Text="Java 与运行环境" />
-                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="160,*" RowSpacing="12">
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="操作系统" />
-                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OperatingSystem}" TextWrapping="Wrap" />
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="系统架构" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#1370F3" Text="Java" />
+                                <TextBlock Foreground="#6F7C8B" Text="管理当前平台检测到的 Java 运行环境。" />
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="150,*" RowSpacing="10">
+                                    <TextBlock Text="操作系统" />
+                                    <TextBlock Grid.Column="1" Text="{Binding OperatingSystem}" />
+                                    <TextBlock Grid.Row="1" Text="系统架构" />
                                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Architecture}" />
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text=".NET 运行时" />
-                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Runtime}" TextWrapping="Wrap" />
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="数据目录" />
-                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ApplicationDataDirectory}" TextWrapping="Wrap" />
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="缓存目录" />
-                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CacheDirectory}" TextWrapping="Wrap" />
-                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Java" />
-                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding JavaSummary}" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Row="2" Text=".NET 运行时" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Runtime}" />
+                                    <TextBlock Grid.Row="3" Text="Java 状态" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding JavaSummary}" TextWrapping="Wrap" />
                                 </Grid>
-                                <Label Content="启动 Java" Target="{Binding #JavaSelector}" />
-                                <ComboBox x:Name="JavaSelector"
-                                          MinWidth="360"
-                                          HorizontalAlignment="Left"
-                                          AutomationProperties.Name="启动 Java"
+                                <Label Content="启动 Java" Target="{Binding #SettingsJavaSelector}" />
+                                <ComboBox x:Name="SettingsJavaSelector" MinWidth="360" HorizontalAlignment="Left"
                                           IsEnabled="{Binding HasAvailableJavaInstallations}"
                                           ItemsSource="{Binding AvailableJavaInstallations}"
                                           SelectedItem="{Binding SelectedJava}">
@@ -600,100 +921,16 @@
                                         <DataTemplate>
                                             <StackPanel Spacing="2">
                                                 <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
-                                                <TextBlock Foreground="#6F7C8B"
-                                                           Text="{Binding Vendor}" />
-                                                <TextBlock Foreground="#6F7C8B"
-                                                           Text="{Binding ExecutablePath}"
-                                                           TextWrapping="Wrap" />
+                                                <TextBlock Foreground="#6F7C8B" Text="{Binding Vendor}" />
+                                                <TextBlock FontSize="11" Foreground="#6F7C8B" Text="{Binding ExecutablePath}" TextWrapping="Wrap" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="仅显示与当前架构兼容的 Java；选择仅在本次运行生效。"
-                                           TextWrapping="Wrap" />
-                                <Button HorizontalAlignment="Left" Command="{Binding RefreshCommand}" Content="刷新 Java 诊断" />
-
-                                <Separator Margin="0,6" />
-                                <TextBlock FontSize="17" FontWeight="SemiBold" Text="游戏启动" />
-                                <Label Content="窗口模式" Target="{Binding #GameWindowModeSelector}" />
-                                <ComboBox x:Name="GameWindowModeSelector"
-                                          Width="280"
-                                          HorizontalAlignment="Left"
-                                          AutomationProperties.Name="Minecraft 窗口模式"
-                                          ItemsSource="{Binding GameWindowModes}"
-                                          SelectedItem="{Binding SelectedGameWindowMode}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding DisplayName}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <StackPanel IsEnabled="{Binding UsesCustomGameWindowSize}" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock VerticalAlignment="Center" Text="宽度" />
-                                    <TextBox Width="90" AutomationProperties.Name="自定义 Minecraft 窗口宽度"
-                                             Text="{Binding CustomGameWindowWidth}" />
-                                    <TextBlock VerticalAlignment="Center" Text="×" />
-                                    <TextBox Width="90" AutomationProperties.Name="自定义 Minecraft 窗口高度"
-                                             Text="{Binding CustomGameWindowHeight}" />
-                                    <TextBlock VerticalAlignment="Center" Text="高度" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Command="{Binding RefreshCommand}" Content="重新搜索" />
+                                    <Button IsEnabled="False" Content="手动导入" />
                                 </StackPanel>
-                                <Label Content="内存分配" Target="{Binding #MemoryAllocationModeSelector}" />
-                                <ComboBox x:Name="MemoryAllocationModeSelector"
-                                          Width="280"
-                                          HorizontalAlignment="Left"
-                                          AutomationProperties.Name="Minecraft 内存分配模式"
-                                          ItemsSource="{Binding MemoryAllocationModes}"
-                                          SelectedItem="{Binding SelectedMemoryAllocationMode}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding DisplayName}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <StackPanel IsEnabled="{Binding UsesCustomMemoryAllocation}" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock VerticalAlignment="Center" Text="自定义堆内存" />
-                                    <TextBox Width="120" AutomationProperties.Name="自定义 Minecraft 堆内存（MiB）"
-                                             Text="{Binding CustomMemoryMiB}" />
-                                    <TextBlock VerticalAlignment="Center" Text="MiB" />
-                                </StackPanel>
-                                <TextBlock Text="额外 JVM 参数" />
-                                <TextBox AcceptsReturn="True" Height="80" MaxLength="4000"
-                                         PlaceholderText="例如：-Xmx4G -Dexample=value"
-                                         Text="{Binding AdditionalJvmArguments}" TextWrapping="Wrap"
-                                         VerticalContentAlignment="Top" />
-                                <TextBlock Text="额外游戏参数" />
-                                <TextBox AcceptsReturn="True" Height="80" MaxLength="4000"
-                                         PlaceholderText="例如：--demo"
-                                         Text="{Binding AdditionalGameArguments}" TextWrapping="Wrap"
-                                         VerticalContentAlignment="Top" />
-                                <Button Command="{Binding SaveLaunchOptionsCommand}"
-                                        HorizontalAlignment="Left" Content="保存启动选项" />
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="{Binding LaunchOptionsSummary}" TextWrapping="Wrap" />
-
-                                <Separator Margin="0,6" />
-                                <TextBlock FontSize="17" FontWeight="SemiBold" Text="下载设置" />
-                                <Label Content="最大下载连接数" Target="{Binding #DownloadConcurrencySelector}" />
-                                <ComboBox x:Name="DownloadConcurrencySelector"
-                                          Width="240" HorizontalAlignment="Left"
-                                          AutomationProperties.Name="最大下载连接数"
-                                          ItemsSource="{Binding DownloadConcurrencyOptions}"
-                                          SelectedItem="{Binding SelectedDownloadConcurrency}" />
-                                <Label Content="总下载限速" Target="{Binding #DownloadSpeedSelector}" />
-                                <ComboBox x:Name="DownloadSpeedSelector"
-                                          Width="240" HorizontalAlignment="Left"
-                                          AutomationProperties.Name="总下载限速"
-                                          ItemsSource="{Binding DownloadSpeedOptions}"
-                                          SelectedItem="{Binding SelectedDownloadSpeedLimit}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding DisplayName}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="{Binding DownloadSettingsSummary}" TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
@@ -721,6 +958,27 @@
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
+
+                        <Border x:Name="SettingsPlaceholderSection" Classes="pcl-card" Padding="20" IsVisible="False">
+                            <StackPanel Spacing="14">
+                                <TextBlock x:Name="SettingsPlaceholderTitle" FontSize="18" FontWeight="SemiBold" Foreground="#1370F3" Text="设置" />
+                                <TextBlock x:Name="SettingsPlaceholderDescription" Foreground="#6F7C8B" TextWrapping="Wrap" />
+                                <Border Background="#F8FAFC" BorderBrush="#D1DDEA" BorderThickness="1" CornerRadius="3" Padding="16">
+                                    <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                                        <TextBlock x:Name="SettingsPlaceholderLabel1" VerticalAlignment="Center" />
+                                        <ComboBox x:Name="SettingsPlaceholderOption1" Grid.Column="1" IsEnabled="False" />
+                                        <TextBlock x:Name="SettingsPlaceholderLabel2" Grid.Row="1" VerticalAlignment="Center" />
+                                        <ComboBox x:Name="SettingsPlaceholderOption2" Grid.Row="1" Grid.Column="1" IsEnabled="False" />
+                                        <TextBlock x:Name="SettingsPlaceholderLabel3" Grid.Row="2" VerticalAlignment="Center" />
+                                        <ComboBox x:Name="SettingsPlaceholderOption3" Grid.Row="2" Grid.Column="1" IsEnabled="False" />
+                                    </Grid>
+                                </Border>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button IsEnabled="False" Content="保存设置" />
+                                    <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="#6F7C8B" Text="页面结构已完成，设置写入将在后续迁移阶段启用。" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                     </ScrollViewer>
                 </Grid>
@@ -729,26 +987,36 @@
             <Grid x:Name="MorePage" IsVisible="False">
                 <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
                     <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
-                        <StackPanel Spacing="4">
-                            <Button x:Name="MoreDirectoryNavigation" Classes="secondary-navigation selected"
-                                    Click="MoreNavigationClick" Tag="directory" Content="游戏目录" />
-                            <Button x:Name="MoreLogsNavigation" Classes="secondary-navigation"
-                                    Click="MoreNavigationClick" Tag="logs" Content="游戏日志" />
-                            <Button x:Name="MoreAboutNavigation" Classes="secondary-navigation"
-                                    Click="MoreNavigationClick" Tag="about" Content="关于与鸣谢" />
-                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="帮助与反馈 · 待迁移" />
+                        <!-- PCL2 PageOtherLeft.xaml structure, plus PCL-CE/Aurora session log access. -->
+                        <StackPanel x:Name="MoreNavigationPanel" Spacing="2">
+                            <controls:PclNavigationButton Classes="secondary-navigation selected" Click="MoreNavigationClick" Tag="help" Label="帮助"
+                                                          IconData="M9.1 9a3 3 0 1 1 5.83 1c0 2-3 2-3 4 M12 18h.01 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z" />
+                            <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="about" Label="关于与鸣谢"
+                                                          IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
+                            <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="toolbox" Label="百宝箱"
+                                                          IconData="M3 6h18v14H3z M8 6V4h8v2 M3 11h18 M10 11v3h4v-3" />
+                            <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="feedback" Label="反馈"
+                                                          IconData="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+                            <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="vote" Label="新功能投票"
+                                                          IconData="M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                            <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="诊断" />
+                            <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="logs" Label="查看日志"
+                                                          IconData="M4 2h16v20H4z M8 7h8 M8 11h8 M8 15h5" />
                         </StackPanel>
                     </Border>
                     <ScrollViewer Grid.Column="1" Background="#D9EAF9">
                     <StackPanel Margin="25,25,25,10" MaxWidth="860" Spacing="15">
                         <StackPanel Spacing="6">
-                            <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="更多" />
-                            <TextBlock Foreground="#6F7C8B"
-                                       Text="联机、游戏目录、日志与维护工具。" />
+                            <TextBlock x:Name="MorePageTitle" FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="帮助" />
+                            <TextBlock x:Name="MorePageDescription" Foreground="#6F7C8B"
+                                       Text="查看启动、下载、实例与故障排查入口。" />
                         </StackPanel>
 
-                        <Border x:Name="MoreDirectorySection" Classes="pcl-card" Padding="20" Background="#FCFDFF">
+                        <Border x:Name="MoreDirectorySection" Classes="pcl-card" Padding="20" Background="#FCFDFF" IsVisible="False">
                             <StackPanel Spacing="10">
+                                <TextBlock FontSize="17" FontWeight="SemiBold" Text="百宝箱" />
+                                <TextBlock Foreground="#6F7C8B" Text="常用目录与跨平台维护工具。" />
+                                <Separator />
                                 <TextBlock FontWeight="SemiBold" Text="游戏目录" />
                                 <TextBlock Foreground="#6F7C8B"
                                            Text="在系统文件管理器中打开当前 Minecraft 根目录。"
@@ -815,6 +1083,32 @@
                                 <TextBlock Foreground="#6F7C8B"
                                            Text="直接适配内容及其分发遵循随附的上游许可证和 NOTICE；Micro-ATP 的新增内容适用根目录许可证。"
                                            TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="MorePlaceholderSection" Classes="pcl-card" Padding="20">
+                            <StackPanel Spacing="12">
+                                <TextBlock x:Name="MorePlaceholderTitle" FontSize="17" FontWeight="SemiBold" Text="帮助" />
+                                <TextBlock x:Name="MorePlaceholderDescription" Foreground="#6F7C8B" TextWrapping="Wrap" />
+                                <!-- PCL2 PageOtherHelp.xaml uses a search field above its local help topics. -->
+                                <ThemeVariantScope RequestedThemeVariant="Light">
+                                    <TextBox x:Name="MoreHelpSearchBox" Height="34" IsVisible="False"
+                                             PlaceholderText="搜索帮助" TextChanged="MoreHelpSearchTextChanged" />
+                                </ThemeVariantScope>
+                                <Separator />
+                                <ItemsControl x:Name="MorePlaceholderItems">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Classes="pcl-option-row">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBlock VerticalAlignment="Center" Text="{Binding}" />
+                                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="14"
+                                                               Foreground="#6F7C8B" Text="›" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
                         </Border>
                     </StackPanel>

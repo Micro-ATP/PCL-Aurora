@@ -17,6 +17,19 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/FormMain.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchLeft.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchRight.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLaunch.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUI.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLink.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageSetup/PageSetupSystem.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherLeft.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherAbout.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherHelp.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherTest.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml
 
 PCL Aurora also contains the following directly reused image asset:
 
@@ -49,6 +62,23 @@ PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/download.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/settings.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/grid-2x2.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/box.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/file-archive.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/layers.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/sparkles.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/heart.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/hammer.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/boxes.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/trash-2.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/scroll-text.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/coffee.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/tool-case.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/message-circle.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/circle-help.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/info.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/refresh-cw.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/link-2.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/palette.svg
   adapted as Avalonia Paths in src/PCL.Aurora.Desktop/Views/MainWindow.axaml.
   The applicable ISC and MIT license text is provided in LICENSES/Lucide-Icons.txt.
 
