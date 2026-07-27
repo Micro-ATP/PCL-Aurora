@@ -25,12 +25,13 @@
         <Style Selector="Button.main-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="Foreground" Value="#D9E8FF" />
-            <Setter Property="FontSize" Value="14" />
+            <Setter Property="CornerRadius" Value="20" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="MinWidth" Value="72" />
-            <Setter Property="Height" Value="48" />
+            <Setter Property="MinWidth" Value="84" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Margin" Value="8,9" />
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.main-navigation:pointerover">
@@ -38,8 +39,8 @@
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="Button.main-navigation.selected">
-            <Setter Property="Background" Value="#0E61D4" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Foreground" Value="#1370F3" />
         </Style>
         <Style Selector="Border.launch-side">
             <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
@@ -79,16 +80,16 @@
 
     <Grid RowDefinitions="48,*">
         <Border Background="#1370F3">
-            <Grid ColumnDefinitions="212,Auto,*,Auto">
+            <Grid ColumnDefinitions="260,Auto,*,Auto">
                 <StackPanel Margin="20,0,0,0" VerticalAlignment="Center" Spacing="0">
-                    <TextBlock FontSize="17" FontWeight="SemiBold" Foreground="White" Text="PCL Aurora" />
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="White" Text="PCL Aurora" />
                     <TextBlock FontSize="10" Foreground="#D9E8FF" Text="跨平台迁移版" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button x:Name="LaunchNavigation" Classes="main-navigation selected" Tag="0" Click="MainNavigationClick" Content="启动" />
-                    <Button x:Name="DownloadNavigation" Classes="main-navigation" Tag="1" Click="MainNavigationClick" Content="下载" />
-                    <Button x:Name="SettingsNavigation" Classes="main-navigation" Tag="2" Click="MainNavigationClick" Content="设置" />
-                    <Button x:Name="MoreNavigation" Classes="main-navigation" Tag="3" Click="MainNavigationClick" Content="更多" />
+                    <Button x:Name="LaunchNavigation" Classes="main-navigation selected" Tag="0" Click="MainNavigationClick" Content="▶  启动" />
+                    <Button x:Name="DownloadNavigation" Classes="main-navigation" Tag="1" Click="MainNavigationClick" Content="⇩  下载" />
+                    <Button x:Name="SettingsNavigation" Classes="main-navigation" Tag="2" Click="MainNavigationClick" Content="⚙  设置" />
+                    <Button x:Name="MoreNavigation" Classes="main-navigation" Tag="3" Click="MainNavigationClick" Content="▦  更多" />
                 </StackPanel>
                 <TextBlock Grid.Column="3" Margin="0,0,18,0" VerticalAlignment="Center"
                            Foreground="#D9E8FF" FontSize="12" Text="Minecraft Launcher" />
@@ -97,232 +98,66 @@
 
         <TabControl x:Name="MainTabs" Grid.Row="1" Margin="0" SelectedIndex="0">
             <TabItem>
-                <ScrollViewer>
-                    <StackPanel Margin="24" MaxWidth="1120" Spacing="24">
-                        <Grid ColumnDefinitions="300,24,*" ColumnSpacing="0">
-                            <Border Classes="launch-side" Padding="20,18">
-                                <StackPanel Spacing="14">
-                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="启动配置" />
-                                    <TextBlock FontWeight="SemiBold" Text="账户" />
-                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                               Text="{Binding AccountSummary}" TextWrapping="Wrap" />
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Button Command="{Binding StartMicrosoftLoginCommand}"
-                                                IsEnabled="{Binding CanStartMicrosoftLogin}"
-                                                Content="登录 Microsoft" />
-                                        <Button Command="{Binding RestoreMicrosoftLoginCommand}"
-                                                IsEnabled="{Binding CanRestoreMicrosoftLogin}"
-                                                Content="恢复" />
-                                        <Button Command="{Binding ClearMicrosoftLoginCommand}"
-                                                IsEnabled="{Binding CanClearMicrosoftLogin}"
-                                                Content="清除" />
-                                    </StackPanel>
-                                    <TextBox PlaceholderText="离线用户名（3–16 位）" Text="{Binding OfflinePlayerName}" />
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Button Command="{Binding UseOfflineAccountCommand}" Content="使用离线账户" />
-                                        <Button Command="{Binding ClearOfflineAccountCommand}" Content="清除" />
-                                    </StackPanel>
-                                    <Separator />
-                                    <TextBlock FontWeight="SemiBold" Text="游戏版本" />
-                                    <ComboBox x:Name="InstanceSelector"
-                                              AutomationProperties.Name="启动实例"
-                                              IsEnabled="{Binding HasAvailableInstances}"
-                                              ItemsSource="{Binding AvailableInstances}"
-                                              SelectedItem="{Binding SelectedInstance}">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Spacing="2">
-                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
-                                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                               Text="{Binding VersionDisplay}" />
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                               Text="{Binding InstanceSummary}" TextWrapping="Wrap" />
-                                    <Button Command="{Binding RefreshCommand}" HorizontalAlignment="Left" Content="刷新本地实例" />
-                                    <Button Classes="launch-button" Command="{Binding LaunchGameCommand}"
-                                            IsEnabled="{Binding CanLaunchGame}"
-                                            MinHeight="52"
-                                            FontSize="18"
-                                            FontWeight="SemiBold"
-                                            Content="启动游戏" />
-                                </StackPanel>
-                            </Border>
-                            <StackPanel Grid.Column="2" Spacing="18">
-                                <StackPanel Spacing="4">
-                                    <TextBlock FontSize="24" FontWeight="SemiBold" Text="启动 Minecraft" />
-                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                               Text="实例、账户和 Java 的实际状态会在这里汇总；未满足条件时不会启动进程。"
-                                               TextWrapping="Wrap" />
-                                </StackPanel>
-                                <Border Classes="pcl-card" Padding="18">
-                                    <StackPanel Spacing="10">
-                                        <TextBlock FontSize="17" FontWeight="SemiBold" Text="启动状态" />
-                                        <TextBlock Text="{Binding GameLaunchSummary}" TextWrapping="Wrap" />
-                                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                   Text="{Binding LaunchPreflightSummary}" TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Classes="pcl-card" Padding="18">
-                                    <StackPanel Spacing="8">
-                                        <TextBlock FontSize="17" FontWeight="SemiBold" Text="版本与运行环境" />
-                                        <TextBlock Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
-                                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                   Text="{Binding JavaRequirementSummary}" TextWrapping="Wrap" />
-                                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                   Text="{Binding MemoryAllocationSummary}" TextWrapping="Wrap" />
-                                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                   Text="{Binding ClasspathSummary}" TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Classes="pcl-card" Padding="14" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock FontWeight="SemiBold" Text="正版与来源提示" />
-                                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                   Text="离线账户不代表拥有正版 Minecraft；PCL Aurora 为第三方跨平台迁移项目。"
-                                                   TextWrapping="Wrap" />
-                                        <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
-                                                  IsChecked="{Binding HasAcknowledgedAccountGuidance}"
-                                                  Content="我已知悉正版购买与上游赞助提示。" />
-                                    </StackPanel>
-                                </Border>
+                <Grid ColumnDefinitions="300,*" Background="#D9EAF9">
+                    <Border Background="#FCFCFD" BorderBrush="#D7DCE2" BorderThickness="0,0,1,0">
+                        <Grid Margin="20,22" RowDefinitions="Auto,*,Auto,Auto">
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="18">
+                                <Button Command="{Binding StartMicrosoftLoginCommand}"
+                                        IsEnabled="{Binding CanStartMicrosoftLogin}" Content="正版" />
+                                <Button Classes="launch-button" Command="{Binding UseOfflineAccountCommand}" Content="离线" />
                             </StackPanel>
+                            <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="14">
+                                <Border Width="56" Height="56" CornerRadius="3" HorizontalAlignment="Center" Background="#F0B07A">
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontWeight="SemiBold" Foreground="White" Text="A" />
+                                </Border>
+                                <TextBox PlaceholderText="游戏用户名" Text="{Binding OfflinePlayerName}" />
+                                <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding AccountSummary}" TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                                    <Button Command="{Binding RestoreMicrosoftLoginCommand}" IsEnabled="{Binding CanRestoreMicrosoftLogin}" Content="恢复" />
+                                    <Button Command="{Binding ClearMicrosoftLoginCommand}" IsEnabled="{Binding CanClearMicrosoftLogin}" Content="清除" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Spacing="6">
+                                <Button Classes="launch-button" Command="{Binding LaunchGameCommand}"
+                                        IsEnabled="{Binding CanLaunchGame}" Height="52" FontSize="16" Content="启动游戏" />
+                                <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding InstanceSummary}" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ComboBox Grid.Row="3" x:Name="InstanceSelector" Margin="0,12,0,0"
+                                      AutomationProperties.Name="启动实例"
+                                      IsEnabled="{Binding HasAvailableInstances}"
+                                      ItemsSource="{Binding AvailableInstances}"
+                                      SelectedItem="{Binding SelectedInstance}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                       Text="{Binding VersionDisplay}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </Grid>
-
-                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
-                            <StackPanel Spacing="12">
-                                <TextBlock FontWeight="SemiBold" Text="游戏 · 下载" />
-                                <Label Content="最大下载连接数" Target="{Binding #DownloadConcurrencySelector}" />
-                                <ComboBox x:Name="DownloadConcurrencySelector"
-                                          Width="240"
-                                          HorizontalAlignment="Left"
-                                          AutomationProperties.Name="最大下载连接数"
-                                          ItemsSource="{Binding DownloadConcurrencyOptions}"
-                                          SelectedItem="{Binding SelectedDownloadConcurrency}" />
-                                <Label Content="总下载限速" Target="{Binding #DownloadSpeedSelector}" />
-                                <ComboBox x:Name="DownloadSpeedSelector"
-                                          Width="240"
-                                          HorizontalAlignment="Left"
-                                          AutomationProperties.Name="总下载限速"
-                                          ItemsSource="{Binding DownloadSpeedOptions}"
-                                          SelectedItem="{Binding SelectedDownloadSpeedLimit}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding DisplayName}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding DownloadSettingsSummary}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="大文件仅在服务器明确支持 HTTP Range、文件长度和 SHA-1 均已验证时分片；否则自动回退到单连接并保持来源回退、哈希校验和原子替换。"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
-
-                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
-                            <StackPanel Spacing="12">
-                                <TextBlock FontWeight="SemiBold" Text="游戏 · 启动参数" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="参数会被拆分为独立值并直接传给 Java，不会经由 shell。错误的 JVM 参数可能导致游戏无法启动。"
-                                           TextWrapping="Wrap" />
-                                <Label Content="窗口模式" Target="{Binding #GameWindowModeSelector}" />
-                                <ComboBox x:Name="GameWindowModeSelector"
-                                          Width="280"
-                                          HorizontalAlignment="Left"
-                                          AutomationProperties.Name="Minecraft 窗口模式"
-                                          ItemsSource="{Binding GameWindowModes}"
-                                          SelectedItem="{Binding SelectedGameWindowMode}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding DisplayName}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <StackPanel IsEnabled="{Binding UsesCustomGameWindowSize}" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock VerticalAlignment="Center" Text="宽度" />
-                                    <TextBox Width="90"
-                                             AutomationProperties.Name="自定义 Minecraft 窗口宽度"
-                                             Text="{Binding CustomGameWindowWidth}" />
-                                    <TextBlock VerticalAlignment="Center" Text="×" />
-                                    <TextBox Width="90"
-                                             AutomationProperties.Name="自定义 Minecraft 窗口高度"
-                                             Text="{Binding CustomGameWindowHeight}" />
-                                    <TextBlock VerticalAlignment="Center" Text="高度" />
-                                </StackPanel>
-                                <Label Content="内存分配" Target="{Binding #MemoryAllocationModeSelector}" />
-                                <ComboBox x:Name="MemoryAllocationModeSelector"
-                                          Width="280"
-                                          HorizontalAlignment="Left"
-                                          AutomationProperties.Name="Minecraft 内存分配模式"
-                                          ItemsSource="{Binding MemoryAllocationModes}"
-                                          SelectedItem="{Binding SelectedMemoryAllocationMode}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding DisplayName}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <StackPanel IsEnabled="{Binding UsesCustomMemoryAllocation}" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock VerticalAlignment="Center" Text="自定义堆内存" />
-                                    <TextBox Width="120"
-                                             AutomationProperties.Name="自定义 Minecraft 堆内存（MiB）"
-                                             Text="{Binding CustomMemoryMiB}" />
-                                    <TextBlock VerticalAlignment="Center" Text="MiB" />
-                                </StackPanel>
-                                <TextBlock Text="额外 JVM 参数" />
-                                <TextBox AcceptsReturn="True"
-                                         Height="80"
-                                         MaxLength="4000"
-                                         PlaceholderText="例如：-Xmx4G -Dexample=value"
-                                         Text="{Binding AdditionalJvmArguments}"
-                                         TextWrapping="Wrap"
-                                         VerticalContentAlignment="Top" />
-                                <TextBlock Text="额外游戏参数" />
-                                <TextBox AcceptsReturn="True"
-                                         Height="80"
-                                         MaxLength="4000"
-                                         PlaceholderText="例如：--demo"
-                                         Text="{Binding AdditionalGameArguments}"
-                                         TextWrapping="Wrap"
-                                         VerticalContentAlignment="Top" />
-                                <Button Command="{Binding SaveLaunchOptionsCommand}"
-                                        HorizontalAlignment="Left"
-                                        Content="保存启动选项" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding LaunchOptionsSummary}"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
-
-                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
-                            <StackPanel Spacing="8">
-                                <TextBlock FontWeight="SemiBold" Text="启动迁移状态" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding LaunchPreflightSummary}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding LaunchArgumentSummary}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding JavaRequirementSummary}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding MemoryAllocationSummary}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding ClasspathSummary}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding GameLaunchSummary}"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
+                    </Border>
+                    <Border Grid.Column="1" Background="#D9EAF9">
+                        <StackPanel Margin="28" Width="460" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                    IsVisible="{Binding HasAvailableInstances}" Spacing="12">
+                            <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#1370F3" Text="启动状态" />
+                            <TextBlock Text="{Binding GameLaunchSummary}" TextWrapping="Wrap" />
+                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                       Text="{Binding LaunchPreflightSummary}" TextWrapping="Wrap" />
+                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                       Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
+                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                       Text="{Binding JavaRequirementSummary}" TextWrapping="Wrap" />
+                            <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
+                                      IsChecked="{Binding HasAcknowledgedAccountGuidance}"
+                                      Content="我已知悉正版购买与上游赞助提示。" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
             </TabItem>
 
             <TabItem>
@@ -505,6 +340,87 @@
                                            Text="仅显示与当前架构兼容的 Java；选择仅在本次运行生效。"
                                            TextWrapping="Wrap" />
                                 <Button HorizontalAlignment="Left" Command="{Binding RefreshCommand}" Content="刷新 Java 诊断" />
+
+                                <Separator Margin="0,6" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="游戏 · 启动" />
+                                <Label Content="窗口模式" Target="{Binding #GameWindowModeSelector}" />
+                                <ComboBox x:Name="GameWindowModeSelector"
+                                          Width="280"
+                                          HorizontalAlignment="Left"
+                                          AutomationProperties.Name="Minecraft 窗口模式"
+                                          ItemsSource="{Binding GameWindowModes}"
+                                          SelectedItem="{Binding SelectedGameWindowMode}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <StackPanel IsEnabled="{Binding UsesCustomGameWindowSize}" Orientation="Horizontal" Spacing="8">
+                                    <TextBlock VerticalAlignment="Center" Text="宽度" />
+                                    <TextBox Width="90" AutomationProperties.Name="自定义 Minecraft 窗口宽度"
+                                             Text="{Binding CustomGameWindowWidth}" />
+                                    <TextBlock VerticalAlignment="Center" Text="×" />
+                                    <TextBox Width="90" AutomationProperties.Name="自定义 Minecraft 窗口高度"
+                                             Text="{Binding CustomGameWindowHeight}" />
+                                    <TextBlock VerticalAlignment="Center" Text="高度" />
+                                </StackPanel>
+                                <Label Content="内存分配" Target="{Binding #MemoryAllocationModeSelector}" />
+                                <ComboBox x:Name="MemoryAllocationModeSelector"
+                                          Width="280"
+                                          HorizontalAlignment="Left"
+                                          AutomationProperties.Name="Minecraft 内存分配模式"
+                                          ItemsSource="{Binding MemoryAllocationModes}"
+                                          SelectedItem="{Binding SelectedMemoryAllocationMode}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <StackPanel IsEnabled="{Binding UsesCustomMemoryAllocation}" Orientation="Horizontal" Spacing="8">
+                                    <TextBlock VerticalAlignment="Center" Text="自定义堆内存" />
+                                    <TextBox Width="120" AutomationProperties.Name="自定义 Minecraft 堆内存（MiB）"
+                                             Text="{Binding CustomMemoryMiB}" />
+                                    <TextBlock VerticalAlignment="Center" Text="MiB" />
+                                </StackPanel>
+                                <TextBlock Text="额外 JVM 参数" />
+                                <TextBox AcceptsReturn="True" Height="80" MaxLength="4000"
+                                         PlaceholderText="例如：-Xmx4G -Dexample=value"
+                                         Text="{Binding AdditionalJvmArguments}" TextWrapping="Wrap"
+                                         VerticalContentAlignment="Top" />
+                                <TextBlock Text="额外游戏参数" />
+                                <TextBox AcceptsReturn="True" Height="80" MaxLength="4000"
+                                         PlaceholderText="例如：--demo"
+                                         Text="{Binding AdditionalGameArguments}" TextWrapping="Wrap"
+                                         VerticalContentAlignment="Top" />
+                                <Button Command="{Binding SaveLaunchOptionsCommand}"
+                                        HorizontalAlignment="Left" Content="保存启动选项" />
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding LaunchOptionsSummary}" TextWrapping="Wrap" />
+
+                                <Separator Margin="0,6" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="游戏下载" />
+                                <Label Content="最大下载连接数" Target="{Binding #DownloadConcurrencySelector}" />
+                                <ComboBox x:Name="DownloadConcurrencySelector"
+                                          Width="240" HorizontalAlignment="Left"
+                                          AutomationProperties.Name="最大下载连接数"
+                                          ItemsSource="{Binding DownloadConcurrencyOptions}"
+                                          SelectedItem="{Binding SelectedDownloadConcurrency}" />
+                                <Label Content="总下载限速" Target="{Binding #DownloadSpeedSelector}" />
+                                <ComboBox x:Name="DownloadSpeedSelector"
+                                          Width="240" HorizontalAlignment="Left"
+                                          AutomationProperties.Name="总下载限速"
+                                          ItemsSource="{Binding DownloadSpeedOptions}"
+                                          SelectedItem="{Binding SelectedDownloadSpeedLimit}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding DownloadSettingsSummary}" TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
