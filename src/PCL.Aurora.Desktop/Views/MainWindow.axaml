@@ -133,6 +133,8 @@
                                         IsEnabled="{Binding CanLaunchGame}" Height="52" FontSize="16" Content="启动游戏" />
                                 <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                            Text="{Binding InstanceSummary}" TextWrapping="Wrap" />
+                                <Button Classes="launch-download-button" Click="OpenDownloadPageClick"
+                                        Height="42" FontSize="15" Content="版本选择" />
                             </StackPanel>
                             <ComboBox Grid.Row="3" x:Name="InstanceSelector" Margin="0,12,0,0"
                                       AutomationProperties.Name="启动实例"
