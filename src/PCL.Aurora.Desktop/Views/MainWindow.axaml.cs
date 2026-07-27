@@ -34,6 +34,14 @@ public partial class MainWindow : Window
         SelectMainPage(1);
     }
 
+    private async void OfficialLoginClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.BeginMicrosoftLoginAsync();
+        }
+    }
+
     private void TitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.Source is not Button && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)

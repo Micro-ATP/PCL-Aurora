@@ -1257,6 +1257,8 @@ public partial class MainViewModel(
         }
     }
 
+    public Task BeginMicrosoftLoginAsync() => StartMicrosoftLoginAsync();
+
     [RelayCommand]
     private async Task RestoreMicrosoftLoginAsync()
     {
