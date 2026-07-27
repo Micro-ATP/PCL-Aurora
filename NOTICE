@@ -13,6 +13,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModMinecraft.vb
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModLaunch.vb
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModJava.vb
+- PCL2: Plain Craft Launcher 2/Modules/Resource/ResourceVersion.vb
 - PCL2: Plain Craft Launcher 2/Modules/Base/ModNet.vb
 - PCL2: Plain Craft Launcher 2/FormMain.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchLeft.xaml

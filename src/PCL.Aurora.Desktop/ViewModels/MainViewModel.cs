@@ -18,6 +18,8 @@ public partial class MainViewModel(
     IMinecraftVersionCatalogService versionCatalogService,
     ICommunityResourceSearchService communityResourceSearchService,
     ICommunityResourceIconService communityResourceIconService,
+    ICommunityResourceVersionService communityResourceVersionService,
+    ICommunityResourceInstallationService communityResourceInstallationService,
     IMinecraftLoaderCatalogService loaderCatalogService,
     IMinecraftOfficialLoaderCatalogService officialLoaderCatalogService,
     IMinecraftLoaderInstallerService loaderInstallerService,
@@ -48,12 +50,16 @@ public partial class MainViewModel(
     private CancellationTokenSource? microsoftLoginCancellation;
     private CancellationTokenSource? communitySearchCancellation;
     private CancellationTokenSource? communityIconCancellation;
+    private CancellationTokenSource? communityVersionCancellation;
+    private CancellationTokenSource? communityInstallationCancellation;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
     public ObservableCollection<MinecraftLoaderCatalogEntry> AvailableLoaders { get; } = [];
 
     public ObservableCollection<CommunityResourceItemViewModel> CommunityResources { get; } = [];
+
+    public ObservableCollection<CommunityResourceVersion> CommunityResourceVersions { get; } = [];
 
     public ObservableCollection<MinecraftInstance> AvailableInstances { get; } = [];
 
@@ -304,6 +310,9 @@ public partial class MainViewModel(
     private CommunityResourceItemViewModel? selectedCommunityResource;
 
     [ObservableProperty]
+    private CommunityResourceVersion? selectedCommunityResourceVersion;
+
+    [ObservableProperty]
     private string communityResourceSummary = "选择社区资源类型后可使用公开目录搜索。";
 
     [ObservableProperty]
@@ -328,6 +337,24 @@ public partial class MainViewModel(
     private bool canOpenCommunityResource;
 
     [ObservableProperty]
+    private bool isCommunityVersionLoading;
+
+    [ObservableProperty]
+    private bool hasCommunityResourceVersions;
+
+    [ObservableProperty]
+    private bool canLoadCommunityResourceVersions;
+
+    [ObservableProperty]
+    private bool canInstallCommunityResource;
+
+    [ObservableProperty]
+    private bool canCancelCommunityResourceOperation;
+
+    [ObservableProperty]
+    private string communityVersionSummary = "选择项目后可查看适合当前实例的版本。";
+
+    [ObservableProperty]
     private bool canGoToPreviousCommunityPage;
 
     [ObservableProperty]
@@ -346,6 +373,8 @@ public partial class MainViewModel(
     public bool IsCommunityFooterVisible => IsCommunityCatalogAvailable && !IsCommunitySearchRunning;
 
     public bool IsCommunityStatusVisible => !IsCommunitySearchRunning;
+
+    public bool IsCommunityVersionCardVisible => SelectedCommunityResource is not null && !IsCommunitySearchRunning;
 
     [ObservableProperty]
     private string offlinePlayerName = string.Empty;
@@ -710,10 +739,15 @@ public partial class MainViewModel(
     {
         RefreshLoaderEntries();
         CanInstallSelectedLoader = CanInstallLoaderForSelectedInstance(SelectedLoader);
+        RefreshCommunityInstallState();
         if (!isRefreshing)
         {
             _ = RefreshSelectedInstanceStateAsync();
             _ = SaveSelectedInstancePreferenceAsync(value?.Name);
+            if (SelectedCommunityResource is not null)
+            {
+                _ = LoadCommunityResourceVersionsAsync();
+            }
         }
     }
 
@@ -848,8 +882,50 @@ public partial class MainViewModel(
             : string.Join(Environment.NewLine, compatibility.Reasons);
     }
 
-    partial void OnSelectedCommunityResourceChanged(CommunityResourceItemViewModel? value) =>
+    partial void OnSelectedCommunityResourceChanged(CommunityResourceItemViewModel? value)
+    {
+        communityVersionCancellation?.Cancel();
+        communityVersionCancellation = null;
+        IsCommunityVersionLoading = false;
+        if (communityInstallationCancellation is null)
+        {
+            CanCancelCommunityResourceOperation = false;
+        }
+        CommunityResourceVersions.Clear();
+        SelectedCommunityResourceVersion = null;
+        HasCommunityResourceVersions = false;
         CanOpenCommunityResource = value is not null;
+        CanLoadCommunityResourceVersions = value is not null;
+        CommunityVersionSummary = value is null
+            ? "选择项目后可查看适合当前实例的版本。"
+            : "正在准备版本列表…";
+        OnPropertyChanged(nameof(IsCommunityVersionCardVisible));
+        RefreshCommunityInstallState();
+        if (value is not null)
+        {
+            _ = LoadCommunityResourceVersionsAsync();
+        }
+    }
+
+    partial void OnSelectedCommunityResourceVersionChanged(CommunityResourceVersion? value)
+    {
+        RefreshCommunityInstallState();
+        if (value is not null)
+        {
+            var type = SelectedCommunityResource?.Project.Type;
+            var versionCount = CommunityResourceVersions.Count;
+            var summaryPrefix = versionCount > 0 ? $"共 {versionCount} 个版本；" : string.Empty;
+            CommunityVersionSummary = type switch
+            {
+                CommunityResourceType.DataPack or CommunityResourceType.ModPack =>
+                    $"{summaryPrefix}{value.FileSummary}；{value.DependencySummary}。{ProjectTypeInstallHint(type)}",
+                CommunityResourceType.Mod when SelectedInstance?.InstalledLoader?.Kind is not
+                    (MinecraftLoaderKind.Forge or MinecraftLoaderKind.NeoForge or MinecraftLoaderKind.Fabric) =>
+                    $"{summaryPrefix}{value.FileSummary}；{value.DependencySummary}。目标实例需要兼容的模组加载器。",
+                _ => $"{summaryPrefix}{value.FileSummary}；{value.DependencySummary}。",
+            };
+        }
+    }
 
     partial void OnCommunityPageChanged(int value) => OnPropertyChanged(nameof(CommunityPageNumber));
 
@@ -864,6 +940,7 @@ public partial class MainViewModel(
         OnPropertyChanged(nameof(IsCommunityResultListVisible));
         OnPropertyChanged(nameof(IsCommunityFooterVisible));
         OnPropertyChanged(nameof(IsCommunityStatusVisible));
+        OnPropertyChanged(nameof(IsCommunityVersionCardVisible));
     }
 
     partial void OnSelectedJavaChanged(JavaInstallation? value)
@@ -982,9 +1059,20 @@ public partial class MainViewModel(
         };
         communitySearchCancellation?.Cancel();
         communitySearchCancellation = null;
+        communityVersionCancellation?.Cancel();
+        communityVersionCancellation = null;
+        communityInstallationCancellation?.Cancel();
+        communityInstallationCancellation = null;
         CancelCommunityIconLoading();
         IsCommunitySearchRunning = false;
         CanCancelCommunitySearch = false;
+        IsCommunityVersionLoading = false;
+        CanCancelCommunityResourceOperation = false;
+        CommunityResourceVersions.Clear();
+        SelectedCommunityResourceVersion = null;
+        HasCommunityResourceVersions = false;
+        CanLoadCommunityResourceVersions = false;
+        CanInstallCommunityResource = false;
         ClearCommunityResources();
         SelectedCommunityResource = null;
         HasCommunityResources = false;
@@ -1041,6 +1129,194 @@ public partial class MainViewModel(
         }
     }
 
+    [RelayCommand]
+    private async Task LoadCommunityResourceVersionsAsync()
+    {
+        if (SelectedCommunityResource?.Project is not { } project ||
+            communityInstallationCancellation is not null)
+        {
+            return;
+        }
+
+        communityVersionCancellation?.Cancel();
+        using var cancellation = new CancellationTokenSource();
+        communityVersionCancellation = cancellation;
+        CommunityResourceVersions.Clear();
+        SelectedCommunityResourceVersion = null;
+        HasCommunityResourceVersions = false;
+        IsCommunityVersionLoading = true;
+        CanLoadCommunityResourceVersions = false;
+        CanCancelCommunityResourceOperation = true;
+        CommunityVersionSummary = $"正在获取 {project.Title} 的可用版本…";
+        try
+        {
+            var gameVersion = GetMinecraftVersionForLoaders(SelectedInstance);
+            if (string.IsNullOrWhiteSpace(gameVersion))
+            {
+                gameVersion = string.IsNullOrWhiteSpace(CommunityGameVersion) ? null : CommunityGameVersion.Trim();
+            }
+
+            var loader = project.Type is CommunityResourceType.Mod or CommunityResourceType.ModPack
+                ? GetCommunityResourceLoaderForSelectedInstance()
+                : CommunityResourceLoader.Any;
+            var catalog = await communityResourceVersionService.GetProjectVersionsAsync(
+                project.Id,
+                gameVersion,
+                loader,
+                cancellation.Token);
+            if (!ReferenceEquals(communityVersionCancellation, cancellation) ||
+                SelectedCommunityResource?.Project.Id != project.Id)
+            {
+                return;
+            }
+
+            CommunityResourceVersions.Clear();
+            foreach (var version in catalog.Versions.OrderByDescending(item => item.PublishedAt))
+            {
+                CommunityResourceVersions.Add(version);
+            }
+
+            HasCommunityResourceVersions = CommunityResourceVersions.Count > 0;
+            CommunityVersionSummary = HasCommunityResourceVersions
+                ? $"找到 {CommunityResourceVersions.Count} 个兼容版本。"
+                : catalog.Errors.Count > 0
+                    ? $"版本列表不可用：{string.Join("；", catalog.Errors)}"
+                    : "没有适合当前 Minecraft 版本与加载器的文件。";
+            SelectedCommunityResourceVersion = CommunityResourceVersions.FirstOrDefault();
+        }
+        catch (OperationCanceledException)
+        {
+            if (ReferenceEquals(communityVersionCancellation, cancellation))
+            {
+                CommunityVersionSummary = "已取消获取版本列表。";
+            }
+        }
+        catch (Exception exception)
+        {
+            if (ReferenceEquals(communityVersionCancellation, cancellation))
+            {
+                CommunityVersionSummary = $"版本列表获取失败：{exception.Message}";
+            }
+        }
+        finally
+        {
+            if (ReferenceEquals(communityVersionCancellation, cancellation))
+            {
+                communityVersionCancellation = null;
+                IsCommunityVersionLoading = false;
+                CanLoadCommunityResourceVersions = SelectedCommunityResource is not null;
+                CanCancelCommunityResourceOperation = false;
+                RefreshCommunityInstallState();
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task InstallCommunityResourceAsync()
+    {
+        if (!CanInstallCommunityResource ||
+            SelectedCommunityResource?.Project is not { } project ||
+            SelectedCommunityResourceVersion is not { } version ||
+            SelectedInstance is not { } instance)
+        {
+            CommunityVersionSummary = ProjectTypeInstallHint(SelectedCommunityResource?.Project.Type);
+            return;
+        }
+
+        using var cancellation = new CancellationTokenSource();
+        communityInstallationCancellation = cancellation;
+        CanInstallCommunityResource = false;
+        CanLoadCommunityResourceVersions = false;
+        CanCancelCommunityResourceOperation = true;
+        try
+        {
+            var progress = new Progress<MinecraftDownloadProgress>(update =>
+            {
+                var size = update.TotalBytes is { } total
+                    ? $"{FormatByteCount(update.DownloadedBytes)} / {FormatByteCount(total)}"
+                    : FormatByteCount(update.DownloadedBytes);
+                CommunityVersionSummary = $"正在安装 {update.CurrentDescription} · {update.CompletedArtifacts}/{update.TotalArtifacts} · {size}";
+            });
+            var result = await communityResourceInstallationService.InstallAsync(
+                project,
+                version,
+                instance,
+                progress,
+                cancellation.Token);
+            if (!ReferenceEquals(communityInstallationCancellation, cancellation))
+            {
+                return;
+            }
+
+            CommunityVersionSummary = result.InstalledDependencyCount > 0
+                ? $"已安装 {project.Title} 和 {result.InstalledDependencyCount} 项必要依赖。"
+                : $"已安装 {project.Title}。";
+        }
+        catch (OperationCanceledException)
+        {
+            if (ReferenceEquals(communityInstallationCancellation, cancellation))
+            {
+                CommunityVersionSummary = "社区资源安装已取消。";
+            }
+        }
+        catch (Exception exception)
+        {
+            if (ReferenceEquals(communityInstallationCancellation, cancellation))
+            {
+                CommunityVersionSummary = $"安装失败：{exception.Message}";
+            }
+        }
+        finally
+        {
+            if (ReferenceEquals(communityInstallationCancellation, cancellation))
+            {
+                communityInstallationCancellation = null;
+                CanCancelCommunityResourceOperation = false;
+                CanLoadCommunityResourceVersions = SelectedCommunityResource is not null;
+                RefreshCommunityInstallState();
+            }
+        }
+    }
+
+    [RelayCommand]
+    private void CancelCommunityResourceOperation()
+    {
+        communityVersionCancellation?.Cancel();
+        communityInstallationCancellation?.Cancel();
+        CanCancelCommunityResourceOperation = false;
+    }
+
+    private void RefreshCommunityInstallState()
+    {
+        var type = SelectedCommunityResource?.Project.Type;
+        var hasCompatibleTarget = type is CommunityResourceType.ResourcePack or CommunityResourceType.Shader ||
+                                  type == CommunityResourceType.Mod &&
+                                  SelectedInstance?.InstalledLoader?.Kind is
+                                      MinecraftLoaderKind.Forge or MinecraftLoaderKind.NeoForge or MinecraftLoaderKind.Fabric;
+        CanInstallCommunityResource =
+            communityInstallationCancellation is null &&
+            !IsCommunityVersionLoading &&
+            SelectedInstance?.Status == MinecraftInstanceStatus.Valid &&
+            SelectedCommunityResourceVersion is not null &&
+            hasCompatibleTarget;
+    }
+
+    private CommunityResourceLoader GetCommunityResourceLoaderForSelectedInstance() =>
+        SelectedInstance?.InstalledLoader?.Kind switch
+        {
+            MinecraftLoaderKind.Forge => CommunityResourceLoader.Forge,
+            MinecraftLoaderKind.NeoForge => CommunityResourceLoader.NeoForge,
+            MinecraftLoaderKind.Fabric => CommunityResourceLoader.Fabric,
+            _ => SelectedCommunityResourceLoader.Loader,
+        };
+
+    private static string ProjectTypeInstallHint(CommunityResourceType? type) => type switch
+    {
+        CommunityResourceType.DataPack => "数据包需要先选择存档世界，不能直接装入实例。",
+        CommunityResourceType.ModPack => "整合包需要创建或导入独立实例，不能作为普通文件安装。",
+        _ => "请先选择可用实例和资源版本。",
+    };
+
     private async Task LoadCommunityResourcesAsync(int page)
     {
         if (communityResourceType is not { } type || !CanSearchCommunityResources || IsCommunitySearchRunning)
@@ -1087,7 +1363,6 @@ public partial class MainViewModel(
 
             CommunityPage = page;
             HasCommunityResources = CommunityResources.Count > 0;
-            SelectedCommunityResource = CommunityResources.FirstOrDefault();
             StartCommunityIconLoading(items);
             CanGoToPreviousCommunityPage = page > 0;
             CanGoToNextCommunityPage = result.HasNextPage;
