@@ -1,7 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PCL.Aurora.Desktop.ViewModels"
-        xmlns:domain="using:PCL.Aurora.Domain"
         xmlns:controls="using:PCL.Aurora.Desktop.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -545,6 +544,24 @@
             <Setter Property="Foreground" Value="White" />
             <Setter Property="BorderBrush" Value="#0F5FCC" />
         </Style>
+        <Style Selector="Button.community-action-primary">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Background" Value="#DCEEFF" />
+            <Setter Property="Foreground" Value="#2D6EA7" />
+            <Setter Property="BorderBrush" Value="#86BAEF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="16,0" />
+        </Style>
+        <Style Selector="Button.community-action-primary:pointerover">
+            <Setter Property="Background" Value="#C9E3FD" />
+            <Setter Property="Foreground" Value="#245F98" />
+            <Setter Property="BorderBrush" Value="#72ABE2" />
+        </Style>
+        <Style Selector="Button.community-action-primary:pressed">
+            <Setter Property="Background" Value="#B5D8FA" />
+            <Setter Property="Foreground" Value="#1F5487" />
+            <Setter Property="BorderBrush" Value="#609BD4" />
+        </Style>
         <Style Selector="ListBox.download-list">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -766,7 +783,7 @@
                                         <Path Width="16" Height="16" VerticalAlignment="Top" Stroke="#1370F3" StrokeThickness="2"
                                               Data="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
                                         <TextBlock Grid.Column="1" FontSize="12" Foreground="#6F7C8B" TextWrapping="Wrap"
-                                                   Text="正版登录需要配置 Aurora 自有的 Microsoft OAuth Client ID；未配置时不会借用上游凭据。" />
+                                                   Text="配置 Microsoft 登录后，即可从“正版”入口添加账户。" />
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -1082,21 +1099,20 @@
                                                     </ComboBox.ItemTemplate>
                                                 </ComboBox>
                                             </StackPanel>
-                                            <StackPanel Grid.Column="2" Margin="0,20,0,0" Orientation="Horizontal" Spacing="8">
-                                                <Button Classes="download-primary" MinWidth="82"
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Orientation="Horizontal" Spacing="8">
+                                                <Button Classes="community-action-primary" MinWidth="82"
                                                         Command="{Binding SearchCommunityResourcesCommand}"
                                                         IsEnabled="{Binding CanSearchCommunityResources}"
                                                         Content="搜索" />
-                                                <Button MinWidth="64"
+                                                <Button MinWidth="64" Height="34"
                                                         Command="{Binding CancelCommunitySearchCommand}"
                                                         IsEnabled="{Binding CanCancelCommunitySearch}"
                                                         Content="取消" />
                                             </StackPanel>
                                         </Grid>
 
-                                        <ProgressBar IsIndeterminate="True" Height="3"
-                                                     IsVisible="{Binding IsCommunitySearchRunning}" />
-                                        <Border Classes="pcl-status-strip" Background="#EDF6FF">
+                                        <Border Classes="pcl-status-strip" Background="#EDF6FF"
+                                                IsVisible="{Binding IsCommunityStatusVisible}">
                                             <TextBlock FontSize="12" Foreground="#365879"
                                                        Text="{Binding CommunityResourceSummary}"
                                                        TextWrapping="Wrap" />
@@ -1104,41 +1120,50 @@
                                     </StackPanel>
                                 </Border>
 
-                                <Border Classes="pcl-card" Padding="7" IsVisible="{Binding HasCommunityResources}">
+                                <Border Classes="pcl-card" MinHeight="170" Padding="24"
+                                        IsVisible="{Binding IsCommunitySearchRunning}">
+                                    <controls:PclLoadingIndicator Text="{Binding CommunityLoadingText}" />
+                                </Border>
+
+                                <Border Classes="pcl-card" Padding="7" IsVisible="{Binding IsCommunityResultListVisible}">
                                     <ListBox Classes="download-list"
                                              ItemsSource="{Binding CommunityResources}"
                                              SelectedItem="{Binding SelectedCommunityResource}">
                                         <ListBox.ItemTemplate>
-                                            <DataTemplate x:DataType="domain:CommunityResourceProject">
+                                            <DataTemplate x:DataType="vm:CommunityResourceItemViewModel">
                                                 <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="11">
                                                     <Border Width="40" Height="40" VerticalAlignment="Top"
-                                                            Background="#DCEEFF" CornerRadius="3">
-                                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                   FontSize="17" FontWeight="SemiBold" Foreground="#1370F3"
-                                                                   Text="{Binding Initial}" />
+                                                            Background="#DCEEFF" CornerRadius="4" ClipToBounds="True">
+                                                        <Grid>
+                                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                       FontSize="17" FontWeight="SemiBold" Foreground="#1370F3"
+                                                                       IsVisible="{Binding !HasIcon}" Text="{Binding Initial}" />
+                                                            <Image Width="40" Height="40" Stretch="UniformToFill"
+                                                                   IsVisible="{Binding HasIcon}" Source="{Binding Icon}" />
+                                                        </Grid>
                                                     </Border>
                                                     <StackPanel Grid.Column="1" Spacing="3">
                                                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                                            <TextBlock FontWeight="SemiBold" Text="{Binding Title}"
+                                                            <TextBlock FontWeight="SemiBold" Text="{Binding Project.Title}"
                                                                        TextTrimming="CharacterEllipsis" />
                                                             <TextBlock Grid.Column="1" MaxWidth="150" FontSize="11" Foreground="#6F7C8B"
-                                                                       Text="{Binding Author, StringFormat='作者：{0}'}"
+                                                                       Text="{Binding Project.Author, StringFormat='作者：{0}'}"
                                                                        TextTrimming="CharacterEllipsis" />
                                                         </Grid>
                                                         <TextBlock FontSize="12" Foreground="#526170" MaxLines="2"
-                                                                   Text="{Binding Description}" TextTrimming="CharacterEllipsis" TextWrapping="Wrap" />
+                                                                   Text="{Binding Project.Description}" TextTrimming="CharacterEllipsis" TextWrapping="Wrap" />
                                                         <TextBlock FontSize="11" Foreground="#6F7C8B"
-                                                                   Text="{Binding CategorySummary}" TextTrimming="CharacterEllipsis" />
+                                                                   Text="{Binding Project.CategorySummary}" TextTrimming="CharacterEllipsis" />
                                                         <TextBlock FontSize="11" Foreground="#6F7C8B"
-                                                                   Text="{Binding GameVersionSummary}" TextTrimming="CharacterEllipsis" />
+                                                                   Text="{Binding Project.GameVersionSummary}" TextTrimming="CharacterEllipsis" />
                                                     </StackPanel>
                                                     <StackPanel Grid.Column="2" MinWidth="112" HorizontalAlignment="Right" Spacing="3">
                                                         <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#526170"
-                                                                   Text="{Binding DownloadCountDisplay, StringFormat='下载 {0}'}" />
+                                                                   Text="{Binding Project.DownloadCountDisplay, StringFormat='下载 {0}'}" />
                                                         <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#526170"
-                                                                   Text="{Binding FollowerCountDisplay, StringFormat='关注 {0}'}" />
+                                                                   Text="{Binding Project.FollowerCountDisplay, StringFormat='关注 {0}'}" />
                                                         <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#6F7C8B"
-                                                                   Text="{Binding LastUpdatedDisplay, StringFormat='更新 {0}'}" />
+                                                                   Text="{Binding Project.LastUpdatedDisplay, StringFormat='更新 {0}'}" />
                                                     </StackPanel>
                                                 </Grid>
                                             </DataTemplate>
@@ -1147,8 +1172,8 @@
                                 </Border>
 
                                 <Border Classes="pcl-card" Padding="12"
-                                        IsVisible="{Binding IsCommunityCatalogAvailable}">
-                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                        IsVisible="{Binding IsCommunityFooterVisible}">
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <Button MinWidth="72" Command="{Binding PreviousCommunityPageCommand}"
                                                     IsEnabled="{Binding CanGoToPreviousCommunityPage}" Content="上一页" />
@@ -1159,10 +1184,8 @@
                                             <Button MinWidth="72" Command="{Binding NextCommunityPageCommand}"
                                                     IsEnabled="{Binding CanGoToNextCommunityPage}" Content="下一页" />
                                         </StackPanel>
-                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="11" Foreground="#6F7C8B"
-                                                   Text="搜索由 Modrinth 公开 API 提供；Aurora 不使用 CurseForge 私有密钥。"
-                                                   TextWrapping="Wrap" />
-                                        <Button Grid.Column="2" Classes="download-primary" MinWidth="112"
+                                        <Button Grid.Column="1" Classes="community-action-primary" MinWidth="112"
+                                                HorizontalAlignment="Right"
                                                 Command="{Binding OpenCommunityResourceCommand}"
                                                 IsEnabled="{Binding CanOpenCommunityResource}"
                                                 Content="打开项目页" />

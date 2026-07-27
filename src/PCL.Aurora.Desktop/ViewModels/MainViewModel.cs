@@ -17,6 +17,7 @@ public partial class MainViewModel(
     IMinecraftInstanceInstallationService installationService,
     IMinecraftVersionCatalogService versionCatalogService,
     ICommunityResourceSearchService communityResourceSearchService,
+    ICommunityResourceIconService communityResourceIconService,
     IMinecraftLoaderCatalogService loaderCatalogService,
     IMinecraftOfficialLoaderCatalogService officialLoaderCatalogService,
     IMinecraftLoaderInstallerService loaderInstallerService,
@@ -46,12 +47,13 @@ public partial class MainViewModel(
     private CancellationTokenSource? installationCancellation;
     private CancellationTokenSource? microsoftLoginCancellation;
     private CancellationTokenSource? communitySearchCancellation;
+    private CancellationTokenSource? communityIconCancellation;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
     public ObservableCollection<MinecraftLoaderCatalogEntry> AvailableLoaders { get; } = [];
 
-    public ObservableCollection<CommunityResourceProject> CommunityResources { get; } = [];
+    public ObservableCollection<CommunityResourceItemViewModel> CommunityResources { get; } = [];
 
     public ObservableCollection<MinecraftInstance> AvailableInstances { get; } = [];
 
@@ -245,7 +247,7 @@ public partial class MainViewModel(
     private bool canCancelInstallation;
 
     [ObservableProperty]
-    private string installationSummary = "选择本地实例后可查看安装计划；不会自动下载。";
+    private string installationSummary = "选择本地实例后可查看安装计划。";
 
     [ObservableProperty]
     private MinecraftVersionCatalogEntry? selectedCatalogVersion;
@@ -266,13 +268,13 @@ public partial class MainViewModel(
     private bool canProvisionSelectedVersion;
 
     [ObservableProperty]
-    private string versionCatalogSummary = "点击“刷新官方版本”后加载可选版本；不会自动访问网络。";
+    private string versionCatalogSummary = "点击“刷新官方版本”加载可选版本。";
 
     [ObservableProperty]
     private string loaderCatalogPath = string.Empty;
 
     [ObservableProperty]
-    private string loaderCatalogSummary = "可导入用户指定的本地加载器目录 JSON；不会自动访问网络。";
+    private string loaderCatalogSummary = "可导入本地加载器目录 JSON。";
 
     [ObservableProperty]
     private string loaderSelectionSummary = "请先导入目录并选择一个 Minecraft 版本；不会下载或执行安装器。";
@@ -299,10 +301,13 @@ public partial class MainViewModel(
     private CommunityResourceLoaderOption selectedCommunityResourceLoader = new(CommunityResourceLoader.Any, "全部加载器");
 
     [ObservableProperty]
-    private CommunityResourceProject? selectedCommunityResource;
+    private CommunityResourceItemViewModel? selectedCommunityResource;
 
     [ObservableProperty]
     private string communityResourceSummary = "选择社区资源类型后可使用公开目录搜索。";
+
+    [ObservableProperty]
+    private string communityLoadingText = "正在获取资源列表…";
 
     [ObservableProperty]
     private bool hasCommunityResources;
@@ -335,6 +340,12 @@ public partial class MainViewModel(
     private int communityPage;
 
     public int CommunityPageNumber => CommunityPage + 1;
+
+    public bool IsCommunityResultListVisible => HasCommunityResources && !IsCommunitySearchRunning;
+
+    public bool IsCommunityFooterVisible => IsCommunityCatalogAvailable && !IsCommunitySearchRunning;
+
+    public bool IsCommunityStatusVisible => !IsCommunitySearchRunning;
 
     [ObservableProperty]
     private string offlinePlayerName = string.Empty;
@@ -792,7 +803,7 @@ public partial class MainViewModel(
         {
             HasAvailableLoaders = false;
             CanInstallSelectedLoader = false;
-            LoaderSelectionSummary = "请先导入本地加载器目录；不会自动访问网络。";
+            LoaderSelectionSummary = "请先导入本地加载器目录。";
             return;
         }
 
@@ -837,10 +848,23 @@ public partial class MainViewModel(
             : string.Join(Environment.NewLine, compatibility.Reasons);
     }
 
-    partial void OnSelectedCommunityResourceChanged(CommunityResourceProject? value) =>
+    partial void OnSelectedCommunityResourceChanged(CommunityResourceItemViewModel? value) =>
         CanOpenCommunityResource = value is not null;
 
     partial void OnCommunityPageChanged(int value) => OnPropertyChanged(nameof(CommunityPageNumber));
+
+    partial void OnHasCommunityResourcesChanged(bool value) =>
+        OnPropertyChanged(nameof(IsCommunityResultListVisible));
+
+    partial void OnIsCommunityCatalogAvailableChanged(bool value) =>
+        OnPropertyChanged(nameof(IsCommunityFooterVisible));
+
+    partial void OnIsCommunitySearchRunningChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsCommunityResultListVisible));
+        OnPropertyChanged(nameof(IsCommunityFooterVisible));
+        OnPropertyChanged(nameof(IsCommunityStatusVisible));
+    }
 
     partial void OnSelectedJavaChanged(JavaInstallation? value)
     {
@@ -958,9 +982,10 @@ public partial class MainViewModel(
         };
         communitySearchCancellation?.Cancel();
         communitySearchCancellation = null;
+        CancelCommunityIconLoading();
         IsCommunitySearchRunning = false;
         CanCancelCommunitySearch = false;
-        CommunityResources.Clear();
+        ClearCommunityResources();
         SelectedCommunityResource = null;
         HasCommunityResources = false;
         CommunityPage = 0;
@@ -971,9 +996,9 @@ public partial class MainViewModel(
         CanSearchCommunityResources = IsCommunityCatalogAvailable;
         CommunityResourceSummary = section switch
         {
-            "favorites" => "Aurora 尚未建立本地收藏数据；本页不会伪造账户收藏或访问远端服务。",
-            "world" => "世界目录当前只有需要私有 API 凭据的来源，尚未接入；未访问网络。",
-            _ when CanSearchCommunityResources => "来源：Modrinth 公开目录。设置筛选条件后点击“搜索”；不会自动下载或安装。",
+            "favorites" => "收藏夹还是空的。",
+            "world" => "世界资源暂时不可用。",
+            _ when CanSearchCommunityResources => "调整筛选条件后开始搜索。",
             _ => "当前社区资源类型尚未接入。",
         };
     }
@@ -998,7 +1023,7 @@ public partial class MainViewModel(
     [RelayCommand]
     private async Task OpenCommunityResourceAsync()
     {
-        if (SelectedCommunityResource is not { } project)
+        if (SelectedCommunityResource?.Project is not { } project)
         {
             CommunityResourceSummary = "请先选择一个社区项目。";
             return;
@@ -1008,7 +1033,7 @@ public partial class MainViewModel(
         {
             CommunityResourceSummary = $"正在打开 {project.Title} 的 Modrinth 项目页…";
             await openPathService.OpenUriAsync(project.WebsiteUrl);
-            CommunityResourceSummary = $"已请求系统浏览器打开 {project.Title} 的 Modrinth 项目页。";
+            CommunityResourceSummary = $"已打开 {project.Title}。";
         }
         catch (Exception exception)
         {
@@ -1028,7 +1053,8 @@ public partial class MainViewModel(
         IsCommunitySearchRunning = true;
         CanCancelCommunitySearch = true;
         CanSearchCommunityResources = false;
-        CommunityResourceSummary = $"正在从 Modrinth 获取第 {page + 1} 页…";
+        CommunityLoadingText = $"正在获取{GetCommunityResourceTypeName(type)}列表…";
+        CommunityResourceSummary = $"正在获取第 {page + 1} 页…";
         try
         {
             var result = await communityResourceSearchService.SearchAsync(
@@ -1051,15 +1077,18 @@ public partial class MainViewModel(
                 return;
             }
 
-            CommunityResources.Clear();
-            foreach (var project in result.Projects)
+            CancelCommunityIconLoading();
+            ClearCommunityResources();
+            var items = result.Projects.Select(project => new CommunityResourceItemViewModel(project)).ToArray();
+            foreach (var item in items)
             {
-                CommunityResources.Add(project);
+                CommunityResources.Add(item);
             }
 
             CommunityPage = page;
             HasCommunityResources = CommunityResources.Count > 0;
             SelectedCommunityResource = CommunityResources.FirstOrDefault();
+            StartCommunityIconLoading(items);
             CanGoToPreviousCommunityPage = page > 0;
             CanGoToNextCommunityPage = result.HasNextPage;
             var rangeStart = result.Projects.Count == 0 ? 0 : result.Offset + 1;
@@ -1068,7 +1097,7 @@ public partial class MainViewModel(
                 ? $"已显示 {rangeStart}–{rangeEnd} / {result.TotalHits} 个项目，部分条目不可用：{string.Join("；", result.Errors)}"
                 : result.Projects.Count == 0
                     ? "没有符合当前筛选条件的 Modrinth 项目。可调整关键词、版本或加载器后重试。"
-                    : $"已显示 {rangeStart}–{rangeEnd} / {result.TotalHits} 个 Modrinth 项目。选择项目后可打开其官方页面。";
+                    : $"共 {result.TotalHits} 个项目，当前显示 {rangeStart}–{rangeEnd}。";
         }
         catch (OperationCanceledException)
         {
@@ -1089,6 +1118,91 @@ public partial class MainViewModel(
             }
         }
     }
+
+    private void StartCommunityIconLoading(IReadOnlyList<CommunityResourceItemViewModel> items)
+    {
+        CancelCommunityIconLoading();
+        var cancellation = new CancellationTokenSource();
+        communityIconCancellation = cancellation;
+        _ = LoadCommunityIconsAsync(items, cancellation);
+    }
+
+    private async Task LoadCommunityIconsAsync(
+        IReadOnlyList<CommunityResourceItemViewModel> items,
+        CancellationTokenSource cancellation)
+    {
+        try
+        {
+            await Task.WhenAll(items.Select(item => LoadCommunityIconAsync(item, cancellation.Token)));
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            if (ReferenceEquals(communityIconCancellation, cancellation))
+            {
+                communityIconCancellation = null;
+            }
+
+            cancellation.Dispose();
+        }
+    }
+
+    private async Task LoadCommunityIconAsync(
+        CommunityResourceItemViewModel item,
+        CancellationToken cancellationToken)
+    {
+        if (item.Project.IconUrl is not { } iconUrl)
+        {
+            return;
+        }
+
+        try
+        {
+            var bytes = await communityResourceIconService.LoadAsync(iconUrl, cancellationToken);
+            if (bytes is null || cancellationToken.IsCancellationRequested || !CommunityResources.Contains(item))
+            {
+                return;
+            }
+
+            item.SetIcon(bytes);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception)
+        {
+            // A malformed project icon must not hide an otherwise valid search result.
+        }
+    }
+
+    private void CancelCommunityIconLoading()
+    {
+        communityIconCancellation?.Cancel();
+        communityIconCancellation = null;
+    }
+
+    private void ClearCommunityResources()
+    {
+        foreach (var item in CommunityResources)
+        {
+            item.Dispose();
+        }
+
+        CommunityResources.Clear();
+    }
+
+    private static string GetCommunityResourceTypeName(CommunityResourceType type) => type switch
+    {
+        CommunityResourceType.Mod => "模组",
+        CommunityResourceType.ModPack => "整合包",
+        CommunityResourceType.DataPack => "数据包",
+        CommunityResourceType.ResourcePack => "资源包",
+        CommunityResourceType.Shader => "光影包",
+        CommunityResourceType.World => "世界资源",
+        _ => "资源",
+    };
 
     partial void OnHasAcknowledgedAccountGuidanceChanged(bool value)
     {

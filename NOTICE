@@ -63,6 +63,11 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageDownloadWorld.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadCompFavorites.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModComp.cs
+- PCL2: Plain Craft Launcher 2/Controls/MyLoading.xaml
+- PCL2: Plain Craft Launcher 2/Controls/MyLoading.xaml.vb
+- PCL-CE: Plain Craft Launcher 2/Controls/MyLoading.xaml
+- PCL-CE: Plain Craft Launcher 2/Controls/MyLoading.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Controls/MyImage.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml
 
 PCL Aurora also contains the following directly reused image asset:
