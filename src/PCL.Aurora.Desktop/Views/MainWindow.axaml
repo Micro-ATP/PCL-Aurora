@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="1120" d:DesignHeight="720"
         x:Class="PCL.Aurora.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Icon="/Assets/Icons/AppIcon.icns"
+        Icon="/Assets/Icons/AppIcon.ico"
         Width="1060"
         Height="680"
         MinWidth="800"
