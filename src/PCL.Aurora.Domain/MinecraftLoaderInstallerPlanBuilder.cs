@@ -13,7 +13,8 @@ public static class MinecraftLoaderInstallerPlanBuilder
         MinecraftLoaderCatalogEntry loader,
         string minecraftRootDirectory,
         JavaInstallation? java,
-        Uri? fabricInstallerUri = null)
+        Uri? fabricInstallerUri = null,
+        MinecraftLegacyOptiFineInstallation? legacyOptiFineInstallation = null)
     {
         ArgumentNullException.ThrowIfNull(loader);
         var errors = new List<string>();
@@ -27,12 +28,19 @@ public static class MinecraftLoaderInstallerPlanBuilder
             errors.Add("Minecraft 根目录必须是绝对路径。 ");
         }
 
-        if (java is null || !java.IsCompatible || string.IsNullOrWhiteSpace(java.ExecutablePath) || !Path.IsPathFullyQualified(java.ExecutablePath))
+        var isLegacyOptiFine = IsLegacyOptiFine(loader);
+        if (isLegacyOptiFine && legacyOptiFineInstallation is null)
+        {
+            errors.Add("未找到可安全继承的旧版 Minecraft 元数据。 ");
+        }
+
+        if (!isLegacyOptiFine &&
+            (java is null || !java.IsCompatible || string.IsNullOrWhiteSpace(java.ExecutablePath) || !Path.IsPathFullyQualified(java.ExecutablePath)))
         {
             errors.Add("请先选择兼容的 Java。 ");
         }
 
-        var artifact = errors.Count == 0 ? CreateArtifact(loader, fabricInstallerUri, errors) : null;
+        var artifact = errors.Count == 0 ? CreateArtifact(loader, fabricInstallerUri, legacyOptiFineInstallation, errors) : null;
         if (artifact is null)
         {
             return new(loader, null, null, errors);
@@ -40,6 +48,11 @@ public static class MinecraftLoaderInstallerPlanBuilder
 
         var root = Path.GetFullPath(minecraftRootDirectory);
         var installerPath = Path.Combine(root, artifact.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+        if (isLegacyOptiFine)
+        {
+            return new(loader, artifact, null, [], legacyOptiFineInstallation);
+        }
+
         IReadOnlyList<string> arguments = loader.Kind switch
         {
             MinecraftLoaderKind.Forge or MinecraftLoaderKind.NeoForge =>
@@ -61,6 +74,7 @@ public static class MinecraftLoaderInstallerPlanBuilder
     private static MinecraftDownloadArtifact? CreateArtifact(
         MinecraftLoaderCatalogEntry loader,
         Uri? fabricInstallerUri,
+        MinecraftLegacyOptiFineInstallation? legacyOptiFineInstallation,
         ICollection<string> errors)
     {
         var officialSource = loader.Kind switch
@@ -87,7 +101,7 @@ public static class MinecraftLoaderInstallerPlanBuilder
         var mirrorUri = CreateBmclApiMirrorUri(officialUri);
         return new(
             $"{loader.Kind} {loader.Version} 安装器",
-            $".pcl-aurora/installers/{loader.Kind.ToString().ToLowerInvariant()}-{key}.jar",
+            legacyOptiFineInstallation?.LibraryRelativePath ?? $".pcl-aurora/installers/{loader.Kind.ToString().ToLowerInvariant()}-{key}.jar",
             mirrorUri ?? officialUri,
             Sha1: null,
             Size: null,
@@ -104,12 +118,6 @@ public static class MinecraftLoaderInstallerPlanBuilder
             !IsSafeToken(optiFine.Patch, 96))
         {
             errors.Add("OptiFine 目录条目缺少可验证的公开下载字段。 ");
-            return null;
-        }
-
-        if (!IsModernOptiFineMinecraftVersion(loader.MinecraftVersion))
-        {
-            errors.Add("Aurora 当前仅支持 Minecraft 1.14+ 的 OptiFine 安装器路径；旧版继承 JSON 安装尚未迁移。 ");
             return null;
         }
 
@@ -162,6 +170,9 @@ public static class MinecraftLoaderInstallerPlanBuilder
         value.Length <= 160 &&
         value.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) &&
         value.All(character => char.IsLetterOrDigit(character) || character is '.' or '-' or '_');
+
+    public static bool IsLegacyOptiFine(MinecraftLoaderCatalogEntry loader) =>
+        loader.Kind == MinecraftLoaderKind.OptiFine && !IsModernOptiFineMinecraftVersion(loader.MinecraftVersion);
 
     private static bool IsModernOptiFineMinecraftVersion(string value)
     {

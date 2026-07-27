@@ -759,7 +759,7 @@ public partial class MainViewModel(
         var compatibility = MinecraftLoaderCompatibilityEvaluator.Evaluate(value.MinecraftVersion, [value]);
         LoaderSelectionSummary = compatibility.IsCompatible
             ? value.Kind == MinecraftLoaderKind.OptiFine
-                ? $"已选择 OptiFine {value.Version}（Minecraft {value.MinecraftVersion}，{value.Channel}）。目录来自 PCL 使用的公开源；该源未提供稳定 SHA-1，Aurora 会执行最小体积检查。仅 1.14+ 可由“下载并安装”明确触发。"
+                ? $"已选择 OptiFine {value.Version}（Minecraft {value.MinecraftVersion}，{value.Channel}）。目录来自 PCL 使用的公开源；该源未提供稳定 SHA-1，Aurora 会执行最小体积检查。1.14+ 运行官方安装器，旧版会创建受控继承版本。"
                 : $"已选择 {value.Kind} {value.Version}（Minecraft {value.MinecraftVersion}，{value.Channel}）。选择本地实例与 Java 后，可由“下载并安装”明确触发。"
             : string.Join(Environment.NewLine, compatibility.Reasons);
     }
@@ -804,10 +804,10 @@ public partial class MainViewModel(
     {
         if (SelectedLoader is not { } loader ||
             SelectedInstance is not { } instance ||
-            SelectedJava is not { } java ||
-            !string.Equals(loader.MinecraftVersion, GetMinecraftVersionForLoaders(instance), StringComparison.OrdinalIgnoreCase))
+            !string.Equals(loader.MinecraftVersion, GetMinecraftVersionForLoaders(instance), StringComparison.OrdinalIgnoreCase) ||
+            (!MinecraftLoaderInstallerPlanBuilder.IsLegacyOptiFine(loader) && SelectedJava is null))
         {
-            LoaderSelectionSummary = "请先选择兼容的加载器、本地实例与 Java；未下载或执行安装器。";
+            LoaderSelectionSummary = "请先选择兼容的加载器和本地实例；需要执行安装器时还须选择 Java。未下载或执行安装器。";
             return;
         }
 
@@ -815,14 +815,16 @@ public partial class MainViewModel(
         {
             CanInstallSelectedLoader = false;
             LoaderSelectionSummary = $"正在准备 {loader.Kind} {loader.Version} 官方安装器…";
-            var plan = await loaderInstallerService.PrepareAsync(loader, MinecraftRootDirectory, java);
+            var plan = await loaderInstallerService.PrepareAsync(loader, MinecraftRootDirectory, SelectedJava);
             if (!plan.CanInstall)
             {
                 LoaderSelectionSummary = string.Join(Environment.NewLine, plan.BlockingReasons);
                 return;
             }
 
-            LoaderSelectionSummary = $"正在下载并执行 {loader.Kind} {loader.Version} 安装器…";
+            LoaderSelectionSummary = loader.Kind == MinecraftLoaderKind.OptiFine && MinecraftLoaderInstallerPlanBuilder.IsLegacyOptiFine(loader)
+                ? $"正在下载并创建旧版 OptiFine {loader.Version} 继承版本…"
+                : $"正在下载并执行 {loader.Kind} {loader.Version} 安装器…";
             var result = await loaderInstallerService.InstallAsync(plan, MinecraftRootDirectory, hasExplicitUserConfirmation: true);
             var resultSummary = result.Succeeded
                 ? $"{loader.Kind} {loader.Version} 安装完成。请刷新本地实例列表以检查新增版本。"
@@ -847,7 +849,7 @@ public partial class MainViewModel(
     private bool CanInstallLoaderForSelectedInstance(MinecraftLoaderCatalogEntry? loader) =>
         loader is not null &&
         SelectedInstance is not null &&
-        SelectedJava is not null &&
+        (MinecraftLoaderInstallerPlanBuilder.IsLegacyOptiFine(loader) || SelectedJava is not null) &&
         string.Equals(loader.MinecraftVersion, GetMinecraftVersionForLoaders(SelectedInstance), StringComparison.OrdinalIgnoreCase);
 
     private static string? GetMinecraftVersionForLoaders(MinecraftInstance? instance) =>

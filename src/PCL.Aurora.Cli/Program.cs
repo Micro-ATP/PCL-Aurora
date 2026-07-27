@@ -203,7 +203,7 @@ switch (command)
         if (args.Length != 6 || !string.Equals(args[5], "--confirm", StringComparison.Ordinal))
         {
             Console.WriteLine("用法：loaders install <Forge|NeoForge|Fabric|OptiFine> <Minecraft 版本> <加载器版本> --confirm");
-            Console.WriteLine("只有带 --confirm 的命令才会访问公开地址、下载并执行安装器。");
+            Console.WriteLine("只有带 --confirm 的命令才会访问公开地址、下载加载器；旧版 OptiFine 会创建继承版本，其余加载器会执行安装器。");
             return 64;
         }
 
@@ -246,7 +246,9 @@ switch (command)
             return 1;
         }
 
-        Console.WriteLine($"正在下载并安装 {loader.Kind} {loader.Version}…");
+        Console.WriteLine(MinecraftLoaderInstallerPlanBuilder.IsLegacyOptiFine(loader)
+            ? $"正在下载并创建旧版 OptiFine {loader.Version} 继承版本…"
+            : $"正在下载并安装 {loader.Kind} {loader.Version}…");
         var result = await loaderInstallerService.InstallAsync(plan, minecraftRoot, hasExplicitUserConfirmation: true);
         foreach (var output in result.Output)
         {
@@ -263,7 +265,7 @@ switch (command)
             return 1;
         }
 
-        Console.WriteLine("加载器安装完成。请刷新本地实例列表以检查安装器生成的版本元数据。 ");
+        Console.WriteLine("加载器安装完成。请刷新本地实例列表以检查新增版本元数据。 ");
         break;
     }
     case var value when value.StartsWith("install create ", StringComparison.Ordinal):

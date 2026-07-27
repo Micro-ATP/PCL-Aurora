@@ -88,7 +88,7 @@ public sealed class MinecraftLoaderInstallerPlanBuilderTests
     }
 
     [Fact]
-    public void Build_LegacyOptiFine_StopsBeforeDownloadingOrRunningTheUnmigratedJsonPath()
+    public void Build_LegacyOptiFine_UsesPclCeLibraryLayoutWithoutStartingAnInstaller()
     {
         var loader = new MinecraftLoaderCatalogEntry(
             MinecraftLoaderKind.OptiFine,
@@ -99,12 +99,30 @@ public sealed class MinecraftLoaderInstallerPlanBuilderTests
             null,
             new("OptiFine_1.12.2_HD_U_C9.jar", "HD_U", "C9", false, null));
         var java = new JavaInstallation("/usr/bin/java", "8", 8, "Test", JavaArchitecture.Arm64, JavaSource.Path, true);
+        var baseMetadata = new MinecraftVersionMetadata(
+            "1.12.2",
+            null,
+            "release",
+            null,
+            null,
+            null,
+            new MinecraftLaunchMetadata(
+                "net.minecraft.client.main.Main",
+                [],
+                [],
+                HasModernArguments: false,
+                HasConditionalArguments: false,
+                LegacyGameArguments: "--username ${auth_player_name}"));
+        Assert.True(MinecraftLegacyOptiFineInstallation.TryCreate(loader, baseMetadata, out var legacy, out var error), error);
 
-        var plan = MinecraftLoaderInstallerPlanBuilder.Build(loader, "/tmp/pcl-aurora-loader", java);
+        var plan = MinecraftLoaderInstallerPlanBuilder.Build(loader, "/tmp/pcl-aurora-loader", java, legacyOptiFineInstallation: legacy);
 
-        Assert.False(plan.CanInstall);
-        Assert.Null(plan.InstallerArtifact);
-        Assert.Contains(plan.BlockingReasons, reason => reason.Contains("旧版继承 JSON", StringComparison.Ordinal));
+        Assert.True(plan.CanInstall);
+        Assert.Null(plan.ProcessRequest);
+        Assert.NotNull(plan.LegacyOptiFineInstallation);
+        Assert.Equal("1.12.2-OptiFine_HD_U_C9", plan.LegacyOptiFineInstallation!.VersionId);
+        Assert.Equal("libraries/optifine/OptiFine/1.12.2_HD_U_C9/OptiFine-1.12.2_HD_U_C9.jar", plan.InstallerArtifact!.RelativePath);
+        Assert.Equal("bmclapi2.bangbang93.com", plan.InstallerArtifact.Url.Host);
     }
 
     [Fact]
