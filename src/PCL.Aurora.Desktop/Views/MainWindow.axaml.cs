@@ -24,6 +24,16 @@ public partial class MainWindow : Window
             return;
         }
 
+        SelectMainPage(page);
+    }
+
+    private void OpenDownloadPageClick(object? sender, RoutedEventArgs e)
+    {
+        SelectMainPage(1);
+    }
+
+    private void SelectMainPage(int page)
+    {
         MainTabs.SelectedIndex = page;
 
         var navigation = new[] { LaunchNavigation, DownloadNavigation, SettingsNavigation, MoreNavigation };

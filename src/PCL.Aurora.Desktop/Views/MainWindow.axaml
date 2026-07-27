@@ -56,6 +56,13 @@
             <Setter Property="Foreground" Value="White" />
             <Setter Property="CornerRadius" Value="3" />
         </Style>
+        <Style Selector="Button.launch-download-button">
+            <Setter Property="Background" Value="#FCFCFD" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
         <Style Selector="Border.side-selection">
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="Background" Value="#1370F3" />
@@ -119,14 +126,17 @@
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Grid.Row="2" Spacing="6">
+                                <Button Classes="launch-download-button" Click="OpenDownloadPageClick"
+                                        IsVisible="{Binding NeedsGameDownload}" Height="52" FontSize="16" Content="下载游戏" />
                                 <Button Classes="launch-button" Command="{Binding LaunchGameCommand}"
+                                        IsVisible="{Binding HasAvailableInstances}"
                                         IsEnabled="{Binding CanLaunchGame}" Height="52" FontSize="16" Content="启动游戏" />
                                 <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                            Text="{Binding InstanceSummary}" TextWrapping="Wrap" />
                             </StackPanel>
                             <ComboBox Grid.Row="3" x:Name="InstanceSelector" Margin="0,12,0,0"
                                       AutomationProperties.Name="启动实例"
-                                      IsEnabled="{Binding HasAvailableInstances}"
+                                      IsVisible="{Binding HasAvailableInstances}"
                                       ItemsSource="{Binding AvailableInstances}"
                                       SelectedItem="{Binding SelectedInstance}">
                                 <ComboBox.ItemTemplate>

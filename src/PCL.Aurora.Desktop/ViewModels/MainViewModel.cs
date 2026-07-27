@@ -178,6 +178,8 @@ public partial class MainViewModel(
     [ObservableProperty]
     private bool hasAvailableInstances;
 
+    public bool NeedsGameDownload => !HasAvailableInstances;
+
     [ObservableProperty]
     private string versionMetadataSummary = "将在发现本地实例后读取版本元数据。";
 
@@ -849,6 +851,11 @@ public partial class MainViewModel(
         {
             _ = RefreshGameLaunchPreparationAsync();
         }
+    }
+
+    partial void OnHasAvailableInstancesChanged(bool value)
+    {
+        OnPropertyChanged(nameof(NeedsGameDownload));
     }
 
     private async Task SaveSelectedInstancePreferenceAsync(string? instanceName)
