@@ -152,6 +152,14 @@
             <Setter Property="Background" Value="White" />
             <Setter Property="Foreground" Value="#1370F3" />
         </Style>
+        <Style Selector="Grid.pcl-shell Button.main-navigation:pointerover">
+            <Setter Property="Background" Value="#4192F7" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.main-navigation.selected:pointerover">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
         <Style Selector="Grid.pcl-shell Button.login-mode">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -159,6 +167,14 @@
         </Style>
         <Style Selector="Grid.pcl-shell Button.login-mode.selected">
             <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.login-mode:pointerover">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.login-mode.selected:pointerover">
+            <Setter Property="Background" Value="#2B86ED" />
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.login-mode:disabled">
@@ -267,7 +283,7 @@
             <Grid x:Name="LaunchPage">
                 <Grid ColumnDefinitions="300,*" Background="#D9EAF9">
                     <Border Background="#FCFCFD" BorderBrush="#D7DCE2" BorderThickness="0,0,1,0">
-                        <Grid Margin="20,22,20,20" RowDefinitions="Auto,*,Auto,Auto">
+                        <Grid Margin="20,40,20,20" RowDefinitions="Auto,*,Auto,Auto">
                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
                                 <Button Classes="login-mode" Click="OfficialLoginClick"
                                         ToolTip.Tip="{Binding MicrosoftLoginSummary}" Content="正版" />
