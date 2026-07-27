@@ -11,6 +11,7 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
 
     public async Task<MinecraftLoaderCatalogParseResult> FetchAsync(
         string minecraftVersion,
+        MinecraftLoaderKind? loaderKind = null,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(minecraftVersion))
@@ -21,11 +22,21 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
         try
         {
             var fabricUri = new Uri($"https://meta.fabricmc.net/v2/versions/loader/{Uri.EscapeDataString(minecraftVersion)}");
-            var forgeTask = TryFetchAsync("Forge", ForgeMetadataUri, cancellationToken);
-            var neoForgeTask = TryFetchAsync("NeoForge", NeoForgeReleasesUri, cancellationToken);
-            var neoForgeLegacyTask = TryFetchAsync("NeoForge 遗留目录", NeoForgeLegacyUri, cancellationToken);
-            var fabricTask = TryFetchAsync("Fabric", fabricUri, cancellationToken);
-            var optiFineTask = TryFetchAsync("OptiFine 公开目录", OptiFineCatalogUri, cancellationToken);
+            var forgeTask = Includes(MinecraftLoaderKind.Forge)
+                ? TryFetchAsync("Forge", ForgeMetadataUri, cancellationToken)
+                : Task.FromResult(CatalogResponse.Empty);
+            var neoForgeTask = Includes(MinecraftLoaderKind.NeoForge)
+                ? TryFetchAsync("NeoForge", NeoForgeReleasesUri, cancellationToken)
+                : Task.FromResult(CatalogResponse.Empty);
+            var neoForgeLegacyTask = Includes(MinecraftLoaderKind.NeoForge)
+                ? TryFetchAsync("NeoForge 遗留目录", NeoForgeLegacyUri, cancellationToken)
+                : Task.FromResult(CatalogResponse.Empty);
+            var fabricTask = Includes(MinecraftLoaderKind.Fabric)
+                ? TryFetchAsync("Fabric", fabricUri, cancellationToken)
+                : Task.FromResult(CatalogResponse.Empty);
+            var optiFineTask = Includes(MinecraftLoaderKind.OptiFine)
+                ? TryFetchAsync("OptiFine 公开目录", OptiFineCatalogUri, cancellationToken)
+                : Task.FromResult(CatalogResponse.Empty);
             await Task.WhenAll(forgeTask, neoForgeTask, neoForgeLegacyTask, fabricTask, optiFineTask).ConfigureAwait(false);
             var responses = new[]
             {
@@ -48,6 +59,8 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
                 .Concat(parsed.Errors)
                 .ToArray();
             return new(parsed.Catalog, errors);
+
+            bool Includes(MinecraftLoaderKind candidate) => loaderKind is null || loaderKind == candidate;
         }
         catch (OperationCanceledException)
         {
@@ -77,5 +90,8 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
         }
     }
 
-    private sealed record CatalogResponse(string? Content, string? Error);
+    private sealed record CatalogResponse(string? Content, string? Error)
+    {
+        public static CatalogResponse Empty { get; } = new(null, null);
+    }
 }

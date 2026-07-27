@@ -45,6 +45,20 @@ public sealed class MinecraftOfficialLoaderCatalogServiceTests
         Assert.Contains(result.Errors, error => error.Contains("NeoForge", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task FetchAsync_WithLoaderKind_OnlyRequestsThatCatalog()
+    {
+        var handler = new RecordingCatalogHandler();
+        using var client = new HttpClient(handler);
+        var service = new MinecraftOfficialLoaderCatalogService(client);
+
+        var result = await service.FetchAsync("1.20.1", PCL.Aurora.Domain.MinecraftLoaderKind.Forge);
+
+        Assert.NotNull(result.Catalog);
+        Assert.All(result.Catalog!.Entries, entry => Assert.Equal(PCL.Aurora.Domain.MinecraftLoaderKind.Forge, entry.Kind));
+        Assert.Equal(["maven.minecraftforge.net"], handler.RequestedHosts);
+    }
+
     private sealed class OfficialCatalogHandler : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -83,6 +97,18 @@ public sealed class MinecraftOfficialLoaderCatalogServiceTests
                 "bmclapi2.bangbang93.com" => """[{ "mcversion": "1.20.1", "type": "HD_U", "patch": "I6", "filename": "OptiFine_1.20.1_HD_U_I6.jar", "forge": "Forge 47.2.0" }]""",
                 _ => """[{ "loader": { "version": "0.16.10", "stable": true } }]""",
             };
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content) });
+        }
+    }
+
+    private sealed class RecordingCatalogHandler : HttpMessageHandler
+    {
+        public List<string> RequestedHosts { get; } = [];
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            RequestedHosts.Add(request.RequestUri!.Host);
+            const string content = "<metadata><versioning><versions><version>1.20.1-47.2.0</version></versions></versioning></metadata>";
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content) });
         }
     }

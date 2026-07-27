@@ -10,5 +10,6 @@ public interface IMinecraftOfficialLoaderCatalogService
 {
     Task<MinecraftLoaderCatalogParseResult> FetchAsync(
         string minecraftVersion,
+        MinecraftLoaderKind? loaderKind = null,
         CancellationToken cancellationToken = default);
 }

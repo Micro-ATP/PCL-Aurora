@@ -36,6 +36,29 @@ public sealed class MinecraftVersionCatalogFilterTests
         Assert.Empty(result);
     }
 
+    [Fact]
+    public void FilterByCategory_SeparatesAprilFoolsFromSnapshots()
+    {
+        var versions = new[]
+        {
+            Create("25w14craftmine", "snapshot", 4),
+            Create("25w15a", "snapshot", 3),
+            Create("3D Shareware v1.34", "snapshot", 2),
+        };
+
+        var aprilFools = MinecraftVersionCatalogFilter.FilterByCategory(
+            versions,
+            null,
+            MinecraftVersionCatalogCategory.AprilFools);
+        var snapshots = MinecraftVersionCatalogFilter.FilterByCategory(
+            versions,
+            null,
+            MinecraftVersionCatalogCategory.Snapshot);
+
+        Assert.Equal(["25w14craftmine", "3D Shareware v1.34"], aprilFools.Select(version => version.Id));
+        Assert.Equal("25w15a", Assert.Single(snapshots).Id);
+    }
+
     private static MinecraftVersionCatalogEntry Create(string id, string type, int day) =>
         new(id, type, new Uri($"https://example.invalid/{id}.json"), new DateTimeOffset(2025, 1, day, 0, 0, 0, TimeSpan.Zero));
 }

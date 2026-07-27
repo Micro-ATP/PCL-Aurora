@@ -237,13 +237,7 @@ public partial class MainViewModel(
     private string versionSearchText = string.Empty;
 
     [ObservableProperty]
-    private bool includeReleaseVersions = true;
-
-    [ObservableProperty]
-    private bool includeSnapshotVersions = true;
-
-    [ObservableProperty]
-    private bool includeLegacyVersions;
+    private MinecraftVersionCatalogCategory selectedVersionCategory = MinecraftVersionCatalogCategory.Release;
 
     [ObservableProperty]
     private bool canProvisionSelectedVersion;
@@ -600,11 +594,7 @@ public partial class MainViewModel(
 
     partial void OnVersionSearchTextChanged(string value) => ApplyVersionFilters();
 
-    partial void OnIncludeReleaseVersionsChanged(bool value) => ApplyVersionFilters();
-
-    partial void OnIncludeSnapshotVersionsChanged(bool value) => ApplyVersionFilters();
-
-    partial void OnIncludeLegacyVersionsChanged(bool value) => ApplyVersionFilters();
+    partial void OnSelectedVersionCategoryChanged(MinecraftVersionCatalogCategory value) => ApplyVersionFilters();
 
     private void ApplyVersionFilters(string? preferredVersionId = null)
     {
@@ -614,12 +604,10 @@ public partial class MainViewModel(
         }
 
         var selectedId = SelectedCatalogVersion?.Id ?? preferredVersionId;
-        var filtered = MinecraftVersionCatalogFilter.Filter(
+        var filtered = MinecraftVersionCatalogFilter.FilterByCategory(
             allCatalogVersions,
             VersionSearchText,
-            IncludeReleaseVersions,
-            IncludeSnapshotVersions,
-            IncludeLegacyVersions);
+            SelectedVersionCategory);
 
         AvailableVersions.Clear();
         foreach (var version in filtered)
@@ -631,7 +619,7 @@ public partial class MainViewModel(
             ?? AvailableVersions.FirstOrDefault();
         VersionCatalogSummary = AvailableVersions.Count == 0
             ? "没有符合当前筛选条件的官方版本；不会创建实例。"
-            : $"已加载 {allCatalogVersions.Count} 个官方版本；当前筛选显示 {AvailableVersions.Count} 个。";
+            : $"已加载 {allCatalogVersions.Count} 个官方版本；当前分类显示 {AvailableVersions.Count} 个。";
     }
 
     partial void OnSelectedInstanceChanged(MinecraftInstance? value)
@@ -691,8 +679,8 @@ public partial class MainViewModel(
         try
         {
             LoaderCatalogSummary = $"正在读取 Minecraft {minecraftVersion} 的官方加载器目录…";
-            var result = await officialLoaderCatalogService.FetchAsync(minecraftVersion);
-            if (!result.IsSuccess || result.Catalog is null)
+            var result = await officialLoaderCatalogService.FetchAsync(minecraftVersion, loaderKindFilter);
+            if (result.Catalog is null)
             {
                 loaderCatalog = null;
                 AvailableLoaders.Clear();

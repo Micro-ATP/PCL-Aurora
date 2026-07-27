@@ -527,6 +527,70 @@
             <Setter Property="BorderBrush" Value="#1370F3" />
             <Setter Property="Background" Value="#F7FBFF" />
         </Style>
+        <Style Selector="Button.download-primary">
+            <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="16,0" />
+        </Style>
+        <Style Selector="Button.download-primary:pointerover">
+            <Setter Property="Background" Value="#2B86ED" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#2B86ED" />
+        </Style>
+        <Style Selector="Button.download-primary:pressed">
+            <Setter Property="Background" Value="#0F5FCC" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#0F5FCC" />
+        </Style>
+        <Style Selector="ListBox.download-list">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="ListBox.download-list ListBoxItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#E0E8F0" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Padding" Value="11,9" />
+            <Setter Property="MinHeight" Value="48" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Background="Transparent"
+                                          BorderThickness="0"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ListBox.download-list ListBoxItem:pointerover">
+            <Setter Property="Background" Value="#EDF6FF" />
+            <Setter Property="Foreground" Value="#24415F" />
+            <Setter Property="BorderBrush" Value="#C7DEF5" />
+        </Style>
+        <Style Selector="ListBox.download-list ListBoxItem:selected">
+            <Setter Property="Background" Value="#DCEEFF" />
+            <Setter Property="Foreground" Value="#0F5FCC" />
+            <Setter Property="BorderBrush" Value="#83B8F8" />
+        </Style>
+        <Style Selector="ListBox.download-list ListBoxItem:selected:pointerover">
+            <Setter Property="Background" Value="#D3E9FF" />
+            <Setter Property="Foreground" Value="#0F5FCC" />
+        </Style>
     </Window.Styles>
 
     <Border CornerRadius="8" ClipToBounds="True">
@@ -766,20 +830,209 @@
                             </StackPanel>
                         </ScrollViewer>
                     </Border>
-                    <ScrollViewer Grid.Column="1" Background="#D9EAF9">
-                    <StackPanel Margin="25,10,25,25" MaxWidth="860" Spacing="15">
-                        <StackPanel Spacing="6">
-                            <TextBlock x:Name="DownloadPageTitle" FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="原版游戏" />
-                            <TextBlock x:Name="DownloadPageDescription" Foreground="#6F7C8B"
-                                       Text="选择官方 Minecraft 版本，再创建本地实例并执行已验证的安装流程。" />
-                        </StackPanel>
+                    <ScrollViewer Grid.Column="1" Background="#D9EAF9" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="25,18,25,25" MaxWidth="860" Spacing="15">
+                            <StackPanel Spacing="5">
+                                <TextBlock x:Name="DownloadPageTitle" FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="原版游戏" />
+                                <TextBlock x:Name="DownloadPageDescription" Foreground="#6F7C8B" TextWrapping="Wrap"
+                                           Text="选择官方 Minecraft 版本，再创建本地实例并执行已验证的安装流程。" />
+                            </StackPanel>
 
-                        <StackPanel HorizontalAlignment="Stretch" Spacing="15">
+                            <!-- PCL2 PageDownloadClient/PageDownloadInstall structure adapted to Aurora's existing commands. -->
+                            <StackPanel x:Name="DownloadGameView" Spacing="15">
+                                <Border Classes="pcl-card" Padding="16">
+                                    <StackPanel Spacing="12">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="最新版本" />
+                                            <Button Grid.Column="1" Command="{Binding RefreshVersionCatalogCommand}" Content="刷新版本目录" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                            <Border Classes="pcl-option-row" CornerRadius="3">
+                                                <Grid ColumnDefinitions="40,*" ColumnSpacing="10">
+                                                    <Image Width="34" Height="34" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding LatestReleaseVersion.Id, TargetNullValue=等待刷新}" />
+                                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="最新正式版" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                            <Border Grid.Column="1" Classes="pcl-option-row" CornerRadius="3">
+                                                <Grid ColumnDefinitions="40,*" ColumnSpacing="10">
+                                                    <Image Width="34" Height="34" Stretch="Uniform" Source="/Assets/Loaders/Pcl2CommandBlock.png" />
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding LatestSnapshotVersion.Id, TargetNullValue=等待刷新}" />
+                                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="最新预览版" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding VersionCatalogSummary}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Classes="pcl-card" Padding="16">
+                                    <StackPanel Spacing="12">
+                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="版本列表" />
+                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="7">
+                                            <TextBox PlaceholderText="搜索版本，例如 1.21.4 或 24w14a" Text="{Binding VersionSearchText}" />
+                                            <Button x:Name="ReleaseVersionGroup" Grid.Column="1" Classes="version-group selected" Width="74" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="release" Content="正式版" />
+                                            <Button x:Name="SnapshotVersionGroup" Grid.Column="2" Classes="version-group" Width="74" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="snapshot" Content="预览版" />
+                                            <Button x:Name="LegacyVersionGroup" Grid.Column="3" Classes="version-group" Width="74" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="legacy" Content="远古版" />
+                                            <Button x:Name="AprilFoolsVersionGroup" Grid.Column="4" Classes="version-group" Width="82" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="april-fools" Content="愚人节版" />
+                                        </Grid>
+                                        <ListBox Classes="download-list" MaxHeight="260"
+                                                 ItemsSource="{Binding AvailableVersions}"
+                                                 SelectedItem="{Binding SelectedCatalogVersion}">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="10">
+                                                        <Image Width="32" Height="32" VerticalAlignment="Center" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                                            <TextBlock FontSize="14" FontWeight="SemiBold" Text="{Binding Id}" />
+                                                            <TextBlock FontSize="11" Foreground="#6F7C8B" Text="{Binding Type}" />
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12" Foreground="#6F7C8B"
+                                                                   Text="{Binding ReleaseTime, StringFormat={}{0:yyyy-MM-dd}}" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Classes="pcl-card" Padding="16">
+                                    <StackPanel Spacing="11">
+                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="安装所选版本" />
+                                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="5">
+                                            <TextBlock VerticalAlignment="Center" Foreground="#6F7C8B" Text="实例名称" />
+                                            <TextBlock Grid.Column="1" VerticalAlignment="Center" FontWeight="SemiBold"
+                                                       Text="{Binding SelectedCatalogVersion.Id, TargetNullValue=请先选择版本}" />
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Foreground="#6F7C8B" Text="安装位置" />
+                                            <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding MinecraftRootDirectory}" TextWrapping="Wrap" />
+                                        </Grid>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button Classes="download-primary" Command="{Binding ProvisionSelectedVersionCommand}"
+                                                    IsEnabled="{Binding CanProvisionSelectedVersion}" Content="创建实例" />
+                                            <Button Classes="download-primary" Command="{Binding InstallGameCommand}"
+                                                    IsEnabled="{Binding CanInstallGame}" Content="下载并安装游戏" />
+                                            <Button Command="{Binding CancelInstallationCommand}" IsEnabled="{Binding CanCancelInstallation}" Content="取消下载" />
+                                        </StackPanel>
+                                        <Border Classes="pcl-status-strip" Background="#EDF6FF">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock FontSize="12" Foreground="#365879" Text="{Binding DownloadPreparationSummary}" TextWrapping="Wrap" />
+                                                <TextBlock FontSize="12" Foreground="#365879" Text="{Binding InstallationSummary}" TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- PCL-CE's four independent loader pages share one Aurora view while retaining a strict kind filter. -->
+                            <StackPanel x:Name="DownloadLoaderView" IsVisible="False" Spacing="15">
+                                <Border Classes="pcl-card" Padding="18">
+                                    <Grid ColumnDefinitions="58,*" ColumnSpacing="14">
+                                        <Grid Width="50" Height="50" VerticalAlignment="Top">
+                                            <Image x:Name="DownloadForgeImage" Stretch="Uniform" Source="/Assets/Loaders/PclCeForge.png" />
+                                            <Image x:Name="DownloadNeoForgeImage" IsVisible="False" Stretch="Uniform" Source="/Assets/Loaders/PclCeNeoForge.png" />
+                                            <Image x:Name="DownloadFabricImage" IsVisible="False" Stretch="Uniform" Source="/Assets/Loaders/PclCeFabric.png" />
+                                            <Image x:Name="DownloadOptiFineImage" IsVisible="False" Stretch="Uniform" Source="/Assets/Loaders/PclCeOptiFine.png" />
+                                        </Grid>
+                                        <StackPanel Grid.Column="1" Spacing="5">
+                                            <TextBlock x:Name="DownloadLoaderIntroTitle" FontSize="16" FontWeight="SemiBold" Text="Forge" />
+                                            <TextBlock x:Name="DownloadLoaderIntroDescription" Foreground="#6F7C8B" TextWrapping="Wrap"
+                                                       Text="选择目标实例与兼容版本，再明确触发官方安装器。" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <Border Classes="pcl-card" Padding="16">
+                                    <StackPanel Spacing="11">
+                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="目标游戏" />
+                                        <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="9">
+                                            <TextBlock VerticalAlignment="Center" Text="目标实例" />
+                                            <ComboBox Grid.Column="1" MinWidth="280" HorizontalAlignment="Stretch"
+                                                      ItemsSource="{Binding AvailableInstances}" SelectedItem="{Binding SelectedInstance}">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                                            <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                            <TextBlock Grid.Column="1" Foreground="#6F7C8B" Text="{Binding BaseVersionId}" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="Minecraft 版本" />
+                                            <Grid Grid.Row="1" Grid.Column="1" MinWidth="398" HorizontalAlignment="Stretch"
+                                                  ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                <ComboBox MinWidth="280" HorizontalAlignment="Stretch"
+                                                          ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedCatalogVersion}">
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                                                <TextBlock FontWeight="SemiBold" Text="{Binding Id}" />
+                                                                <TextBlock Grid.Column="1" Foreground="#6F7C8B" Text="{Binding Type}" />
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
+                                                </ComboBox>
+                                                <Button Grid.Column="1" Command="{Binding RefreshVersionCatalogCommand}" Content="刷新原版目录" />
+                                            </Grid>
+                                        </Grid>
+                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="加载器只能安装到基础版本一致的既有实例；未满足条件时安装按钮会保持禁用。" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Classes="pcl-card" Padding="16">
+                                    <StackPanel Spacing="11">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="版本列表" />
+                                            <Button Grid.Column="1" Command="{Binding RefreshOfficialLoaderCatalogCommand}" Content="刷新官方目录" />
+                                        </Grid>
+                                        <ListBox Classes="download-list" MaxHeight="280" IsEnabled="{Binding HasAvailableLoaders}"
+                                                 ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                                                        <StackPanel Spacing="1">
+                                                            <TextBlock FontSize="14" FontWeight="SemiBold" Text="{Binding Version}" />
+                                                            <TextBlock FontSize="11" Foreground="#6F7C8B" Text="{Binding MinecraftVersion, StringFormat=Minecraft {0}}" />
+                                                        </StackPanel>
+                                                        <Border Grid.Column="1" VerticalAlignment="Center" Background="#E4F1FF" CornerRadius="2" Padding="7,3">
+                                                            <TextBlock FontSize="11" Foreground="#1370F3" Text="{Binding Channel}" />
+                                                        </Border>
+                                                        <Border Grid.Column="2" IsVisible="{Binding IsRecommended}" VerticalAlignment="Center"
+                                                                Background="#E8F7EE" CornerRadius="2" Padding="7,3">
+                                                            <TextBlock FontSize="11" Foreground="#287A49" Text="推荐" />
+                                                        </Border>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding LoaderCatalogSummary}" TextWrapping="Wrap" />
+                                        <TextBlock FontSize="12" Foreground="#365879" Text="{Binding LoaderSelectionSummary}" TextWrapping="Wrap" />
+                                        <Button Classes="download-primary" HorizontalAlignment="Left"
+                                                Command="{Binding InstallSelectedLoaderCommand}"
+                                                IsEnabled="{Binding CanInstallSelectedLoader}"
+                                                Content="下载并安装所选版本" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Classes="pcl-card" Padding="16">
+                                    <StackPanel Spacing="9">
+                                        <TextBlock FontWeight="SemiBold" Text="本地目录" />
+                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="需要离线或自定义目录时，可读取 Aurora 格式的 loaders.json。" />
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <TextBox PlaceholderText="本地 loaders.json 的完整路径" Text="{Binding LoaderCatalogPath}" />
+                                            <Button Grid.Column="1" Command="{Binding LoadLoaderCatalogCommand}" Content="读取目录" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
                             <Border x:Name="DownloadCommunityCard" Classes="pcl-card" Padding="20" IsVisible="False">
                                 <StackPanel Spacing="12">
                                     <TextBlock x:Name="DownloadCommunityTitle" FontSize="17" FontWeight="SemiBold" Text="社区资源" />
-                                    <TextBlock x:Name="DownloadCommunityDescription" Foreground="#6F7C8B"
-                                               Text="浏览来自主流资源平台的项目。" TextWrapping="Wrap" />
+                                    <TextBlock x:Name="DownloadCommunityDescription" Foreground="#6F7C8B" Text="浏览来自主流资源平台的项目。" TextWrapping="Wrap" />
                                     <Grid ColumnDefinitions="*,180" ColumnSpacing="10">
                                         <TextBox IsEnabled="False" PlaceholderText="搜索名称、作者或版本" />
                                         <ComboBox Grid.Column="1" IsEnabled="False" SelectedIndex="0">
@@ -792,173 +1045,24 @@
                                         <Grid ColumnDefinitions="40,*" ColumnSpacing="12">
                                             <Border Width="40" Height="40" CornerRadius="3" Background="#DCEBFA" />
                                             <StackPanel Grid.Column="1" Spacing="4">
-                                                <TextBlock FontWeight="SemiBold" Text="资源目录界面已就绪" />
-                                                <TextBlock FontSize="12" Foreground="#6F7C8B"
-                                                           Text="目录数据与安装流程将在对应迁移阶段接入。" />
+                                                <TextBlock FontWeight="SemiBold" Text="资源目录服务尚未接入" />
+                                                <TextBlock FontSize="12" Foreground="#6F7C8B" Text="本页保留 PCL/PCL-CE 的导航位置，不会展示伪造的搜索结果或执行安装。" TextWrapping="Wrap" />
                                             </StackPanel>
                                         </Grid>
                                     </Border>
                                 </StackPanel>
                             </Border>
+
                             <Border x:Name="DownloadDeferredCard" Classes="pcl-card" Padding="20" IsVisible="False">
                                 <StackPanel Spacing="12">
-                                    <TextBlock FontSize="17" FontWeight="SemiBold" Text="安装器" />
-                                    <TextBlock Foreground="#6F7C8B" Text="选择目标 Minecraft 版本与安装器通道。" />
-                                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
-                                        <TextBlock VerticalAlignment="Center" Text="游戏版本" />
-                                        <ComboBox Grid.Column="1" IsEnabled="False" SelectedIndex="0"><ComboBoxItem Content="选择 Minecraft 版本" /></ComboBox>
-                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="安装通道" />
-                                        <ComboBox Grid.Row="1" Grid.Column="1" IsEnabled="False" SelectedIndex="0"><ComboBoxItem Content="稳定版" /></ComboBox>
-                                        <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="安装位置" />
-                                        <TextBox Grid.Row="2" Grid.Column="1" IsEnabled="False" Text="当前实例" />
-                                    </Grid>
-                                    <Button HorizontalAlignment="Left" IsEnabled="False" Content="安装" />
-                                </StackPanel>
-                            </Border>
-                            <Border x:Name="DownloadGameCard" Classes="pcl-card" Padding="16">
-                                <StackPanel Spacing="12">
-                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="最新版本" />
-                                    <Grid ColumnDefinitions="44,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="8">
-                                        <Image Width="36" Height="36" VerticalAlignment="Center" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
-                                        <StackPanel Grid.Column="1" Spacing="1">
-                                            <TextBlock FontSize="15" Text="{Binding LatestReleaseVersion.Id, TargetNullValue=点击刷新官方版本}" />
-                                            <TextBlock FontSize="12" Foreground="#6F7C8B" Text="最新正式版" />
-                                        </StackPanel>
-                                        <Image Grid.Row="1" Width="36" Height="36" VerticalAlignment="Center" Stretch="Uniform" Source="/Assets/Loaders/Pcl2CommandBlock.png" />
-                                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="1">
-                                            <TextBlock FontSize="15" Text="{Binding LatestSnapshotVersion.Id, TargetNullValue=刷新后显示最新预览版}" />
-                                            <TextBlock FontSize="12" Foreground="#6F7C8B" Text="最新预览版" />
-                                        </StackPanel>
-                                    </Grid>
-                                    <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding VersionCatalogSummary}" TextWrapping="Wrap" />
-                                    <Button Command="{Binding RefreshVersionCatalogCommand}" Content="刷新官方版本" HorizontalAlignment="Left" />
-                                </StackPanel>
-                            </Border>
-                            <Button x:Name="ReleaseVersionGroup" Classes="version-group" Click="VersionFilterClick" Tag="release">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="正式版" />
-                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="16" Text="v" />
-                                </Grid>
-                            </Button>
-                            <Button x:Name="SnapshotVersionGroup" Classes="version-group" Click="VersionFilterClick" Tag="snapshot">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="预览版" />
-                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="16" Text="v" />
-                                </Grid>
-                            </Button>
-                            <Button x:Name="LegacyVersionGroup" Classes="version-group" Click="VersionFilterClick" Tag="legacy">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="远古版" />
-                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="16" Text="v" />
-                                </Grid>
-                            </Button>
-                            <Button x:Name="AprilFoolsVersionGroup" Classes="version-group" Click="VersionFilterClick" Tag="april-fools">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="愚人节版" />
-                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="16" Text="v" />
-                                </Grid>
-                            </Button>
-                            <Border x:Name="DownloadVersionSelectionCard" Classes="pcl-card" Padding="16">
-                                <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="SemiBold" Text="版本选择" />
-                                    <TextBox PlaceholderText="搜索版本 ID，例如 1.21.4 或 24w14a" Text="{Binding VersionSearchText}" />
-                                    <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedCatalogVersion}">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Id}" />
-                                                    <TextBlock Foreground="#6F7C8B" Text="{Binding Type}" />
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Button Command="{Binding ProvisionSelectedVersionCommand}" IsEnabled="{Binding CanProvisionSelectedVersion}" Content="创建实例" />
-                                        <Button Command="{Binding InstallGameCommand}" IsEnabled="{Binding CanInstallGame}" Content="安装游戏" />
-                                        <Button Command="{Binding CancelInstallationCommand}" IsEnabled="{Binding CanCancelInstallation}" Content="取消" />
-                                    </StackPanel>
-                                    <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding InstallationSummary}" TextWrapping="Wrap" />
-                                </StackPanel>
-                            </Border>
-                            <Border x:Name="DownloadLoaderCard" Classes="pcl-card" Padding="20" IsVisible="False">
-                                <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="SemiBold" Text="模组加载器" />
-                                    <TextBlock Foreground="#6F7C8B"
-                                               Text="导入用户指定的本地目录，按所选原版版本筛选 Forge、NeoForge 和 Fabric。"
-                                               TextWrapping="Wrap" />
-                                    <Grid Margin="0,4,0,2" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="8">
-                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                                            <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeForge.png" />
-                                            <StackPanel Spacing="1">
-                                                <TextBlock FontWeight="SemiBold" Text="Forge" />
-                                                <TextBlock FontSize="11" Foreground="#6F7C8B" Text="已支持" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeNeoForge.png" />
-                                            <StackPanel Spacing="1">
-                                                <TextBlock FontWeight="SemiBold" Text="NeoForge" />
-                                                <TextBlock FontSize="11" Foreground="#6F7C8B" Text="已支持" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                                            <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeFabric.png" />
-                                            <StackPanel Spacing="1">
-                                                <TextBlock FontWeight="SemiBold" Text="Fabric" />
-                                                <TextBlock FontSize="11" Foreground="#6F7C8B" Text="已支持" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8" Opacity="0.65">
-                                            <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeOptiFine.png" />
-                                            <StackPanel Spacing="1">
-                                                <TextBlock FontWeight="SemiBold" Text="OptiFine" />
-                                                <TextBlock FontSize="11" Foreground="#6F7C8B" Text="1.14+ 可安装" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Grid>
-                                    <Separator Margin="0,2" />
-                                    <TextBox PlaceholderText="本地 loaders.json 的完整路径"
-                                             Text="{Binding LoaderCatalogPath}" />
-                                    <Button Command="{Binding LoadLoaderCatalogCommand}" Content="读取本地加载器目录" />
-                                    <Button Command="{Binding RefreshOfficialLoaderCatalogCommand}" Content="刷新加载器目录" />
-                                    <ComboBox IsEnabled="{Binding HasAvailableLoaders}"
-                                              ItemsSource="{Binding AvailableLoaders}"
-                                              SelectedItem="{Binding SelectedLoader}">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Kind}" />
-                                                    <TextBlock Text="{Binding Version}" />
-                                                    <TextBlock Foreground="#6F7C8B"
-                                                               Text="{Binding Channel}" />
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                    <Button Command="{Binding InstallSelectedLoaderCommand}"
-                                            IsEnabled="{Binding CanInstallSelectedLoader}"
-                                            Content="下载并安装所选加载器" />
-                                    <TextBlock Foreground="#6F7C8B"
-                                               Text="{Binding LoaderCatalogSummary}"
-                                               TextWrapping="Wrap" />
-                                    <TextBlock Foreground="#6F7C8B"
-                                               Text="{Binding LoaderSelectionSummary}"
-                                               TextWrapping="Wrap" />
+                                    <TextBlock FontSize="17" FontWeight="SemiBold" Text="兼容性评估中" />
+                                    <TextBlock Foreground="#6F7C8B" Text="该安装器尚未通过 macOS、Arch Linux 与 Windows 的完整兼容性验证，因此暂不提供下载或执行入口。" TextWrapping="Wrap" />
+                                    <Border Classes="pcl-status-strip" Background="#EDF6FF">
+                                        <TextBlock FontSize="12" Foreground="#365879" Text="页面位置已经与 PCL-CE 同步；待验证安装器来源、Java 要求和实例写入规则后再接入真实功能。" TextWrapping="Wrap" />
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
-                        <StackPanel x:Name="DownloadGameStatusPanel" Spacing="6">
-                            <TextBlock Foreground="#6F7C8B"
-                                       Text="{Binding DownloadPreparationSummary}"
-                                       TextWrapping="Wrap" />
-                            <TextBlock Foreground="#6F7C8B"
-                                       Text="{Binding InstallationSummary}"
-                                       TextWrapping="Wrap" />
-                            <TextBlock Foreground="#6F7C8B"
-                                       Text="{Binding VersionCatalogSummary}"
-                                       TextWrapping="Wrap" />
-                        </StackPanel>
-                    </StackPanel>
                     </ScrollViewer>
                 </Grid>
             </Grid>

@@ -177,14 +177,8 @@ public partial class MainWindow : Window
 
         DownloadCommunityCard.IsVisible = isCommunity;
         DownloadDeferredCard.IsVisible = isDeferredInstaller;
-        DownloadGameCard.IsVisible = isGame;
-        DownloadVersionSelectionCard.IsVisible = isGame || loaderKind is not null;
-        DownloadGameStatusPanel.IsVisible = isGame || loaderKind is not null;
-        ReleaseVersionGroup.IsVisible = isGame;
-        SnapshotVersionGroup.IsVisible = isGame;
-        LegacyVersionGroup.IsVisible = isGame;
-        AprilFoolsVersionGroup.IsVisible = isGame;
-        DownloadLoaderCard.IsVisible = loaderKind is not null;
+        DownloadGameView.IsVisible = isGame;
+        DownloadLoaderView.IsVisible = loaderKind is not null;
         DownloadPageTitle.Text = GetDownloadSectionTitle(section);
         DownloadPageDescription.Text = GetDownloadSectionDescription(section);
         if (isCommunity)
@@ -198,10 +192,32 @@ public partial class MainWindow : Window
             viewModel.SetLoaderKindFilter(loaderKind);
         }
 
+        if (loaderKind is { } selectedLoaderKind)
+        {
+            ConfigureLoaderPage(selectedLoaderKind);
+        }
+
         foreach (var navigation in DownloadNavigationPanel.Children.OfType<PclNavigationButton>())
         {
             navigation.Classes.Set("selected", navigation == selectedNavigation);
         }
+    }
+
+    private void ConfigureLoaderPage(MinecraftLoaderKind kind)
+    {
+        DownloadForgeImage.IsVisible = kind == MinecraftLoaderKind.Forge;
+        DownloadNeoForgeImage.IsVisible = kind == MinecraftLoaderKind.NeoForge;
+        DownloadFabricImage.IsVisible = kind == MinecraftLoaderKind.Fabric;
+        DownloadOptiFineImage.IsVisible = kind == MinecraftLoaderKind.OptiFine;
+        DownloadLoaderIntroTitle.Text = kind.ToString();
+        DownloadLoaderIntroDescription.Text = kind switch
+        {
+            MinecraftLoaderKind.Forge => "按 Minecraft 版本读取 Forge 官方 Maven 目录，并通过官方安装器写入已选择的本地实例。",
+            MinecraftLoaderKind.NeoForge => "按 Minecraft 版本读取 NeoForge 官方目录，并通过官方安装器写入已选择的本地实例。",
+            MinecraftLoaderKind.Fabric => "读取 Fabric Meta 的稳定版与预览版目录，并通过官方安装器写入已选择的本地实例。",
+            MinecraftLoaderKind.OptiFine => "读取 PCL 使用的公开 OptiFine 目录。1.14 及以上运行官方安装器，旧版本创建受控继承实例。",
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+        };
     }
 
     private static string GetDownloadSectionTitle(string section) => section switch
@@ -248,9 +264,14 @@ public partial class MainWindow : Window
         }
 
         viewModel.VersionSearchText = string.Empty;
-        viewModel.IncludeReleaseVersions = filter == "release";
-        viewModel.IncludeSnapshotVersions = filter == "snapshot";
-        viewModel.IncludeLegacyVersions = filter is "legacy" or "april-fools";
+        viewModel.SelectedVersionCategory = filter switch
+        {
+            "release" => MinecraftVersionCatalogCategory.Release,
+            "snapshot" => MinecraftVersionCatalogCategory.Snapshot,
+            "legacy" => MinecraftVersionCatalogCategory.Legacy,
+            "april-fools" => MinecraftVersionCatalogCategory.AprilFools,
+            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null),
+        };
         ReleaseVersionGroup.Classes.Set("selected", filter == "release");
         SnapshotVersionGroup.Classes.Set("selected", filter == "snapshot");
         LegacyVersionGroup.Classes.Set("selected", filter == "legacy");

@@ -37,6 +37,15 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Controls/MyComboBoxItem.vb
 - PCL2: Plain Craft Launcher 2/Application.xaml (ComboBox styles only)
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadClient.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadForge.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadForge.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadNeoForge.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadNeoForge.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadFabric.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadFabric.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadOptiFine.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadOptiFine.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml
 
 PCL Aurora also contains the following directly reused image asset:
