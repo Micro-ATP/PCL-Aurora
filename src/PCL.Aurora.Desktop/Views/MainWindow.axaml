@@ -80,6 +80,10 @@
             <Setter Property="Background" Value="#1370F3" />
             <Setter Property="Foreground" Value="White" />
         </Style>
+        <Style Selector="Button.login-mode:disabled">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Foreground" Value="#6F7C8B" />
+        </Style>
         <Style Selector="Button.window-control">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -115,9 +119,51 @@
             <Setter Property="Background" Value="#1370F3" />
             <Setter Property="Foreground" Value="White" />
         </Style>
+        <Style Selector="Grid.pcl-shell TextBlock">
+            <Setter Property="Foreground" Value="#36424F" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#83B8F8" />
+        </Style>
+        <Style Selector="Grid.pcl-shell ComboBox">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#83B8F8" />
+        </Style>
+        <Style Selector="Grid.pcl-shell CheckBox">
+            <Setter Property="Foreground" Value="#36424F" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button">
+            <Setter Property="Background" Value="#F0F2F5" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button:disabled">
+            <Setter Property="Opacity" Value="0.62" />
+        </Style>
+        <Style Selector="Button.version-group">
+            <Setter Property="Background" Value="#FCFDFF" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#D1DDEA" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Height" Value="46" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="16,0" />
+        </Style>
+        <Style Selector="Button.version-group:pointerover">
+            <Setter Property="BorderBrush" Value="#72AEF8" />
+            <Setter Property="Background" Value="#F7FBFF" />
+        </Style>
+        <Style Selector="Button.version-group.selected">
+            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="#F7FBFF" />
+        </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="48,*">
+    <Grid Classes="pcl-shell" RowDefinitions="48,*">
         <Border Background="#1370F3" PointerPressed="TitleBarPointerPressed">
             <Grid ColumnDefinitions="*,Auto,*">
                 <StackPanel Margin="18,0,0,0" VerticalAlignment="Center" Spacing="0">
@@ -228,7 +274,7 @@
                                     <DataTemplate>
                                         <StackPanel Spacing="2">
                                             <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
-                                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                            <TextBlock Foreground="#6F7C8B"
                                                        Text="{Binding VersionDisplay}" />
                                         </StackPanel>
                                     </DataTemplate>
@@ -241,11 +287,11 @@
                                     IsVisible="{Binding HasAvailableInstances}" Spacing="12">
                             <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#1370F3" Text="启动状态" />
                             <TextBlock Text="{Binding GameLaunchSummary}" TextWrapping="Wrap" />
-                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            <TextBlock Foreground="#6F7C8B"
                                        Text="{Binding LaunchPreflightSummary}" TextWrapping="Wrap" />
-                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            <TextBlock Foreground="#6F7C8B"
                                        Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
-                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            <TextBlock Foreground="#6F7C8B"
                                        Text="{Binding JavaRequirementSummary}" TextWrapping="Wrap" />
                             <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
                                       IsChecked="{Binding HasAcknowledgedAccountGuidance}"
@@ -261,11 +307,11 @@
                         <StackPanel Spacing="4">
                             <Button x:Name="DownloadGameNavigation" Classes="secondary-navigation selected"
                                     Click="DownloadNavigationClick" Tag="game" Content="原版游戏" />
-                            <TextBlock Margin="13,12,5,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="社区资源" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="模组 · 待迁移" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="整合包 · 待迁移" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="资源包与光影 · 待迁移" />
-                            <TextBlock Margin="13,12,5,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="安装" />
+                            <TextBlock Margin="13,12,5,4" FontSize="12" Foreground="#6F7C8B" Text="社区资源" />
+                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="模组 · 待迁移" />
+                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="整合包 · 待迁移" />
+                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="资源包与光影 · 待迁移" />
+                            <TextBlock Margin="13,12,5,4" FontSize="12" Foreground="#6F7C8B" Text="安装" />
                             <Button x:Name="DownloadOptiFineNavigation" Classes="secondary-navigation"
                                     Click="DownloadNavigationClick" Tag="optifine" Content="OptiFine" />
                             <Button x:Name="DownloadLoaderNavigation" Classes="secondary-navigation"
@@ -276,53 +322,87 @@
                     <StackPanel Margin="25,10,25,25" MaxWidth="860" Spacing="15">
                         <StackPanel Spacing="6">
                             <TextBlock x:Name="DownloadPageTitle" FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="原版游戏" />
-                            <TextBlock x:Name="DownloadPageDescription" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            <TextBlock x:Name="DownloadPageDescription" Foreground="#6F7C8B"
                                        Text="选择官方 Minecraft 版本，再创建本地实例并执行已验证的安装流程。" />
                         </StackPanel>
 
-                        <UniformGrid Columns="2" Rows="2" HorizontalAlignment="Left">
-                            <Border x:Name="DownloadCommunityCard" Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="4" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" IsVisible="False">
+                        <StackPanel HorizontalAlignment="Stretch" Spacing="15">
+                            <Border x:Name="DownloadCommunityCard" Width="300" Margin="0,0,16,16" Padding="20" CornerRadius="4" Background="#FCFDFF" IsVisible="False">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="社区资源" />
-                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="模组、整合包、数据包、资源包、光影与存档。" TextWrapping="Wrap" />
+                                    <TextBlock Foreground="#6F7C8B" Text="模组、整合包、数据包、资源包、光影与存档。" TextWrapping="Wrap" />
                                     <Button IsEnabled="False" Content="浏览资源" />
                                 </StackPanel>
                             </Border>
-                            <Border x:Name="DownloadGameCard" Classes="pcl-card" Width="620" Margin="0,0,16,16" Padding="20">
+                            <Border x:Name="DownloadGameCard" Classes="pcl-card" Padding="16">
+                                <StackPanel Spacing="12">
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="最新版本" />
+                                    <Grid ColumnDefinitions="44,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="8">
+                                        <Image Width="36" Height="36" VerticalAlignment="Center" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
+                                        <StackPanel Grid.Column="1" Spacing="1">
+                                            <TextBlock FontSize="15" Text="{Binding LatestReleaseVersion.Id, TargetNullValue=点击刷新官方版本}" />
+                                            <TextBlock FontSize="12" Foreground="#6F7C8B" Text="最新正式版" />
+                                        </StackPanel>
+                                        <Image Grid.Row="1" Width="36" Height="36" VerticalAlignment="Center" Stretch="Uniform" Source="/Assets/Loaders/Pcl2CommandBlock.png" />
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="1">
+                                            <TextBlock FontSize="15" Text="{Binding LatestSnapshotVersion.Id, TargetNullValue=刷新后显示最新预览版}" />
+                                            <TextBlock FontSize="12" Foreground="#6F7C8B" Text="最新预览版" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding VersionCatalogSummary}" TextWrapping="Wrap" />
+                                    <Button Command="{Binding RefreshVersionCatalogCommand}" Content="刷新官方版本" HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Border>
+                            <Button x:Name="ReleaseVersionGroup" Classes="version-group" Click="VersionFilterClick" Tag="release">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="正式版" />
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="16" Text="v" />
+                                </Grid>
+                            </Button>
+                            <Button x:Name="SnapshotVersionGroup" Classes="version-group" Click="VersionFilterClick" Tag="snapshot">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="预览版" />
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="16" Text="v" />
+                                </Grid>
+                            </Button>
+                            <Button x:Name="LegacyVersionGroup" Classes="version-group" Click="VersionFilterClick" Tag="legacy">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="远古版" />
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="16" Text="v" />
+                                </Grid>
+                            </Button>
+                            <Button x:Name="AprilFoolsVersionGroup" Classes="version-group" Click="VersionFilterClick" Tag="april-fools">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="愚人节版" />
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="16" Text="v" />
+                                </Grid>
+                            </Button>
+                            <Border Classes="pcl-card" Padding="16">
                                 <StackPanel Spacing="8">
-                                    <TextBlock FontWeight="SemiBold" Text="游戏安装" />
-                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="先选择官方 Minecraft 版本，再创建本地实例并下载。" TextWrapping="Wrap" />
-                                    <TextBlock Text="搜索版本 ID" />
-                                    <TextBox PlaceholderText="例如 1.21.4 或 24w14a"
-                                             Text="{Binding VersionSearchText}" />
-                                    <WrapPanel ItemHeight="32" ItemWidth="92">
-                                        <CheckBox Content="正式版" IsChecked="{Binding IncludeReleaseVersions}" />
-                                        <CheckBox Content="快照" IsChecked="{Binding IncludeSnapshotVersions}" />
-                                        <CheckBox Content="旧版" IsChecked="{Binding IncludeLegacyVersions}" />
-                                    </WrapPanel>
+                                    <TextBlock FontWeight="SemiBold" Text="版本选择" />
+                                    <TextBox PlaceholderText="搜索版本 ID，例如 1.21.4 或 24w14a" Text="{Binding VersionSearchText}" />
                                     <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedCatalogVersion}">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                                     <TextBlock FontWeight="SemiBold" Text="{Binding Id}" />
-                                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                               Text="{Binding Type}" />
+                                                    <TextBlock Foreground="#6F7C8B" Text="{Binding Type}" />
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
-                                    <Button Command="{Binding RefreshVersionCatalogCommand}" Content="刷新官方版本" />
-                                    <Button Command="{Binding ProvisionSelectedVersionCommand}" IsEnabled="{Binding CanProvisionSelectedVersion}" Content="创建所选实例" />
-                                    <Button Command="{Binding InstallGameCommand}" IsEnabled="{Binding CanInstallGame}" Content="安装所选本地实例" />
-                                    <Button Command="{Binding CancelInstallationCommand}"
-                                            IsEnabled="{Binding CanCancelInstallation}"
-                                            Content="取消当前下载" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button Command="{Binding ProvisionSelectedVersionCommand}" IsEnabled="{Binding CanProvisionSelectedVersion}" Content="创建实例" />
+                                        <Button Command="{Binding InstallGameCommand}" IsEnabled="{Binding CanInstallGame}" Content="安装游戏" />
+                                        <Button Command="{Binding CancelInstallationCommand}" IsEnabled="{Binding CanCancelInstallation}" Content="取消" />
+                                    </StackPanel>
+                                    <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding InstallationSummary}" TextWrapping="Wrap" />
                                 </StackPanel>
                             </Border>
                             <Border x:Name="DownloadLoaderCard" Classes="pcl-card" Width="620" Margin="0,0,16,16" Padding="20" IsVisible="False">
                                 <StackPanel Spacing="8">
                                     <TextBlock FontWeight="SemiBold" Text="模组加载器" />
-                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                    <TextBlock Foreground="#6F7C8B"
                                                Text="导入用户指定的本地目录，按所选原版版本筛选 Forge、NeoForge 和 Fabric。"
                                                TextWrapping="Wrap" />
                                     <Grid Margin="0,4,0,2" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="8">
@@ -330,28 +410,28 @@
                                             <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeForge.png" />
                                             <StackPanel Spacing="1">
                                                 <TextBlock FontWeight="SemiBold" Text="Forge" />
-                                                <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="已支持" />
+                                                <TextBlock FontSize="11" Foreground="#6F7C8B" Text="已支持" />
                                             </StackPanel>
                                         </StackPanel>
                                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8">
                                             <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeNeoForge.png" />
                                             <StackPanel Spacing="1">
                                                 <TextBlock FontWeight="SemiBold" Text="NeoForge" />
-                                                <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="已支持" />
+                                                <TextBlock FontSize="11" Foreground="#6F7C8B" Text="已支持" />
                                             </StackPanel>
                                         </StackPanel>
                                         <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="8">
                                             <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeFabric.png" />
                                             <StackPanel Spacing="1">
                                                 <TextBlock FontWeight="SemiBold" Text="Fabric" />
-                                                <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="已支持" />
+                                                <TextBlock FontSize="11" Foreground="#6F7C8B" Text="已支持" />
                                             </StackPanel>
                                         </StackPanel>
                                         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8" Opacity="0.65">
                                             <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeOptiFine.png" />
                                             <StackPanel Spacing="1">
                                                 <TextBlock FontWeight="SemiBold" Text="OptiFine" />
-                                                <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="1.14+ 可安装" />
+                                                <TextBlock FontSize="11" Foreground="#6F7C8B" Text="1.14+ 可安装" />
                                             </StackPanel>
                                         </StackPanel>
                                     </Grid>
@@ -368,7 +448,7 @@
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                                     <TextBlock FontWeight="SemiBold" Text="{Binding Kind}" />
                                                     <TextBlock Text="{Binding Version}" />
-                                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                    <TextBlock Foreground="#6F7C8B"
                                                                Text="{Binding Channel}" />
                                                 </StackPanel>
                                             </DataTemplate>
@@ -377,22 +457,22 @@
                                     <Button Command="{Binding InstallSelectedLoaderCommand}"
                                             IsEnabled="{Binding CanInstallSelectedLoader}"
                                             Content="下载并安装所选加载器" />
-                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                    <TextBlock Foreground="#6F7C8B"
                                                Text="{Binding LoaderCatalogSummary}"
                                                TextWrapping="Wrap" />
-                                    <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                    <TextBlock Foreground="#6F7C8B"
                                                Text="{Binding LoaderSelectionSummary}"
                                                TextWrapping="Wrap" />
                                 </StackPanel>
                             </Border>
-                        </UniformGrid>
-                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        </StackPanel>
+                        <TextBlock Foreground="#6F7C8B"
                                    Text="{Binding DownloadPreparationSummary}"
                                    TextWrapping="Wrap" />
-                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        <TextBlock Foreground="#6F7C8B"
                                    Text="{Binding InstallationSummary}"
                                    TextWrapping="Wrap" />
-                        <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        <TextBlock Foreground="#6F7C8B"
                                    Text="{Binding VersionCatalogSummary}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
@@ -406,16 +486,16 @@
                         <StackPanel Spacing="4">
                             <Button x:Name="SettingsLaunchNavigation" Classes="secondary-navigation selected"
                                     Click="SettingsNavigationClick" Tag="launch" Content="启动" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="联机 · 待迁移" />
+                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="联机 · 待迁移" />
                             <Button x:Name="SettingsInterfaceNavigation" Classes="secondary-navigation"
                                     Click="SettingsNavigationClick" Tag="interface" Content="个性化" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="其他 · 待迁移" />
+                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="其他 · 待迁移" />
                         </StackPanel>
                     </Border>
                     <ScrollViewer Grid.Column="1" Background="#D9EAF9">
                     <StackPanel Margin="25,25,25,10" MaxWidth="860" Spacing="15">
 
-                        <Border x:Name="SettingsLaunchSection" Classes="pcl-card" Padding="20" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                        <Border x:Name="SettingsLaunchSection" Classes="pcl-card" Padding="20" Background="#FCFDFF">
                             <StackPanel Spacing="14">
                                 <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#1370F3" Text="启动选项" />
                                 <TextBlock FontWeight="SemiBold" Text="Java 与运行环境" />
@@ -445,16 +525,16 @@
                                         <DataTemplate>
                                             <StackPanel Spacing="2">
                                                 <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
-                                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                <TextBlock Foreground="#6F7C8B"
                                                            Text="{Binding Vendor}" />
-                                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                <TextBlock Foreground="#6F7C8B"
                                                            Text="{Binding ExecutablePath}"
                                                            TextWrapping="Wrap" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="仅显示与当前架构兼容的 Java；选择仅在本次运行生效。"
                                            TextWrapping="Wrap" />
                                 <Button HorizontalAlignment="Left" Command="{Binding RefreshCommand}" Content="刷新 Java 诊断" />
@@ -514,7 +594,7 @@
                                          VerticalContentAlignment="Top" />
                                 <Button Command="{Binding SaveLaunchOptionsCommand}"
                                         HorizontalAlignment="Left" Content="保存启动选项" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="{Binding LaunchOptionsSummary}" TextWrapping="Wrap" />
 
                                 <Separator Margin="0,6" />
@@ -537,7 +617,7 @@
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="{Binding DownloadSettingsSummary}" TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
@@ -558,10 +638,10 @@
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="{Binding ThemeSummary}"
                                            TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="主题偏好只保存在本机；不保存账户密码或令牌。更新入口位于“更多 → 关于与鸣谢”。"
                                            TextWrapping="Wrap" />
                             </StackPanel>
@@ -581,28 +661,28 @@
                                     Click="MoreNavigationClick" Tag="logs" Content="游戏日志" />
                             <Button x:Name="MoreAboutNavigation" Classes="secondary-navigation"
                                     Click="MoreNavigationClick" Tag="about" Content="关于与鸣谢" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="帮助与反馈 · 待迁移" />
+                            <TextBlock Margin="12,8" Foreground="#6F7C8B" Text="帮助与反馈 · 待迁移" />
                         </StackPanel>
                     </Border>
                     <ScrollViewer Grid.Column="1" Background="#D9EAF9">
                     <StackPanel Margin="25,25,25,10" MaxWidth="860" Spacing="15">
                         <StackPanel Spacing="6">
                             <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="更多" />
-                            <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            <TextBlock Foreground="#6F7C8B"
                                        Text="联机、游戏目录、日志与维护工具。" />
                         </StackPanel>
 
-                        <Border x:Name="MoreDirectorySection" Classes="pcl-card" Padding="20" Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                        <Border x:Name="MoreDirectorySection" Classes="pcl-card" Padding="20" Background="#FCFDFF">
                             <StackPanel Spacing="10">
                                 <TextBlock FontWeight="SemiBold" Text="游戏目录" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="在系统文件管理器中打开当前 Minecraft 根目录。"
                                            TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="{Binding MinecraftRootDirectory}"
                                            TextWrapping="Wrap" />
                                 <Button HorizontalAlignment="Left" Command="{Binding OpenGameDirectoryCommand}" Content="打开游戏目录" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="{Binding GameDirectorySummary}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
@@ -611,7 +691,7 @@
                         <Border x:Name="MoreLogSection" Classes="pcl-card" Padding="20" IsVisible="False">
                             <StackPanel Spacing="10">
                                 <TextBlock FontWeight="SemiBold" Text="游戏日志" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="{Binding GameLogSummary}"
                                            TextWrapping="Wrap" />
                                 <Button HorizontalAlignment="Left"
@@ -620,7 +700,7 @@
                                         Content="清除本次会话日志" />
                                 <Border MaxHeight="260"
                                         Padding="12"
-                                        Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                                        Background="#FCFDFF"
                                         CornerRadius="8">
                                     <ScrollViewer HorizontalScrollBarVisibility="Auto"
                                                   VerticalScrollBarVisibility="Auto">
@@ -641,23 +721,23 @@
                         <Border x:Name="MoreAboutSection" Classes="pcl-card" Padding="20" IsVisible="False">
                             <StackPanel Spacing="10">
                                 <TextBlock FontWeight="SemiBold" Text="PCL Aurora" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="当前发行、更新说明与安装包均由 PCL Aurora 的 GitHub Releases 提供。"
                                            TextWrapping="Wrap" />
                                 <Button HorizontalAlignment="Left"
                                         Command="{Binding OpenAuroraReleasesCommand}"
                                         Content="获取 PCL Aurora 最新版本" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="{Binding AuroraReleaseSummary}"
                                            TextWrapping="Wrap" />
                                 <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="PCL 与 PCL-CE 归属说明" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="PCL Aurora 是基于 Plain Craft Launcher（PCL）及 PCL-CE 的第三方跨平台迁移与二次创作项目，并非官方项目。"
                                            TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="原作者：龙腾猫跃（成都瓜皮龙科技有限公司）· 赞助链接：https://meloong.com/afd/a/LTCat"
                                            TextWrapping="Wrap" />
-                                <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                <TextBlock Foreground="#6F7C8B"
                                            Text="直接适配内容及其分发遵循随附的上游许可证和 NOTICE；Micro-ATP 的新增内容适用根目录许可证。"
                                            TextWrapping="Wrap" />
                             </StackPanel>

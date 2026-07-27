@@ -111,6 +111,23 @@ public partial class MainWindow : Window
         DownloadLoaderNavigation.Classes.Set("selected", showLoader && !showOptiFine);
     }
 
+    private void VersionFilterClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string filter } || DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        viewModel.VersionSearchText = string.Empty;
+        viewModel.IncludeReleaseVersions = filter == "release";
+        viewModel.IncludeSnapshotVersions = filter == "snapshot";
+        viewModel.IncludeLegacyVersions = filter is "legacy" or "april-fools";
+        ReleaseVersionGroup.Classes.Set("selected", filter == "release");
+        SnapshotVersionGroup.Classes.Set("selected", filter == "snapshot");
+        LegacyVersionGroup.Classes.Set("selected", filter == "legacy");
+        AprilFoolsVersionGroup.Classes.Set("selected", filter == "april-fools");
+    }
+
     private void SettingsNavigationClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string section })

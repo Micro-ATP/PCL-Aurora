@@ -228,6 +228,12 @@ public partial class MainViewModel(
     private MinecraftVersionCatalogEntry? selectedCatalogVersion;
 
     [ObservableProperty]
+    private MinecraftVersionCatalogEntry? latestReleaseVersion;
+
+    [ObservableProperty]
+    private MinecraftVersionCatalogEntry? latestSnapshotVersion;
+
+    [ObservableProperty]
     private string versionSearchText = string.Empty;
 
     [ObservableProperty]
@@ -531,12 +537,18 @@ public partial class MainViewModel(
                 allCatalogVersions.Clear();
                 AvailableVersions.Clear();
                 SelectedCatalogVersion = null;
+                LatestReleaseVersion = null;
+                LatestSnapshotVersion = null;
                 VersionCatalogSummary = string.Join(Environment.NewLine, result.Errors);
                 return;
             }
 
             allCatalogVersions.Clear();
             allCatalogVersions.AddRange(result.Catalog.Versions);
+            LatestReleaseVersion = allCatalogVersions.FirstOrDefault(version =>
+                string.Equals(version.Type, "release", StringComparison.OrdinalIgnoreCase));
+            LatestSnapshotVersion = allCatalogVersions.FirstOrDefault(version =>
+                string.Equals(version.Type, "snapshot", StringComparison.OrdinalIgnoreCase));
             ApplyVersionFilters(result.Catalog.LatestRelease);
         }
         catch (OperationCanceledException)

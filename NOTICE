@@ -36,6 +36,12 @@ PCL Aurora also contains the following directly reused image asset:
 - PCL-CE: Plain Craft Launcher 2/Images/Blocks/GrassPath.png
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeOptiFine.png;
   displayed as the OptiFine loader image for the 1.14+ installer entry.
+- PCL2: Plain Craft Launcher 2/Images/Blocks/Grass.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/Pcl2Grass.png;
+  displayed in the official-version summary on the download page.
+- PCL2: Plain Craft Launcher 2/Images/Blocks/CommandBlock.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/Pcl2CommandBlock.png;
+  displayed in the snapshot-version summary on the download page.
 
 PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 
