@@ -190,6 +190,7 @@ public partial class MainWindow : Window
         if (DataContext is ViewModels.MainViewModel viewModel)
         {
             viewModel.SetLoaderKindFilter(loaderKind);
+            viewModel.SetCommunityResourceSection(isCommunity ? section : string.Empty);
         }
 
         if (loaderKind is { } selectedLoaderKind)

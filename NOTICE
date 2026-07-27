@@ -46,6 +46,23 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadFabric.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadOptiFine.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadOptiFine.xaml.cs
+- PCL2: Plain Craft Launcher 2/Pages/PageDownload/Resource/PageResource.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageDownload/Resource/PageResource.xaml.vb
+- PCL2: Plain Craft Launcher 2/Pages/PageDownload/Resource/PageDownloadMod.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageDownload/Resource/PageDownloadPack.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageDownload/Resource/PageDownloadDataPack.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageDownload/Resource/PageDownloadResourcePack.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageDownload/Resource/PageDownloadShader.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageComp.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageComp.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageDownloadMod.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageDownloadPack.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageDownloadDataPack.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageDownloadResourcePack.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageDownloadShader.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageDownloadWorld.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadCompFavorites.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModComp.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml
 
 PCL Aurora also contains the following directly reused image asset:

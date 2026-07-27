@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PCL.Aurora.Desktop.ViewModels"
+        xmlns:domain="using:PCL.Aurora.Domain"
         xmlns:controls="using:PCL.Aurora.Desktop.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -1029,29 +1030,145 @@
                                 </Border>
                             </StackPanel>
 
-                            <Border x:Name="DownloadCommunityCard" Classes="pcl-card" Padding="20" IsVisible="False">
-                                <StackPanel Spacing="12">
-                                    <TextBlock x:Name="DownloadCommunityTitle" FontSize="17" FontWeight="SemiBold" Text="社区资源" />
-                                    <TextBlock x:Name="DownloadCommunityDescription" Foreground="#6F7C8B" Text="浏览来自主流资源平台的项目。" TextWrapping="Wrap" />
-                                    <Grid ColumnDefinitions="*,180" ColumnSpacing="10">
-                                        <TextBox IsEnabled="False" PlaceholderText="搜索名称、作者或版本" />
-                                        <ComboBox Grid.Column="1" IsEnabled="False" SelectedIndex="0">
-                                            <ComboBoxItem Content="综合排序" />
-                                            <ComboBoxItem Content="最近更新" />
-                                            <ComboBoxItem Content="下载量" />
-                                        </ComboBox>
-                                    </Grid>
-                                    <Border Background="#F2F7FC" CornerRadius="3" Padding="18">
-                                        <Grid ColumnDefinitions="40,*" ColumnSpacing="12">
-                                            <Border Width="40" Height="40" CornerRadius="3" Background="#DCEBFA" />
+                            <!-- Search structure directly adapts PCL2 PageResource and PCL-CE PageComp.
+                                 Aurora uses its own Avalonia bindings and credential-free Modrinth service. -->
+                            <StackPanel x:Name="DownloadCommunityCard" Spacing="12" IsVisible="False">
+                                <Border Classes="pcl-card" Padding="18">
+                                    <StackPanel Spacing="13">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock x:Name="DownloadCommunityTitle" FontSize="17" FontWeight="SemiBold" Text="社区资源" />
+                                            <TextBlock x:Name="DownloadCommunityDescription" FontSize="12" Foreground="#6F7C8B" Text="浏览来自主流资源平台的项目。" TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <Grid ColumnDefinitions="*,170" ColumnSpacing="10"
+                                              IsVisible="{Binding IsCommunityCatalogAvailable}">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="关键词" />
+                                                <TextBox IsEnabled="{Binding CanSearchCommunityResources}"
+                                                         PlaceholderText="名称、作者或项目简介"
+                                                         Text="{Binding CommunitySearchText}" />
+                                            </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="4">
-                                                <TextBlock FontWeight="SemiBold" Text="资源目录服务尚未接入" />
-                                                <TextBlock FontSize="12" Foreground="#6F7C8B" Text="本页保留 PCL/PCL-CE 的导航位置，不会展示伪造的搜索结果或执行安装。" TextWrapping="Wrap" />
+                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="排序" />
+                                                <ComboBox IsEnabled="{Binding CanSearchCommunityResources}"
+                                                          ItemsSource="{Binding CommunityResourceSortOptions}"
+                                                          SelectedItem="{Binding SelectedCommunityResourceSort}">
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:CommunityResourceSortOption">
+                                                            <TextBlock Text="{Binding DisplayName}" />
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
+                                                </ComboBox>
                                             </StackPanel>
                                         </Grid>
-                                    </Border>
-                                </StackPanel>
-                            </Border>
+
+                                        <Grid ColumnDefinitions="*,170,Auto" ColumnSpacing="10"
+                                              IsVisible="{Binding IsCommunityCatalogAvailable}">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="Minecraft 版本" />
+                                                <TextBox IsEnabled="{Binding CanSearchCommunityResources}"
+                                                         PlaceholderText="全部版本，例如 1.21.1"
+                                                         Text="{Binding CommunityGameVersion}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="4" IsVisible="{Binding IsCommunityLoaderFilterVisible}">
+                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="加载器" />
+                                                <ComboBox IsEnabled="{Binding CanSearchCommunityResources}"
+                                                          ItemsSource="{Binding CommunityResourceLoaderOptions}"
+                                                          SelectedItem="{Binding SelectedCommunityResourceLoader}">
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:CommunityResourceLoaderOption">
+                                                            <TextBlock Text="{Binding DisplayName}" />
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
+                                                </ComboBox>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" Margin="0,20,0,0" Orientation="Horizontal" Spacing="8">
+                                                <Button Classes="download-primary" MinWidth="82"
+                                                        Command="{Binding SearchCommunityResourcesCommand}"
+                                                        IsEnabled="{Binding CanSearchCommunityResources}"
+                                                        Content="搜索" />
+                                                <Button MinWidth="64"
+                                                        Command="{Binding CancelCommunitySearchCommand}"
+                                                        IsEnabled="{Binding CanCancelCommunitySearch}"
+                                                        Content="取消" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <ProgressBar IsIndeterminate="True" Height="3"
+                                                     IsVisible="{Binding IsCommunitySearchRunning}" />
+                                        <Border Classes="pcl-status-strip" Background="#EDF6FF">
+                                            <TextBlock FontSize="12" Foreground="#365879"
+                                                       Text="{Binding CommunityResourceSummary}"
+                                                       TextWrapping="Wrap" />
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Classes="pcl-card" Padding="7" IsVisible="{Binding HasCommunityResources}">
+                                    <ListBox Classes="download-list"
+                                             ItemsSource="{Binding CommunityResources}"
+                                             SelectedItem="{Binding SelectedCommunityResource}">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="domain:CommunityResourceProject">
+                                                <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="11">
+                                                    <Border Width="40" Height="40" VerticalAlignment="Top"
+                                                            Background="#DCEEFF" CornerRadius="3">
+                                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   FontSize="17" FontWeight="SemiBold" Foreground="#1370F3"
+                                                                   Text="{Binding Initial}" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" Spacing="3">
+                                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                            <TextBlock FontWeight="SemiBold" Text="{Binding Title}"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Grid.Column="1" MaxWidth="150" FontSize="11" Foreground="#6F7C8B"
+                                                                       Text="{Binding Author, StringFormat='作者：{0}'}"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                        </Grid>
+                                                        <TextBlock FontSize="12" Foreground="#526170" MaxLines="2"
+                                                                   Text="{Binding Description}" TextTrimming="CharacterEllipsis" TextWrapping="Wrap" />
+                                                        <TextBlock FontSize="11" Foreground="#6F7C8B"
+                                                                   Text="{Binding CategorySummary}" TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock FontSize="11" Foreground="#6F7C8B"
+                                                                   Text="{Binding GameVersionSummary}" TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" MinWidth="112" HorizontalAlignment="Right" Spacing="3">
+                                                        <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#526170"
+                                                                   Text="{Binding DownloadCountDisplay, StringFormat='下载 {0}'}" />
+                                                        <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#526170"
+                                                                   Text="{Binding FollowerCountDisplay, StringFormat='关注 {0}'}" />
+                                                        <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#6F7C8B"
+                                                                   Text="{Binding LastUpdatedDisplay, StringFormat='更新 {0}'}" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Border>
+
+                                <Border Classes="pcl-card" Padding="12"
+                                        IsVisible="{Binding IsCommunityCatalogAvailable}">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button MinWidth="72" Command="{Binding PreviousCommunityPageCommand}"
+                                                    IsEnabled="{Binding CanGoToPreviousCommunityPage}" Content="上一页" />
+                                            <Border MinWidth="42" Background="#EDF6FF" CornerRadius="3" Padding="10,7">
+                                                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold"
+                                                           Text="{Binding CommunityPageNumber}" />
+                                            </Border>
+                                            <Button MinWidth="72" Command="{Binding NextCommunityPageCommand}"
+                                                    IsEnabled="{Binding CanGoToNextCommunityPage}" Content="下一页" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="11" Foreground="#6F7C8B"
+                                                   Text="搜索由 Modrinth 公开 API 提供；Aurora 不使用 CurseForge 私有密钥。"
+                                                   TextWrapping="Wrap" />
+                                        <Button Grid.Column="2" Classes="download-primary" MinWidth="112"
+                                                Command="{Binding OpenCommunityResourceCommand}"
+                                                IsEnabled="{Binding CanOpenCommunityResource}"
+                                                Content="打开项目页" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
 
                             <Border x:Name="DownloadDeferredCard" Classes="pcl-card" Padding="20" IsVisible="False">
                                 <StackPanel Spacing="12">
