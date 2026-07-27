@@ -41,10 +41,13 @@ public partial class MainWindow : Window
         }
 
         var showLogs = section == "logs";
-        MoreDirectorySection.IsVisible = !showLogs;
+        var showAbout = section == "about";
+        MoreDirectorySection.IsVisible = !showLogs && !showAbout;
         MoreLogSection.IsVisible = showLogs;
-        MoreDirectoryNavigation.Classes.Set("selected", !showLogs);
+        MoreAboutSection.IsVisible = showAbout;
+        MoreDirectoryNavigation.Classes.Set("selected", !showLogs && !showAbout);
         MoreLogsNavigation.Classes.Set("selected", showLogs);
+        MoreAboutNavigation.Classes.Set("selected", showAbout);
     }
 
     private void DownloadNavigationClick(object? sender, RoutedEventArgs e)

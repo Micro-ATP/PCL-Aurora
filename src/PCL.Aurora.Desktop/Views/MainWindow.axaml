@@ -445,23 +445,22 @@
             </TabItem>
 
             <TabItem>
-                <Grid ColumnDefinitions="196,*">
-                    <Border Padding="10,14" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+                <Grid ColumnDefinitions="152,*">
+                    <Border Padding="0,12,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
                         <StackPanel Spacing="4">
-                            <TextBlock Margin="10,4,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="工具" />
                             <Button x:Name="MoreDirectoryNavigation" Classes="secondary-navigation selected"
                                     Click="MoreNavigationClick" Tag="directory" Content="游戏目录" />
                             <Button x:Name="MoreLogsNavigation" Classes="secondary-navigation"
                                     Click="MoreNavigationClick" Tag="logs" Content="游戏日志" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="联机 · 待迁移" />
-                            <TextBlock Margin="10,16,0,4" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="关于" />
-                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="许可证与归属" />
+                            <Button x:Name="MoreAboutNavigation" Classes="secondary-navigation"
+                                    Click="MoreNavigationClick" Tag="about" Content="关于与鸣谢" />
+                            <TextBlock Margin="12,8" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="帮助与反馈 · 待迁移" />
                         </StackPanel>
                     </Border>
                     <ScrollViewer Grid.Column="1">
-                    <StackPanel Margin="28" MaxWidth="860" Spacing="20">
+                    <StackPanel Margin="25,25,25,10" MaxWidth="860" Spacing="15">
                         <StackPanel Spacing="6">
-                            <TextBlock FontSize="28" FontWeight="SemiBold" Text="更多工具" />
+                            <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="更多" />
                             <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                        Text="联机、游戏目录、日志与维护工具。" />
                         </StackPanel>
@@ -512,7 +511,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Padding="20" CornerRadius="12" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1">
+                        <Border x:Name="MoreAboutSection" Classes="pcl-card" Padding="20" IsVisible="False">
                             <StackPanel Spacing="8">
                                 <TextBlock FontWeight="SemiBold" Text="PCL 与 PCL-CE 归属说明" />
                                 <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
