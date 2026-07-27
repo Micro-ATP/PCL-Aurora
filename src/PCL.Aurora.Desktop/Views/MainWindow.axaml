@@ -114,20 +114,20 @@
                                 <Button Classes="launch-button" Command="{Binding UseOfflineAccountCommand}" Content="离线" />
                             </StackPanel>
                             <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="14">
-                                <Border Width="56" Height="56" CornerRadius="3" HorizontalAlignment="Center" Background="#F3C7A5">
-                                    <Grid RowDefinitions="10,11,18,*" ColumnDefinitions="12,10,12,10,*">
-                                        <Border Grid.Row="0" Grid.ColumnSpan="5" Background="#E99740" />
-                                        <Border Grid.Row="1" Grid.ColumnSpan="5" Background="#EF9E46" />
-                                        <Border Grid.Row="2" Grid.Column="0" Background="#ED9A43" />
-                                        <Border Grid.Row="2" Grid.Column="4" Background="#ED9A43" />
-                                        <Border Grid.Row="2" Grid.Column="1" Background="#F8E1C5" />
-                                        <Border Grid.Row="2" Grid.Column="2" Background="#F8E1C5" />
-                                        <Border Grid.Row="2" Grid.Column="3" Background="#F8E1C5" />
-                                        <Border Grid.Row="2" Grid.Column="1" Width="5" Height="6" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#34794A" />
-                                        <Border Grid.Row="2" Grid.Column="3" Width="5" Height="6" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#34794A" />
-                                        <Border Grid.Row="3" Grid.ColumnSpan="5" Background="#F8E1C5">
-                                            <Border Width="18" Height="6" Margin="0,3,0,0" VerticalAlignment="Top" Background="#EFA9A0" />
-                                        </Border>
+                                <Border Width="56" Height="56" CornerRadius="3" HorizontalAlignment="Center" ClipToBounds="True">
+                                    <Grid>
+                                        <Image Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Stretch="Fill" RenderOptions.BitmapInterpolationMode="None">
+                                            <Image.Source>
+                                                <CroppedBitmap Source="/Assets/Skins/PclCeAlex.png" SourceRect="8,8,8,8" />
+                                            </Image.Source>
+                                        </Image>
+                                        <Image Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Stretch="Fill" RenderOptions.BitmapInterpolationMode="None">
+                                            <Image.Source>
+                                                <CroppedBitmap Source="/Assets/Skins/PclCeAlex.png" SourceRect="40,8,8,8" />
+                                            </Image.Source>
+                                        </Image>
                                     </Grid>
                                 </Border>
                                 <TextBox PlaceholderText="游戏用户名" Text="{Binding OfflinePlayerName}" />
