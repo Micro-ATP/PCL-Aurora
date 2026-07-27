@@ -75,7 +75,7 @@ public partial class MainWindow : Window
         DownloadLoaderCard.IsVisible = showLoader;
         DownloadPageTitle.Text = showOptiFine ? "OptiFine" : showLoader ? "Forge / NeoForge / Fabric / OptiFine" : "原版游戏";
         DownloadPageDescription.Text = showOptiFine
-            ? "选择与当前实例兼容的 OptiFine 版本。Aurora 当前支持 1.14+ 安装器路径。"
+            ? "选择与当前实例兼容的 OptiFine 版本。1.14+ 使用安装器，旧版创建受控继承版本。"
             : showLoader
                 ? "选择当前实例兼容的加载器版本后，执行已验证的安装流程。"
             : "选择官方 Minecraft 版本，再创建本地实例并执行已验证的安装流程。";

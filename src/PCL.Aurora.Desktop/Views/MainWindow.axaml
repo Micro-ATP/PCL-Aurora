@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="1120" d:DesignHeight="720"
         x:Class="PCL.Aurora.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Icon="/Assets/Icons/AppIcon.ico"
+        Icon="/Assets/Icons/AppIcon.icns"
         Width="1060"
         Height="680"
         MinWidth="800"
@@ -144,7 +144,7 @@
         </Border>
 
         <TabControl x:Name="MainTabs" Grid.Row="1" Margin="0" SelectedIndex="0">
-            <TabItem>
+            <TabItem Header="">
                 <Grid ColumnDefinitions="300,*" Background="#D9EAF9">
                     <Border Background="#FCFCFD" BorderBrush="#D7DCE2" BorderThickness="0,0,1,0">
                         <Grid Margin="20,22" RowDefinitions="Auto,*,Auto,Auto">
@@ -225,7 +225,7 @@
                 </Grid>
             </TabItem>
 
-            <TabItem>
+            <TabItem Header="">
                 <Grid ColumnDefinitions="152,*">
                     <Border Padding="0,12,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
                         <StackPanel Spacing="4">
@@ -370,7 +370,7 @@
                 </Grid>
             </TabItem>
 
-            <TabItem>
+            <TabItem Header="">
                 <Grid ColumnDefinitions="152,*">
                     <Border Padding="0,12,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
                         <StackPanel Spacing="4">
@@ -541,7 +541,7 @@
                 </Grid>
             </TabItem>
 
-            <TabItem>
+            <TabItem Header="">
                 <Grid ColumnDefinitions="152,*">
                     <Border Padding="0,12,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
                         <StackPanel Spacing="4">
