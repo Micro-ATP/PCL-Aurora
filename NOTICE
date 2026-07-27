@@ -20,6 +20,19 @@ PCL Aurora also contains the following directly reused image asset:
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Skins/PclCeAlex.png;
   displayed as a cropped face and outer-layer avatar.
 
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/Anvil.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeForge.png;
+  displayed as the Forge loader image.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/NeoForge.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeNeoForge.png;
+  displayed as the NeoForge loader image.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/Fabric.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeFabric.png;
+  displayed as the Fabric loader image.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/GrassPath.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeOptiFine.png;
+  displayed as the OptiFine loader image for the clearly marked pending migration entry.
+
 PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/play.svg

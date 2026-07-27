@@ -294,6 +294,37 @@
                                     <TextBlock Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                                Text="导入用户指定的本地目录，按所选原版版本筛选 Forge、NeoForge 和 Fabric。"
                                                TextWrapping="Wrap" />
+                                    <Grid Margin="0,4,0,2" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="8">
+                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                            <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeForge.png" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock FontWeight="SemiBold" Text="Forge" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="已支持" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                            <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeNeoForge.png" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock FontWeight="SemiBold" Text="NeoForge" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="已支持" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                            <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeFabric.png" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock FontWeight="SemiBold" Text="Fabric" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="已支持" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8" Opacity="0.65">
+                                            <Image Width="22" Height="22" Stretch="Uniform" Source="/Assets/Loaders/PclCeOptiFine.png" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock FontWeight="SemiBold" Text="OptiFine" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Text="待迁移" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Separator Margin="0,2" />
                                     <TextBox PlaceholderText="本地 loaders.json 的完整路径"
                                              Text="{Binding LoaderCatalogPath}" />
                                     <Button Command="{Binding LoadLoaderCatalogCommand}" Content="读取本地加载器目录" />
