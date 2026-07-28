@@ -52,13 +52,12 @@ public sealed class MicrosoftAccountAuthenticationServiceTests
     }
 
     [Fact]
-    public void Configuration_CanAcceptAValidatedPublicClientIdAtRuntime()
+    public void Configuration_OnlyAcceptsAValidatedBuildOrEnvironmentClientId()
     {
-        var configuration = new MicrosoftAuthenticationConfiguration(null);
+        var invalidConfiguration = new MicrosoftAuthenticationConfiguration("not-a-guid");
+        var configuration = new MicrosoftAuthenticationConfiguration(" 12345678-1234-1234-1234-1234567890ab ");
 
-        Assert.False(configuration.TrySetClientId("not-a-guid"));
-        Assert.False(configuration.IsConfigured);
-        Assert.True(configuration.TrySetClientId(" 12345678-1234-1234-1234-1234567890ab "));
+        Assert.False(invalidConfiguration.IsConfigured);
         Assert.True(configuration.IsConfigured);
         Assert.Equal("12345678-1234-1234-1234-1234567890ab", configuration.ClientId);
     }

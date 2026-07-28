@@ -1,34 +1,35 @@
+using System.Reflection;
+
 namespace PCL.Aurora.Application;
 
 /// <summary>
 /// Microsoft 设备代码流所需的 Aurora 自有公开客户端标识。
-/// 此值不属于上游项目，且不会从上游配置、构建产物或源代码继承。
+/// 此值仅来自 Aurora 构建元数据或运行环境，不读取用户偏好或上游配置。
 /// </summary>
 public sealed class MicrosoftAuthenticationConfiguration(string? clientId)
 {
-    private string? clientId = Normalize(clientId);
+    public const string EnvironmentVariableName = "PCL_AURORA_MS_CLIENT_ID";
+    public const string AssemblyMetadataKey = "PclAuroraMicrosoftClientId";
 
-    public string? ClientId => Volatile.Read(ref clientId);
+    public string? ClientId { get; } = Normalize(clientId);
 
     public bool IsConfigured => Guid.TryParse(ClientId, out _);
 
-    public bool TrySetClientId(string? value)
+    public static MicrosoftAuthenticationConfiguration FromEnvironmentOrAssembly(Assembly assembly)
     {
-        var normalized = Normalize(value);
-        if (normalized is not null && !Guid.TryParse(normalized, out _))
-        {
-            return false;
-        }
-
-        Volatile.Write(ref clientId, normalized);
-        return true;
+        ArgumentNullException.ThrowIfNull(assembly);
+        var embeddedClientId = assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(attribute => attribute.Key == AssemblyMetadataKey)?.Value;
+        var environmentClientId = Environment.GetEnvironmentVariable(EnvironmentVariableName);
+        return new MicrosoftAuthenticationConfiguration(
+            string.IsNullOrWhiteSpace(environmentClientId) ? embeddedClientId : environmentClientId);
     }
 
     public void EnsureConfigured()
     {
         if (!IsConfigured)
         {
-            throw new InvalidOperationException("尚未配置 Microsoft OAuth Client ID。请先在启动页填写 PCL Aurora 的公开客户端 ID。");
+            throw new InvalidOperationException("当前 PCL Aurora 构建尚未配置 Microsoft OAuth Client ID。");
         }
     }
 

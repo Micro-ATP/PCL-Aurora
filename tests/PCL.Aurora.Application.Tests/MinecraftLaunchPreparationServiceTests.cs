@@ -219,8 +219,6 @@ public sealed class MinecraftLaunchPreparationServiceTests
 
         public Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public Task SaveMicrosoftOAuthClientIdAsync(string? clientId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-
         public Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 

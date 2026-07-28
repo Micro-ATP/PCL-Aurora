@@ -89,18 +89,20 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task SaveAsync_RoundTripsPublicMicrosoftClientIdWithoutAClientSecret()
+    public async Task LoadAsync_IgnoresLegacyUserConfiguredMicrosoftClientId()
     {
-        const string clientId = "12345678-1234-1234-1234-1234567890ab";
+        Directory.CreateDirectory(applicationDataDirectory);
+        await File.WriteAllTextAsync(
+            GetPreferencesPath(),
+            """{"themeMode":"System","microsoftOAuthClientId":"12345678-1234-1234-1234-1234567890ab"}""");
         var store = CreateStore();
 
-        await store.SaveAsync(new LauncherPreferences(LauncherThemeMode.System, MicrosoftOAuthClientId: clientId));
         var result = await store.LoadAsync();
+        await store.SaveAsync(result.Preferences);
 
-        Assert.Equal(clientId, result.Preferences.MicrosoftOAuthClientId);
+        Assert.Null(result.Warning);
         var storedJson = await File.ReadAllTextAsync(GetPreferencesPath());
-        Assert.DoesNotContain("secret", storedJson, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("refreshToken", storedJson, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("microsoftOAuthClientId", storedJson, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

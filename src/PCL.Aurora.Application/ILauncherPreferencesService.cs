@@ -23,7 +23,5 @@ public interface ILauncherPreferencesService
 
     Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default);
 
-    Task SaveMicrosoftOAuthClientIdAsync(string? clientId, CancellationToken cancellationToken = default);
-
     Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default);
 }

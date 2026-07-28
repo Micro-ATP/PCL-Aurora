@@ -27,7 +27,6 @@ public partial class MainViewModel(
     IMinecraftDirectoryService minecraftDirectoryService,
     IMinecraftGameLaunchService gameLaunchService,
     ILauncherPreferencesService preferencesService,
-    MicrosoftAuthenticationConfiguration microsoftAuthenticationConfiguration,
     IMicrosoftAccountAuthenticationService microsoftAuthenticationService,
     IMicrosoftAccountSessionService microsoftAccountSessionService,
     IOpenPathService openPathService,
@@ -441,15 +440,6 @@ public partial class MainViewModel(
     private string microsoftDeviceCode = "—";
 
     [ObservableProperty]
-    private string microsoftOAuthClientId = string.Empty;
-
-    [ObservableProperty]
-    private bool isMicrosoftLoginConfigured;
-
-    [ObservableProperty]
-    private bool needsMicrosoftLoginConfiguration = true;
-
-    [ObservableProperty]
     private bool isMicrosoftLoginRunning;
 
     [ObservableProperty]
@@ -586,15 +576,6 @@ public partial class MainViewModel(
             UsesCustomMemoryAllocation = launchOptions.MemoryAllocationMode == MinecraftMemoryAllocationMode.Custom;
             LaunchOptionsSummary = result.Warning ?? GetLaunchOptionsSummary(launchOptions);
             RestoreOfflineAccount(result.Preferences.OfflinePlayerName);
-            if (!microsoftAuthenticationConfiguration.IsConfigured &&
-                result.Preferences.MicrosoftOAuthClientId is { } savedClientId)
-            {
-                microsoftAuthenticationConfiguration.TrySetClientId(savedClientId);
-            }
-
-            MicrosoftOAuthClientId = microsoftAuthenticationConfiguration.ClientId
-                ?? result.Preferences.MicrosoftOAuthClientId
-                ?? string.Empty;
             UpdateMicrosoftLoginAvailability(result.Preferences.MicrosoftAccount);
         }
         catch (Exception exception)
@@ -2022,7 +2003,7 @@ public partial class MainViewModel(
         IsMicrosoftAccountMode = true;
         if (!microsoftAuthenticationService.IsConfigured)
         {
-            MicrosoftLoginSummary = "请先填写 PCL Aurora 的 Microsoft 应用 ID。";
+            MicrosoftLoginSummary = "正版登录暂不可用，请使用已配置的 PCL Aurora 正式发行版。";
             return;
         }
 
@@ -2106,31 +2087,6 @@ public partial class MainViewModel(
         AccountSummary = selectedAccount?.Kind == MinecraftAccountKind.Offline
             ? $"当前账户：{selectedAccount.DisplayName}"
             : "输入游戏用户名后即可使用离线账户。";
-    }
-
-    [RelayCommand]
-    private async Task SaveMicrosoftLoginConfigurationAsync()
-    {
-        var normalized = MicrosoftOAuthClientId.Trim();
-        if (string.IsNullOrEmpty(normalized) || !microsoftAuthenticationConfiguration.TrySetClientId(normalized))
-        {
-            MicrosoftLoginSummary = "应用 ID 格式不正确，应为一串 GUID。";
-            return;
-        }
-
-        try
-        {
-            await preferencesService.SaveMicrosoftOAuthClientIdAsync(normalized);
-            currentPreferences = currentPreferences with { MicrosoftOAuthClientId = normalized };
-            MicrosoftOAuthClientId = normalized;
-            MicrosoftLoginSummary = "应用 ID 已保存，可以登录。";
-        }
-        catch (Exception exception)
-        {
-            MicrosoftLoginSummary = $"保存应用 ID 失败：{exception.Message}";
-        }
-
-        UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount);
     }
 
     [RelayCommand]
@@ -2239,8 +2195,6 @@ public partial class MainViewModel(
 
     private void UpdateMicrosoftLoginAvailability(MicrosoftAccountProfile? profile)
     {
-        IsMicrosoftLoginConfigured = microsoftAuthenticationService.IsConfigured;
-        NeedsMicrosoftLoginConfiguration = !IsMicrosoftLoginConfigured;
         HasMicrosoftAccountProfile = profile is not null;
         MicrosoftAccountDisplayName = profile?.DisplayName ?? "尚未登录";
         CanStartMicrosoftLogin = microsoftAuthenticationService.IsConfigured && microsoftLoginCancellation is null;
@@ -2248,7 +2202,7 @@ public partial class MainViewModel(
         CanClearMicrosoftLogin = profile is not null;
         if (!microsoftAuthenticationService.IsConfigured)
         {
-            MicrosoftLoginSummary = "首次使用正版登录前，需要填写 Microsoft 应用 ID。";
+            MicrosoftLoginSummary = "正版登录暂不可用，请使用已配置的 PCL Aurora 正式发行版。";
         }
         else if (profile is not null && !CanCancelMicrosoftLogin && selectedAccount?.Kind != MinecraftAccountKind.Microsoft)
         {

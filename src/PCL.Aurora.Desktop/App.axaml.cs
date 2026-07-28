@@ -55,7 +55,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IMinecraftAssetIndexReader, MacOSMinecraftAssetIndexReader>();
         services.AddSingleton<IAssetMapper, MinecraftAssetMapper>();
         services.AddSingleton<HttpClient>();
-        services.AddSingleton(new MicrosoftAuthenticationConfiguration(Environment.GetEnvironmentVariable("PCL_AURORA_MS_CLIENT_ID")));
+        services.AddSingleton(MicrosoftAuthenticationConfiguration.FromEnvironmentOrAssembly(typeof(App).Assembly));
         services.AddSingleton<IMicrosoftAccountAuthenticationService, MicrosoftAccountAuthenticationService>();
         services.AddSingleton<ISecureSecretStore, MacOSKeychainSecretStore>();
         services.AddSingleton<IMicrosoftAccountSessionService, MicrosoftAccountSessionService>();

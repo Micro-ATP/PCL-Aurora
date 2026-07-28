@@ -45,17 +45,6 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
     public Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default) =>
         UpdateAsync(preferences => preferences with { MicrosoftAccount = profile }, cancellationToken);
 
-    public Task SaveMicrosoftOAuthClientIdAsync(string? clientId, CancellationToken cancellationToken = default)
-    {
-        var normalized = string.IsNullOrWhiteSpace(clientId) ? null : clientId.Trim();
-        if (!LauncherPreferences.IsValidMicrosoftOAuthClientId(normalized))
-        {
-            throw new ArgumentOutOfRangeException(nameof(clientId), "Microsoft OAuth Client ID 必须是有效的 GUID。");
-        }
-
-        return UpdateAsync(preferences => preferences with { MicrosoftOAuthClientId = normalized }, cancellationToken);
-    }
-
     public Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(options);
