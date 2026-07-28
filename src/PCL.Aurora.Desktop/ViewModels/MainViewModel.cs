@@ -274,13 +274,19 @@ public partial class MainViewModel(
     private bool canProvisionSelectedVersion;
 
     [ObservableProperty]
-    private string versionCatalogSummary = "点击“刷新官方版本”加载可选版本。";
+    private string versionCatalogSummary = "进入原版下载页后将自动加载可选版本。";
+
+    [ObservableProperty]
+    private bool isVersionCatalogLoading;
 
     [ObservableProperty]
     private string loaderCatalogPath = string.Empty;
 
     [ObservableProperty]
     private string loaderCatalogSummary = "可导入本地加载器目录 JSON。";
+
+    [ObservableProperty]
+    private bool isOfficialLoaderCatalogLoading;
 
     [ObservableProperty]
     private string loaderSelectionSummary = "请先导入目录并选择一个 Minecraft 版本；不会下载或执行安装器。";
@@ -375,6 +381,14 @@ public partial class MainViewModel(
     public bool IsCommunityStatusVisible => !IsCommunitySearchRunning;
 
     public bool IsCommunityVersionCardVisible => SelectedCommunityResource is not null && !IsCommunitySearchRunning;
+
+    public bool IsLoaderPageLoading => IsVersionCatalogLoading || IsOfficialLoaderCatalogLoading;
+
+    public Task LoadVersionCatalogPageAsync() => RefreshVersionCatalogAsync();
+
+    public Task LoadOfficialLoaderCatalogPageAsync() => RefreshOfficialLoaderCatalogAsync();
+
+    public Task LoadCommunityResourcePageAsync() => LoadCommunityResourcesAsync(0);
 
     [ObservableProperty]
     private string offlinePlayerName = string.Empty;
@@ -635,6 +649,12 @@ public partial class MainViewModel(
     [RelayCommand]
     private async Task RefreshVersionCatalogAsync()
     {
+        if (IsVersionCatalogLoading)
+        {
+            return;
+        }
+
+        IsVersionCatalogLoading = true;
         try
         {
             VersionCatalogSummary = "正在获取官方版本清单…";
@@ -665,6 +685,10 @@ public partial class MainViewModel(
         catch (Exception exception)
         {
             VersionCatalogSummary = $"获取版本清单失败：{exception.Message}";
+        }
+        finally
+        {
+            IsVersionCatalogLoading = false;
         }
     }
 
@@ -787,6 +811,11 @@ public partial class MainViewModel(
     [RelayCommand]
     private async Task RefreshOfficialLoaderCatalogAsync()
     {
+        if (IsOfficialLoaderCatalogLoading)
+        {
+            return;
+        }
+
         var minecraftVersion = SelectedCatalogVersion?.Id ?? GetMinecraftVersionForLoaders(SelectedInstance);
         if (string.IsNullOrWhiteSpace(minecraftVersion))
         {
@@ -794,6 +823,7 @@ public partial class MainViewModel(
             return;
         }
 
+        IsOfficialLoaderCatalogLoading = true;
         try
         {
             LoaderCatalogSummary = $"正在读取 Minecraft {minecraftVersion} 的官方加载器目录…";
@@ -822,6 +852,10 @@ public partial class MainViewModel(
         catch (Exception exception)
         {
             LoaderCatalogSummary = $"读取官方加载器目录失败：{exception.Message}";
+        }
+        finally
+        {
+            IsOfficialLoaderCatalogLoading = false;
         }
     }
 
@@ -942,6 +976,12 @@ public partial class MainViewModel(
         OnPropertyChanged(nameof(IsCommunityStatusVisible));
         OnPropertyChanged(nameof(IsCommunityVersionCardVisible));
     }
+
+    partial void OnIsVersionCatalogLoadingChanged(bool value) =>
+        OnPropertyChanged(nameof(IsLoaderPageLoading));
+
+    partial void OnIsOfficialLoaderCatalogLoadingChanged(bool value) =>
+        OnPropertyChanged(nameof(IsLoaderPageLoading));
 
     partial void OnSelectedJavaChanged(JavaInstallation? value)
     {

@@ -13,12 +13,10 @@ public partial class PclLoadingIndicator : UserControl
 
     private static readonly (double Cue, double Angle)[] AnimationKeyFrames =
     [
-        (0, 25),
+        (0, 55),
         (0.16, -20),
-        (0.58, 50),
-        (0.76, 28),
-        (0.9, 34),
-        (1, 25),
+        (0.58, 30),
+        (1, 55),
     ];
 
     public static readonly StyledProperty<string> TextProperty =

@@ -23,6 +23,10 @@
         <vm:MainViewModel />
     </Design.DataContext>
 
+    <Window.Resources>
+        <StreamGeometry x:Key="DownloadRefreshIcon">M20 11a8.1 8.1 0 0 0-15.5-2 M4 4v5h5 M4 13a8.1 8.1 0 0 0 15.5 2 M20 20v-5h-5</StreamGeometry>
+    </Window.Resources>
+
     <Window.Styles>
         <!-- Visual structure adapted for Avalonia from PCL2 FormMain.xaml and its
              PageLaunch, PageDownload, PageSetup and PageOther XAML, with PCL-CE's
@@ -148,68 +152,68 @@
             <Setter Property="Foreground" Value="#36424F" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox">
-            <Setter Property="Background" Value="#FCFCFD" />
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Foreground" Value="#273444" />
             <Setter Property="CaretBrush" Value="#1370F3" />
-            <Setter Property="SelectionBrush" Value="#B8D8FF" />
-            <Setter Property="PlaceholderForeground" Value="#7C8794" />
-            <Setter Property="BorderBrush" Value="#A8C9EE" />
+            <Setter Property="SelectionBrush" Value="#C7E1FA" />
+            <Setter Property="PlaceholderForeground" Value="#8291A2" />
+            <Setter Property="BorderBrush" Value="#C3D2E2" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#FCFCFD" />
-            <Setter Property="BorderBrush" Value="#A8C9EE" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#C3D2E2" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:pointerover">
-            <Setter Property="Background" Value="#F0F7FF" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#5AA0F2" />
+            <Setter Property="Background" Value="#F8FBFE" />
+            <Setter Property="Foreground" Value="#273444" />
+            <Setter Property="BorderBrush" Value="#8DB9E2" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#F0F7FF" />
-            <Setter Property="BorderBrush" Value="#5AA0F2" />
+            <Setter Property="Background" Value="#F8FBFE" />
+            <Setter Property="BorderBrush" Value="#8DB9E2" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:focus">
-            <Setter Property="Background" Value="#E4F1FF" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="#F2F8FF" />
+            <Setter Property="Foreground" Value="#273444" />
+            <Setter Property="BorderBrush" Value="#5A9DE0" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#E4F1FF" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="#F2F8FF" />
+            <Setter Property="BorderBrush" Value="#5A9DE0" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:disabled">
-            <Setter Property="Background" Value="#EDF1F5" />
-            <Setter Property="Foreground" Value="#7C8794" />
-            <Setter Property="PlaceholderForeground" Value="#9AA5B1" />
-            <Setter Property="BorderBrush" Value="#D5DEE8" />
+            <Setter Property="Background" Value="#F4F6F8" />
+            <Setter Property="Foreground" Value="#8C98A6" />
+            <Setter Property="PlaceholderForeground" Value="#A0AAB5" />
+            <Setter Property="BorderBrush" Value="#DEE5EC" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:disabled /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#EDF1F5" />
-            <Setter Property="BorderBrush" Value="#D5DEE8" />
+            <Setter Property="Background" Value="#F4F6F8" />
+            <Setter Property="BorderBrush" Value="#DEE5EC" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox">
-            <Setter Property="Background" Value="#FCFCFD" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="PlaceholderForeground" Value="#7C8794" />
-            <Setter Property="BorderBrush" Value="#A8C9EE" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Foreground" Value="#273444" />
+            <Setter Property="PlaceholderForeground" Value="#8291A2" />
+            <Setter Property="BorderBrush" Value="#C3D2E2" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ Border#Background">
-            <Setter Property="Background" Value="#FCFCFD" />
-            <Setter Property="BorderBrush" Value="#A8C9EE" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#C3D2E2" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ ContentControl#ContentPresenter">
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Foreground" Value="#273444" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ PathIcon#DropDownGlyph">
@@ -221,31 +225,31 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:pointerover">
-            <Setter Property="Background" Value="#F0F7FF" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#5AA0F2" />
+            <Setter Property="Background" Value="#F8FBFE" />
+            <Setter Property="Foreground" Value="#273444" />
+            <Setter Property="BorderBrush" Value="#8DB9E2" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:pointerover /template/ Border#Background">
-            <Setter Property="Background" Value="#F0F7FF" />
-            <Setter Property="BorderBrush" Value="#5AA0F2" />
+            <Setter Property="Background" Value="#F8FBFE" />
+            <Setter Property="BorderBrush" Value="#8DB9E2" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:pressed">
-            <Setter Property="Background" Value="#E4F1FF" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="#F2F8FF" />
+            <Setter Property="Foreground" Value="#273444" />
+            <Setter Property="BorderBrush" Value="#5A9DE0" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:pressed /template/ Border#Background">
-            <Setter Property="Background" Value="#E4F1FF" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="#F2F8FF" />
+            <Setter Property="BorderBrush" Value="#5A9DE0" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:focus">
-            <Setter Property="Background" Value="#E4F1FF" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="#F2F8FF" />
+            <Setter Property="Foreground" Value="#273444" />
+            <Setter Property="BorderBrush" Value="#5A9DE0" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:focus /template/ Border#Background">
-            <Setter Property="Background" Value="#E4F1FF" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="#F2F8FF" />
+            <Setter Property="BorderBrush" Value="#5A9DE0" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:focus-visible /template/ Border#HighlightBackground">
             <Setter Property="IsVisible" Value="True" />
@@ -254,14 +258,14 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:disabled">
-            <Setter Property="Background" Value="#EDF1F5" />
-            <Setter Property="Foreground" Value="#7C8794" />
-            <Setter Property="PlaceholderForeground" Value="#9AA5B1" />
-            <Setter Property="BorderBrush" Value="#D5DEE8" />
+            <Setter Property="Background" Value="#F4F6F8" />
+            <Setter Property="Foreground" Value="#8C98A6" />
+            <Setter Property="PlaceholderForeground" Value="#A0AAB5" />
+            <Setter Property="BorderBrush" Value="#DEE5EC" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:disabled /template/ Border#Background">
-            <Setter Property="Background" Value="#EDF1F5" />
-            <Setter Property="BorderBrush" Value="#D5DEE8" />
+            <Setter Property="Background" Value="#F4F6F8" />
+            <Setter Property="BorderBrush" Value="#DEE5EC" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:disabled /template/ ContentControl#ContentPresenter">
             <Setter Property="Foreground" Value="#7C8794" />
@@ -314,9 +318,9 @@
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid.pcl-shell Button">
-            <Setter Property="Background" Value="#F0F2F5" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="Background" Value="#FAFBFC" />
+            <Setter Property="Foreground" Value="#344150" />
+            <Setter Property="BorderBrush" Value="#C8D4E0" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -332,29 +336,33 @@
                                           ContentTemplate="{TemplateBinding ContentTemplate}"
                                           HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                                          TextElement.Foreground="{TemplateBinding Foreground}">
+                            <ContentPresenter.RenderTransform>
+                                <TranslateTransform Y="2" />
+                            </ContentPresenter.RenderTransform>
+                        </ContentPresenter>
                     </Border>
                 </ControlTemplate>
             </Setter>
         </Style>
         <Style Selector="Grid.pcl-shell Button:pointerover">
-            <Setter Property="Background" Value="#E4F1FF" />
-            <Setter Property="Foreground" Value="#1370F3" />
-            <Setter Property="BorderBrush" Value="#83B8F8" />
+            <Setter Property="Background" Value="#EEF6FF" />
+            <Setter Property="Foreground" Value="#1766A8" />
+            <Setter Property="BorderBrush" Value="#8DB9E2" />
         </Style>
         <Style Selector="Grid.pcl-shell Button:pressed">
-            <Setter Property="Background" Value="#D6EAFF" />
-            <Setter Property="Foreground" Value="#0F5FCC" />
-            <Setter Property="BorderBrush" Value="#5AA0F2" />
+            <Setter Property="Background" Value="#DFEEFC" />
+            <Setter Property="Foreground" Value="#12598F" />
+            <Setter Property="BorderBrush" Value="#6DA4D7" />
         </Style>
         <Style Selector="Grid.pcl-shell Button:focus-visible">
             <Setter Property="BorderBrush" Value="#1370F3" />
         </Style>
         <Style Selector="Grid.pcl-shell Button:disabled">
-            <Setter Property="Opacity" Value="0.62" />
-            <Setter Property="Background" Value="#EDF1F5" />
-            <Setter Property="Foreground" Value="#7C8794" />
-            <Setter Property="BorderBrush" Value="#D5DEE8" />
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Background" Value="#F4F6F8" />
+            <Setter Property="Foreground" Value="#98A3AF" />
+            <Setter Property="BorderBrush" Value="#DEE5EC" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.main-navigation">
             <Setter Property="Background" Value="Transparent" />
@@ -518,9 +526,9 @@
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="Button.version-group">
-            <Setter Property="Background" Value="#FCFDFF" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#D1DDEA" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Foreground" Value="#344150" />
+            <Setter Property="BorderBrush" Value="#CCD8E4" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Height" Value="46" />
@@ -529,29 +537,30 @@
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.version-group:pointerover">
-            <Setter Property="BorderBrush" Value="#72AEF8" />
-            <Setter Property="Background" Value="#F7FBFF" />
+            <Setter Property="BorderBrush" Value="#82B2DE" />
+            <Setter Property="Background" Value="#F4F9FE" />
         </Style>
         <Style Selector="Button.version-group.selected">
-            <Setter Property="BorderBrush" Value="#1370F3" />
-            <Setter Property="Background" Value="#F7FBFF" />
+            <Setter Property="Foreground" Value="#1766A8" />
+            <Setter Property="BorderBrush" Value="#5A9DE0" />
+            <Setter Property="Background" Value="#F2F8FF" />
         </Style>
         <Style Selector="Button.download-primary">
-            <Setter Property="Background" Value="#1370F3" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="#EAF4FF" />
+            <Setter Property="Foreground" Value="#175F9E" />
+            <Setter Property="BorderBrush" Value="#78ADE0" />
             <Setter Property="MinHeight" Value="34" />
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.download-primary:pointerover">
-            <Setter Property="Background" Value="#2B86ED" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderBrush" Value="#2B86ED" />
+            <Setter Property="Background" Value="#D8EBFF" />
+            <Setter Property="Foreground" Value="#12558D" />
+            <Setter Property="BorderBrush" Value="#6099D0" />
         </Style>
         <Style Selector="Button.download-primary:pressed">
-            <Setter Property="Background" Value="#0F5FCC" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderBrush" Value="#0F5FCC" />
+            <Setter Property="Background" Value="#C9E1F8" />
+            <Setter Property="Foreground" Value="#0F4C7C" />
+            <Setter Property="BorderBrush" Value="#4D88C0" />
         </Style>
         <Style Selector="Button.community-action-primary">
             <Setter Property="Height" Value="34" />
@@ -570,6 +579,62 @@
             <Setter Property="Background" Value="#B5D8FA" />
             <Setter Property="Foreground" Value="#1F5487" />
             <Setter Property="BorderBrush" Value="#609BD4" />
+        </Style>
+        <Style Selector="Button.download-refresh">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          HorizontalContentAlignment="Center"
+                                          VerticalContentAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.download-refresh:pointerover">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#0F63C8" />
+        </Style>
+        <Style Selector="Button.download-refresh:pressed">
+            <Setter Property="Background" Value="#D6EAFF" />
+            <Setter Property="Foreground" Value="#0B55B7" />
+        </Style>
+        <Style Selector="Grid.download-navigation-row">
+            <Setter Property="Height" Value="36" />
+        </Style>
+        <Style Selector="Grid.download-navigation-row:pointerover">
+            <Setter Property="Background" Value="#E4F1FF" />
+        </Style>
+        <Style Selector="Grid.download-navigation-row.selected">
+            <Setter Property="Background" Value="#E4F1FF" />
+        </Style>
+        <Style Selector="Grid.download-navigation-row controls|PclNavigationButton.secondary-navigation.selected">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.download-navigation-row:pointerover controls|PclNavigationButton.secondary-navigation">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.download-navigation-row Button.download-refresh">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+        <Style Selector="Grid.download-navigation-row:pointerover Button.download-refresh">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Grid.download-navigation-row Button.download-refresh:focus-visible">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="ListBox.download-list">
             <Setter Property="Background" Value="Transparent" />
@@ -814,50 +879,119 @@
             </Grid>
 
             <Grid x:Name="DownloadPage" IsVisible="False">
-                <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
+                <Grid ColumnDefinitions="188,*" Background="#D9EAF9">
                     <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Column names follow PCL2 PageDownloadLeft.xaml with PCL-CE installer additions. -->
                             <StackPanel x:Name="DownloadNavigationPanel" Spacing="2">
-                                <controls:PclNavigationButton Classes="secondary-navigation selected" Click="DownloadNavigationClick"
-                                                              Tag="game" Label="原版游戏"
-                                                              IconData="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.3 7 12 12l8.7-5 M12 22V12" />
+                                <Grid Classes="download-navigation-row selected" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation selected" Click="DownloadNavigationClick"
+                                                                  Tag="game" Label="原版游戏"
+                                                                  IconData="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.3 7 12 12l8.7-5 M12 22V12" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="game" Click="DownloadSectionRefreshClick"
+                                            ToolTip.Tip="刷新" AutomationProperties.Name="刷新原版游戏">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
                                 <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="社区资源" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="mod" Label="模组"
-                                                              IconData="M14.7 6.3 17.7 3.3 20.7 6.3 17.7 9.3 M14.7 6.3 4 17v3h3l10.7-10.7" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="pack" Label="整合包"
-                                                              IconData="M21 8v13H3V8 M1 3h22v5H1z M10 12h4" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="datapack" Label="数据包"
-                                                              IconData="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M9 13h6 M9 17h6" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="resourcepack" Label="资源包"
-                                                              IconData="M12 2 2 7l10 5 10-5-10-5z M2 12l10 5 10-5 M2 17l10 5 10-5" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="shader" Label="光影包"
-                                                              IconData="M12 2v2 M12 20v2 M4.93 4.93l1.42 1.42 M17.66 17.66l1.41 1.41 M2 12h2 M20 12h2 M4.93 19.07l1.42-1.41 M17.66 6.34l1.41-1.41 M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="world" Label="世界"
-                                                              IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M2 12h20 M12 2a15.3 15.3 0 0 1 0 20 M12 2a15.3 15.3 0 0 0 0 20" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="favorites" Label="收藏夹"
-                                                              IconData="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="mod" Label="模组"
+                                                                  IconData="M14.7 6.3 17.7 3.3 20.7 6.3 17.7 9.3 M14.7 6.3 4 17v3h3l10.7-10.7" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="mod" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新模组">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="pack" Label="整合包" IconData="M21 8v13H3V8 M1 3h22v5H1z M10 12h4" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="pack" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新整合包">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="datapack" Label="数据包" IconData="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M9 13h6 M9 17h6" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="datapack" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新数据包">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="resourcepack" Label="资源包" IconData="M12 2 2 7l10 5 10-5-10-5z M2 12l10 5 10-5 M2 17l10 5 10-5" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="resourcepack" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新资源包">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="shader" Label="光影包" IconData="M12 2v2 M12 20v2 M4.93 4.93l1.42 1.42 M17.66 17.66l1.41 1.41 M2 12h2 M20 12h2 M4.93 19.07l1.42-1.41 M17.66 6.34l1.41-1.41 M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="shader" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新光影包">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="world" Label="世界" IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M2 12h20 M12 2a15.3 15.3 0 0 1 0 20 M12 2a15.3 15.3 0 0 0 0 20" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="world" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新世界">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="favorites" Label="收藏夹" IconData="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="favorites" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新收藏夹">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
                                 <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="安装包" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="optifine" Label="OptiFine"
-                                                              IconData="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="forge" Label="Forge"
-                                                              IconData="M14.7 6.3 17.7 3.3 20.7 6.3 17.7 9.3 M14.7 6.3 4 17v3h3l10.7-10.7" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="neoforge" Label="NeoForge"
-                                                              IconData="M21 16V8l-9-5-9 5v8l9 5 9-5z M3.3 7 12 12l8.7-5 M12 22V12" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="fabric" Label="Fabric"
-                                                              IconData="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76z M16 8 2 22 M17.5 15H9" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="cleanroom" Label="Cleanroom"
-                                                              IconData="M3 6h18 M7 6V4h10v2 M5 6l1 16h12l1-16 M9 10v8 M15 10v8" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="legacy-fabric" Label="Legacy Fabric"
-                                                              IconData="M12 2v20 M5 5h14 M5 19h14 M7 9h10 M7 15h10" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="labymod" Label="LabyMod"
-                                                              IconData="M4 4h16v16H4z M8 8v8h8" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="liteloader" Label="LiteLoader"
-                                                              IconData="M13 2 3 14h9l-1 8 10-12h-9z" />
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="optifine" Label="OptiFine" IconData="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="optifine" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 OptiFine">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="forge" Label="Forge" IconData="M14.7 6.3 17.7 3.3 20.7 6.3 17.7 9.3 M14.7 6.3 4 17v3h3l10.7-10.7" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="forge" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Forge">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="neoforge" Label="NeoForge" IconData="M21 16V8l-9-5-9 5v8l9 5 9-5z M3.3 7 12 12l8.7-5 M12 22V12" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="neoforge" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 NeoForge">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="fabric" Label="Fabric" IconData="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76z M16 8 2 22 M17.5 15H9" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="fabric" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Fabric">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="cleanroom" Label="Cleanroom" IconData="M3 6h18 M7 6V4h10v2 M5 6l1 16h12l1-16 M9 10v8 M15 10v8" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="cleanroom" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Cleanroom">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="legacy-fabric" Label="Legacy Fabric" IconData="M12 2v20 M5 5h14 M5 19h14 M7 9h10 M7 15h10" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="legacy-fabric" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Legacy Fabric">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="labymod" Label="LabyMod" IconData="M4 4h16v16H4z M8 8v8h8" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="labymod" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 LabyMod">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="liteloader" Label="LiteLoader" IconData="M13 2 3 14h9l-1 8 10-12h-9z" />
+                                    <Button Grid.Column="1" Classes="download-refresh" Tag="liteloader" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 LiteLoader">
+                                        <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
                             </StackPanel>
                         </ScrollViewer>
                     </Border>
-                    <ScrollViewer Grid.Column="1" Background="#D9EAF9" HorizontalScrollBarVisibility="Disabled">
+                    <ScrollViewer x:Name="DownloadContentScroller" Grid.Column="1" Background="#D9EAF9" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="25,18,25,25" MaxWidth="860" Spacing="15">
                             <StackPanel Spacing="5">
                                 <TextBlock x:Name="DownloadPageTitle" FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="原版游戏" />
@@ -866,13 +1000,14 @@
                             </StackPanel>
 
                             <!-- PCL2 PageDownloadClient/PageDownloadInstall structure adapted to Aurora's existing commands. -->
-                            <StackPanel x:Name="DownloadGameView" Spacing="15">
+                            <Grid x:Name="DownloadGameView" MinHeight="430">
+                                <controls:PclLoadingIndicator HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                              IsVisible="{Binding IsVersionCatalogLoading}"
+                                                              Text="正在获取版本列表…" />
+                                <StackPanel Spacing="15" IsVisible="{Binding !IsVersionCatalogLoading}">
                                 <Border Classes="pcl-card" Padding="16">
                                     <StackPanel Spacing="12">
-                                        <Grid ColumnDefinitions="*,Auto">
-                                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="最新版本" />
-                                            <Button Grid.Column="1" Command="{Binding RefreshVersionCatalogCommand}" Content="刷新版本目录" />
-                                        </Grid>
+                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="最新版本" />
                                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                             <Border Classes="pcl-option-row" CornerRadius="3">
                                                 <Grid ColumnDefinitions="40,*" ColumnSpacing="10">
@@ -952,10 +1087,15 @@
                                         </Border>
                                     </StackPanel>
                                 </Border>
-                            </StackPanel>
+                                </StackPanel>
+                            </Grid>
 
                             <!-- PCL-CE's four independent loader pages share one Aurora view while retaining a strict kind filter. -->
-                            <StackPanel x:Name="DownloadLoaderView" IsVisible="False" Spacing="15">
+                            <Grid x:Name="DownloadLoaderView" IsVisible="False" MinHeight="430">
+                                <controls:PclLoadingIndicator HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                              IsVisible="{Binding IsLoaderPageLoading}"
+                                                              Text="正在获取加载器列表…" />
+                                <StackPanel Spacing="15" IsVisible="{Binding !IsLoaderPageLoading}">
                                 <Border Classes="pcl-card" Padding="18">
                                     <Grid ColumnDefinitions="58,*" ColumnSpacing="14">
                                         <Grid Width="50" Height="50" VerticalAlignment="Top">
@@ -989,8 +1129,7 @@
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
                                             <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="Minecraft 版本" />
-                                            <Grid Grid.Row="1" Grid.Column="1" MinWidth="398" HorizontalAlignment="Stretch"
-                                                  ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <Grid Grid.Row="1" Grid.Column="1" MinWidth="280" HorizontalAlignment="Stretch">
                                                 <ComboBox MinWidth="280" HorizontalAlignment="Stretch"
                                                           ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedCatalogVersion}">
                                                     <ComboBox.ItemTemplate>
@@ -1002,7 +1141,6 @@
                                                         </DataTemplate>
                                                     </ComboBox.ItemTemplate>
                                                 </ComboBox>
-                                                <Button Grid.Column="1" Command="{Binding RefreshVersionCatalogCommand}" Content="刷新原版目录" />
                                             </Grid>
                                         </Grid>
                                         <TextBlock FontSize="12" Foreground="#6F7C8B" Text="加载器只能安装到基础版本一致的既有实例；未满足条件时安装按钮会保持禁用。" TextWrapping="Wrap" />
@@ -1011,10 +1149,7 @@
 
                                 <Border Classes="pcl-card" Padding="16">
                                     <StackPanel Spacing="11">
-                                        <Grid ColumnDefinitions="*,Auto">
-                                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="版本列表" />
-                                            <Button Grid.Column="1" Command="{Binding RefreshOfficialLoaderCatalogCommand}" Content="刷新官方目录" />
-                                        </Grid>
+                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="版本列表" />
                                         <ListBox Classes="download-list" MaxHeight="280" IsEnabled="{Binding HasAvailableLoaders}"
                                                  ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}">
                                             <ListBox.ItemTemplate>
@@ -1054,11 +1189,16 @@
                                         </Grid>
                                     </StackPanel>
                                 </Border>
-                            </StackPanel>
+                                </StackPanel>
+                            </Grid>
 
                             <!-- Search structure directly adapts PCL2 PageResource and PCL-CE PageComp.
                                  Aurora uses its own Avalonia bindings and credential-free Modrinth service. -->
-                            <StackPanel x:Name="DownloadCommunityCard" Spacing="12" IsVisible="False">
+                            <Grid x:Name="DownloadCommunityCard" MinHeight="430" IsVisible="False">
+                                <controls:PclLoadingIndicator HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                              IsVisible="{Binding IsCommunitySearchRunning}"
+                                                              Text="{Binding CommunityLoadingText}" />
+                                <StackPanel Spacing="12" IsVisible="{Binding !IsCommunitySearchRunning}">
                                 <Border Classes="pcl-card" Padding="18">
                                     <StackPanel Spacing="13">
                                         <StackPanel Spacing="4">
@@ -1129,11 +1269,6 @@
                                     </StackPanel>
                                 </Border>
 
-                                <Border Classes="pcl-card" MinHeight="170" Padding="24"
-                                        IsVisible="{Binding IsCommunitySearchRunning}">
-                                    <controls:PclLoadingIndicator Text="{Binding CommunityLoadingText}" />
-                                </Border>
-
                                 <Border Classes="pcl-card" Padding="7" IsVisible="{Binding IsCommunityResultListVisible}">
                                     <ListBox Classes="download-list"
                                              ItemsSource="{Binding CommunityResources}"
@@ -1190,10 +1325,6 @@
                                                 <TextBlock FontSize="12" Foreground="#6F7C8B"
                                                            Text="选择适合目标实例的文件" />
                                             </StackPanel>
-                                            <Button Grid.Column="1" Height="34" MinWidth="86"
-                                                    Command="{Binding LoadCommunityResourceVersionsCommand}"
-                                                    IsEnabled="{Binding CanLoadCommunityResourceVersions}"
-                                                    Content="刷新版本" />
                                         </Grid>
 
                                         <Grid ColumnDefinitions="92,*" ColumnSpacing="10">
@@ -1287,7 +1418,8 @@
                                                 Content="打开项目页" />
                                     </Grid>
                                 </Border>
-                            </StackPanel>
+                                </StackPanel>
+                            </Grid>
 
                             <Border x:Name="DownloadDeferredCard" Classes="pcl-card" Padding="20" IsVisible="False">
                                 <StackPanel Spacing="12">

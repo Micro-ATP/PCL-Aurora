@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using PCL.Aurora.Desktop.Controls;
 using PCL.Aurora.Domain;
 
@@ -8,6 +9,8 @@ namespace PCL.Aurora.Desktop.Views;
 
 public partial class MainWindow : Window
 {
+    private string currentDownloadSection = "game";
+
     private static readonly string[] HelpTopics =
     {
         "启动前检查",
@@ -31,7 +34,7 @@ public partial class MainWindow : Window
         };
     }
 
-    private void MainNavigationClick(object? sender, RoutedEventArgs e)
+    private async void MainNavigationClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string value } || !int.TryParse(value, out var page))
         {
@@ -39,11 +42,16 @@ public partial class MainWindow : Window
         }
 
         SelectMainPage(page);
+        if (page == 1)
+        {
+            await LoadDownloadSectionAsync(currentDownloadSection);
+        }
     }
 
-    private void OpenDownloadPageClick(object? sender, RoutedEventArgs e)
+    private async void OpenDownloadPageClick(object? sender, RoutedEventArgs e)
     {
         SelectMainPage(1);
+        await LoadDownloadSectionAsync(currentDownloadSection);
     }
 
     private async void OfficialLoginClick(object? sender, RoutedEventArgs e)
@@ -156,13 +164,36 @@ public partial class MainWindow : Window
             : HelpTopics.Where(topic => topic.Contains(query, StringComparison.OrdinalIgnoreCase)).ToArray();
     }
 
-    private void DownloadNavigationClick(object? sender, RoutedEventArgs e)
+    private async void DownloadNavigationClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not PclNavigationButton { Tag: string section } selectedNavigation)
         {
             return;
         }
 
+        await SelectDownloadSectionAsync(section, selectedNavigation);
+    }
+
+    private async void DownloadSectionRefreshClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string section })
+        {
+            return;
+        }
+
+        var selectedNavigation = DownloadNavigationPanel
+            .GetVisualDescendants()
+            .OfType<PclNavigationButton>()
+            .FirstOrDefault(navigation => Equals(navigation.Tag, section));
+
+        if (selectedNavigation is not null)
+        {
+            await SelectDownloadSectionAsync(section, selectedNavigation);
+        }
+    }
+
+    private async Task SelectDownloadSectionAsync(string section, PclNavigationButton selectedNavigation)
+    {
         var isCommunity = section is "mod" or "pack" or "datapack" or "resourcepack" or "shader" or "world" or "favorites";
         var loaderKind = section switch
         {
@@ -174,6 +205,7 @@ public partial class MainWindow : Window
         };
         var isGame = section == "game";
         var isDeferredInstaller = !isGame && !isCommunity && loaderKind is null;
+        currentDownloadSection = section;
 
         DownloadCommunityCard.IsVisible = isCommunity;
         DownloadDeferredCard.IsVisible = isDeferredInstaller;
@@ -181,6 +213,7 @@ public partial class MainWindow : Window
         DownloadLoaderView.IsVisible = loaderKind is not null;
         DownloadPageTitle.Text = GetDownloadSectionTitle(section);
         DownloadPageDescription.Text = GetDownloadSectionDescription(section);
+        DownloadContentScroller.Offset = default;
         if (isCommunity)
         {
             DownloadCommunityTitle.Text = DownloadPageTitle.Text;
@@ -198,10 +231,49 @@ public partial class MainWindow : Window
             ConfigureLoaderPage(selectedLoaderKind);
         }
 
-        foreach (var navigation in DownloadNavigationPanel.Children.OfType<PclNavigationButton>())
+        foreach (var navigation in DownloadNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>())
         {
-            navigation.Classes.Set("selected", navigation == selectedNavigation);
+            var isSelected = navigation == selectedNavigation;
+            navigation.Classes.Set("selected", isSelected);
+            if (navigation.Parent is Grid row)
+            {
+                row.Classes.Set("selected", isSelected);
+            }
         }
+
+        await LoadDownloadSectionAsync(section);
+    }
+
+    private async Task LoadDownloadSectionAsync(string section)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        if (section == "game")
+        {
+            await viewModel.LoadVersionCatalogPageAsync();
+            return;
+        }
+
+        if (section is "mod" or "pack" or "datapack" or "resourcepack" or "shader" or "world" or "favorites")
+        {
+            await viewModel.LoadCommunityResourcePageAsync();
+            return;
+        }
+
+        if (section is not ("optifine" or "forge" or "neoforge" or "fabric"))
+        {
+            return;
+        }
+
+        if (viewModel.SelectedCatalogVersion is null)
+        {
+            await viewModel.LoadVersionCatalogPageAsync();
+        }
+
+        await viewModel.LoadOfficialLoaderCatalogPageAsync();
     }
 
     private void ConfigureLoaderPage(MinecraftLoaderKind kind)
