@@ -75,6 +75,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageDownloadResourcePack.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageDownloadShader.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/Comp/PageDownloadWorld.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadCompFavorites.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadCompFavorites.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModComp.cs
 - PCL-CE: PCL.Core/App/Localization/Lang.cs (compact-number and relative-time display behavior only)

@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Aurora.Desktop.Controls;
 using PCL.Aurora.Domain;
@@ -407,14 +408,180 @@ public partial class MainWindow : Window
         await viewModel.LoadSelectedCommunityResourceVersionsAsync();
     }
 
-    private async void CommunityVersionInstallClick(object? sender, RoutedEventArgs e)
+    private async void CommunityVersionDownloadClick(object? sender, RoutedEventArgs e)
     {
         e.Handled = true;
         if (sender is Button { Tag: CommunityResourceVersion version } &&
             DataContext is ViewModels.MainViewModel viewModel)
         {
-            await viewModel.InstallCommunityResourceVersionAsync(version);
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = $"选择 {version.VersionNumber} 的下载目录",
+                AllowMultiple = false,
+            });
+            var destinationDirectory = folders.SingleOrDefault()?.TryGetLocalPath();
+            if (string.IsNullOrWhiteSpace(destinationDirectory))
+            {
+                return;
+            }
+
+            if (version.PrimaryFile is { } file)
+            {
+                var destinationPath = Path.Combine(destinationDirectory, Path.GetFileName(file.FileName));
+                if (File.Exists(destinationPath) &&
+                    !await ShowConfirmationAsync(
+                        "文件已存在",
+                        $"“{Path.GetFileName(destinationPath)}”已经存在，是否覆盖？"))
+                {
+                    return;
+                }
+            }
+
+            await viewModel.DownloadCommunityResourceVersionAsync(version, destinationDirectory);
         }
+    }
+
+    private void CommunityResourceFavoriteClick(object? sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is not Button { Tag: ViewModels.CommunityResourceItemViewModel item } button ||
+            DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        CommunityFavoriteMenuItems.Children.Clear();
+        foreach (var folder in viewModel.CommunityFavoriteFolders)
+        {
+            var isFavorite = folder.Contains(item.Project.Id);
+            CommunityFavoriteMenuItems.Children.Add(CreateCommunityFavoriteMenuButton(
+                isFavorite
+                    ? $"从“{folder.Name}”中取消收藏"
+                    : $"收藏到“{folder.Name}”",
+                () => viewModel.ToggleCommunityFavoriteAsync(item.Project, folder.Id)));
+        }
+
+        ShowCommunityFavoriteMenu(button);
+    }
+
+    private async void CommunityFavoriteFolderSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel { IsCommunityFavoritesPage: true } viewModel)
+        {
+            await viewModel.LoadCommunityResourcePageAsync();
+        }
+    }
+
+    private void CommunityFavoriteManageClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        CommunityFavoriteMenuItems.Children.Clear();
+        CommunityFavoriteMenuItems.Children.Add(CreateCommunityFavoriteMenuButton(
+            "分享当前收藏夹",
+            async () =>
+            {
+                var json = viewModel.ExportSelectedCommunityFavoriteFolder();
+                if (!string.IsNullOrWhiteSpace(json) && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+                {
+                    await clipboard.SetTextAsync(json);
+                }
+            }));
+        CommunityFavoriteMenuItems.Children.Add(CreateCommunityFavoriteMenuButton(
+            "导入收藏",
+            async () =>
+            {
+                var json = await ShowTextPromptAsync(
+                    "导入收藏",
+                    "粘贴由 PCL Aurora 分享的收藏数据",
+                    string.Empty,
+                    multiline: true);
+                if (!string.IsNullOrWhiteSpace(json) && await viewModel.ImportCommunityFavoriteFolderAsync(json))
+                {
+                    await viewModel.LoadCommunityResourcePageAsync();
+                }
+            }));
+        CommunityFavoriteMenuItems.Children.Add(new Separator { Margin = new Avalonia.Thickness(4, 2) });
+        CommunityFavoriteMenuItems.Children.Add(CreateCommunityFavoriteMenuButton(
+            "新建收藏夹",
+            async () =>
+            {
+                var name = await ShowTextPromptAsync("新建收藏夹", "输入收藏夹名称");
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    await viewModel.CreateCommunityFavoriteFolderAsync(name);
+                    await viewModel.LoadCommunityResourcePageAsync();
+                }
+            }));
+        CommunityFavoriteMenuItems.Children.Add(CreateCommunityFavoriteMenuButton(
+            "重命名收藏夹名称",
+            async () =>
+            {
+                if (viewModel.SelectedCommunityFavoriteFolder is not { } selected)
+                {
+                    return;
+                }
+
+                var name = await ShowTextPromptAsync("重命名收藏夹", "输入新的收藏夹名称", selected.Name);
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    await viewModel.RenameSelectedCommunityFavoriteFolderAsync(name);
+                }
+            }));
+        CommunityFavoriteMenuItems.Children.Add(CreateCommunityFavoriteMenuButton(
+            "删除当前收藏夹",
+            async () =>
+            {
+                if (viewModel.SelectedCommunityFavoriteFolder is not { } selected ||
+                    !await ShowConfirmationAsync(
+                        "删除收藏夹",
+                        $"确定删除“{selected.Name}”及其中的 {selected.Projects.Count} 项收藏吗？"))
+                {
+                    return;
+                }
+
+                if (await viewModel.DeleteSelectedCommunityFavoriteFolderAsync())
+                {
+                    await viewModel.LoadCommunityResourcePageAsync();
+                }
+            },
+            isDestructive: true));
+        ShowCommunityFavoriteMenu(button);
+    }
+
+    private Button CreateCommunityFavoriteMenuButton(
+        string text,
+        Func<Task> action,
+        bool isDestructive = false)
+    {
+        var button = new Button
+        {
+            Content = text,
+        };
+        button.Classes.Add("community-favorite-menu-item");
+        if (isDestructive)
+        {
+            button.Classes.Add("danger");
+        }
+
+        button.Click += async (_, eventArgs) =>
+        {
+            eventArgs.Handled = true;
+            CommunityFavoriteMenuPopup.IsOpen = false;
+            await action();
+        };
+        return button;
+    }
+
+    private void ShowCommunityFavoriteMenu(Control placementTarget)
+    {
+        CommunityFavoriteMenuPopup.PlacementTarget = placementTarget;
+        CommunityFavoriteMenuPopup.IsOpen = true;
+        var firstMenuItem = CommunityFavoriteMenuItems.Children.OfType<Button>().FirstOrDefault();
+        Dispatcher.UIThread.Post(() => firstMenuItem?.Focus());
     }
 
     private void CommunityResourceBackClick(object? sender, RoutedEventArgs e)
@@ -452,6 +619,94 @@ public partial class MainWindow : Window
         DownloadCommunityCatalogView.IsVisible = true;
         DownloadCommunityDetailView.IsVisible = false;
         DownloadContentScroller.Offset = default;
+    }
+
+    private async Task<string?> ShowTextPromptAsync(
+        string title,
+        string message,
+        string initialValue = "",
+        bool multiline = false)
+    {
+        var input = new TextBox
+        {
+            Text = initialValue,
+            AcceptsReturn = multiline,
+            TextWrapping = multiline ? Avalonia.Media.TextWrapping.Wrap : Avalonia.Media.TextWrapping.NoWrap,
+            Height = multiline ? 92 : 36,
+            VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center,
+        };
+        var dialog = new Window
+        {
+            Title = title,
+            Width = 440,
+            Height = multiline ? 250 : 190,
+            CanResize = false,
+            ShowInTaskbar = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+        };
+        var cancel = new Button { Content = "取消", MinWidth = 76 };
+        var confirm = new Button { Content = "确定", MinWidth = 76 };
+        cancel.Click += (_, _) => dialog.Close(null);
+        confirm.Click += (_, _) => dialog.Close(input.Text);
+        dialog.Content = new Border
+        {
+            Padding = new Avalonia.Thickness(20),
+            Child = new StackPanel
+            {
+                Spacing = 12,
+                Children =
+                {
+                    new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
+                    input,
+                    new StackPanel
+                    {
+                        Orientation = Avalonia.Layout.Orientation.Horizontal,
+                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+                        Spacing = 8,
+                        Children = { cancel, confirm },
+                    },
+                },
+            },
+        };
+        dialog.Opened += (_, _) => input.Focus();
+        return await dialog.ShowDialog<string?>(this);
+    }
+
+    private async Task<bool> ShowConfirmationAsync(string title, string message)
+    {
+        var dialog = new Window
+        {
+            Title = title,
+            Width = 420,
+            Height = 165,
+            CanResize = false,
+            ShowInTaskbar = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+        };
+        var cancel = new Button { Content = "取消", MinWidth = 76 };
+        var confirm = new Button { Content = "确定", MinWidth = 76 };
+        cancel.Click += (_, _) => dialog.Close(false);
+        confirm.Click += (_, _) => dialog.Close(true);
+        dialog.Content = new Border
+        {
+            Padding = new Avalonia.Thickness(20),
+            Child = new StackPanel
+            {
+                Spacing = 16,
+                Children =
+                {
+                    new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
+                    new StackPanel
+                    {
+                        Orientation = Avalonia.Layout.Orientation.Horizontal,
+                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+                        Spacing = 8,
+                        Children = { cancel, confirm },
+                    },
+                },
+            },
+        };
+        return await dialog.ShowDialog<bool>(this);
     }
 
     private void VersionCategoryToggleClick(object? sender, RoutedEventArgs e)

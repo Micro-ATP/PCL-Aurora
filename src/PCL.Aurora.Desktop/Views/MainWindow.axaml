@@ -115,10 +115,19 @@
                                   Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                   StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
                         </Button>
-                        <Button Classes="community-row-action" IsEnabled="False" ToolTip.Tip="收藏">
-                            <Path Width="15" Height="15" Data="{StaticResource CommunityHeartIcon}" Stretch="Uniform"
-                                  Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                                  StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                        <Button Classes="community-row-action" Tag="{Binding}" Click="CommunityResourceFavoriteClick"
+                                ToolTip.Tip="收藏" AutomationProperties.Name="管理收藏">
+                            <Grid Width="15" Height="15">
+                                <Path Width="15" Height="15" Data="{StaticResource CommunityHeartIcon}" Stretch="Uniform"
+                                      Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                      StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round"
+                                      IsVisible="{Binding !IsFavorite}" />
+                                <Path Width="15" Height="15" Data="{StaticResource CommunityHeartIcon}" Stretch="Uniform"
+                                      Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                      StrokeThickness="1.3" StrokeLineCap="Round" StrokeJoin="Round"
+                                      IsVisible="{Binding IsFavorite}" />
+                            </Grid>
                         </Button>
                     </StackPanel>
                 </Border>
@@ -759,6 +768,28 @@
         </Style>
         <Style Selector="Button.community-row-action:disabled">
             <Setter Property="Opacity" Value="0.45" />
+        </Style>
+        <Style Selector="Button.community-favorite-menu-item">
+            <Setter Property="MinWidth" Value="196" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="11,0" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#344150" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="Button.community-favorite-menu-item:pointerover">
+            <Setter Property="Background" Value="#E8F3FF" />
+            <Setter Property="Foreground" Value="#176FC5" />
+        </Style>
+        <Style Selector="Button.community-favorite-menu-item.danger">
+            <Setter Property="Foreground" Value="#B44242" />
+        </Style>
+        <Style Selector="Button.community-favorite-menu-item.danger:pointerover">
+            <Setter Property="Background" Value="#FFF0F0" />
+            <Setter Property="Foreground" Value="#9F3030" />
         </Style>
         <Style Selector="Button.community-detail-action">
             <Setter Property="Height" Value="32" />
@@ -1646,6 +1677,74 @@
                                  Aurora uses its own Avalonia bindings and credential-free Modrinth service. -->
                             <StackPanel x:Name="DownloadCommunityCard" MinHeight="430" Spacing="12" IsVisible="False">
                                 <StackPanel x:Name="DownloadCommunityCatalogView" Spacing="12">
+                                <StackPanel IsVisible="{Binding IsCommunityFavoritesPage}" Spacing="15">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="15">
+                                        <Border Classes="pcl-card" Padding="10,7"
+                                                IsVisible="{Binding IsCommunityFavoriteSearchVisible}">
+                                            <Grid Height="34" ColumnDefinitions="24,*" ColumnSpacing="8">
+                                                <Path Width="18" Height="18" VerticalAlignment="Center"
+                                                      Data="M21 21l-4.35-4.35 M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16"
+                                                      Fill="Transparent" Stroke="#36424F" StrokeThickness="2"
+                                                      StrokeLineCap="Round" StrokeJoin="Round" />
+                                                <TextBox Grid.Column="1" Classes="community-search-input"
+                                                         PlaceholderText="在当前收藏夹中搜索"
+                                                         Text="{Binding CommunityFavoriteSearchText}" />
+                                            </Grid>
+                                        </Border>
+                                        <Border Grid.Column="1" Classes="pcl-card" Height="48" Padding="8,5">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <ComboBox MinWidth="96" MaxWidth="180" VerticalAlignment="Center"
+                                                          ItemsSource="{Binding CommunityFavoriteFolders}"
+                                                          SelectedItem="{Binding SelectedCommunityFavoriteFolder}"
+                                                          SelectionChanged="CommunityFavoriteFolderSelectionChanged">
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate x:DataType="domain:CommunityFavoriteFolder">
+                                                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
+                                                </ComboBox>
+                                                <Button Classes="community-row-action" Width="34" Height="34"
+                                                        Click="CommunityFavoriteManageClick" ToolTip.Tip="管理收藏夹"
+                                                        AutomationProperties.Name="管理收藏夹">
+                                                    <Path Width="17" Height="17"
+                                                          Data="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.5 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.14.37.2.75.2 1.1s.2.73.6 1c.3.2.68.4 1.1.4H21a2 2 0 1 1 0 4h-.09c-.42 0-.8.2-1.1.5-.2.3-.4.68-.4 1z"
+                                                          Stretch="Uniform" Fill="Transparent"
+                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                          StrokeThickness="1.7" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <ItemsControl ItemsSource="{Binding CommunityFavoriteGroups}"
+                                                  IsVisible="{Binding IsCommunityFavoriteListVisible}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:CommunityFavoriteGroupViewModel">
+                                                <Border Classes="version-category-card" Margin="0,0,0,15" Padding="12,8,12,12">
+                                                    <StackPanel>
+                                                        <TextBlock Margin="3,0,0,5" FontSize="13" FontWeight="Bold"
+                                                                   Text="{Binding Title, StringFormat={}{0}}" />
+                                                        <ItemsControl ItemsSource="{Binding Items}"
+                                                                      ItemTemplate="{StaticResource CommunityProjectRowTemplate}" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <Border Classes="pcl-card" Width="560" MaxWidth="720" Padding="24,18"
+                                            Margin="40,80" HorizontalAlignment="Center"
+                                            IsVisible="{Binding IsCommunityFavoriteEmptyVisible}">
+                                        <StackPanel>
+                                            <TextBlock HorizontalAlignment="Center" FontSize="19" Foreground="#2780DF"
+                                                       Text="{Binding CommunityFavoriteEmptyTitle}" />
+                                            <Border Height="2" Margin="0,10,0,15" Background="#2780DF" />
+                                            <TextBlock HorizontalAlignment="Center" TextAlignment="Center"
+                                                       Text="{Binding CommunityFavoriteEmptyDescription}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
                                 <Border Classes="pcl-card" Padding="10,7"
                                         IsVisible="{Binding IsCommunityCatalogAvailable}">
                                     <Grid Height="34" ColumnDefinitions="24,*,88" ColumnSpacing="8">
@@ -1773,7 +1872,13 @@
                                                         IsEnabled="{Binding CanTranslateCommunityDescription}"
                                                         Content="翻译简介" />
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
-                                                        IsEnabled="False" Content="收藏" />
+                                                        Tag="{Binding SelectedCommunityResource}"
+                                                        Click="CommunityResourceFavoriteClick" Content="收藏"
+                                                        IsVisible="{Binding !SelectedCommunityResource.IsFavorite}" />
+                                                <Button Classes="community-detail-action" Margin="0,0,5,5"
+                                                        Tag="{Binding SelectedCommunityResource}"
+                                                        Click="CommunityResourceFavoriteClick" Content="已收藏"
+                                                        IsVisible="{Binding SelectedCommunityResource.IsFavorite}" />
                                             </WrapPanel>
 
                                             <Border Padding="12,10" Background="#F3F8FD" CornerRadius="4"
@@ -1806,24 +1911,6 @@
                                                 </Grid>
                                             </Border>
                                         </StackPanel>
-                                    </Border>
-
-                                    <Border Classes="pcl-card" Padding="12" IsVisible="{Binding HasAvailableInstances}">
-                                        <Grid ColumnDefinitions="92,*" ColumnSpacing="10">
-                                            <TextBlock VerticalAlignment="Center" Text="目标实例" />
-                                            <ComboBox Grid.Column="1" MinWidth="280"
-                                                      ItemsSource="{Binding AvailableInstances}"
-                                                      SelectedItem="{Binding SelectedInstance}">
-                                                <ComboBox.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                                            <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
-                                                            <TextBlock Grid.Column="1" Foreground="#6F7C8B" Text="{Binding BaseVersionId}" />
-                                                        </Grid>
-                                                    </DataTemplate>
-                                                </ComboBox.ItemTemplate>
-                                            </ComboBox>
-                                        </Grid>
                                     </Border>
 
                                     <Border Classes="download-loading-card" Margin="0,35,0,35"
@@ -1883,9 +1970,9 @@
                                                                                            Text="{Binding PublishedAtDisplay}" />
                                                                             </StackPanel>
                                                                             <Button Grid.Column="2" Classes="community-version-install" Tag="{Binding}"
-                                                                                    VerticalAlignment="Center" Click="CommunityVersionInstallClick"
-                                                                                    AutomationProperties.Name="{Binding VersionNumber, StringFormat=安装 {0}}"
-                                                                                    Content="安装" />
+                                                                                    VerticalAlignment="Center" Click="CommunityVersionDownloadClick"
+                                                                                    AutomationProperties.Name="{Binding VersionNumber, StringFormat=下载 {0}}"
+                                                                                    Content="下载" />
                                                                         </Grid>
                                                                     </Border>
                                                                 </DataTemplate>
@@ -2370,6 +2457,17 @@
         </Grid>
     </Grid>
     </Border>
+
+    <Popup x:Name="CommunityFavoriteMenuPopup"
+           Placement="BottomEdgeAlignedRight"
+           IsLightDismissEnabled="True"
+           VerticalOffset="4">
+        <Border MinWidth="220" MaxWidth="280" Padding="5"
+                Background="#FCFDFF" BorderBrush="#BFD3E6" BorderThickness="1"
+                CornerRadius="5" BoxShadow="0 4 12 0 #30000000">
+            <StackPanel x:Name="CommunityFavoriteMenuItems" Spacing="2" />
+        </Border>
+    </Popup>
 
     <Border Height="6" Margin="7,0" VerticalAlignment="Top" Background="Transparent"
             Cursor="SizeNorthSouth" Tag="North" PointerPressed="ResizeWindowPointerPressed" />

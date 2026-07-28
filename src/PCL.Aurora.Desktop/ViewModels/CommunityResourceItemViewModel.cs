@@ -13,6 +13,9 @@ public sealed partial class CommunityResourceItemViewModel(CommunityResourceProj
     public bool HasIcon => Icon is not null;
 
     [ObservableProperty]
+    private bool isFavorite;
+
+    [ObservableProperty]
     private Bitmap? icon;
 
     public void SetIcon(byte[] bytes)

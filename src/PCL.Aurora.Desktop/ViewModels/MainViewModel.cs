@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using PCL.Aurora.Application;
 using PCL.Aurora.Desktop.Services;
 using PCL.Aurora.Domain;
@@ -20,7 +22,8 @@ public partial class MainViewModel(
     ICommunityResourceSearchService communityResourceSearchService,
     ICommunityResourceIconService communityResourceIconService,
     ICommunityResourceVersionService communityResourceVersionService,
-    ICommunityResourceInstallationService communityResourceInstallationService,
+    ICommunityResourceDownloadService communityResourceDownloadService,
+    ICommunityFavoritesStore communityFavoritesStore,
     ICommunityResourceDescriptionTranslationService communityDescriptionTranslationService,
     IMinecraftLoaderCatalogService loaderCatalogService,
     IMinecraftOfficialLoaderCatalogService officialLoaderCatalogService,
@@ -38,6 +41,11 @@ public partial class MainViewModel(
 
     private const int MaximumGameLogLines = 500;
     private static readonly Uri AuroraReleasesUri = new("https://github.com/Micro-ATP/PCL-Aurora/releases");
+    private static readonly JsonSerializerOptions FavoriteTransferSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter() },
+    };
     private static readonly IReadOnlyList<CommunityResourceLoaderOption> ModLoaderOptions =
     [
         new(CommunityResourceLoader.Any, "任意"),
@@ -60,6 +68,7 @@ public partial class MainViewModel(
     private MinecraftLoaderCatalog? loaderCatalog;
     private MinecraftLoaderKind? loaderKindFilter;
     private CommunityResourceType? communityResourceType;
+    private bool isCommunityFavoritesSection;
     private MinecraftGameLaunchPreparation? gameLaunchPreparation;
     private LauncherPreferences currentPreferences = LauncherPreferences.Default;
     private bool isRefreshing;
@@ -71,7 +80,7 @@ public partial class MainViewModel(
     private Uri? microsoftVerificationUri;
     private CancellationTokenSource? communitySearchCancellation;
     private CancellationTokenSource? communityVersionCancellation;
-    private CancellationTokenSource? communityInstallationCancellation;
+    private CancellationTokenSource? communityDownloadCancellation;
     private CancellationTokenSource? communityDescriptionTranslationCancellation;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
@@ -91,6 +100,10 @@ public partial class MainViewModel(
     public ObservableCollection<CommunityResourceVersion> CommunityResourceVersions { get; } = [];
 
     public ObservableCollection<CommunityResourceVersionGroupViewModel> CommunityResourceVersionGroups { get; } = [];
+
+    public ObservableCollection<CommunityFavoriteFolder> CommunityFavoriteFolders { get; } = [];
+
+    public ObservableCollection<CommunityFavoriteGroupViewModel> CommunityFavoriteGroups { get; } = [];
 
     public ObservableCollection<MinecraftInstance> AvailableInstances { get; } = [];
 
@@ -327,6 +340,21 @@ public partial class MainViewModel(
     private string communitySearchText = string.Empty;
 
     [ObservableProperty]
+    private string communityFavoriteSearchText = string.Empty;
+
+    [ObservableProperty]
+    private CommunityFavoriteFolder? selectedCommunityFavoriteFolder;
+
+    [ObservableProperty]
+    private bool isCommunityFavoritesPage;
+
+    [ObservableProperty]
+    private string communityFavoriteEmptyTitle = "还没有收藏内容";
+
+    [ObservableProperty]
+    private string communityFavoriteEmptyDescription = "在资源详细信息界面中可以点击收藏按钮进行收藏";
+
+    [ObservableProperty]
     private string communityGameVersion = string.Empty;
 
     [ObservableProperty]
@@ -385,7 +413,7 @@ public partial class MainViewModel(
     private bool canLoadCommunityResourceVersions;
 
     [ObservableProperty]
-    private bool canInstallCommunityResource;
+    private bool canDownloadCommunityResource;
 
     [ObservableProperty]
     private bool canCancelCommunityResourceOperation;
@@ -425,7 +453,17 @@ public partial class MainViewModel(
 
     public int CommunityPageNumber => CommunityPage + 1;
 
-    public bool IsCommunityResultListVisible => HasCommunityResources && !IsCommunitySearchRunning;
+    public bool IsCommunityResultListVisible =>
+        !IsCommunityFavoritesPage && HasCommunityResources && !IsCommunitySearchRunning;
+
+    public bool IsCommunityFavoriteListVisible =>
+        IsCommunityFavoritesPage && HasCommunityResources && !IsCommunitySearchRunning;
+
+    public bool IsCommunityFavoriteEmptyVisible =>
+        IsCommunityFavoritesPage && !HasCommunityResources && !IsCommunitySearchRunning;
+
+    public bool IsCommunityFavoriteSearchVisible =>
+        SelectedCommunityFavoriteFolder?.Projects.Count > 0;
 
     public bool IsCommunityFooterVisible => IsCommunityCatalogAvailable && !IsCommunitySearchRunning;
 
@@ -481,7 +519,8 @@ public partial class MainViewModel(
         }
     }
 
-    public Task LoadCommunityResourcePageAsync() => LoadCommunityResourcesAsync(0);
+    public Task LoadCommunityResourcePageAsync() =>
+        isCommunityFavoritesSection ? LoadFavoriteResourcesAsync() : LoadCommunityResourcesAsync(0);
 
     [ObservableProperty]
     private string offlinePlayerName = string.Empty;
@@ -618,6 +657,7 @@ public partial class MainViewModel(
     public async Task InitializeAsync()
     {
         await LoadPreferencesAsync();
+        await LoadCommunityFavoritesAsync();
         await RefreshAsync();
     }
 
@@ -966,7 +1006,7 @@ public partial class MainViewModel(
     {
         RefreshLoaderEntries();
         CanInstallSelectedLoader = CanInstallLoaderForSelectedInstance(SelectedLoader);
-        RefreshCommunityInstallState();
+        RefreshCommunityDownloadState();
         if (!isRefreshing)
         {
             _ = RefreshSelectedInstanceStateAsync();
@@ -1126,7 +1166,7 @@ public partial class MainViewModel(
         communityVersionCancellation?.Cancel();
         communityVersionCancellation = null;
         IsCommunityVersionLoading = false;
-        if (communityInstallationCancellation is null)
+        if (communityDownloadCancellation is null)
         {
             CanCancelCommunityResourceOperation = false;
         }
@@ -1134,6 +1174,10 @@ public partial class MainViewModel(
         CommunityResourceVersionGroups.Clear();
         SelectedCommunityResourceVersion = null;
         HasCommunityResourceVersions = false;
+        if (value is not null)
+        {
+            value.IsFavorite = IsCommunityResourceFavorite(value.Project.Id);
+        }
         CanOpenCommunityResource = value is not null;
         CanTranslateCommunityDescription = value is not null;
         IsCommunityDescriptionTranslationRunning = false;
@@ -1143,29 +1187,20 @@ public partial class MainViewModel(
         CommunityDescriptionTranslationSummary = string.Empty;
         CanLoadCommunityResourceVersions = value is not null;
         CommunityVersionSummary = value is null
-            ? "选择项目后可查看适合当前实例的版本。"
+            ? "选择项目后可查看文件版本。"
             : "正在准备版本列表…";
         OnPropertyChanged(nameof(IsCommunityVersionCardVisible));
-        RefreshCommunityInstallState();
+        RefreshCommunityDownloadState();
     }
 
     partial void OnSelectedCommunityResourceVersionChanged(CommunityResourceVersion? value)
     {
-        RefreshCommunityInstallState();
+        RefreshCommunityDownloadState();
         if (value is not null)
         {
-            var type = SelectedCommunityResource?.Project.Type;
             var versionCount = CommunityResourceVersions.Count;
             var summaryPrefix = versionCount > 0 ? $"共 {versionCount} 个版本；" : string.Empty;
-            CommunityVersionSummary = type switch
-            {
-                CommunityResourceType.DataPack or CommunityResourceType.ModPack =>
-                    $"{summaryPrefix}{value.FileSummary}；{value.DependencySummary}。{ProjectTypeInstallHint(type)}",
-                CommunityResourceType.Mod when SelectedInstance?.InstalledLoader?.Kind is not
-                    (MinecraftLoaderKind.Forge or MinecraftLoaderKind.NeoForge or MinecraftLoaderKind.Fabric) =>
-                    $"{summaryPrefix}{value.FileSummary}；{value.DependencySummary}。目标实例需要兼容的模组加载器。",
-                _ => $"{summaryPrefix}{value.FileSummary}；{value.DependencySummary}。",
-            };
+            CommunityVersionSummary = $"{summaryPrefix}{value.FileSummary}；{value.DependencySummary}。";
         }
     }
 
@@ -1174,6 +1209,8 @@ public partial class MainViewModel(
     partial void OnHasCommunityResourcesChanged(bool value)
     {
         OnPropertyChanged(nameof(IsCommunityResultListVisible));
+        OnPropertyChanged(nameof(IsCommunityFavoriteListVisible));
+        OnPropertyChanged(nameof(IsCommunityFavoriteEmptyVisible));
         OnPropertyChanged(nameof(IsCommunityStatusVisible));
     }
 
@@ -1186,9 +1223,29 @@ public partial class MainViewModel(
     partial void OnIsCommunitySearchRunningChanged(bool value)
     {
         OnPropertyChanged(nameof(IsCommunityResultListVisible));
+        OnPropertyChanged(nameof(IsCommunityFavoriteListVisible));
+        OnPropertyChanged(nameof(IsCommunityFavoriteEmptyVisible));
         OnPropertyChanged(nameof(IsCommunityFooterVisible));
         OnPropertyChanged(nameof(IsCommunityStatusVisible));
         OnPropertyChanged(nameof(IsCommunityVersionCardVisible));
+    }
+
+    partial void OnIsCommunityFavoritesPageChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsCommunityResultListVisible));
+        OnPropertyChanged(nameof(IsCommunityFavoriteListVisible));
+        OnPropertyChanged(nameof(IsCommunityFavoriteEmptyVisible));
+    }
+
+    partial void OnSelectedCommunityFavoriteFolderChanged(CommunityFavoriteFolder? value) =>
+        OnPropertyChanged(nameof(IsCommunityFavoriteSearchVisible));
+
+    partial void OnCommunityFavoriteSearchTextChanged(string value)
+    {
+        if (IsCommunityFavoritesPage && !IsCommunitySearchRunning)
+        {
+            RebuildCommunityFavoriteGroups();
+        }
     }
 
     partial void OnIsVersionCatalogLoadingChanged(bool value) =>
@@ -1301,6 +1358,8 @@ public partial class MainViewModel(
 
     public void SetCommunityResourceSection(string section)
     {
+        isCommunityFavoritesSection = section == "favorites";
+        IsCommunityFavoritesPage = isCommunityFavoritesSection;
         communityResourceType = section switch
         {
             "mod" => CommunityResourceType.Mod,
@@ -1315,8 +1374,8 @@ public partial class MainViewModel(
         communitySearchCancellation = null;
         communityVersionCancellation?.Cancel();
         communityVersionCancellation = null;
-        communityInstallationCancellation?.Cancel();
-        communityInstallationCancellation = null;
+        communityDownloadCancellation?.Cancel();
+        communityDownloadCancellation = null;
         IsCommunitySearchRunning = false;
         CanCancelCommunitySearch = false;
         IsCommunityVersionLoading = false;
@@ -1325,7 +1384,7 @@ public partial class MainViewModel(
         SelectedCommunityResourceVersion = null;
         HasCommunityResourceVersions = false;
         CanLoadCommunityResourceVersions = false;
-        CanInstallCommunityResource = false;
+        CanDownloadCommunityResource = false;
         ClearCommunityResources();
         SelectedCommunityResource = null;
         HasCommunityResources = false;
@@ -1341,14 +1400,143 @@ public partial class MainViewModel(
         SelectedCommunityResourceSort = CommunityResourceSortOptions[0];
         IsCommunityLoaderFilterVisible = communityResourceType is
             CommunityResourceType.Mod or CommunityResourceType.ModPack or CommunityResourceType.Shader;
-        IsCommunityCatalogAvailable = communityResourceType is not null and not CommunityResourceType.World;
+        IsCommunityCatalogAvailable = !isCommunityFavoritesSection && communityResourceType is not null and not CommunityResourceType.World;
         CanSearchCommunityResources = IsCommunityCatalogAvailable;
         CommunityResourceSummary = section switch
         {
-            "favorites" => "暂无收藏",
+            "favorites" => string.Empty,
             "world" => "世界资源暂不可用",
             _ => string.Empty,
         };
+    }
+
+    public bool IsCommunityResourceFavorite(string projectId) =>
+        CommunityFavoriteFolders.Any(folder => folder.Contains(projectId));
+
+    public async Task ToggleCommunityFavoriteAsync(
+        CommunityResourceProject project,
+        string folderId)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        var index = CommunityFavoriteFolders
+            .Select((folder, position) => (folder, position))
+            .FirstOrDefault(item => string.Equals(item.folder.Id, folderId, StringComparison.OrdinalIgnoreCase));
+        if (index.folder is null)
+        {
+            return;
+        }
+
+        if (!index.folder.Contains(project.Id) &&
+            index.folder.Projects.Count >= CommunityFavoriteFolder.MaximumProjectCount)
+        {
+            CommunityResourceSummary = "当前收藏夹已达到项目数量上限。";
+            return;
+        }
+
+        var projects = index.folder.Contains(project.Id)
+            ? index.folder.Projects.Where(item => !string.Equals(item.Id, project.Id, StringComparison.OrdinalIgnoreCase)).ToArray()
+            : index.folder.Projects.Append(project).ToArray();
+        var replacement = index.folder with { Projects = projects };
+        CommunityFavoriteFolders[index.position] = replacement;
+        if (SelectedCommunityFavoriteFolder?.Id == replacement.Id)
+        {
+            SelectedCommunityFavoriteFolder = replacement;
+        }
+
+        await SaveCommunityFavoritesAsync();
+        UpdateCommunityFavoriteFlags();
+        if (IsCommunityFavoritesPage)
+        {
+            await LoadFavoriteResourcesAsync();
+        }
+    }
+
+    public async Task CreateCommunityFavoriteFolderAsync(string name)
+    {
+        var normalizedName = name.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedName) ||
+            normalizedName.Length > CommunityFavoriteFolder.MaximumNameLength ||
+            normalizedName.Any(char.IsControl))
+        {
+            CommunityResourceSummary = "收藏夹名称无效。";
+            return;
+        }
+
+        var folder = CommunityFavoriteFolder.Create(normalizedName);
+        CommunityFavoriteFolders.Add(folder);
+        SelectedCommunityFavoriteFolder = folder;
+        await SaveCommunityFavoritesAsync();
+    }
+
+    public async Task RenameSelectedCommunityFavoriteFolderAsync(string name)
+    {
+        if (SelectedCommunityFavoriteFolder is not { } selected)
+        {
+            return;
+        }
+
+        var normalizedName = name.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedName) ||
+            normalizedName.Length > CommunityFavoriteFolder.MaximumNameLength ||
+            normalizedName.Any(char.IsControl))
+        {
+            CommunityResourceSummary = "收藏夹名称无效。";
+            return;
+        }
+
+        var index = CommunityFavoriteFolders.IndexOf(selected);
+        if (index < 0)
+        {
+            return;
+        }
+
+        var replacement = selected with { Name = normalizedName };
+        CommunityFavoriteFolders[index] = replacement;
+        SelectedCommunityFavoriteFolder = replacement;
+        await SaveCommunityFavoritesAsync();
+    }
+
+    public async Task<bool> DeleteSelectedCommunityFavoriteFolderAsync()
+    {
+        if (SelectedCommunityFavoriteFolder is not { } selected || CommunityFavoriteFolders.Count <= 1)
+        {
+            CommunityResourceSummary = "至少需要保留一个收藏夹。";
+            return false;
+        }
+
+        CommunityFavoriteFolders.Remove(selected);
+        SelectedCommunityFavoriteFolder = CommunityFavoriteFolders[0];
+        await SaveCommunityFavoritesAsync();
+        return true;
+    }
+
+    public string? ExportSelectedCommunityFavoriteFolder() =>
+        SelectedCommunityFavoriteFolder is { } selected
+            ? JsonSerializer.Serialize(selected, FavoriteTransferSerializerOptions)
+            : null;
+
+    public async Task<bool> ImportCommunityFavoriteFolderAsync(string json)
+    {
+        try
+        {
+            var imported = JsonSerializer.Deserialize<CommunityFavoriteFolder>(json, FavoriteTransferSerializerOptions);
+            if (imported is null || !imported.IsValid)
+            {
+                CommunityResourceSummary = "导入的收藏数据无效。";
+                return false;
+            }
+
+            var folder = CommunityFavoriteFolder.Create(imported.Name, imported.Projects);
+            CommunityFavoriteFolders.Add(folder);
+            SelectedCommunityFavoriteFolder = folder;
+            await SaveCommunityFavoritesAsync();
+            return true;
+        }
+        catch (JsonException)
+        {
+            CommunityResourceSummary = "导入的收藏数据不是有效 JSON。";
+            return false;
+        }
     }
 
     [RelayCommand]
@@ -1356,11 +1544,13 @@ public partial class MainViewModel(
 
     public Task LoadSelectedCommunityResourceVersionsAsync() => LoadCommunityResourceVersionsAsync();
 
-    public async Task InstallCommunityResourceVersionAsync(CommunityResourceVersion version)
+    public async Task DownloadCommunityResourceVersionAsync(
+        CommunityResourceVersion version,
+        string destinationDirectory)
     {
         ArgumentNullException.ThrowIfNull(version);
         SelectedCommunityResourceVersion = version;
-        await InstallCommunityResourceAsync();
+        await DownloadCommunityResourceAsync(destinationDirectory);
     }
 
     [RelayCommand]
@@ -1453,7 +1643,7 @@ public partial class MainViewModel(
     private async Task LoadCommunityResourceVersionsAsync()
     {
         if (SelectedCommunityResource?.Project is not { } project ||
-            communityInstallationCancellation is not null)
+            communityDownloadCancellation is not null)
         {
             return;
         }
@@ -1471,14 +1661,9 @@ public partial class MainViewModel(
         CommunityVersionSummary = $"正在获取 {project.DisplayTitle} 的可用版本…";
         try
         {
-            var gameVersion = GetMinecraftVersionForLoaders(SelectedInstance);
-            if (string.IsNullOrWhiteSpace(gameVersion))
-            {
-                gameVersion = string.IsNullOrWhiteSpace(CommunityGameVersion) ? null : CommunityGameVersion.Trim();
-            }
-
+            var gameVersion = string.IsNullOrWhiteSpace(CommunityGameVersion) ? null : CommunityGameVersion.Trim();
             var loader = project.Type is CommunityResourceType.Mod or CommunityResourceType.ModPack
-                ? GetCommunityResourceLoaderForSelectedInstance()
+                ? SelectedCommunityResourceLoader.Loader
                 : CommunityResourceLoader.Any;
             var catalog = await communityResourceVersionService.GetProjectVersionsAsync(
                 project.Id,
@@ -1528,26 +1713,24 @@ public partial class MainViewModel(
                 IsCommunityVersionLoading = false;
                 CanLoadCommunityResourceVersions = SelectedCommunityResource is not null;
                 CanCancelCommunityResourceOperation = false;
-                RefreshCommunityInstallState();
+                RefreshCommunityDownloadState();
             }
         }
     }
 
-    [RelayCommand]
-    private async Task InstallCommunityResourceAsync()
+    private async Task DownloadCommunityResourceAsync(string destinationDirectory)
     {
-        if (!CanInstallCommunityResource ||
+        if (!CanDownloadCommunityResource ||
             SelectedCommunityResource?.Project is not { } project ||
-            SelectedCommunityResourceVersion is not { } version ||
-            SelectedInstance is not { } instance)
+            SelectedCommunityResourceVersion is not { } version)
         {
-            CommunityVersionSummary = ProjectTypeInstallHint(SelectedCommunityResource?.Project.Type);
+            CommunityVersionSummary = "所选版本没有可下载文件。";
             return;
         }
 
         using var cancellation = new CancellationTokenSource();
-        communityInstallationCancellation = cancellation;
-        CanInstallCommunityResource = false;
+        communityDownloadCancellation = cancellation;
+        CanDownloadCommunityResource = false;
         CanLoadCommunityResourceVersions = false;
         CanCancelCommunityResourceOperation = true;
         try
@@ -1557,45 +1740,43 @@ public partial class MainViewModel(
                 var size = update.TotalBytes is { } total
                     ? $"{FormatByteCount(update.DownloadedBytes)} / {FormatByteCount(total)}"
                     : FormatByteCount(update.DownloadedBytes);
-                CommunityVersionSummary = $"正在安装 {update.CurrentDescription} · {update.CompletedArtifacts}/{update.TotalArtifacts} · {size}";
+                CommunityVersionSummary = $"正在下载 {update.CurrentDescription} · {size}";
             });
-            var result = await communityResourceInstallationService.InstallAsync(
+            var destinationPath = await communityResourceDownloadService.DownloadAsync(
                 project,
                 version,
-                instance,
+                destinationDirectory,
                 progress,
                 cancellation.Token);
-            if (!ReferenceEquals(communityInstallationCancellation, cancellation))
+            if (!ReferenceEquals(communityDownloadCancellation, cancellation))
             {
                 return;
             }
 
-            CommunityVersionSummary = result.InstalledDependencyCount > 0
-                ? $"已安装 {project.DisplayTitle} 和 {result.InstalledDependencyCount} 项必要依赖。"
-                : $"已安装 {project.DisplayTitle}。";
+            CommunityVersionSummary = $"已下载 {project.DisplayTitle}：{destinationPath}";
         }
         catch (OperationCanceledException)
         {
-            if (ReferenceEquals(communityInstallationCancellation, cancellation))
+            if (ReferenceEquals(communityDownloadCancellation, cancellation))
             {
-                CommunityVersionSummary = "社区资源安装已取消。";
+                CommunityVersionSummary = "社区资源下载已取消。";
             }
         }
         catch (Exception exception)
         {
-            if (ReferenceEquals(communityInstallationCancellation, cancellation))
+            if (ReferenceEquals(communityDownloadCancellation, cancellation))
             {
-                CommunityVersionSummary = $"安装失败：{exception.Message}";
+                CommunityVersionSummary = $"下载失败：{exception.Message}";
             }
         }
         finally
         {
-            if (ReferenceEquals(communityInstallationCancellation, cancellation))
+            if (ReferenceEquals(communityDownloadCancellation, cancellation))
             {
-                communityInstallationCancellation = null;
+                communityDownloadCancellation = null;
                 CanCancelCommunityResourceOperation = false;
                 CanLoadCommunityResourceVersions = SelectedCommunityResource is not null;
-                RefreshCommunityInstallState();
+                RefreshCommunityDownloadState();
             }
         }
     }
@@ -1604,23 +1785,16 @@ public partial class MainViewModel(
     private void CancelCommunityResourceOperation()
     {
         communityVersionCancellation?.Cancel();
-        communityInstallationCancellation?.Cancel();
+        communityDownloadCancellation?.Cancel();
         CanCancelCommunityResourceOperation = false;
     }
 
-    private void RefreshCommunityInstallState()
+    private void RefreshCommunityDownloadState()
     {
-        var type = SelectedCommunityResource?.Project.Type;
-        var hasCompatibleTarget = type is CommunityResourceType.ResourcePack or CommunityResourceType.Shader ||
-                                  type == CommunityResourceType.Mod &&
-                                  SelectedInstance?.InstalledLoader?.Kind is
-                                      MinecraftLoaderKind.Forge or MinecraftLoaderKind.NeoForge or MinecraftLoaderKind.Fabric;
-        CanInstallCommunityResource =
-            communityInstallationCancellation is null &&
+        CanDownloadCommunityResource =
+            communityDownloadCancellation is null &&
             !IsCommunityVersionLoading &&
-            SelectedInstance?.Status == MinecraftInstanceStatus.Valid &&
-            SelectedCommunityResourceVersion is not null &&
-            hasCompatibleTarget;
+            SelectedCommunityResourceVersion?.PrimaryFile is not null;
     }
 
     private void RebuildCommunityResourceVersionGroups()
@@ -1684,13 +1858,6 @@ public partial class MainViewModel(
             _ => SelectedCommunityResourceLoader.Loader,
         };
 
-    private static string ProjectTypeInstallHint(CommunityResourceType? type) => type switch
-    {
-        CommunityResourceType.DataPack => "数据包需要先选择存档世界，不能直接装入实例。",
-        CommunityResourceType.ModPack => "整合包需要创建或导入独立实例，不能作为普通文件安装。",
-        _ => "请先选择可用实例和资源版本。",
-    };
-
     private async Task LoadCommunityResourcesAsync(int page)
     {
         if (communityResourceType is not { } type || !CanSearchCommunityResources || IsCommunitySearchRunning)
@@ -1733,6 +1900,10 @@ public partial class MainViewModel(
             pendingItems = result.Projects
                 .Select(project => new CommunityResourceItemViewModel(project))
                 .ToArray();
+            foreach (var item in pendingItems)
+            {
+                item.IsFavorite = IsCommunityResourceFavorite(item.Project.Id);
+            }
             if (pendingItems.Length > 0)
             {
                 CommunityLoadingText = $"正在加载 {GetCommunityResourceTypeName(type)} 图标";
@@ -1828,7 +1999,142 @@ public partial class MainViewModel(
         }
 
         CommunityResources.Clear();
+        CommunityFavoriteGroups.Clear();
         CommunityResourceVersionGroups.Clear();
+    }
+
+    private async Task LoadCommunityFavoritesAsync()
+    {
+        var result = await communityFavoritesStore.LoadAsync();
+        CommunityFavoriteFolders.Clear();
+        foreach (var folder in result.Folders)
+        {
+            CommunityFavoriteFolders.Add(folder);
+        }
+
+        SelectedCommunityFavoriteFolder = CommunityFavoriteFolders.FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(result.Warning))
+        {
+            CommunityResourceSummary = result.Warning;
+        }
+    }
+
+    private async Task SaveCommunityFavoritesAsync()
+    {
+        try
+        {
+            await communityFavoritesStore.SaveAsync(CommunityFavoriteFolders.ToArray());
+        }
+        catch (Exception exception)
+        {
+            CommunityResourceSummary = $"保存收藏夹失败：{exception.Message}";
+        }
+    }
+
+    private async Task LoadFavoriteResourcesAsync()
+    {
+        if (SelectedCommunityFavoriteFolder is not { } folder)
+        {
+            return;
+        }
+
+        communitySearchCancellation?.Cancel();
+        using var cancellation = new CancellationTokenSource();
+        communitySearchCancellation = cancellation;
+        IsCommunitySearchRunning = true;
+        CanCancelCommunitySearch = true;
+        CommunityLoadingText = "正在加载收藏内容";
+        CommunityResourceSummary = string.Empty;
+        CommunityResourceItemViewModel[] pendingItems = [];
+        var publishedItems = false;
+        try
+        {
+            pendingItems = folder.Projects
+                .Select(project => new CommunityResourceItemViewModel(project) { IsFavorite = true })
+                .ToArray();
+            await LoadCommunityIconsAsync(pendingItems, cancellation.Token);
+            cancellation.Token.ThrowIfCancellationRequested();
+            if (!ReferenceEquals(communitySearchCancellation, cancellation) ||
+                SelectedCommunityFavoriteFolder?.Id != folder.Id)
+            {
+                return;
+            }
+
+            ClearCommunityResources();
+            foreach (var item in pendingItems)
+            {
+                CommunityResources.Add(item);
+            }
+            publishedItems = true;
+            RebuildCommunityFavoriteGroups();
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            if (!publishedItems)
+            {
+                foreach (var item in pendingItems)
+                {
+                    item.Dispose();
+                }
+            }
+
+            if (ReferenceEquals(communitySearchCancellation, cancellation))
+            {
+                communitySearchCancellation = null;
+                IsCommunitySearchRunning = false;
+                CanCancelCommunitySearch = false;
+                OnPropertyChanged(nameof(IsCommunityFavoriteListVisible));
+                OnPropertyChanged(nameof(IsCommunityFavoriteEmptyVisible));
+            }
+        }
+    }
+
+    private void RebuildCommunityFavoriteGroups()
+    {
+        var searchText = CommunityFavoriteSearchText.Trim();
+        var matchingItems = CommunityResources
+            .Where(item => string.IsNullOrWhiteSpace(searchText) ||
+                           item.Project.DisplayTitle.Contains(searchText, StringComparison.CurrentCultureIgnoreCase) ||
+                           item.Project.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                           item.Project.Description.Contains(searchText, StringComparison.CurrentCultureIgnoreCase) ||
+                           item.Project.Author.Contains(searchText, StringComparison.CurrentCultureIgnoreCase))
+            .ToArray();
+        CommunityFavoriteGroups.Clear();
+        foreach (var group in matchingItems
+                     .GroupBy(item => item.Project.Type)
+                     .OrderBy(group => group.Key))
+        {
+            CommunityFavoriteGroups.Add(new(
+                group.Key,
+                GetCommunityResourceTypeName(group.Key),
+                group.ToArray()));
+        }
+
+        HasCommunityResources = matchingItems.Length > 0;
+        CommunityFavoriteEmptyTitle = string.IsNullOrWhiteSpace(searchText)
+            ? "还没有收藏内容"
+            : "没有匹配的收藏内容";
+        CommunityFavoriteEmptyDescription = string.IsNullOrWhiteSpace(searchText)
+            ? "在资源详细信息界面中可以点击收藏按钮进行收藏"
+            : "换一个关键词再试试";
+        OnPropertyChanged(nameof(IsCommunityFavoriteListVisible));
+        OnPropertyChanged(nameof(IsCommunityFavoriteEmptyVisible));
+    }
+
+    private void UpdateCommunityFavoriteFlags()
+    {
+        foreach (var item in CommunityResources)
+        {
+            item.IsFavorite = IsCommunityResourceFavorite(item.Project.Id);
+        }
+
+        if (SelectedCommunityResource is { } selected)
+        {
+            selected.IsFavorite = IsCommunityResourceFavorite(selected.Project.Id);
+        }
     }
 
     private static string GetCommunityResourceTypeName(CommunityResourceType type) => type switch
