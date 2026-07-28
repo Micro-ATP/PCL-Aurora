@@ -87,9 +87,52 @@ public sealed record CommunityResourceProject(
 
     public IReadOnlyList<string> Loaders { get; init; } = [];
 
-    public string Initial => string.IsNullOrWhiteSpace(Title)
+    public string? TranslatedTitle { get; init; }
+
+    public bool HasTranslatedTitle =>
+        !string.IsNullOrWhiteSpace(TranslatedTitle) &&
+        !TranslatedTitle.Equals(Title, StringComparison.OrdinalIgnoreCase);
+
+    public string DisplayTitle
+    {
+        get
+        {
+            if (!HasTranslatedTitle)
+            {
+                return Title;
+            }
+
+            var translated = TranslatedTitle!;
+            var parenthesis = translated.IndexOf(" (", StringComparison.Ordinal);
+            if (parenthesis > 0)
+            {
+                return translated[..parenthesis].Trim();
+            }
+
+            var suffix = translated.LastIndexOf(" - ", StringComparison.Ordinal);
+            return suffix > 0 ? translated[..suffix].Trim() : translated;
+        }
+    }
+
+    public string OriginalTitleDisplay
+    {
+        get
+        {
+            if (!HasTranslatedTitle)
+            {
+                return string.Empty;
+            }
+
+            var suffix = GetTranslatedTitleSuffix();
+            return string.IsNullOrWhiteSpace(suffix)
+                ? $"  |  {Title}"
+                : $"  |  {Title}  |  {suffix}";
+        }
+    }
+
+    public string Initial => string.IsNullOrWhiteSpace(DisplayTitle)
         ? "?"
-        : StringInfo.GetNextTextElement(Title.Trim()).ToUpper(CultureInfo.CurrentCulture);
+        : StringInfo.GetNextTextElement(DisplayTitle.Trim()).ToUpper(CultureInfo.CurrentCulture);
 
     public string DownloadCountDisplay => Downloads.ToString("N0", CultureInfo.CurrentCulture);
 
@@ -192,5 +235,15 @@ public sealed record CommunityResourceProject(
     {
         var parts = value.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         return parts.Length >= 2 && parts[0] == "1" ? $"{parts[0]}.{parts[1]}" : value;
+    }
+
+    private string? GetTranslatedTitleSuffix()
+    {
+        var translated = TranslatedTitle!;
+        var closingParenthesis = translated.LastIndexOf(')');
+        var suffix = translated.LastIndexOf(" - ", StringComparison.Ordinal);
+        return suffix > closingParenthesis && suffix >= 0
+            ? translated[(suffix + 3)..].Trim()
+            : null;
     }
 }

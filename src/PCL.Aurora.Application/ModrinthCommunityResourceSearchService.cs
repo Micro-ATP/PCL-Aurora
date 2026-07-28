@@ -7,9 +7,24 @@ using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Application;
 
-public sealed class ModrinthCommunityResourceSearchService(HttpClient httpClient) : ICommunityResourceSearchService
+public sealed class ModrinthCommunityResourceSearchService : ICommunityResourceSearchService
 {
     private static readonly Uri SearchEndpoint = new("https://api.modrinth.com/v2/search");
+    private readonly HttpClient httpClient;
+    private readonly ICommunityResourceLocalizationService? localizationService;
+
+    public ModrinthCommunityResourceSearchService(HttpClient httpClient)
+        : this(httpClient, null)
+    {
+    }
+
+    public ModrinthCommunityResourceSearchService(
+        HttpClient httpClient,
+        ICommunityResourceLocalizationService? localizationService)
+    {
+        this.httpClient = httpClient;
+        this.localizationService = localizationService;
+    }
 
     public async Task<CommunityResourceSearchResult> SearchAsync(
         CommunityResourceSearchRequest request,
@@ -51,7 +66,13 @@ public sealed class ModrinthCommunityResourceSearchService(HttpClient httpClient
             using var response = await httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            return ModrinthCommunityResourceParser.Parse(json, request.Type);
+            var result = ModrinthCommunityResourceParser.Parse(json, request.Type);
+            return localizationService is null || result.Projects.Count == 0
+                ? result
+                : result with
+                {
+                    Projects = result.Projects.Select(localizationService.Localize).ToArray(),
+                };
         }
         catch (OperationCanceledException)
         {

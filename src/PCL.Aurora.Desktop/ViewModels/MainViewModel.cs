@@ -21,6 +21,7 @@ public partial class MainViewModel(
     ICommunityResourceIconService communityResourceIconService,
     ICommunityResourceVersionService communityResourceVersionService,
     ICommunityResourceInstallationService communityResourceInstallationService,
+    ICommunityResourceDescriptionTranslationService communityDescriptionTranslationService,
     IMinecraftLoaderCatalogService loaderCatalogService,
     IMinecraftOfficialLoaderCatalogService officialLoaderCatalogService,
     IMinecraftLoaderInstallerService loaderInstallerService,
@@ -71,6 +72,7 @@ public partial class MainViewModel(
     private CancellationTokenSource? communitySearchCancellation;
     private CancellationTokenSource? communityVersionCancellation;
     private CancellationTokenSource? communityInstallationCancellation;
+    private CancellationTokenSource? communityDescriptionTranslationCancellation;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
@@ -387,6 +389,24 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private bool canCancelCommunityResourceOperation;
+
+    [ObservableProperty]
+    private bool canTranslateCommunityDescription;
+
+    [ObservableProperty]
+    private bool isCommunityDescriptionTranslationRunning;
+
+    [ObservableProperty]
+    private bool isCommunityDescriptionTranslationPanelVisible;
+
+    [ObservableProperty]
+    private string communityDescriptionTranslation = string.Empty;
+
+    [ObservableProperty]
+    private bool hasCommunityDescriptionTranslation;
+
+    [ObservableProperty]
+    private string communityDescriptionTranslationSummary = string.Empty;
 
     [ObservableProperty]
     private string communityVersionSummary = "选择项目后可查看适合当前实例的版本。";
@@ -1101,6 +1121,8 @@ public partial class MainViewModel(
 
     partial void OnSelectedCommunityResourceChanged(CommunityResourceItemViewModel? value)
     {
+        communityDescriptionTranslationCancellation?.Cancel();
+        communityDescriptionTranslationCancellation = null;
         communityVersionCancellation?.Cancel();
         communityVersionCancellation = null;
         IsCommunityVersionLoading = false;
@@ -1113,6 +1135,12 @@ public partial class MainViewModel(
         SelectedCommunityResourceVersion = null;
         HasCommunityResourceVersions = false;
         CanOpenCommunityResource = value is not null;
+        CanTranslateCommunityDescription = value is not null;
+        IsCommunityDescriptionTranslationRunning = false;
+        IsCommunityDescriptionTranslationPanelVisible = false;
+        CommunityDescriptionTranslation = string.Empty;
+        HasCommunityDescriptionTranslation = false;
+        CommunityDescriptionTranslationSummary = string.Empty;
         CanLoadCommunityResourceVersions = value is not null;
         CommunityVersionSummary = value is null
             ? "选择项目后可查看适合当前实例的版本。"
@@ -1360,13 +1388,64 @@ public partial class MainViewModel(
 
         try
         {
-            CommunityResourceSummary = $"正在打开 {project.Title} 的 Modrinth 项目页…";
+            CommunityResourceSummary = $"正在打开 {project.DisplayTitle} 的 Modrinth 项目页…";
             await openPathService.OpenUriAsync(project.WebsiteUrl);
-            CommunityResourceSummary = $"已打开 {project.Title}。";
+            CommunityResourceSummary = $"已打开 {project.DisplayTitle}。";
         }
         catch (Exception exception)
         {
             CommunityResourceSummary = $"无法打开项目页：{exception.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task TranslateCommunityDescriptionAsync()
+    {
+        if (SelectedCommunityResource?.Project is not { } project ||
+            IsCommunityDescriptionTranslationRunning)
+        {
+            return;
+        }
+
+        communityDescriptionTranslationCancellation?.Cancel();
+        using var cancellation = new CancellationTokenSource();
+        communityDescriptionTranslationCancellation = cancellation;
+        CanTranslateCommunityDescription = false;
+        IsCommunityDescriptionTranslationRunning = true;
+        IsCommunityDescriptionTranslationPanelVisible = true;
+        CommunityDescriptionTranslation = string.Empty;
+        HasCommunityDescriptionTranslation = false;
+        CommunityDescriptionTranslationSummary = $"正在获取 {project.DisplayTitle} 的简介译文…";
+        try
+        {
+            var result = await communityDescriptionTranslationService.TranslateAsync(project, cancellation.Token);
+            if (!ReferenceEquals(communityDescriptionTranslationCancellation, cancellation) ||
+                SelectedCommunityResource?.Project.Id != project.Id)
+            {
+                return;
+            }
+
+            CommunityDescriptionTranslation = result.Translation ?? string.Empty;
+            HasCommunityDescriptionTranslation = result.HasTranslation;
+            CommunityDescriptionTranslationSummary = result.HasTranslation
+                ? "以下译文来自社区翻译，可与原文对照查看。"
+                : result.Error ?? "当前资源的简介暂无译文。";
+        }
+        catch (OperationCanceledException)
+        {
+            if (ReferenceEquals(communityDescriptionTranslationCancellation, cancellation))
+            {
+                IsCommunityDescriptionTranslationPanelVisible = false;
+            }
+        }
+        finally
+        {
+            if (ReferenceEquals(communityDescriptionTranslationCancellation, cancellation))
+            {
+                communityDescriptionTranslationCancellation = null;
+                IsCommunityDescriptionTranslationRunning = false;
+                CanTranslateCommunityDescription = SelectedCommunityResource is not null;
+            }
         }
     }
 
@@ -1389,7 +1468,7 @@ public partial class MainViewModel(
         IsCommunityVersionLoading = true;
         CanLoadCommunityResourceVersions = false;
         CanCancelCommunityResourceOperation = true;
-        CommunityVersionSummary = $"正在获取 {project.Title} 的可用版本…";
+        CommunityVersionSummary = $"正在获取 {project.DisplayTitle} 的可用版本…";
         try
         {
             var gameVersion = GetMinecraftVersionForLoaders(SelectedInstance);
@@ -1492,8 +1571,8 @@ public partial class MainViewModel(
             }
 
             CommunityVersionSummary = result.InstalledDependencyCount > 0
-                ? $"已安装 {project.Title} 和 {result.InstalledDependencyCount} 项必要依赖。"
-                : $"已安装 {project.Title}。";
+                ? $"已安装 {project.DisplayTitle} 和 {result.InstalledDependencyCount} 项必要依赖。"
+                : $"已安装 {project.DisplayTitle}。";
         }
         catch (OperationCanceledException)
         {

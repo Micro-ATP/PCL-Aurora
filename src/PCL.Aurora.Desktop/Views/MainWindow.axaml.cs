@@ -429,10 +429,12 @@ public partial class MainWindow : Window
 
     private async void CommunityResourceCopyNameClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ViewModels.MainViewModel { SelectedCommunityResource.Project.Title: { } title } &&
+        if (DataContext is ViewModels.MainViewModel { SelectedCommunityResource.Project: { } project } &&
             TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
         {
-            await clipboard.SetTextAsync(title);
+            await clipboard.SetTextAsync(project.HasTranslatedTitle
+                ? $"{project.DisplayTitle} ({project.Title})"
+                : project.Title);
         }
     }
 

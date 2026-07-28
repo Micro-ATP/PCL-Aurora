@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="protobuf-net" />
     <ProjectReference Include="../PCL.Aurora.Domain/PCL.Aurora.Domain.csproj" />
     <ProjectReference Include="../PCL.Aurora.Platform.Abstractions/PCL.Aurora.Platform.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets/PclCeMcModTranslations.buf" />
   </ItemGroup>
 </Project>

@@ -43,7 +43,7 @@
         <DataTemplate x:Key="CommunityProjectRowTemplate" x:DataType="vm:CommunityResourceItemViewModel">
             <Grid Classes="community-project-item" Height="64" ClipToBounds="True">
                 <Button Classes="community-project-row" Tag="{Binding}" Click="CommunityResourceOpenClick"
-                        AutomationProperties.Name="{Binding Project.Title, StringFormat=查看项目 {0}}" />
+                        AutomationProperties.Name="{Binding Project.DisplayTitle, StringFormat=查看项目 {0}}" />
                 <Grid Margin="7,0,7,0" ColumnDefinitions="50,8,*" RowDefinitions="5,20,18,16,5"
                       IsHitTestVisible="False">
                     <Border Grid.Row="1" Grid.RowSpan="3" Width="50" Height="50" VerticalAlignment="Center"
@@ -56,9 +56,13 @@
                                    IsVisible="{Binding HasIcon}" Source="{Binding Icon}" />
                         </Grid>
                     </Border>
-                    <TextBlock Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"
-                               FontSize="14" Foreground="#36424F" Text="{Binding Project.Title}"
-                               TextTrimming="CharacterEllipsis" />
+                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal"
+                                VerticalAlignment="Center" Spacing="0">
+                        <TextBlock FontSize="14" Foreground="#36424F" Text="{Binding Project.DisplayTitle}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock FontSize="12" Foreground="#8B96A1" Text="{Binding Project.OriginalTitleDisplay}"
+                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    </StackPanel>
                     <Grid Grid.Row="2" Grid.Column="2" ColumnDefinitions="Auto,*" ColumnSpacing="4">
                         <ItemsControl ItemsSource="{Binding Project.CategoryTags}" VerticalAlignment="Center">
                             <ItemsControl.ItemsPanel>
@@ -1765,10 +1769,42 @@
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
                                                         Click="CommunityResourceCopyLinkClick" Content="复制链接" />
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
-                                                        IsEnabled="False" Content="翻译描述" />
+                                                        Command="{Binding TranslateCommunityDescriptionCommand}"
+                                                        IsEnabled="{Binding CanTranslateCommunityDescription}"
+                                                        Content="翻译简介" />
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
                                                         IsEnabled="False" Content="收藏" />
                                             </WrapPanel>
+
+                                            <Border Padding="12,10" Background="#F3F8FD" CornerRadius="4"
+                                                    IsVisible="{Binding IsCommunityDescriptionTranslationPanelVisible}">
+                                                <Grid MinHeight="70">
+                                                    <controls:PclLoadingIndicator
+                                                        IsVisible="{Binding IsCommunityDescriptionTranslationRunning}"
+                                                        Text="正在获取简介译文" />
+                                                    <StackPanel IsVisible="{Binding !IsCommunityDescriptionTranslationRunning}"
+                                                                Spacing="8">
+                                                        <TextBlock Foreground="#52708C"
+                                                                   Text="{Binding CommunityDescriptionTranslationSummary}"
+                                                                   TextWrapping="Wrap" />
+                                                        <StackPanel Spacing="3">
+                                                            <TextBlock FontSize="12" FontWeight="SemiBold"
+                                                                       Foreground="#798692" Text="原文" />
+                                                            <TextBlock Foreground="#4E5D6B"
+                                                                       Text="{Binding SelectedCommunityResource.Project.Description}"
+                                                                       TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                        <StackPanel Spacing="3"
+                                                                    IsVisible="{Binding HasCommunityDescriptionTranslation}">
+                                                            <TextBlock FontSize="12" FontWeight="SemiBold"
+                                                                       Foreground="#2472C8" Text="译文" />
+                                                            <TextBlock Foreground="#364E64"
+                                                                       Text="{Binding CommunityDescriptionTranslation}"
+                                                                       TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
                                         </StackPanel>
                                     </Border>
 

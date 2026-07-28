@@ -86,7 +86,11 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Controls/MyImage.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml
 
-PCL Aurora also contains the following directly reused image asset:
+PCL Aurora also contains the following directly reused upstream resources:
+
+- PCL-CE: Plain Craft Launcher 2/Resources/mcmod.buf
+  copied unchanged to src/PCL.Aurora.Application/Assets/PclCeMcModTranslations.buf;
+  used as the local Chinese project-name database for Modrinth slug lookups.
 
 - PCL-CE: Plain Craft Launcher 2/Images/Skins/Alex.png
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Skins/PclCeAlex.png;
@@ -149,6 +153,9 @@ PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 
 The original license texts are provided in LICENSES/Apache-2.0.txt,
 LICENSES/PCL-CE-Plain-Craft-Launcher-2-LICENCE.txt and LICENSES/PCL2-LICENCE.txt.
+PCL Aurora uses protobuf-net 3.2.56 by Marc Gravell to decode the bundled
+translation data. protobuf-net is distributed under Apache License 2.0,
+whose text is provided in LICENSES/Apache-2.0.txt.
 Adapted source files identify their origin and modifications in file headers.
 The Avalonia desktop shell and launch-page layout in
 `src/PCL.Aurora.Desktop/Views/MainWindow.axaml` adapts the three PCL2 XAML
