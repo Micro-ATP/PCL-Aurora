@@ -97,6 +97,7 @@
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="Padding" Value="12,0" />
             <Setter Property="FontSize" Value="13" />
@@ -155,6 +156,7 @@
             <Setter Property="BorderBrush" Value="#A8C9EE" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="#FCFCFD" />
@@ -199,6 +201,7 @@
             <Setter Property="BorderBrush" Value="#A8C9EE" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ Border#Background">
             <Setter Property="Background" Value="#FCFCFD" />
@@ -207,6 +210,7 @@
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ ContentControl#ContentPresenter">
             <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ PathIcon#DropDownGlyph">
             <Setter Property="Foreground" Value="#526170" />
@@ -307,6 +311,7 @@
         </Style>
         <Style Selector="Grid.pcl-shell CheckBox">
             <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid.pcl-shell Button">
             <Setter Property="Background" Value="#F0F2F5" />
@@ -314,6 +319,8 @@
             <Setter Property="BorderBrush" Value="#CBD5E1" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Template">
                 <ControlTemplate TargetType="Button">
                     <Border Background="{TemplateBinding Background}"
@@ -517,7 +524,8 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Height" Value="46" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.version-group:pointerover">
