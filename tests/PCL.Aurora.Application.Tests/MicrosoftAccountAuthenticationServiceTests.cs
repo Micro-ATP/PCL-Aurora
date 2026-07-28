@@ -47,8 +47,20 @@ public sealed class MicrosoftAccountAuthenticationServiceTests
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.BeginDeviceCodeLoginAsync());
 
-        Assert.Contains("PCL_AURORA_MS_CLIENT_ID", exception.Message);
+        Assert.Contains("Microsoft OAuth Client ID", exception.Message);
         Assert.Equal(0, handler.RequestCount);
+    }
+
+    [Fact]
+    public void Configuration_CanAcceptAValidatedPublicClientIdAtRuntime()
+    {
+        var configuration = new MicrosoftAuthenticationConfiguration(null);
+
+        Assert.False(configuration.TrySetClientId("not-a-guid"));
+        Assert.False(configuration.IsConfigured);
+        Assert.True(configuration.TrySetClientId(" 12345678-1234-1234-1234-1234567890ab "));
+        Assert.True(configuration.IsConfigured);
+        Assert.Equal("12345678-1234-1234-1234-1234567890ab", configuration.ClientId);
     }
 
     [Fact]

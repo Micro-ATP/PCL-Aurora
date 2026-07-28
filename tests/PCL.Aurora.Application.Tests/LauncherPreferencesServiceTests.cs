@@ -57,6 +57,25 @@ public sealed class LauncherPreferencesServiceTests
     }
 
     [Fact]
+    public async Task SaveMicrosoftOAuthClientIdAsync_ValidatesAndPreservesAccountMetadata()
+    {
+        var profile = new MicrosoftAccountProfile("AuroraPlayer", "01234567-89ab-cdef-0123-456789abcdef");
+        var store = new RecordingPreferencesStore(
+            new LauncherPreferencesLoadResult(
+                new LauncherPreferences(LauncherThemeMode.Light, MicrosoftAccount: profile),
+                null));
+        var service = new LauncherPreferencesService(store);
+        await service.LoadAsync();
+
+        await service.SaveMicrosoftOAuthClientIdAsync(" 12345678-1234-1234-1234-1234567890ab ");
+
+        Assert.Equal("12345678-1234-1234-1234-1234567890ab", store.SavedPreferences?.MicrosoftOAuthClientId);
+        Assert.Equal(profile, store.SavedPreferences?.MicrosoftAccount);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            service.SaveMicrosoftOAuthClientIdAsync("not-a-guid"));
+    }
+
+    [Fact]
     public async Task SaveLaunchOptionsAsync_PreservesPreviouslyLoadedPreferences()
     {
         var store = new RecordingPreferencesStore(

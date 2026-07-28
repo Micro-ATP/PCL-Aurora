@@ -809,7 +809,8 @@
                         <Grid Margin="20,20" RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="8">
                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
                                 <!-- Icons reused from PCL2 PageLaunchLeft.xaml under the upstream project license. -->
-                                <Button Classes="account-mode" Click="OfficialLoginClick"
+                                <Button Classes="account-mode" Classes.selected="{Binding IsMicrosoftAccountMode}"
+                                        Command="{Binding ShowMicrosoftAccountCommand}"
                                         ToolTip.Tip="{Binding MicrosoftLoginSummary}">
                                     <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
                                         <Path Width="18" Height="18" Stretch="Uniform"
@@ -818,7 +819,8 @@
                                         <TextBlock Text="正版" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
-                                <Button Classes="account-mode selected" Command="{Binding UseOfflineAccountCommand}">
+                                <Button Classes="account-mode" Classes.selected="{Binding IsOfflineAccountMode}"
+                                        Command="{Binding ShowOfflineAccountCommand}">
                                     <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
                                         <Path Width="17" Height="17" Stretch="Uniform"
                                               Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -829,31 +831,95 @@
                             </StackPanel>
                             <StackPanel Grid.Row="1" Margin="0,8,0,0" Spacing="6">
                                 <Border Classes="pcl-status-strip" Background="#E8F3FF">
-                                    <TextBlock FontSize="12" Foreground="#2472C8" Text="选择账户与游戏实例后即可启动" TextWrapping="Wrap" />
+                                    <TextBlock FontSize="12" Foreground="#2472C8" Text="{Binding AccountSummary}" TextWrapping="Wrap" />
                                 </Border>
                                 <Border Classes="pcl-status-strip" Background="#FFF4D7" IsVisible="{Binding NeedsGameDownload}">
                                     <TextBlock FontSize="12" Foreground="#9A6A00" Text="尚未发现可用实例，请先下载或选择游戏版本" TextWrapping="Wrap" />
                                 </Border>
                             </StackPanel>
-                            <StackPanel Grid.Row="2" VerticalAlignment="Center" Spacing="12">
-                                <Border Width="56" Height="56" CornerRadius="3" HorizontalAlignment="Center" ClipToBounds="True">
-                                    <Grid>
-                                        <Image Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Stretch="Fill" RenderOptions.BitmapInterpolationMode="None">
-                                            <Image.Source>
-                                                <CroppedBitmap Source="/Assets/Skins/PclCeAlex.png" SourceRect="8,8,8,8" />
-                                            </Image.Source>
-                                        </Image>
-                                        <Image Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Stretch="Fill" RenderOptions.BitmapInterpolationMode="None">
-                                            <Image.Source>
-                                                <CroppedBitmap Source="/Assets/Skins/PclCeAlex.png" SourceRect="40,8,8,8" />
-                                            </Image.Source>
-                                        </Image>
+                            <Grid Grid.Row="2" VerticalAlignment="Center">
+                                <StackPanel IsVisible="{Binding IsOfflineAccountMode}" Spacing="12">
+                                    <Border Width="56" Height="56" CornerRadius="3" HorizontalAlignment="Center" ClipToBounds="True">
+                                        <Grid>
+                                            <Image Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Stretch="Fill" RenderOptions.BitmapInterpolationMode="None">
+                                                <Image.Source>
+                                                    <CroppedBitmap Source="/Assets/Skins/PclCeAlex.png" SourceRect="8,8,8,8" />
+                                                </Image.Source>
+                                            </Image>
+                                            <Image Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Stretch="Fill" RenderOptions.BitmapInterpolationMode="None">
+                                                <Image.Source>
+                                                    <CroppedBitmap Source="/Assets/Skins/PclCeAlex.png" SourceRect="40,8,8,8" />
+                                                </Image.Source>
+                                            </Image>
+                                        </Grid>
+                                    </Border>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <TextBox Height="35" PlaceholderText="游戏用户名" Text="{Binding OfflinePlayerName}" />
+                                        <Button Grid.Column="1" Height="35" MinWidth="76"
+                                                Command="{Binding UseOfflineAccountCommand}" Content="使用" />
                                     </Grid>
-                                </Border>
-                                <TextBox Height="35" PlaceholderText="游戏用户名" Text="{Binding OfflinePlayerName}" />
-                            </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel IsVisible="{Binding IsMicrosoftAccountMode}" Spacing="11">
+                                    <Path Width="40" Height="40" HorizontalAlignment="Center" Stretch="Uniform"
+                                          Fill="Transparent" Stroke="#6B7C8F" StrokeThickness="1.8"
+                                          StrokeLineCap="Round" StrokeJoin="Round"
+                                          Data="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21a8 8 0 0 1 16 0" />
+                                    <TextBlock HorizontalAlignment="Center" FontSize="15" FontWeight="SemiBold"
+                                               Text="{Binding MicrosoftAccountDisplayName}" />
+
+                                    <StackPanel IsVisible="{Binding NeedsMicrosoftLoginConfiguration}" Spacing="7">
+                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="Microsoft 应用 ID" />
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <TextBox Height="35" AutomationProperties.Name="Microsoft 应用 ID"
+                                                     PlaceholderText="00000000-0000-0000-0000-000000000000"
+                                                     Text="{Binding MicrosoftOAuthClientId}" />
+                                            <Button Grid.Column="1" Height="35" MinWidth="62"
+                                                    Command="{Binding SaveMicrosoftLoginConfigurationCommand}"
+                                                    Content="保存" />
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <StackPanel IsVisible="{Binding IsMicrosoftLoginConfigured}" Spacing="8">
+                                        <Border IsVisible="{Binding HasMicrosoftDeviceCode}"
+                                                Background="#EEF6FF" BorderBrush="#A9CCF3" BorderThickness="1"
+                                                CornerRadius="3" Padding="10,8">
+                                            <StackPanel Spacing="5">
+                                                <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="#627287"
+                                                           Text="登录代码" />
+                                                <TextBlock HorizontalAlignment="Center" FontSize="21" FontWeight="SemiBold"
+                                                           Foreground="#1370F3" Text="{Binding MicrosoftDeviceCode}" />
+                                                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
+                                                    <Button Height="30" Padding="10,0" Click="CopyMicrosoftCodeClick" Content="复制代码" />
+                                                    <Button Height="30" Padding="10,0"
+                                                            Command="{Binding OpenMicrosoftVerificationPageCommand}"
+                                                            IsEnabled="{Binding CanOpenMicrosoftVerificationPage}"
+                                                            Content="打开网页" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                        <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="#6F7C8B"
+                                                   Text="{Binding MicrosoftLoginSummary}" TextAlignment="Center" TextWrapping="Wrap" />
+                                        <WrapPanel HorizontalAlignment="Center">
+                                            <Button Height="32" MinWidth="66" Margin="4,0"
+                                                    Command="{Binding StartMicrosoftLoginCommand}"
+                                                    IsEnabled="{Binding CanStartMicrosoftLogin}" Content="登录" />
+                                            <Button Height="32" MinWidth="76" Margin="4,0"
+                                                    IsVisible="{Binding HasMicrosoftAccountProfile}"
+                                                    Command="{Binding RestoreMicrosoftLoginCommand}"
+                                                    IsEnabled="{Binding CanRestoreMicrosoftLogin}" Content="恢复登录" />
+                                            <Button Height="32" MinWidth="66" Margin="4,0"
+                                                    IsVisible="{Binding IsMicrosoftLoginRunning}"
+                                                    Command="{Binding CancelMicrosoftLoginCommand}" Content="取消" />
+                                            <Button Height="32" MinWidth="76" Margin="4,0"
+                                                    IsVisible="{Binding HasMicrosoftAccountProfile}"
+                                                    Command="{Binding ClearMicrosoftLoginCommand}" Content="退出登录" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
                             <StackPanel Grid.Row="3" HorizontalAlignment="Stretch" Spacing="8">
                                 <Button Classes="launch-action launch-download-button" Click="OpenDownloadPageClick"
                                         HorizontalAlignment="Stretch"
@@ -893,20 +959,15 @@
                             <!-- PCL-CE places a compact notice card in the otherwise empty PCL2 launch-right region. -->
                             <Border Classes="pcl-notice">
                                 <StackPanel Spacing="9">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="PCL Aurora 提示" />
-                                        <Border Grid.Column="1" CornerRadius="10" Background="#E4F1FF" Padding="8,3">
-                                            <TextBlock FontSize="11" Foreground="#1370F3" Text="跨平台迁移中" />
-                                        </Border>
-                                    </Grid>
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="欢迎使用 PCL Aurora" />
                                     <TextBlock Foreground="#536273" TextWrapping="Wrap"
-                                               Text="PCL Aurora 正在将 PCL2 的启动体验迁移到 macOS、Linux 与 Windows。当前可先创建或选择实例，再配置离线账户与本机 Java。" />
+                                               Text="选择左侧账户与游戏版本，然后开始游戏。" />
                                     <Border Height="1" Background="#E2E8F0" />
                                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                         <Path Width="16" Height="16" VerticalAlignment="Top" Stroke="#1370F3" StrokeThickness="2"
                                               Data="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
                                         <TextBlock Grid.Column="1" FontSize="12" Foreground="#6F7C8B" TextWrapping="Wrap"
-                                                   Text="配置 Microsoft 登录后，即可从“正版”入口添加账户。" />
+                                                   Text="正版登录支持 Microsoft 设备代码授权。" />
                                     </Grid>
                                 </StackPanel>
                             </Border>

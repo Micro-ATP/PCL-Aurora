@@ -27,6 +27,7 @@ public partial class MainViewModel(
     IMinecraftDirectoryService minecraftDirectoryService,
     IMinecraftGameLaunchService gameLaunchService,
     ILauncherPreferencesService preferencesService,
+    MicrosoftAuthenticationConfiguration microsoftAuthenticationConfiguration,
     IMicrosoftAccountAuthenticationService microsoftAuthenticationService,
     IMicrosoftAccountSessionService microsoftAccountSessionService,
     IOpenPathService openPathService,
@@ -64,6 +65,7 @@ public partial class MainViewModel(
     private MinecraftJavaRequirement? currentJavaRequirement;
     private CancellationTokenSource? installationCancellation;
     private CancellationTokenSource? microsoftLoginCancellation;
+    private Uri? microsoftVerificationUri;
     private CancellationTokenSource? communitySearchCancellation;
     private CancellationTokenSource? communityIconCancellation;
     private CancellationTokenSource? communityVersionCancellation;
@@ -413,6 +415,12 @@ public partial class MainViewModel(
     private string offlinePlayerName = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsOfflineAccountMode))]
+    private bool isMicrosoftAccountMode;
+
+    public bool IsOfflineAccountMode => !IsMicrosoftAccountMode;
+
+    [ObservableProperty]
     private string accountSummary = "未选择账户。可创建只在本次会话使用的离线账户。";
 
     [ObservableProperty]
@@ -429,6 +437,30 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string microsoftDeviceCode = "—";
+
+    [ObservableProperty]
+    private string microsoftOAuthClientId = string.Empty;
+
+    [ObservableProperty]
+    private bool isMicrosoftLoginConfigured;
+
+    [ObservableProperty]
+    private bool needsMicrosoftLoginConfiguration = true;
+
+    [ObservableProperty]
+    private bool isMicrosoftLoginRunning;
+
+    [ObservableProperty]
+    private bool hasMicrosoftDeviceCode;
+
+    [ObservableProperty]
+    private bool canOpenMicrosoftVerificationPage;
+
+    [ObservableProperty]
+    private bool hasMicrosoftAccountProfile;
+
+    [ObservableProperty]
+    private string microsoftAccountDisplayName = "尚未登录";
 
     [ObservableProperty]
     private bool canStartMicrosoftLogin;
@@ -552,6 +584,15 @@ public partial class MainViewModel(
             UsesCustomMemoryAllocation = launchOptions.MemoryAllocationMode == MinecraftMemoryAllocationMode.Custom;
             LaunchOptionsSummary = result.Warning ?? GetLaunchOptionsSummary(launchOptions);
             RestoreOfflineAccount(result.Preferences.OfflinePlayerName);
+            if (!microsoftAuthenticationConfiguration.IsConfigured &&
+                result.Preferences.MicrosoftOAuthClientId is { } savedClientId)
+            {
+                microsoftAuthenticationConfiguration.TrySetClientId(savedClientId);
+            }
+
+            MicrosoftOAuthClientId = microsoftAuthenticationConfiguration.ClientId
+                ?? result.Preferences.MicrosoftOAuthClientId
+                ?? string.Empty;
             UpdateMicrosoftLoginAvailability(result.Preferences.MicrosoftAccount);
         }
         catch (Exception exception)
@@ -1976,14 +2017,19 @@ public partial class MainViewModel(
     [RelayCommand]
     private async Task StartMicrosoftLoginAsync()
     {
+        IsMicrosoftAccountMode = true;
         if (!microsoftAuthenticationService.IsConfigured)
         {
-            MicrosoftLoginSummary = "尚未配置 Aurora 的 Microsoft OAuth Client ID；请设置 PCL_AURORA_MS_CLIENT_ID 后重新启动。";
+            MicrosoftLoginSummary = "请先填写 PCL Aurora 的 Microsoft 应用 ID。";
             return;
         }
 
         using var cancellation = new CancellationTokenSource();
         microsoftLoginCancellation = cancellation;
+        IsMicrosoftLoginRunning = true;
+        HasMicrosoftDeviceCode = false;
+        CanOpenMicrosoftVerificationPage = false;
+        microsoftVerificationUri = null;
         CanStartMicrosoftLogin = false;
         CanRestoreMicrosoftLogin = false;
         CanCancelMicrosoftLogin = true;
@@ -1992,7 +2038,10 @@ public partial class MainViewModel(
             MicrosoftLoginSummary = "正在请求 Microsoft 设备代码…";
             var session = await microsoftAuthenticationService.BeginDeviceCodeLoginAsync(cancellation.Token);
             MicrosoftDeviceCode = session.Prompt.UserCode;
-            MicrosoftLoginSummary = $"请在浏览器完成 Microsoft 登录；设备代码：{session.Prompt.UserCode}。授权窗口会自动打开。";
+            microsoftVerificationUri = session.Prompt.OpenUri;
+            HasMicrosoftDeviceCode = true;
+            CanOpenMicrosoftVerificationPage = true;
+            MicrosoftLoginSummary = "请在打开的网页中输入下方代码。";
             await openPathService.OpenUriAsync(session.Prompt.OpenUri, cancellation.Token);
             var progress = new Progress<MicrosoftAuthenticationProgress>(update => MicrosoftLoginSummary = update.Description);
             var result = await microsoftAuthenticationService.CompleteDeviceCodeLoginAsync(session, progress, cancellation.Token);
@@ -2002,8 +2051,10 @@ public partial class MainViewModel(
             currentPreferences = currentPreferences with { MicrosoftAccount = profile };
             selectedAccount = result.Account;
             HasAcknowledgedAccountGuidance = false;
-            AccountSummary = $"已认证 Microsoft 账户：{result.Account.DisplayName}。刷新令牌仅保存于系统钥匙串。";
-            MicrosoftLoginSummary = "Microsoft 登录已完成。";
+            AccountSummary = $"已登录：{result.Account.DisplayName}";
+            MicrosoftLoginSummary = "登录成功。";
+            MicrosoftAccountDisplayName = result.Account.DisplayName;
+            HasMicrosoftAccountProfile = true;
             MicrosoftDeviceCode = "—";
             CanClearMicrosoftLogin = true;
             UpdateLaunchPreflight();
@@ -2023,17 +2074,77 @@ public partial class MainViewModel(
             if (ReferenceEquals(microsoftLoginCancellation, cancellation))
             {
                 microsoftLoginCancellation = null;
+                IsMicrosoftLoginRunning = false;
+                HasMicrosoftDeviceCode = false;
+                CanOpenMicrosoftVerificationPage = false;
+                microsoftVerificationUri = null;
                 CanCancelMicrosoftLogin = false;
                 UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount);
             }
         }
     }
 
-    public Task BeginMicrosoftLoginAsync() => StartMicrosoftLoginAsync();
+    [RelayCommand]
+    private void ShowMicrosoftAccount()
+    {
+        IsMicrosoftAccountMode = true;
+        UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount);
+        AccountSummary = selectedAccount?.Kind == MinecraftAccountKind.Microsoft
+            ? $"已登录：{selectedAccount.DisplayName}"
+            : currentPreferences.MicrosoftAccount is { } profile
+                ? $"已保存账户：{profile.DisplayName}"
+                : "尚未登录 Microsoft 账户。";
+    }
+
+    [RelayCommand]
+    private void ShowOfflineAccount()
+    {
+        IsMicrosoftAccountMode = false;
+        AccountSummary = selectedAccount?.Kind == MinecraftAccountKind.Offline
+            ? $"当前账户：{selectedAccount.DisplayName}"
+            : "输入游戏用户名后即可使用离线账户。";
+    }
+
+    [RelayCommand]
+    private async Task SaveMicrosoftLoginConfigurationAsync()
+    {
+        var normalized = MicrosoftOAuthClientId.Trim();
+        if (string.IsNullOrEmpty(normalized) || !microsoftAuthenticationConfiguration.TrySetClientId(normalized))
+        {
+            MicrosoftLoginSummary = "应用 ID 格式不正确，应为一串 GUID。";
+            return;
+        }
+
+        try
+        {
+            await preferencesService.SaveMicrosoftOAuthClientIdAsync(normalized);
+            currentPreferences = currentPreferences with { MicrosoftOAuthClientId = normalized };
+            MicrosoftOAuthClientId = normalized;
+            MicrosoftLoginSummary = "应用 ID 已保存，可以登录。";
+        }
+        catch (Exception exception)
+        {
+            MicrosoftLoginSummary = $"保存应用 ID 失败：{exception.Message}";
+        }
+
+        UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount);
+    }
+
+    [RelayCommand]
+    private async Task OpenMicrosoftVerificationPageAsync()
+    {
+        if (microsoftVerificationUri is not { } uri)
+        {
+            return;
+        }
+
+        await openPathService.OpenUriAsync(uri);
+    }
 
     [RelayCommand]
     private async Task RestoreMicrosoftLoginAsync()
     {
+        IsMicrosoftAccountMode = true;
         if (currentPreferences.MicrosoftAccount is not { } profile)
         {
             MicrosoftLoginSummary = "没有可恢复的 Microsoft 账户。";
@@ -2055,8 +2166,9 @@ public partial class MainViewModel(
 
             selectedAccount = restored.Account;
             HasAcknowledgedAccountGuidance = false;
-            AccountSummary = $"已恢复 Microsoft 账户：{restored.Account.DisplayName}。";
-            MicrosoftLoginSummary = "Microsoft 登录已恢复。";
+            AccountSummary = $"已登录：{restored.Account.DisplayName}";
+            MicrosoftAccountDisplayName = restored.Account.DisplayName;
+            MicrosoftLoginSummary = "登录已恢复。";
             UpdateLaunchPreflight();
             await RefreshLaunchArgumentPreparationAsync();
             await RefreshGameLaunchPreparationAsync();
@@ -2107,7 +2219,9 @@ public partial class MainViewModel(
             }
 
             AccountSummary = "已清除 Microsoft 账户及系统钥匙串中的刷新令牌。";
-            MicrosoftLoginSummary = "Microsoft 登录已清除。";
+            MicrosoftLoginSummary = "已退出 Microsoft 账户。";
+            MicrosoftAccountDisplayName = "尚未登录";
+            HasMicrosoftAccountProfile = false;
             MicrosoftDeviceCode = "—";
         }
         catch (Exception exception)
@@ -2122,22 +2236,31 @@ public partial class MainViewModel(
 
     private void UpdateMicrosoftLoginAvailability(MicrosoftAccountProfile? profile)
     {
+        IsMicrosoftLoginConfigured = microsoftAuthenticationService.IsConfigured;
+        NeedsMicrosoftLoginConfiguration = !IsMicrosoftLoginConfigured;
+        HasMicrosoftAccountProfile = profile is not null;
+        MicrosoftAccountDisplayName = profile?.DisplayName ?? "尚未登录";
         CanStartMicrosoftLogin = microsoftAuthenticationService.IsConfigured && microsoftLoginCancellation is null;
         CanRestoreMicrosoftLogin = microsoftAuthenticationService.IsConfigured && profile is not null && microsoftLoginCancellation is null;
         CanClearMicrosoftLogin = profile is not null;
         if (!microsoftAuthenticationService.IsConfigured)
         {
-            MicrosoftLoginSummary = "需设置 Aurora 的 PCL_AURORA_MS_CLIENT_ID 后才能使用 Microsoft 登录。";
+            MicrosoftLoginSummary = "首次使用正版登录前，需要填写 Microsoft 应用 ID。";
         }
         else if (profile is not null && !CanCancelMicrosoftLogin && selectedAccount?.Kind != MinecraftAccountKind.Microsoft)
         {
-            MicrosoftLoginSummary = $"检测到 Microsoft 账户 {profile.DisplayName}；点击“恢复 Microsoft 登录”后才会访问网络。";
+            MicrosoftLoginSummary = $"已保存账户 {profile.DisplayName}，点击“恢复登录”继续。";
+        }
+        else if (profile is null && !CanCancelMicrosoftLogin)
+        {
+            MicrosoftLoginSummary = "使用 Microsoft 账户登录 Minecraft。";
         }
     }
 
     [RelayCommand]
     private async Task UseOfflineAccount()
     {
+        IsMicrosoftAccountMode = false;
         if (!OfflineAccount.TryCreate(OfflinePlayerName, out var account) || account is null)
         {
             AccountSummary = "离线用户名需为 3–16 位英文字母、数字或下划线。";

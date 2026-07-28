@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using PCL.Aurora.Desktop.Controls;
@@ -54,12 +55,15 @@ public partial class MainWindow : Window
         await LoadDownloadSectionAsync(currentDownloadSection);
     }
 
-    private async void OfficialLoginClick(object? sender, RoutedEventArgs e)
+    private async void CopyMicrosoftCodeClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ViewModels.MainViewModel viewModel)
+        if (DataContext is not ViewModels.MainViewModel { HasMicrosoftDeviceCode: true } viewModel ||
+            TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard)
         {
-            await viewModel.BeginMicrosoftLoginAsync();
+            return;
         }
+
+        await clipboard.SetTextAsync(viewModel.MicrosoftDeviceCode);
     }
 
     private void TitleBarPointerPressed(object? sender, PointerPressedEventArgs e)

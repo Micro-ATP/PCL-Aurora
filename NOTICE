@@ -18,6 +18,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/FormMain.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchLeft.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchRight.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLoginMs.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml

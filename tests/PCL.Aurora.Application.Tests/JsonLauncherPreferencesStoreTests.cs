@@ -89,6 +89,21 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_RoundTripsPublicMicrosoftClientIdWithoutAClientSecret()
+    {
+        const string clientId = "12345678-1234-1234-1234-1234567890ab";
+        var store = CreateStore();
+
+        await store.SaveAsync(new LauncherPreferences(LauncherThemeMode.System, MicrosoftOAuthClientId: clientId));
+        var result = await store.LoadAsync();
+
+        Assert.Equal(clientId, result.Preferences.MicrosoftOAuthClientId);
+        var storedJson = await File.ReadAllTextAsync(GetPreferencesPath());
+        Assert.DoesNotContain("secret", storedJson, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("refreshToken", storedJson, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task SaveAsync_RoundTripsSafeSelectedInstanceName()
     {
         var store = CreateStore();
