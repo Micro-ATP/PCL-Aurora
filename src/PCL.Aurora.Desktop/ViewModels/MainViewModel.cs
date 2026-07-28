@@ -88,6 +88,8 @@ public partial class MainViewModel(
 
     public ObservableCollection<CommunityResourceVersion> CommunityResourceVersions { get; } = [];
 
+    public ObservableCollection<CommunityResourceVersionGroupViewModel> CommunityResourceVersionGroups { get; } = [];
+
     public ObservableCollection<MinecraftInstance> AvailableInstances { get; } = [];
 
     public ObservableCollection<JavaInstallation> AvailableJavaInstallations { get; } = [];
@@ -1107,6 +1109,7 @@ public partial class MainViewModel(
             CanCancelCommunityResourceOperation = false;
         }
         CommunityResourceVersions.Clear();
+        CommunityResourceVersionGroups.Clear();
         SelectedCommunityResourceVersion = null;
         HasCommunityResourceVersions = false;
         CanOpenCommunityResource = value is not null;
@@ -1116,10 +1119,6 @@ public partial class MainViewModel(
             : "正在准备版本列表…";
         OnPropertyChanged(nameof(IsCommunityVersionCardVisible));
         RefreshCommunityInstallState();
-        if (value is not null)
-        {
-            _ = LoadCommunityResourceVersionsAsync();
-        }
     }
 
     partial void OnSelectedCommunityResourceVersionChanged(CommunityResourceVersion? value)
@@ -1327,6 +1326,15 @@ public partial class MainViewModel(
     [RelayCommand]
     private Task SearchCommunityResourcesAsync() => LoadCommunityResourcesAsync(0);
 
+    public Task LoadSelectedCommunityResourceVersionsAsync() => LoadCommunityResourceVersionsAsync();
+
+    public async Task InstallCommunityResourceVersionAsync(CommunityResourceVersion version)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+        SelectedCommunityResourceVersion = version;
+        await InstallCommunityResourceAsync();
+    }
+
     [RelayCommand]
     private Task PreviousCommunityPageAsync() =>
         CanGoToPreviousCommunityPage ? LoadCommunityResourcesAsync(CommunityPage - 1) : Task.CompletedTask;
@@ -1375,6 +1383,7 @@ public partial class MainViewModel(
         using var cancellation = new CancellationTokenSource();
         communityVersionCancellation = cancellation;
         CommunityResourceVersions.Clear();
+        CommunityResourceVersionGroups.Clear();
         SelectedCommunityResourceVersion = null;
         HasCommunityResourceVersions = false;
         IsCommunityVersionLoading = true;
@@ -1409,6 +1418,7 @@ public partial class MainViewModel(
                 CommunityResourceVersions.Add(version);
             }
 
+            RebuildCommunityResourceVersionGroups();
             HasCommunityResourceVersions = CommunityResourceVersions.Count > 0;
             CommunityVersionSummary = HasCommunityResourceVersions
                 ? $"找到 {CommunityResourceVersions.Count} 个兼容版本。"
@@ -1533,6 +1543,58 @@ public partial class MainViewModel(
             SelectedCommunityResourceVersion is not null &&
             hasCompatibleTarget;
     }
+
+    private void RebuildCommunityResourceVersionGroups()
+    {
+        // Directly adapts PCL-CE's PageDownloadCompDetail game-version card grouping.
+        CommunityResourceVersionGroups.Clear();
+        var preferredVersion = GetMinecraftVersionForLoaders(SelectedInstance);
+        var groupedVersions = new Dictionary<string, List<CommunityResourceVersion>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var version in CommunityResourceVersions)
+        {
+            string[] groupNames = version.GameVersions.Count == 0
+                ? ["其他版本"]
+                : version.GameVersions
+                    .Select(GetCommunityVersionGroupName)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+            foreach (var groupName in groupNames)
+            {
+                if (!groupedVersions.TryGetValue(groupName, out var versions))
+                {
+                    versions = [];
+                    groupedVersions.Add(groupName, versions);
+                }
+
+                if (versions.All(candidate => candidate.Id != version.Id))
+                {
+                    versions.Add(version);
+                }
+            }
+        }
+
+        var orderedGroups = groupedVersions
+            .OrderByDescending(pair => string.Equals(pair.Key, preferredVersion, StringComparison.OrdinalIgnoreCase))
+            .ThenBy(pair => pair.Key is "其他版本" or "预览版")
+            .ThenByDescending(pair => pair.Key, new PclCeVersionComparer.VersionComparer())
+            .ToArray();
+        for (var index = 0; index < orderedGroups.Length; index++)
+        {
+            var group = orderedGroups[index];
+            CommunityResourceVersionGroups.Add(new(
+                group.Key,
+                group.Value.OrderByDescending(version => version.PublishedAt).ToArray(),
+                index == 0));
+        }
+    }
+
+    private static string GetCommunityVersionGroupName(string gameVersion) =>
+        string.IsNullOrWhiteSpace(gameVersion)
+            ? "其他版本"
+            : gameVersion.Contains('w', StringComparison.OrdinalIgnoreCase) ||
+              gameVersion.Contains("snapshot", StringComparison.OrdinalIgnoreCase)
+                ? "预览版"
+                : gameVersion;
 
     private CommunityResourceLoader GetCommunityResourceLoaderForSelectedInstance() =>
         SelectedInstance?.InstalledLoader?.Kind switch
@@ -1687,6 +1749,7 @@ public partial class MainViewModel(
         }
 
         CommunityResources.Clear();
+        CommunityResourceVersionGroups.Clear();
     }
 
     private static string GetCommunityResourceTypeName(CommunityResourceType type) => type switch

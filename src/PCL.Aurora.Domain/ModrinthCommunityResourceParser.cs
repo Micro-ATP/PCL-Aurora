@@ -99,7 +99,14 @@ public static class ModrinthCommunityResourceParser
             GetDateTime(hit, "date_modified"),
             GetString(hit, "latest_version"),
             GetStringArray(hit, "display_categories", "categories"),
-            GetStringArray(hit, "versions"));
+            GetStringArray(hit, "versions"))
+        {
+            Loaders = GetStringArray(hit, "categories")
+                .Where(category => category.ToLowerInvariant() is
+                    "forge" or "fabric" or "quilt" or "neoforge" or
+                    "iris" or "optifine" or "vanilla")
+                .ToArray(),
+        };
         return true;
     }
 

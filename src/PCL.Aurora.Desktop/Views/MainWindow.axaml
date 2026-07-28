@@ -14,6 +14,7 @@
         Height="500"
         MinWidth="810"
         MinHeight="470"
+        CanResize="True"
         WindowDecorations="None"
         ExtendClientAreaToDecorationsHint="True"
         TransparencyLevelHint="Transparent"
@@ -31,6 +32,94 @@
         <StreamGeometry x:Key="VersionServerIcon">M4 4h16v6H4z M4 14h16v6H4z M8 7h.01 M8 17h.01</StreamGeometry>
         <StreamGeometry x:Key="VersionExpandDownIcon">M7 10l5 5 5-5</StreamGeometry>
         <StreamGeometry x:Key="VersionExpandUpIcon">M7 14l5-5 5 5</StreamGeometry>
+        <StreamGeometry x:Key="CommunityVersionIcon">M3 6h18 M3 12h18 M3 18h18</StreamGeometry>
+        <StreamGeometry x:Key="CommunityDownloadIcon">M12 3v12 M7 10l5 5 5-5 M5 21h14</StreamGeometry>
+        <StreamGeometry x:Key="CommunityTimeIcon">M12 19V5 M5 12l7-7 7 7 M5 21h14</StreamGeometry>
+        <StreamGeometry x:Key="CommunitySourceIcon">M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M2 12h20 M12 2a15.3 15.3 0 0 1 0 20 M12 2a15.3 15.3 0 0 0 0 20</StreamGeometry>
+        <StreamGeometry x:Key="CommunityBackIcon">M19 12H5 M12 19l-7-7 7-7</StreamGeometry>
+        <StreamGeometry x:Key="CommunityCopyIcon">M8 8h12v12H8z M4 16H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v1</StreamGeometry>
+        <StreamGeometry x:Key="CommunityHeartIcon">M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8z</StreamGeometry>
+
+        <DataTemplate x:Key="CommunityProjectRowTemplate" x:DataType="vm:CommunityResourceItemViewModel">
+            <Grid Classes="community-project-item" Height="64" ClipToBounds="True">
+                <Button Classes="community-project-row" Tag="{Binding}" Click="CommunityResourceOpenClick"
+                        AutomationProperties.Name="{Binding Project.Title, StringFormat=查看项目 {0}}" />
+                <Grid Margin="7,0,7,0" ColumnDefinitions="50,8,*" RowDefinitions="5,20,18,16,5"
+                      IsHitTestVisible="False">
+                    <Border Grid.Row="1" Grid.RowSpan="3" Width="50" Height="50" VerticalAlignment="Center"
+                            Background="#DCEEFF" CornerRadius="6" ClipToBounds="True">
+                        <Grid>
+                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       FontSize="18" FontWeight="SemiBold" Foreground="#1370F3"
+                                       IsVisible="{Binding !HasIcon}" Text="{Binding Initial}" />
+                            <Image Width="50" Height="50" Stretch="UniformToFill"
+                                   IsVisible="{Binding HasIcon}" Source="{Binding Icon}" />
+                        </Grid>
+                    </Border>
+                    <TextBlock Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"
+                               FontSize="14" Foreground="#36424F" Text="{Binding Project.Title}"
+                               TextTrimming="CharacterEllipsis" />
+                    <Grid Grid.Row="2" Grid.Column="2" ColumnDefinitions="Auto,*" ColumnSpacing="4">
+                        <ItemsControl ItemsSource="{Binding Project.CategoryTags}" VerticalAlignment="Center">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="3" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="3,1" Background="#E9EDF1" CornerRadius="3">
+                                        <TextBlock FontSize="11" Foreground="#7B8794" Text="{Binding}" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Foreground="#7B8794"
+                                   Text="{Binding Project.Description}" TextTrimming="CharacterEllipsis"
+                                   ToolTip.Tip="{Binding Project.Description}" />
+                    </Grid>
+                    <Grid Grid.Row="3" Grid.Column="2" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="13">
+                        <StackPanel Orientation="Horizontal" Spacing="4" MinWidth="0">
+                            <Path Width="12" Height="12" Data="{StaticResource CommunityVersionIcon}" Stretch="Uniform"
+                                  Fill="Transparent" Stroke="#7B8794" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                            <TextBlock FontSize="12" Foreground="#7B8794" Text="{Binding Project.CompatibilityDisplay}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                            <Path Width="12" Height="12" Data="{StaticResource CommunityDownloadIcon}" Stretch="Uniform"
+                                  Fill="Transparent" Stroke="#87929D" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                            <TextBlock FontSize="12" Foreground="#87929D" Text="{Binding Project.CompactDownloadCountDisplay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                            <Path Width="12" Height="12" Data="{StaticResource CommunityTimeIcon}" Stretch="Uniform"
+                                  Fill="Transparent" Stroke="#87929D" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                            <TextBlock FontSize="12" Foreground="#87929D" Text="{Binding Project.LastUpdatedRelativeDisplay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4">
+                            <Path Width="12" Height="12" Data="{StaticResource CommunitySourceIcon}" Stretch="Uniform"
+                                  Fill="Transparent" Stroke="#87929D" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                            <TextBlock FontSize="12" Foreground="#87929D" Text="{Binding Project.SourceDisplay}" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+                <Border Classes="community-row-action-surface" HorizontalAlignment="Right"
+                        VerticalAlignment="Stretch" Padding="12,0,5,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
+                        <Button Classes="community-row-action" Tag="{Binding}" Click="CommunityResourceQuickDownloadClick"
+                                ToolTip.Tip="快速下载" AutomationProperties.Name="快速下载">
+                            <Path Width="15" Height="15" Data="{StaticResource CommunityDownloadIcon}" Stretch="Uniform"
+                                  Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                  StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                        </Button>
+                        <Button Classes="community-row-action" IsEnabled="False" ToolTip.Tip="收藏">
+                            <Path Width="15" Height="15" Data="{StaticResource CommunityHeartIcon}" Stretch="Uniform"
+                                  Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                  StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </DataTemplate>
 
         <DataTemplate x:Key="OfficialVersionRowTemplate" x:DataType="domain:MinecraftVersionCatalogEntry">
             <Border Classes="official-version-row">
@@ -624,6 +713,107 @@
             <Setter Property="Foreground" Value="#1F5487" />
             <Setter Property="BorderBrush" Value="#609BD4" />
         </Style>
+        <Style Selector="Button.community-project-row">
+            <Setter Property="Height" Value="64" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#E0E8F0" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.community-project-row:pointerover">
+            <Setter Property="Background" Value="#EDF6FF" />
+            <Setter Property="BorderBrush" Value="#C7DEF5" />
+        </Style>
+        <Style Selector="Button.community-project-row:pressed">
+            <Setter Property="Background" Value="#DCEEFF" />
+            <Setter Property="BorderBrush" Value="#83B8F8" />
+        </Style>
+        <Style Selector="Border.community-row-action-surface">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Background" Value="#EDF6FF" />
+        </Style>
+        <Style Selector="Grid.community-project-item:pointerover Border.community-row-action-surface">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="Button.community-row-action">
+            <Setter Property="Width" Value="27" />
+            <Setter Property="Height" Value="27" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#5D7A96" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="Button.community-row-action:pointerover">
+            <Setter Property="Background" Value="#D3E9FD" />
+            <Setter Property="Foreground" Value="#176FC5" />
+        </Style>
+        <Style Selector="Button.community-row-action:disabled">
+            <Setter Property="Opacity" Value="0.45" />
+        </Style>
+        <Style Selector="Button.community-detail-action">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Background" Value="#F9FCFF" />
+            <Setter Property="Foreground" Value="#365879" />
+            <Setter Property="BorderBrush" Value="#B8D2EA" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="Button.community-detail-action:pointerover">
+            <Setter Property="Background" Value="#E8F3FF" />
+            <Setter Property="Foreground" Value="#1F65A3" />
+            <Setter Property="BorderBrush" Value="#83B8F8" />
+        </Style>
+        <Style Selector="ToggleButton.community-version-group-toggle">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="15,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderBrush" Value="#E0E8F0" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          HorizontalContentAlignment="Stretch"
+                                          VerticalContentAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ToggleButton.community-version-group-toggle:pointerover">
+            <Setter Property="Background" Value="#EDF6FF" />
+            <Setter Property="Foreground" Value="#176FC5" />
+        </Style>
+        <Style Selector="Button.community-version-install">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="11,0" />
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#2D6EA7" />
+            <Setter Property="BorderBrush" Value="#A8CBEF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="Button.community-version-install:pointerover">
+            <Setter Property="Background" Value="#CFE7FE" />
+            <Setter Property="Foreground" Value="#176FC5" />
+            <Setter Property="BorderBrush" Value="#72ABE2" />
+        </Style>
         <Style Selector="Button.download-refresh">
             <Setter Property="Width" Value="36" />
             <Setter Property="Height" Value="36" />
@@ -900,6 +1090,7 @@
         </Style>
     </Window.Styles>
 
+    <Grid>
     <Border CornerRadius="8" ClipToBounds="True">
     <Grid Classes="pcl-shell" RowDefinitions="48,*">
         <Border Background="#1370F3" PointerPressed="TitleBarPointerPressed">
@@ -1450,6 +1641,7 @@
                             <!-- Search structure directly adapts PCL2 PageResource and PCL-CE PageComp.
                                  Aurora uses its own Avalonia bindings and credential-free Modrinth service. -->
                             <StackPanel x:Name="DownloadCommunityCard" MinHeight="430" Spacing="12" IsVisible="False">
+                                <StackPanel x:Name="DownloadCommunityCatalogView" Spacing="12">
                                 <Border Classes="pcl-card" Padding="10,7"
                                         IsVisible="{Binding IsCommunityCatalogAvailable}">
                                     <Grid Height="34" ColumnDefinitions="24,*,88" ColumnSpacing="8">
@@ -1530,64 +1722,57 @@
                                     <controls:PclLoadingIndicator Text="{Binding CommunityLoadingText}" />
                                 </Border>
 
-                                <Border Classes="pcl-card" Padding="7" IsVisible="{Binding IsCommunityResultListVisible}">
-                                    <ListBox Classes="download-list"
-                                             ItemsSource="{Binding CommunityResources}"
-                                             SelectedItem="{Binding SelectedCommunityResource}">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:CommunityResourceItemViewModel">
-                                                <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="11">
-                                                    <Border Width="40" Height="40" VerticalAlignment="Top"
-                                                            Background="#DCEEFF" CornerRadius="4" ClipToBounds="True">
-                                                        <Grid>
-                                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                       FontSize="17" FontWeight="SemiBold" Foreground="#1370F3"
-                                                                       IsVisible="{Binding !HasIcon}" Text="{Binding Initial}" />
-                                                            <Image Width="40" Height="40" Stretch="UniformToFill"
-                                                                   IsVisible="{Binding HasIcon}" Source="{Binding Icon}" />
-                                                        </Grid>
-                                                    </Border>
-                                                    <StackPanel Grid.Column="1" Spacing="3">
-                                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                                            <TextBlock FontWeight="SemiBold" Text="{Binding Project.Title}"
-                                                                       TextTrimming="CharacterEllipsis" />
-                                                            <TextBlock Grid.Column="1" MaxWidth="150" FontSize="11" Foreground="#6F7C8B"
-                                                                       Text="{Binding Project.Author, StringFormat='作者：{0}'}"
-                                                                       TextTrimming="CharacterEllipsis" />
-                                                        </Grid>
-                                                        <TextBlock FontSize="12" Foreground="#526170" MaxLines="2"
-                                                                   Text="{Binding Project.Description}" TextTrimming="CharacterEllipsis" TextWrapping="Wrap" />
-                                                        <TextBlock FontSize="11" Foreground="#6F7C8B"
-                                                                   Text="{Binding Project.CategorySummary}" TextTrimming="CharacterEllipsis" />
-                                                        <TextBlock FontSize="11" Foreground="#6F7C8B"
-                                                                   Text="{Binding Project.GameVersionSummary}" TextTrimming="CharacterEllipsis" />
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Column="2" MinWidth="112" HorizontalAlignment="Right" Spacing="3">
-                                                        <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#526170"
-                                                                   Text="{Binding Project.DownloadCountDisplay, StringFormat='下载 {0}'}" />
-                                                        <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#526170"
-                                                                   Text="{Binding Project.FollowerCountDisplay, StringFormat='关注 {0}'}" />
-                                                        <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#6F7C8B"
-                                                                   Text="{Binding Project.LastUpdatedDisplay, StringFormat='更新 {0}'}" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
+                                <Border Classes="pcl-card" Padding="12" IsVisible="{Binding IsCommunityResultListVisible}">
+                                    <ItemsControl ItemsSource="{Binding CommunityResources}"
+                                                  ItemTemplate="{StaticResource CommunityProjectRowTemplate}" />
                                 </Border>
 
-                                <Border Classes="pcl-card" Padding="16"
-                                        IsVisible="{Binding IsCommunityVersionCardVisible}">
-                                    <StackPanel Spacing="11">
-                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                            <StackPanel Spacing="2">
-                                                <TextBlock FontSize="16" FontWeight="SemiBold"
-                                                           Text="{Binding SelectedCommunityResource.Project.Title, TargetNullValue=项目版本}" />
-                                                <TextBlock FontSize="12" Foreground="#6F7C8B"
-                                                           Text="选择适合目标实例的文件" />
-                                            </StackPanel>
-                                        </Grid>
+                                <Border Classes="pcl-card" Padding="12"
+                                        IsVisible="{Binding IsCommunityFooterVisible}">
+                                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
+                                            <Button MinWidth="72" Command="{Binding PreviousCommunityPageCommand}"
+                                                    IsEnabled="{Binding CanGoToPreviousCommunityPage}" Content="上一页" />
+                                            <Border MinWidth="42" Background="#EDF6FF" CornerRadius="3" Padding="10,7">
+                                                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold"
+                                                           Text="{Binding CommunityPageNumber}" />
+                                            </Border>
+                                            <Button MinWidth="72" Command="{Binding NextCommunityPageCommand}"
+                                                    IsEnabled="{Binding CanGoToNextCommunityPage}" Content="下一页" />
+                                    </StackPanel>
+                                </Border>
+                                </StackPanel>
 
+                                <StackPanel x:Name="DownloadCommunityDetailView" IsVisible="False" Spacing="15">
+                                    <Border Classes="pcl-card" Padding="12">
+                                        <StackPanel Spacing="10">
+                                            <Button Classes="community-detail-action" Width="36" Padding="0"
+                                                    HorizontalAlignment="Left" Click="CommunityResourceBackClick"
+                                                    ToolTip.Tip="返回项目列表" AutomationProperties.Name="返回项目列表">
+                                                <Path Width="18" Height="18" Data="{StaticResource CommunityBackIcon}" Stretch="Uniform"
+                                                      Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                      StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                            </Button>
+
+                                            <ContentControl Content="{Binding SelectedCommunityResource}"
+                                                            ContentTemplate="{StaticResource CommunityProjectRowTemplate}"
+                                                            IsHitTestVisible="False" />
+
+                                            <WrapPanel Orientation="Horizontal">
+                                                <Button Classes="community-detail-action" Margin="0,0,5,5"
+                                                        Command="{Binding OpenCommunityResourceCommand}" Content="Modrinth" />
+                                                <Button Classes="community-detail-action" Margin="0,0,5,5"
+                                                        Click="CommunityResourceCopyNameClick" Content="复制名称" />
+                                                <Button Classes="community-detail-action" Margin="0,0,5,5"
+                                                        Click="CommunityResourceCopyLinkClick" Content="复制链接" />
+                                                <Button Classes="community-detail-action" Margin="0,0,5,5"
+                                                        IsEnabled="False" Content="翻译描述" />
+                                                <Button Classes="community-detail-action" Margin="0,0,5,5"
+                                                        IsEnabled="False" Content="收藏" />
+                                            </WrapPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="pcl-card" Padding="12" IsVisible="{Binding HasAvailableInstances}">
                                         <Grid ColumnDefinitions="92,*" ColumnSpacing="10">
                                             <TextBlock VerticalAlignment="Center" Text="目标实例" />
                                             <ComboBox Grid.Column="1" MinWidth="280"
@@ -1603,82 +1788,85 @@
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
                                         </Grid>
+                                    </Border>
 
-                                        <Border MinHeight="110" Padding="16"
-                                                Background="#F3F8FD" CornerRadius="4"
-                                                IsVisible="{Binding IsCommunityVersionLoading}">
-                                            <controls:PclLoadingIndicator Text="正在获取项目版本…" />
-                                        </Border>
+                                    <Border Classes="download-loading-card" Margin="0,35,0,35"
+                                            IsVisible="{Binding IsCommunityVersionLoading}">
+                                        <controls:PclLoadingIndicator Text="正在获取版本列表" />
+                                    </Border>
 
-                                        <ListBox Classes="download-list" MaxHeight="230"
-                                                 IsVisible="{Binding HasCommunityResourceVersions}"
-                                                 ItemsSource="{Binding CommunityResourceVersions}"
-                                                 SelectedItem="{Binding SelectedCommunityResourceVersion}">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate x:DataType="domain:CommunityResourceVersion">
-                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                                                        <StackPanel Spacing="2">
-                                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                                                                <TextBlock FontWeight="SemiBold" Text="{Binding VersionNumber}" />
-                                                                <TextBlock Grid.Column="1" FontSize="11" Foreground="#6F7C8B"
-                                                                           Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                    <ItemsControl ItemsSource="{Binding CommunityResourceVersionGroups}"
+                                                  IsVisible="{Binding HasCommunityResourceVersions}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:CommunityResourceVersionGroupViewModel">
+                                                <Border Classes="version-category-card" Margin="0,0,0,15">
+                                                    <StackPanel>
+                                                        <ToggleButton Classes="community-version-group-toggle"
+                                                                      IsChecked="{Binding IsExpanded, Mode=TwoWay}">
+                                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                                <TextBlock VerticalAlignment="Center" FontSize="13" FontWeight="Bold"
+                                                                           Text="{Binding Title, StringFormat={}{0}}" />
+                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="9">
+                                                                    <TextBlock FontSize="11" Foreground="#7B8794"
+                                                                               Text="{Binding Count, StringFormat={}{0} 个文件}" />
+                                                                    <Grid Width="18" Height="18">
+                                                                        <Path Width="12" Height="7" Data="{StaticResource VersionExpandDownIcon}" Stretch="Uniform"
+                                                                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                                              StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                                              IsVisible="{Binding !IsExpanded}" />
+                                                                        <Path Width="12" Height="7" Data="{StaticResource VersionExpandUpIcon}" Stretch="Uniform"
+                                                                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                                              StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                                              IsVisible="{Binding IsExpanded}" />
+                                                                    </Grid>
+                                                                </StackPanel>
                                                             </Grid>
-                                                            <TextBlock FontSize="11" Foreground="#526170"
-                                                                       Text="{Binding FileSummary}" TextTrimming="CharacterEllipsis" />
-                                                            <TextBlock FontSize="11" Foreground="#6F7C8B"
-                                                                       Text="{Binding DependencySummary}" />
-                                                        </StackPanel>
-                                                        <StackPanel Grid.Column="1" MinWidth="112" HorizontalAlignment="Right" Spacing="2">
-                                                            <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#1370F3"
-                                                                       Text="{Binding ChannelDisplay}" />
-                                                            <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#526170"
-                                                                       Text="{Binding LoaderSummary}" />
-                                                            <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#6F7C8B"
-                                                                       Text="{Binding PublishedAtDisplay}" />
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
+                                                        </ToggleButton>
+                                                        <ItemsControl Margin="12,0,12,10" ItemsSource="{Binding Versions}"
+                                                                      IsVisible="{Binding IsExpanded}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate x:DataType="domain:CommunityResourceVersion">
+                                                                    <Border MinHeight="58" Padding="5,6" BorderBrush="#E7EDF3" BorderThickness="0,0,0,1">
+                                                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                                                                            <StackPanel VerticalAlignment="Center" Spacing="2">
+                                                                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                                                                    <TextBlock FontWeight="SemiBold" Text="{Binding VersionNumber}" />
+                                                                                    <TextBlock Grid.Column="1" FontSize="11" Foreground="#6F7C8B"
+                                                                                               Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                                                                </Grid>
+                                                                                <TextBlock FontSize="11" Foreground="#526170"
+                                                                                           Text="{Binding FileSummary}" TextTrimming="CharacterEllipsis" />
+                                                                            </StackPanel>
+                                                                            <StackPanel Grid.Column="1" MinWidth="92" VerticalAlignment="Center"
+                                                                                        HorizontalAlignment="Right" Spacing="2">
+                                                                                <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#1370F3"
+                                                                                           Text="{Binding ChannelDisplay}" />
+                                                                                <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#526170"
+                                                                                           Text="{Binding LoaderSummary}" />
+                                                                                <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#6F7C8B"
+                                                                                           Text="{Binding PublishedAtDisplay}" />
+                                                                            </StackPanel>
+                                                                            <Button Grid.Column="2" Classes="community-version-install" Tag="{Binding}"
+                                                                                    VerticalAlignment="Center" Click="CommunityVersionInstallClick"
+                                                                                    AutomationProperties.Name="{Binding VersionNumber, StringFormat=安装 {0}}"
+                                                                                    Content="安装" />
+                                                                        </Grid>
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
 
-                                        <Border Classes="pcl-status-strip" Background="#EDF6FF">
-                                            <TextBlock FontSize="12" Foreground="#365879"
-                                                       Text="{Binding CommunityVersionSummary}"
-                                                       TextWrapping="Wrap" />
-                                        </Border>
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <Button Classes="community-action-primary" MinWidth="112"
-                                                    Command="{Binding InstallCommunityResourceCommand}"
-                                                    IsEnabled="{Binding CanInstallCommunityResource}"
-                                                    Content="下载并安装" />
-                                            <Button Height="34" MinWidth="64"
-                                                    Command="{Binding CancelCommunityResourceOperationCommand}"
-                                                    IsEnabled="{Binding CanCancelCommunityResourceOperation}"
-                                                    Content="取消" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-
-                                <Border Classes="pcl-card" Padding="12"
-                                        IsVisible="{Binding IsCommunityFooterVisible}">
-                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <Button MinWidth="72" Command="{Binding PreviousCommunityPageCommand}"
-                                                    IsEnabled="{Binding CanGoToPreviousCommunityPage}" Content="上一页" />
-                                            <Border MinWidth="42" Background="#EDF6FF" CornerRadius="3" Padding="10,7">
-                                                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold"
-                                                           Text="{Binding CommunityPageNumber}" />
-                                            </Border>
-                                            <Button MinWidth="72" Command="{Binding NextCommunityPageCommand}"
-                                                    IsEnabled="{Binding CanGoToNextCommunityPage}" Content="下一页" />
-                                        </StackPanel>
-                                        <Button Grid.Column="1" Classes="community-action-primary" MinWidth="112"
-                                                HorizontalAlignment="Right"
-                                                Command="{Binding OpenCommunityResourceCommand}"
-                                                IsEnabled="{Binding CanOpenCommunityResource}"
-                                                Content="打开项目页" />
-                                    </Grid>
-                                </Border>
+                                    <Border Classes="pcl-status-strip" Background="#EDF6FF"
+                                            IsVisible="{Binding !HasCommunityResourceVersions}">
+                                        <TextBlock FontSize="12" Foreground="#365879"
+                                                   Text="{Binding CommunityVersionSummary}" TextWrapping="Wrap" />
+                                    </Border>
+                                </StackPanel>
                             </StackPanel>
 
                             <Border x:Name="DownloadDeferredCard" Classes="pcl-card" Padding="20" IsVisible="False">
@@ -2146,5 +2334,23 @@
         </Grid>
     </Grid>
     </Border>
+
+    <Border Height="6" Margin="7,0" VerticalAlignment="Top" Background="Transparent"
+            Cursor="SizeNorthSouth" Tag="North" PointerPressed="ResizeWindowPointerPressed" />
+    <Border Height="6" Margin="7,0" VerticalAlignment="Bottom" Background="Transparent"
+            Cursor="SizeNorthSouth" Tag="South" PointerPressed="ResizeWindowPointerPressed" />
+    <Border Width="6" Margin="0,7" HorizontalAlignment="Left" Background="Transparent"
+            Cursor="SizeWestEast" Tag="West" PointerPressed="ResizeWindowPointerPressed" />
+    <Border Width="6" Margin="0,7" HorizontalAlignment="Right" Background="Transparent"
+            Cursor="SizeWestEast" Tag="East" PointerPressed="ResizeWindowPointerPressed" />
+    <Border Width="9" Height="9" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
+            Cursor="TopLeftCorner" Tag="NorthWest" PointerPressed="ResizeWindowPointerPressed" />
+    <Border Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent"
+            Cursor="TopRightCorner" Tag="NorthEast" PointerPressed="ResizeWindowPointerPressed" />
+    <Border Width="9" Height="9" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent"
+            Cursor="BottomLeftCorner" Tag="SouthWest" PointerPressed="ResizeWindowPointerPressed" />
+    <Border Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent"
+            Cursor="BottomRightCorner" Tag="SouthEast" PointerPressed="ResizeWindowPointerPressed" />
+    </Grid>
 
 </Window>

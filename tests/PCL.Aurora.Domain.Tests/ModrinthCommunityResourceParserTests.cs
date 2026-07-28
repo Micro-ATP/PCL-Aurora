@@ -44,6 +44,9 @@ public sealed class ModrinthCommunityResourceParserTests
         Assert.Equal("https://modrinth.com/mod/sodium", project.WebsiteUrl.AbsoluteUri.TrimEnd('/'));
         Assert.Equal(123456, project.Downloads);
         Assert.Contains("optimization", project.Categories);
+        Assert.Equal(["fabric"], project.Loaders);
+        Assert.Contains("性能优化", project.CategoryTags);
+        Assert.Equal("Fabric 1.21", project.CompatibilityDisplay);
     }
 
     [Fact]

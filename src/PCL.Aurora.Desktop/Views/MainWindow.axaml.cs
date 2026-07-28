@@ -116,6 +116,17 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ResizeWindowPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (CanResize &&
+            sender is Control { Tag: string edgeName } &&
+            Enum.TryParse<WindowEdge>(edgeName, out var edge) &&
+            e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginResizeDrag(edge, e);
+        }
+    }
+
     private void MinimizeWindowClick(object? sender, RoutedEventArgs e)
     {
         WindowState = WindowState.Minimized;
@@ -259,6 +270,10 @@ public partial class MainWindow : Window
         DownloadLoaderView.IsVisible = loaderKind is not null;
         DownloadDeferredTitle.Text = GetDownloadSectionTitle(section);
         DownloadContentScroller.Offset = default;
+        if (isCommunity)
+        {
+            ShowCommunityCatalog();
+        }
 
         if (DataContext is ViewModels.MainViewModel viewModel)
         {
@@ -357,6 +372,85 @@ public partial class MainWindow : Window
         "liteloader" => "LiteLoader",
         _ => "下载",
     };
+
+    private async void CommunityResourceOpenClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: ViewModels.CommunityResourceItemViewModel item } ||
+            DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        await ShowCommunityResourceDetailAsync(viewModel, item);
+    }
+
+    private async void CommunityResourceQuickDownloadClick(object? sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is not Button { Tag: ViewModels.CommunityResourceItemViewModel item } ||
+            DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        await ShowCommunityResourceDetailAsync(viewModel, item);
+    }
+
+    private async Task ShowCommunityResourceDetailAsync(
+        ViewModels.MainViewModel viewModel,
+        ViewModels.CommunityResourceItemViewModel item)
+    {
+        viewModel.SelectedCommunityResource = item;
+        DownloadCommunityCatalogView.IsVisible = false;
+        DownloadCommunityDetailView.IsVisible = true;
+        DownloadContentScroller.Offset = default;
+        await viewModel.LoadSelectedCommunityResourceVersionsAsync();
+    }
+
+    private async void CommunityVersionInstallClick(object? sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is Button { Tag: CommunityResourceVersion version } &&
+            DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.InstallCommunityResourceVersionAsync(version);
+        }
+    }
+
+    private void CommunityResourceBackClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.SelectedCommunityResource = null;
+        }
+
+        ShowCommunityCatalog();
+    }
+
+    private async void CommunityResourceCopyNameClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel { SelectedCommunityResource.Project.Title: { } title } &&
+            TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+        {
+            await clipboard.SetTextAsync(title);
+        }
+    }
+
+    private async void CommunityResourceCopyLinkClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel { SelectedCommunityResource.Project.WebsiteUrl: { } website } &&
+            TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+        {
+            await clipboard.SetTextAsync(website.AbsoluteUri);
+        }
+    }
+
+    private void ShowCommunityCatalog()
+    {
+        DownloadCommunityCatalogView.IsVisible = true;
+        DownloadCommunityDetailView.IsVisible = false;
+        DownloadContentScroller.Offset = default;
+    }
 
     private void VersionCategoryToggleClick(object? sender, RoutedEventArgs e)
     {
