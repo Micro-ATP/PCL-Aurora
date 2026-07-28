@@ -34,8 +34,8 @@
 
         <DataTemplate x:Key="OfficialVersionRowTemplate" x:DataType="domain:MinecraftVersionCatalogEntry">
             <Border Classes="official-version-row">
-                <Grid ColumnDefinitions="*,Auto">
-                    <Button Grid.ColumnSpan="2" Classes="official-version-main" Tag="{Binding}" Click="OfficialVersionOpenClick"
+                <Grid>
+                    <Button Classes="official-version-main" Tag="{Binding}" Click="OfficialVersionOpenClick"
                             AutomationProperties.Name="{Binding Id, StringFormat=下载 Minecraft {0}}">
                         <Grid ColumnDefinitions="34,*" ColumnSpacing="8">
                             <Image Width="30" Height="30" VerticalAlignment="Center" Stretch="Uniform"
@@ -47,8 +47,8 @@
                             </StackPanel>
                         </Grid>
                     </Button>
-                    <StackPanel Grid.Column="1" Classes="version-actions" Margin="0,0,6,0"
-                                Orientation="Horizontal" VerticalAlignment="Center" Spacing="1">
+                    <StackPanel Classes="version-actions" Margin="0,0,6,0" Panel.ZIndex="1"
+                                Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="1">
                         <Button Classes="version-row-action" Tag="{Binding}" Click="OfficialVersionChangelogClick"
                                 ToolTip.Tip="更新日志" AutomationProperties.Name="{Binding Id, StringFormat=查看 Minecraft {0} 更新日志}">
                             <Path Width="18" Height="18" Data="{StaticResource VersionInfoIcon}" Stretch="Uniform" Fill="Transparent"
@@ -783,7 +783,8 @@
         </Style>
         <Style Selector="Button.official-version-main">
             <Setter Property="Height" Value="42" />
-            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="Padding" Value="8,0,74,0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
