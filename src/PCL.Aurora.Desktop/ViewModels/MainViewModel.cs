@@ -69,7 +69,6 @@ public partial class MainViewModel(
     private CancellationTokenSource? microsoftLoginCancellation;
     private Uri? microsoftVerificationUri;
     private CancellationTokenSource? communitySearchCancellation;
-    private CancellationTokenSource? communityIconCancellation;
     private CancellationTokenSource? communityVersionCancellation;
     private CancellationTokenSource? communityInstallationCancellation;
 
@@ -1291,7 +1290,6 @@ public partial class MainViewModel(
         communityVersionCancellation = null;
         communityInstallationCancellation?.Cancel();
         communityInstallationCancellation = null;
-        CancelCommunityIconLoading();
         IsCommunitySearchRunning = false;
         CanCancelCommunitySearch = false;
         IsCommunityVersionLoading = false;
@@ -1566,6 +1564,8 @@ public partial class MainViewModel(
         CanSearchCommunityResources = false;
         CommunityLoadingText = $"正在获取 {GetCommunityResourceTypeName(type)} 列表";
         CommunityResourceSummary = string.Empty;
+        CommunityResourceItemViewModel[] pendingItems = [];
+        var publishedItems = false;
         try
         {
             var result = await communityResourceSearchService.SearchAsync(
@@ -1589,17 +1589,29 @@ public partial class MainViewModel(
                 return;
             }
 
-            CancelCommunityIconLoading();
+            pendingItems = result.Projects
+                .Select(project => new CommunityResourceItemViewModel(project))
+                .ToArray();
+            if (pendingItems.Length > 0)
+            {
+                CommunityLoadingText = $"正在加载 {GetCommunityResourceTypeName(type)} 图标";
+                await LoadCommunityIconsAsync(pendingItems, cancellation.Token);
+                cancellation.Token.ThrowIfCancellationRequested();
+                if (!ReferenceEquals(communitySearchCancellation, cancellation) || communityResourceType != type)
+                {
+                    return;
+                }
+            }
+
             ClearCommunityResources();
-            var items = result.Projects.Select(project => new CommunityResourceItemViewModel(project)).ToArray();
-            foreach (var item in items)
+            foreach (var item in pendingItems)
             {
                 CommunityResources.Add(item);
             }
+            publishedItems = true;
 
             CommunityPage = page;
             HasCommunityResources = CommunityResources.Count > 0;
-            StartCommunityIconLoading(items);
             CanGoToPreviousCommunityPage = page > 0;
             CanGoToNextCommunityPage = result.HasNextPage;
             CommunityResourceSummary = result.Projects.Count == 0
@@ -1616,6 +1628,14 @@ public partial class MainViewModel(
         }
         finally
         {
+            if (!publishedItems)
+            {
+                foreach (var item in pendingItems)
+                {
+                    item.Dispose();
+                }
+            }
+
             if (ReferenceEquals(communitySearchCancellation, cancellation))
             {
                 communitySearchCancellation = null;
@@ -1626,35 +1646,10 @@ public partial class MainViewModel(
         }
     }
 
-    private void StartCommunityIconLoading(IReadOnlyList<CommunityResourceItemViewModel> items)
-    {
-        CancelCommunityIconLoading();
-        var cancellation = new CancellationTokenSource();
-        communityIconCancellation = cancellation;
-        _ = LoadCommunityIconsAsync(items, cancellation);
-    }
-
-    private async Task LoadCommunityIconsAsync(
+    private Task LoadCommunityIconsAsync(
         IReadOnlyList<CommunityResourceItemViewModel> items,
-        CancellationTokenSource cancellation)
-    {
-        try
-        {
-            await Task.WhenAll(items.Select(item => LoadCommunityIconAsync(item, cancellation.Token)));
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        finally
-        {
-            if (ReferenceEquals(communityIconCancellation, cancellation))
-            {
-                communityIconCancellation = null;
-            }
-
-            cancellation.Dispose();
-        }
-    }
+        CancellationToken cancellationToken) =>
+        Task.WhenAll(items.Select(item => LoadCommunityIconAsync(item, cancellationToken)));
 
     private async Task LoadCommunityIconAsync(
         CommunityResourceItemViewModel item,
@@ -1668,7 +1663,7 @@ public partial class MainViewModel(
         try
         {
             var bytes = await communityResourceIconService.LoadAsync(iconUrl, cancellationToken);
-            if (bytes is null || cancellationToken.IsCancellationRequested || !CommunityResources.Contains(item))
+            if (bytes is null || cancellationToken.IsCancellationRequested)
             {
                 return;
             }
@@ -1682,12 +1677,6 @@ public partial class MainViewModel(
         {
             // A malformed project icon must not hide an otherwise valid search result.
         }
-    }
-
-    private void CancelCommunityIconLoading()
-    {
-        communityIconCancellation?.Cancel();
-        communityIconCancellation = null;
     }
 
     private void ClearCommunityResources()

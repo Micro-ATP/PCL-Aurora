@@ -1,7 +1,7 @@
 namespace PCL.Aurora.Application;
 
 /// <summary>
-/// Loads bounded project icons without blocking community search results.
+/// Loads bounded project icons for community search results.
 /// </summary>
 public interface ICommunityResourceIconService
 {
