@@ -938,7 +938,11 @@
                                                        Text="你正在使用 PCL Aurora（PCL 跨平台版）！此版本为独立开发和维护，与原版维护路线不同，体验有所出入。" />
                                             <TextBlock FontSize="13.5" Foreground="#4F5E6E" LineHeight="20"
                                                        TextWrapping="Wrap"
-                                                       Text="如果你是意外下载到了 PCL Aurora，我们十分建议您下载原版 PCL 长期使用，此发行版本对新手用户体验可能不友好。此外，PCL Aurora 的问题请向 PCL Aurora 的仓库提交 Issue，不要向官方仓库反馈 PCL Aurora 的问题哦！" />
+                                                       Text="如果你是意外下载到了 PCL Aurora，我们十分建议您下载原版 PCL 长期使用，此发行版本对新手用户体验可能不友好。" />
+                                            <TextBlock FontSize="13.5" Foreground="#4F5E6E" LineHeight="20"
+                                                       TextWrapping="Wrap"
+                                                       Text="此外，PCL Aurora 的问题请向 PCL Aurora 的仓库提交 Issue，不要向官方仓库反馈 PCL Aurora 的问题哦！" />
+
                                         </StackPanel>
                                     </Grid>
                                 </Border>
