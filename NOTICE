@@ -45,6 +45,9 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadClient.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadClient.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml
+- PCL-CE: Plain Craft Launcher 2/Controls/MyCard.cs
+- PCL-CE: Plain Craft Launcher 2/Controls/MyListItem.xaml
+- PCL-CE: Plain Craft Launcher 2/Controls/MyListItem.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadForge.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadForge.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadNeoForge.xaml

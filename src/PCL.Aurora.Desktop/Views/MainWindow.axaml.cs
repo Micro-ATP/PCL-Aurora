@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
@@ -258,10 +259,6 @@ public partial class MainWindow : Window
         DownloadLoaderView.IsVisible = loaderKind is not null;
         DownloadDeferredTitle.Text = GetDownloadSectionTitle(section);
         DownloadContentScroller.Offset = default;
-        if (isGame)
-        {
-            ShowOfficialVersionCatalog();
-        }
 
         if (DataContext is ViewModels.MainViewModel viewModel)
         {
@@ -361,26 +358,23 @@ public partial class MainWindow : Window
         _ => "下载",
     };
 
-    private void VersionFilterClick(object? sender, RoutedEventArgs e)
+    private void VersionCategoryToggleClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: string filter } || DataContext is not ViewModels.MainViewModel viewModel)
+        if (sender is not ToggleButton { IsChecked: true, Tag: string category } ||
+            DataContext is not ViewModels.MainViewModel viewModel)
         {
             return;
         }
 
-        viewModel.VersionSearchText = string.Empty;
-        viewModel.SelectedVersionCategory = filter switch
+        var (itemsControl, versions) = category switch
         {
-            "release" => MinecraftVersionCatalogCategory.Release,
-            "snapshot" => MinecraftVersionCatalogCategory.Snapshot,
-            "legacy" => MinecraftVersionCatalogCategory.Legacy,
-            "april-fools" => MinecraftVersionCatalogCategory.AprilFools,
-            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null),
+            "release" => (ReleaseVersionItems, viewModel.ReleaseVersions),
+            "snapshot" => (SnapshotVersionItems, viewModel.SnapshotVersions),
+            "legacy" => (LegacyVersionItems, viewModel.LegacyVersions),
+            "april-fools" => (AprilFoolsVersionItems, viewModel.AprilFoolsVersions),
+            _ => throw new ArgumentOutOfRangeException(nameof(category), category, null),
         };
-        ReleaseVersionGroup.Classes.Set("selected", filter == "release");
-        SnapshotVersionGroup.Classes.Set("selected", filter == "snapshot");
-        LegacyVersionGroup.Classes.Set("selected", filter == "legacy");
-        AprilFoolsVersionGroup.Classes.Set("selected", filter == "april-fools");
+        itemsControl.ItemsSource ??= versions;
     }
 
     private async void OfficialVersionOpenClick(object? sender, RoutedEventArgs e)
@@ -390,34 +384,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        DownloadGameCatalogView.IsVisible = false;
-        DownloadGameDetailView.IsVisible = true;
-        DownloadContentScroller.Offset = default;
-        await viewModel.LoadSelectedVersionDetailAsync();
-    }
-
-    private void OfficialVersionBackClick(object? sender, RoutedEventArgs e) => ShowOfficialVersionCatalog();
-
-    private async void OfficialVersionSaveAsClick(object? sender, RoutedEventArgs e)
-    {
-        e.Handled = true;
-        if (!TrySelectOfficialVersion(sender, out var viewModel))
-        {
-            return;
-        }
-
-        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-        {
-            Title = $"另存 Minecraft {viewModel.SelectedCatalogVersion!.Id}",
-            AllowMultiple = false,
-        });
-        var destination = folders.SingleOrDefault()?.TryGetLocalPath();
-        if (string.IsNullOrWhiteSpace(destination))
-        {
-            return;
-        }
-
-        await viewModel.SaveSelectedVersionClientCoreAsync(destination);
+        await ChooseDirectoryAndInstallOfficialVersionAsync(viewModel);
     }
 
     private async void OfficialVersionChangelogClick(object? sender, RoutedEventArgs e)
@@ -461,9 +428,9 @@ public partial class MainWindow : Window
         await viewModel.SaveSelectedVersionServerAsync(destinationPath);
     }
 
-    private async void OfficialVersionInstallClick(object? sender, RoutedEventArgs e)
+    private async Task ChooseDirectoryAndInstallOfficialVersionAsync(ViewModels.MainViewModel viewModel)
     {
-        if (DataContext is not ViewModels.MainViewModel { SelectedCatalogVersion: { } version } viewModel)
+        if (viewModel.SelectedCatalogVersion is not { } version || viewModel.IsInstallationRunning)
         {
             return;
         }
@@ -482,28 +449,17 @@ public partial class MainWindow : Window
         await viewModel.InstallSelectedOfficialVersionAsync(minecraftRootDirectory);
     }
 
-    private async void VersionDetailLoaderClick(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { Tag: string section })
-        {
-            return;
-        }
-
-        var navigation = DownloadNavigationPanel
-            .GetVisualDescendants()
-            .OfType<PclNavigationButton>()
-            .FirstOrDefault(candidate => Equals(candidate.Tag, section));
-        if (navigation is not null)
-        {
-            await SelectDownloadSectionAsync(section, navigation);
-        }
-    }
-
     private bool TrySelectOfficialVersion(object? sender, out ViewModels.MainViewModel viewModel)
     {
         viewModel = null!;
-        if (sender is not Button { Tag: MinecraftVersionCatalogEntry version } ||
-            DataContext is not ViewModels.MainViewModel candidate)
+        if (sender is not Button button || DataContext is not ViewModels.MainViewModel candidate)
+        {
+            return false;
+        }
+
+        var version = button.Tag as MinecraftVersionCatalogEntry ??
+                      button.DataContext as MinecraftVersionCatalogEntry;
+        if (version is null)
         {
             return false;
         }
@@ -511,13 +467,6 @@ public partial class MainWindow : Window
         candidate.SelectedCatalogVersion = version;
         viewModel = candidate;
         return true;
-    }
-
-    private void ShowOfficialVersionCatalog()
-    {
-        DownloadGameCatalogView.IsVisible = true;
-        DownloadGameDetailView.IsVisible = false;
-        DownloadContentScroller.Offset = default;
     }
 
     private void SettingsNavigationClick(object? sender, RoutedEventArgs e)

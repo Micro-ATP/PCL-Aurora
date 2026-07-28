@@ -75,6 +75,14 @@ public partial class MainViewModel(
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
+    public ObservableCollection<MinecraftVersionCatalogEntry> ReleaseVersions { get; } = [];
+
+    public ObservableCollection<MinecraftVersionCatalogEntry> SnapshotVersions { get; } = [];
+
+    public ObservableCollection<MinecraftVersionCatalogEntry> LegacyVersions { get; } = [];
+
+    public ObservableCollection<MinecraftVersionCatalogEntry> AprilFoolsVersions { get; } = [];
+
     public ObservableCollection<MinecraftLoaderCatalogEntry> AvailableLoaders { get; } = [];
 
     public ObservableCollection<CommunityResourceItemViewModel> CommunityResources { get; } = [];
@@ -292,24 +300,6 @@ public partial class MainViewModel(
     private bool isVersionCatalogLoading;
 
     [ObservableProperty]
-    private bool isVersionDetailLoading;
-
-    [ObservableProperty]
-    private string versionDetailSummary = "选择版本后将检查可添加的组件。";
-
-    [ObservableProperty]
-    private string selectedVersionForgeAvailability = "正在检查";
-
-    [ObservableProperty]
-    private string selectedVersionNeoForgeAvailability = "正在检查";
-
-    [ObservableProperty]
-    private string selectedVersionFabricAvailability = "正在检查";
-
-    [ObservableProperty]
-    private string selectedVersionOptiFineAvailability = "正在检查";
-
-    [ObservableProperty]
     private string loaderCatalogPath = string.Empty;
 
     [ObservableProperty]
@@ -428,71 +418,6 @@ public partial class MainViewModel(
     public Task LoadVersionCatalogPageAsync() => RefreshVersionCatalogAsync();
 
     public Task LoadOfficialLoaderCatalogPageAsync() => RefreshOfficialLoaderCatalogAsync();
-
-    public async Task LoadSelectedVersionDetailAsync()
-    {
-        if (SelectedCatalogVersion is null || IsVersionDetailLoading)
-        {
-            return;
-        }
-
-        IsVersionDetailLoading = true;
-        SelectedVersionForgeAvailability = "正在检查";
-        SelectedVersionNeoForgeAvailability = "正在检查";
-        SelectedVersionFabricAvailability = "正在检查";
-        SelectedVersionOptiFineAvailability = "正在检查";
-        try
-        {
-            var result = await officialLoaderCatalogService.FetchAsync(SelectedCatalogVersion.Id);
-            var entries = result.Catalog?.Entries ?? [];
-            SelectedVersionForgeAvailability = FormatAvailability(entries, MinecraftLoaderKind.Forge, result.Errors);
-            SelectedVersionNeoForgeAvailability = FormatAvailability(entries, MinecraftLoaderKind.NeoForge, result.Errors);
-            SelectedVersionFabricAvailability = FormatAvailability(entries, MinecraftLoaderKind.Fabric, result.Errors);
-            SelectedVersionOptiFineAvailability = FormatAvailability(entries, MinecraftLoaderKind.OptiFine, result.Errors);
-            VersionDetailSummary = result.Errors.Count == 0
-                ? $"已检查 Minecraft {SelectedCatalogVersion.Id} 的可选组件。"
-                : $"已读取可用组件，部分目录暂时不可用：{string.Join("；", result.Errors)}";
-        }
-        catch (OperationCanceledException)
-        {
-            VersionDetailSummary = "组件目录检查已取消。";
-        }
-        catch (Exception exception)
-        {
-            SelectedVersionForgeAvailability = "获取失败";
-            SelectedVersionNeoForgeAvailability = "获取失败";
-            SelectedVersionFabricAvailability = "获取失败";
-            SelectedVersionOptiFineAvailability = "获取失败";
-            VersionDetailSummary = $"组件目录检查失败：{exception.Message}";
-        }
-        finally
-        {
-            IsVersionDetailLoading = false;
-        }
-    }
-
-    public async Task SaveSelectedVersionClientCoreAsync(string destinationDirectory)
-    {
-        if (SelectedCatalogVersion is null)
-        {
-            return;
-        }
-
-        try
-        {
-            VersionCatalogSummary = $"正在另存 {SelectedCatalogVersion.Id} 的客户端核心…";
-            var target = await versionArchiveService.SaveClientCoreAsync(SelectedCatalogVersion, destinationDirectory);
-            VersionCatalogSummary = $"客户端核心已保存到 {target}。";
-        }
-        catch (OperationCanceledException)
-        {
-            VersionCatalogSummary = "另存为已取消。";
-        }
-        catch (Exception exception)
-        {
-            VersionCatalogSummary = $"另存为失败：{exception.Message}";
-        }
-    }
 
     public async Task SaveSelectedVersionServerAsync(string destinationFile)
     {
@@ -831,6 +756,10 @@ public partial class MainViewModel(
             {
                 allCatalogVersions.Clear();
                 AvailableVersions.Clear();
+                ReleaseVersions.Clear();
+                SnapshotVersions.Clear();
+                LegacyVersions.Clear();
+                AprilFoolsVersions.Clear();
                 SelectedCatalogVersion = null;
                 LatestReleaseVersion = null;
                 LatestSnapshotVersion = null;
@@ -841,9 +770,9 @@ public partial class MainViewModel(
             allCatalogVersions.Clear();
             allCatalogVersions.AddRange(result.Catalog.Versions);
             LatestReleaseVersion = allCatalogVersions.FirstOrDefault(version =>
-                string.Equals(version.Type, "release", StringComparison.OrdinalIgnoreCase));
+                MinecraftVersionCatalogFilter.GetCategory(version) == MinecraftVersionCatalogCategory.Release);
             LatestSnapshotVersion = allCatalogVersions.FirstOrDefault(version =>
-                string.Equals(version.Type, "snapshot", StringComparison.OrdinalIgnoreCase));
+                MinecraftVersionCatalogFilter.GetCategory(version) == MinecraftVersionCatalogCategory.Snapshot);
             ApplyVersionFilters(result.Catalog.LatestRelease);
         }
         catch (OperationCanceledException)
@@ -951,6 +880,31 @@ public partial class MainViewModel(
         }
 
         var selectedId = SelectedCatalogVersion?.Id ?? preferredVersionId;
+        ReplaceVersions(
+            ReleaseVersions,
+            MinecraftVersionCatalogFilter.FilterByCategory(
+                allCatalogVersions,
+                null,
+                MinecraftVersionCatalogCategory.Release));
+        ReplaceVersions(
+            SnapshotVersions,
+            MinecraftVersionCatalogFilter.FilterByCategory(
+                allCatalogVersions,
+                null,
+                MinecraftVersionCatalogCategory.Snapshot));
+        ReplaceVersions(
+            LegacyVersions,
+            MinecraftVersionCatalogFilter.FilterByCategory(
+                allCatalogVersions,
+                null,
+                MinecraftVersionCatalogCategory.Legacy));
+        ReplaceVersions(
+            AprilFoolsVersions,
+            MinecraftVersionCatalogFilter.FilterByCategory(
+                allCatalogVersions,
+                null,
+                MinecraftVersionCatalogCategory.AprilFools));
+
         var filtered = MinecraftVersionCatalogFilter.FilterByCategory(
             allCatalogVersions,
             VersionSearchText,
@@ -962,40 +916,20 @@ public partial class MainViewModel(
             AvailableVersions.Add(version);
         }
 
-        SelectedCatalogVersion = AvailableVersions.FirstOrDefault(version => version.Id == selectedId)
-            ?? AvailableVersions.FirstOrDefault();
-        VersionCatalogSummary = AvailableVersions.Count == 0
-            ? "没有符合当前筛选条件的官方版本；不会创建实例。"
-            : $"已加载 {allCatalogVersions.Count} 个官方版本；当前分类显示 {AvailableVersions.Count} 个。";
+        SelectedCatalogVersion = allCatalogVersions.FirstOrDefault(version => version.Id == selectedId)
+            ?? LatestReleaseVersion;
+        VersionCatalogSummary = $"已加载 {allCatalogVersions.Count} 个官方版本。";
     }
 
-    private static string FormatAvailability(
-        IReadOnlyList<MinecraftLoaderCatalogEntry> entries,
-        MinecraftLoaderKind kind,
-        IReadOnlyList<string> errors) =>
-        entries.Any(entry => entry.Kind == kind)
-            ? "可以添加"
-            : errors.Any(error => IsLoaderSourceError(error, kind))
-                ? "获取失败"
-                : "无可用版本";
-
-    private static bool IsLoaderSourceError(string error, MinecraftLoaderKind kind)
+    private static void ReplaceVersions(
+        ObservableCollection<MinecraftVersionCatalogEntry> target,
+        IEnumerable<MinecraftVersionCatalogEntry> source)
     {
-        if (error.StartsWith("无法获取加载器目录", StringComparison.OrdinalIgnoreCase) ||
-            error.StartsWith("官方加载器目录格式无效", StringComparison.OrdinalIgnoreCase))
+        target.Clear();
+        foreach (var version in source)
         {
-            return true;
+            target.Add(version);
         }
-
-        var source = kind switch
-        {
-            MinecraftLoaderKind.Forge => "无法获取 Forge 目录",
-            MinecraftLoaderKind.NeoForge => "无法获取 NeoForge",
-            MinecraftLoaderKind.Fabric => "无法获取 Fabric 目录",
-            MinecraftLoaderKind.OptiFine => "无法获取 OptiFine 公开目录",
-            _ => string.Empty,
-        };
-        return source.Length > 0 && error.StartsWith(source, StringComparison.OrdinalIgnoreCase);
     }
 
     private static Uri CreateMinecraftWikiUri(string versionId)
