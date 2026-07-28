@@ -935,35 +935,40 @@
                         </Grid>
                     </Border>
                     <Border Grid.Column="1" Background="#D9EAF9">
-                        <StackPanel Margin="28" MaxWidth="520" HorizontalAlignment="Stretch" VerticalAlignment="Top" Spacing="14">
-                            <!-- PCL-CE places a compact notice card in the otherwise empty PCL2 launch-right region. -->
-                            <Border Classes="pcl-notice">
-                                <StackPanel Spacing="9">
-                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="欢迎使用 PCL Aurora" />
-                                    <TextBlock Foreground="#536273" TextWrapping="Wrap"
-                                               Text="选择左侧账户与游戏版本，然后开始游戏。" />
-                                    <Border Height="1" Background="#E2E8F0" />
-                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                                        <Path Width="16" Height="16" VerticalAlignment="Top" Stroke="#1370F3" StrokeThickness="2"
-                                              Data="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
-                                        <TextBlock Grid.Column="1" FontSize="12" Foreground="#6F7C8B" TextWrapping="Wrap"
-                                                   Text="正版登录支持 Microsoft 设备代码授权。" />
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="28,24,28,28" MaxWidth="520"
+                                        HorizontalAlignment="Stretch" VerticalAlignment="Top" Spacing="14">
+                                <!-- Direct Avalonia adaptation of PCL-CE PageLaunchRight's community notice card. -->
+                                <Border Classes="pcl-notice" Padding="0">
+                                    <Grid RowDefinitions="40,*">
+                                        <TextBlock Margin="18,0" VerticalAlignment="Center"
+                                                   FontSize="16" FontWeight="SemiBold"
+                                                   Foreground="#1370F3" Text="PCL Aurora 提示" />
+                                        <Border Grid.Row="1" Height="1" VerticalAlignment="Top" Background="#E2E8F0" />
+                                        <StackPanel Grid.Row="1" Margin="18,14,18,17" Spacing="11">
+                                            <TextBlock FontSize="13.5" Foreground="#4F5E6E" LineHeight="20"
+                                                       TextWrapping="Wrap"
+                                                       Text="你正在使用 PCL Aurora（PCL 跨平台版）！此版本为独立开发和维护，与原版维护路线不同，体验有所出入。" />
+                                            <TextBlock FontSize="13.5" Foreground="#4F5E6E" LineHeight="20"
+                                                       TextWrapping="Wrap"
+                                                       Text="如果你是意外下载到了 PCL Aurora，我们十分建议您下载原版 PCL 长期使用，此发行版本对新手用户体验可能不友好。此外，PCL Aurora 的问题请向 PCL Aurora 的仓库提交 Issue，不要向官方仓库反馈 PCL Aurora 的问题哦！" />
+                                        </StackPanel>
                                     </Grid>
-                                </StackPanel>
-                            </Border>
-                            <Border Classes="pcl-notice" IsVisible="{Binding HasAvailableInstances}">
-                                <StackPanel Spacing="9">
-                                    <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#1370F3" Text="启动状态" />
-                                    <TextBlock Text="{Binding GameLaunchSummary}" TextWrapping="Wrap" />
-                                    <TextBlock Foreground="#6F7C8B" Text="{Binding LaunchPreflightSummary}" TextWrapping="Wrap" />
-                                    <TextBlock Foreground="#6F7C8B" Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
-                                    <TextBlock Foreground="#6F7C8B" Text="{Binding JavaRequirementSummary}" TextWrapping="Wrap" />
-                                    <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
-                                              IsChecked="{Binding HasAcknowledgedAccountGuidance}"
-                                              Content="我已知悉正版购买与上游赞助提示。" />
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
+                                </Border>
+                                <Border Classes="pcl-notice" IsVisible="{Binding HasAvailableInstances}">
+                                    <StackPanel Spacing="9">
+                                        <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#1370F3" Text="启动状态" />
+                                        <TextBlock Text="{Binding GameLaunchSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="#6F7C8B" Text="{Binding LaunchPreflightSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="#6F7C8B" Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="#6F7C8B" Text="{Binding JavaRequirementSummary}" TextWrapping="Wrap" />
+                                        <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
+                                                  IsChecked="{Binding HasAcknowledgedAccountGuidance}"
+                                                  Content="我已知悉正版购买与上游赞助提示。" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
                     </Border>
                 </Grid>
             </Grid>
