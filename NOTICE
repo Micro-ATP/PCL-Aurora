@@ -42,7 +42,9 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Controls/MyComboBoxItem.vb
 - PCL2: Plain Craft Launcher 2/Application.xaml (ComboBox styles only)
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadClient.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadClient.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadForge.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadForge.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadNeoForge.xaml
@@ -124,6 +126,10 @@ PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/refresh-cw.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/link-2.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/palette.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/save.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/server.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/arrow-left.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/chevron-right.svg
   adapted as Avalonia Paths in src/PCL.Aurora.Desktop/Views/MainWindow.axaml.
   The applicable ISC and MIT license text is provided in LICENSES/Lucide-Icons.txt.
 

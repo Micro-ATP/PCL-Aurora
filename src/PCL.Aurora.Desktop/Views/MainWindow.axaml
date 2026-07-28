@@ -25,6 +25,12 @@
 
     <Window.Resources>
         <StreamGeometry x:Key="DownloadRefreshIcon">M20 11a8.1 8.1 0 0 0-15.5-2 M4 4v5h5 M4 13a8.1 8.1 0 0 0 15.5 2 M20 20v-5h-5</StreamGeometry>
+        <StreamGeometry x:Key="VersionSaveIcon">M5 3h12l4 4v14H3V3h2 M7 3v6h10V3 M7 21v-8h10v8</StreamGeometry>
+        <StreamGeometry x:Key="VersionInfoIcon">M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 10v7 M12 7h.01</StreamGeometry>
+        <StreamGeometry x:Key="VersionServerIcon">M4 4h16v6H4z M4 14h16v6H4z M8 7h.01 M8 17h.01</StreamGeometry>
+        <StreamGeometry x:Key="VersionBackIcon">M19 12H5 M12 19l-7-7 7-7</StreamGeometry>
+        <StreamGeometry x:Key="VersionChevronIcon">M9 18l6-6-6-6</StreamGeometry>
+        <StreamGeometry x:Key="VersionDownloadIcon">M12 3v12 M7 10l5 5 5-5 M5 21h14</StreamGeometry>
     </Window.Resources>
 
     <Window.Styles>
@@ -732,6 +738,94 @@
             <Setter Property="Background" Value="#D3E9FF" />
             <Setter Property="Foreground" Value="#0F5FCC" />
         </Style>
+        <Style Selector="ListBox.official-version-list ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.official-version-row">
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="Padding" Value="6,3" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.official-version-row:pointerover">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="BorderBrush" Value="#C5DFF8" />
+        </Style>
+        <Style Selector="Button.official-version-main">
+            <Setter Property="MinHeight" Value="50" />
+            <Setter Property="Padding" Value="5,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="Stretch"
+                                          VerticalContentAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.official-version-main:pointerover">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="StackPanel.version-actions">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+        <Style Selector="Border.official-version-row:pointerover StackPanel.version-actions">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="Border.official-version-row:focus-within StackPanel.version-actions">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="Button.version-row-action">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#2C85E8" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="Button.version-row-action:pointerover">
+            <Setter Property="Background" Value="#D3E9FF" />
+            <Setter Property="Foreground" Value="#1265C1" />
+        </Style>
+        <Style Selector="Button.version-component">
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="Background" Value="#FCFDFF" />
+            <Setter Property="Foreground" Value="#344150" />
+            <Setter Property="BorderBrush" Value="#D1DDEA" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.version-component:pointerover">
+            <Setter Property="Background" Value="#F2F8FF" />
+            <Setter Property="BorderBrush" Value="#9FC8EC" />
+        </Style>
+        <Style Selector="Button.version-detail-back">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#7D8894" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="Button.version-detail-back:pointerover">
+            <Setter Property="Background" Value="#EDF6FF" />
+            <Setter Property="Foreground" Value="#176FC5" />
+        </Style>
     </Window.Styles>
 
     <Border CornerRadius="8" ClipToBounds="True">
@@ -1081,87 +1175,146 @@
                         <StackPanel Margin="25,18,25,25" MaxWidth="860" Spacing="15">
                             <!-- PCL2 PageDownloadClient/PageDownloadInstall structure adapted to Aurora's existing commands. -->
                             <StackPanel x:Name="DownloadGameView" MinHeight="430" Spacing="15">
-                                <Border Classes="pcl-card" Padding="16">
-                                    <StackPanel Spacing="12">
-                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="最新版本" />
-                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                                            <Border Classes="pcl-option-row" CornerRadius="3">
-                                                <Grid ColumnDefinitions="40,*" ColumnSpacing="10">
-                                                    <Image Width="34" Height="34" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                                                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding LatestReleaseVersion.Id, TargetNullValue=等待刷新}" />
-                                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="最新正式版" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-                                            <Border Grid.Column="1" Classes="pcl-option-row" CornerRadius="3">
-                                                <Grid ColumnDefinitions="40,*" ColumnSpacing="10">
-                                                    <Image Width="34" Height="34" Stretch="Uniform" Source="/Assets/Loaders/Pcl2CommandBlock.png" />
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                                                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding LatestSnapshotVersion.Id, TargetNullValue=等待刷新}" />
-                                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="最新预览版" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
-
-                                <Border Classes="pcl-card" Padding="16">
-                                    <StackPanel Spacing="12">
-                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="版本列表" />
-                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="7">
-                                            <TextBox PlaceholderText="搜索版本，例如 1.21.4 或 24w14a" Text="{Binding VersionSearchText}" />
-                                            <Button x:Name="ReleaseVersionGroup" Grid.Column="1" Classes="version-group selected" Width="74" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="release" Content="正式版" />
-                                            <Button x:Name="SnapshotVersionGroup" Grid.Column="2" Classes="version-group" Width="74" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="snapshot" Content="预览版" />
-                                            <Button x:Name="LegacyVersionGroup" Grid.Column="3" Classes="version-group" Width="74" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="legacy" Content="远古版" />
-                                            <Button x:Name="AprilFoolsVersionGroup" Grid.Column="4" Classes="version-group" Width="82" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="april-fools" Content="愚人节版" />
-                                        </Grid>
-                                        <ListBox Classes="download-list" MaxHeight="260"
-                                                 IsVisible="{Binding !IsVersionCatalogLoading}"
-                                                 ItemsSource="{Binding AvailableVersions}"
-                                                 SelectedItem="{Binding SelectedCatalogVersion}">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="10">
-                                                        <Image Width="32" Height="32" VerticalAlignment="Center" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
+                                <StackPanel x:Name="DownloadGameCatalogView" Spacing="15">
+                                    <Border Classes="pcl-card" Padding="16">
+                                        <StackPanel Spacing="12">
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="最新版本" />
+                                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                                <Border Classes="pcl-option-row" CornerRadius="3">
+                                                    <Grid ColumnDefinitions="40,*" ColumnSpacing="10">
+                                                        <Image Width="34" Height="34" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
                                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                                                            <TextBlock FontSize="14" FontWeight="SemiBold" Text="{Binding Id}" />
-                                                            <TextBlock FontSize="11" Foreground="#6F7C8B" Text="{Binding Type}" />
+                                                            <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding LatestReleaseVersion.Id, TargetNullValue=等待刷新}" />
+                                                            <TextBlock FontSize="12" Foreground="#6F7C8B" Text="最新正式版" />
                                                         </StackPanel>
-                                                        <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12" Foreground="#6F7C8B"
-                                                                   Text="{Binding ReleaseTime, StringFormat={}{0:yyyy-MM-dd}}" />
                                                     </Grid>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
-                                    </StackPanel>
-                                </Border>
-
-                                <Border Classes="download-loading-card" Margin="0,38,0,38"
-                                        IsVisible="{Binding IsVersionCatalogLoading}">
-                                    <controls:PclLoadingIndicator Text="正在获取版本列表" />
-                                </Border>
-
-                                <Border Classes="pcl-card" Padding="16" IsVisible="{Binding !IsVersionCatalogLoading}">
-                                    <StackPanel Spacing="11">
-                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="安装所选版本" />
-                                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="5">
-                                            <TextBlock VerticalAlignment="Center" Foreground="#6F7C8B" Text="实例名称" />
-                                            <TextBlock Grid.Column="1" VerticalAlignment="Center" FontWeight="SemiBold"
-                                                       Text="{Binding SelectedCatalogVersion.Id, TargetNullValue=请先选择版本}" />
-                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Foreground="#6F7C8B" Text="安装位置" />
-                                            <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding MinecraftRootDirectory}" TextWrapping="Wrap" />
-                                        </Grid>
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <Button Classes="download-primary" Command="{Binding ProvisionSelectedVersionCommand}"
-                                                    IsEnabled="{Binding CanProvisionSelectedVersion}" Content="创建实例" />
-                                            <Button Classes="download-primary" Command="{Binding InstallGameCommand}"
-                                                    IsEnabled="{Binding CanInstallGame}" Content="下载并安装游戏" />
-                                            <Button Command="{Binding CancelInstallationCommand}" IsEnabled="{Binding CanCancelInstallation}" Content="取消下载" />
+                                                </Border>
+                                                <Border Grid.Column="1" Classes="pcl-option-row" CornerRadius="3">
+                                                    <Grid ColumnDefinitions="40,*" ColumnSpacing="10">
+                                                        <Image Width="34" Height="34" Stretch="Uniform" Source="/Assets/Loaders/Pcl2CommandBlock.png" />
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                                            <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding LatestSnapshotVersion.Id, TargetNullValue=等待刷新}" />
+                                                            <TextBlock FontSize="12" Foreground="#6F7C8B" Text="最新预览版" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
                                         </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="pcl-card" Padding="16">
+                                        <StackPanel Spacing="12">
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="版本列表" />
+                                            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="7">
+                                                <TextBox PlaceholderText="搜索版本，例如 1.21.4 或 24w14a" Text="{Binding VersionSearchText}" />
+                                                <Button x:Name="ReleaseVersionGroup" Grid.Column="1" Classes="version-group selected" Width="74" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="release" Content="正式版" />
+                                                <Button x:Name="SnapshotVersionGroup" Grid.Column="2" Classes="version-group" Width="74" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="snapshot" Content="预览版" />
+                                                <Button x:Name="LegacyVersionGroup" Grid.Column="3" Classes="version-group" Width="74" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="legacy" Content="远古版" />
+                                                <Button x:Name="AprilFoolsVersionGroup" Grid.Column="4" Classes="version-group" Width="82" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="april-fools" Content="愚人节版" />
+                                            </Grid>
+                                            <ListBox Classes="download-list official-version-list" MaxHeight="310"
+                                                     IsVisible="{Binding !IsVersionCatalogLoading}"
+                                                     ItemsSource="{Binding AvailableVersions}"
+                                                     SelectedItem="{Binding SelectedCatalogVersion}">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Classes="official-version-row">
+                                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+                                                                <Button Classes="official-version-main" Tag="{Binding}" Click="OfficialVersionOpenClick"
+                                                                        AutomationProperties.Name="{Binding Id, StringFormat=打开 Minecraft {0} 下载选项}">
+                                                                    <Grid ColumnDefinitions="44,*" ColumnSpacing="10">
+                                                                        <Image Width="38" Height="38" VerticalAlignment="Center" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
+                                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                                                            <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding Id}" />
+                                                                            <TextBlock FontSize="11" Foreground="#7B8794"
+                                                                                       Text="{Binding ReleaseTime, StringFormat={}{0:yyyy/M/d HH:mm}}" />
+                                                                        </StackPanel>
+                                                                    </Grid>
+                                                                </Button>
+                                                                <StackPanel Grid.Column="1" Classes="version-actions" Orientation="Horizontal" VerticalAlignment="Center" Spacing="1">
+                                                                    <Button Classes="version-row-action" Tag="{Binding}" Click="OfficialVersionSaveAsClick"
+                                                                            ToolTip.Tip="另存为" AutomationProperties.Name="{Binding Id, StringFormat=另存 Minecraft {0}}">
+                                                                        <Path Width="21" Height="21" Data="{StaticResource VersionSaveIcon}" Stretch="Uniform" Fill="Transparent"
+                                                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                                    </Button>
+                                                                    <Button Classes="version-row-action" Tag="{Binding}" Click="OfficialVersionChangelogClick"
+                                                                            ToolTip.Tip="更新日志" AutomationProperties.Name="{Binding Id, StringFormat=查看 Minecraft {0} 更新日志}">
+                                                                        <Path Width="21" Height="21" Data="{StaticResource VersionInfoIcon}" Stretch="Uniform" Fill="Transparent"
+                                                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                                    </Button>
+                                                                    <Button Classes="version-row-action" Tag="{Binding}" Click="OfficialVersionServerClick"
+                                                                            ToolTip.Tip="下载服务端" AutomationProperties.Name="{Binding Id, StringFormat=下载 Minecraft {0} 服务端}">
+                                                                        <Path Width="21" Height="21" Data="{StaticResource VersionServerIcon}" Stretch="Uniform" Fill="Transparent"
+                                                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                                    </Button>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="download-loading-card" Margin="0,38,0,38"
+                                            IsVisible="{Binding IsVersionCatalogLoading}">
+                                        <controls:PclLoadingIndicator Text="正在获取版本列表" />
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel x:Name="DownloadGameDetailView" IsVisible="False" Spacing="15">
+                                    <Border Classes="pcl-card" Padding="14">
+                                        <Grid ColumnDefinitions="40,48,*" ColumnSpacing="10">
+                                            <Button Classes="version-detail-back" Click="OfficialVersionBackClick" ToolTip.Tip="返回版本列表" AutomationProperties.Name="返回版本列表">
+                                                <Path Width="22" Height="22" Data="{StaticResource VersionBackIcon}" Stretch="Uniform" Fill="Transparent"
+                                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                            </Button>
+                                            <Image Grid.Column="1" Width="42" Height="42" VerticalAlignment="Center" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
+                                            <TextBox Grid.Column="2" Height="40" VerticalContentAlignment="Center" IsReadOnly="True"
+                                                     Text="{Binding SelectedCatalogVersion.Id, Mode=OneWay}" AutomationProperties.Name="实例名称" />
+                                        </Grid>
+                                    </Border>
+
+                                    <StackPanel Spacing="10">
+                                        <Button Classes="version-component" Tag="forge" Click="VersionDetailLoaderClick">
+                                            <Grid ColumnDefinitions="220,*,Auto" ColumnSpacing="12">
+                                                <TextBlock VerticalAlignment="Center" FontSize="15" FontWeight="SemiBold" Text="Forge" />
+                                                <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="#7D8894" Text="{Binding SelectedVersionForgeAvailability}" />
+                                                <Path Grid.Column="2" Width="17" Height="17" Data="{StaticResource VersionChevronIcon}" Stretch="Uniform" Fill="Transparent" Stroke="#344150" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                            </Grid>
+                                        </Button>
+                                        <Button Classes="version-component" Tag="neoforge" Click="VersionDetailLoaderClick">
+                                            <Grid ColumnDefinitions="220,*,Auto" ColumnSpacing="12">
+                                                <TextBlock VerticalAlignment="Center" FontSize="15" FontWeight="SemiBold" Text="NeoForge" />
+                                                <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="#7D8894" Text="{Binding SelectedVersionNeoForgeAvailability}" />
+                                                <Path Grid.Column="2" Width="17" Height="17" Data="{StaticResource VersionChevronIcon}" Stretch="Uniform" Fill="Transparent" Stroke="#344150" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                            </Grid>
+                                        </Button>
+                                        <Button Classes="version-component" Tag="fabric" Click="VersionDetailLoaderClick">
+                                            <Grid ColumnDefinitions="220,*,Auto" ColumnSpacing="12">
+                                                <TextBlock VerticalAlignment="Center" FontSize="15" FontWeight="SemiBold" Text="Fabric" />
+                                                <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="#7D8894" Text="{Binding SelectedVersionFabricAvailability}" />
+                                                <Path Grid.Column="2" Width="17" Height="17" Data="{StaticResource VersionChevronIcon}" Stretch="Uniform" Fill="Transparent" Stroke="#344150" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                            </Grid>
+                                        </Button>
+                                        <Button Classes="version-component" Tag="optifine" Click="VersionDetailLoaderClick">
+                                            <Grid ColumnDefinitions="220,*,Auto" ColumnSpacing="12">
+                                                <TextBlock VerticalAlignment="Center" FontSize="15" FontWeight="SemiBold" Text="OptiFine" />
+                                                <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="#7D8894" Text="{Binding SelectedVersionOptiFineAvailability}" />
+                                                <Path Grid.Column="2" Width="17" Height="17" Data="{StaticResource VersionChevronIcon}" Stretch="Uniform" Fill="Transparent" Stroke="#344150" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                            </Grid>
+                                        </Button>
                                     </StackPanel>
-                                </Border>
+
+                                    <Button Classes="download-primary" MinWidth="150" Height="42" HorizontalAlignment="Center" Margin="0,12,0,0"
+                                            Command="{Binding InstallSelectedOfficialVersionCommand}" IsEnabled="{Binding CanProvisionSelectedVersion}">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                            <Path Width="20" Height="20" Data="{StaticResource VersionDownloadIcon}" Stretch="Uniform" Fill="Transparent"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                            <TextBlock VerticalAlignment="Center" FontSize="15" Text="开始下载" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
                             </StackPanel>
 
                             <!-- PCL-CE's four independent loader pages share one Aurora view while retaining a strict kind filter. -->
