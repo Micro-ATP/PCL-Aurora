@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PCL.Aurora.Desktop.ViewModels"
         xmlns:controls="using:PCL.Aurora.Desktop.Controls"
+        xmlns:converters="using:PCL.Aurora.Desktop.Converters"
         xmlns:domain="using:PCL.Aurora.Domain"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -24,6 +25,7 @@
     </Design.DataContext>
 
     <Window.Resources>
+        <converters:MinecraftVersionIconConverter x:Key="MinecraftVersionIconConverter" />
         <StreamGeometry x:Key="DownloadRefreshIcon">M20 11a8.1 8.1 0 0 0-15.5-2 M4 4v5h5 M4 13a8.1 8.1 0 0 0 15.5 2 M20 20v-5h-5</StreamGeometry>
         <StreamGeometry x:Key="VersionSaveIcon">M5 3h12l4 4v14H3V3h2 M7 3v6h10V3 M7 21v-8h10v8</StreamGeometry>
         <StreamGeometry x:Key="VersionInfoIcon">M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 10v7 M12 7h.01</StreamGeometry>
@@ -1223,7 +1225,8 @@
                                                                 <Button Classes="official-version-main" Tag="{Binding}" Click="OfficialVersionOpenClick"
                                                                         AutomationProperties.Name="{Binding Id, StringFormat=打开 Minecraft {0} 下载选项}">
                                                                     <Grid ColumnDefinitions="44,*" ColumnSpacing="10">
-                                                                        <Image Width="38" Height="38" VerticalAlignment="Center" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
+                                                                        <Image Width="38" Height="38" VerticalAlignment="Center" Stretch="Uniform"
+                                                                               Source="{Binding Converter={StaticResource MinecraftVersionIconConverter}}" />
                                                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                                                                             <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding Id}" />
                                                                             <TextBlock FontSize="11" Foreground="#7B8794"
@@ -1269,7 +1272,8 @@
                                                 <Path Width="22" Height="22" Data="{StaticResource VersionBackIcon}" Stretch="Uniform" Fill="Transparent"
                                                       Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                             </Button>
-                                            <Image Grid.Column="1" Width="42" Height="42" VerticalAlignment="Center" Stretch="Uniform" Source="/Assets/Loaders/Pcl2Grass.png" />
+                                            <Image Grid.Column="1" Width="42" Height="42" VerticalAlignment="Center" Stretch="Uniform"
+                                                   Source="{Binding SelectedCatalogVersion, Converter={StaticResource MinecraftVersionIconConverter}}" />
                                             <TextBox Grid.Column="2" Height="40" VerticalContentAlignment="Center" IsReadOnly="True"
                                                      Text="{Binding SelectedCatalogVersion.Id, Mode=OneWay}" AutomationProperties.Name="实例名称" />
                                         </Grid>
@@ -1307,7 +1311,7 @@
                                     </StackPanel>
 
                                     <Button Classes="download-primary" MinWidth="150" Height="42" HorizontalAlignment="Center" Margin="0,12,0,0"
-                                            Command="{Binding InstallSelectedOfficialVersionCommand}" IsEnabled="{Binding CanProvisionSelectedVersion}">
+                                            Click="OfficialVersionInstallClick" IsEnabled="{Binding CanProvisionSelectedVersion}">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
                                             <Path Width="20" Height="20" Data="{StaticResource VersionDownloadIcon}" Stretch="Uniform" Fill="Transparent"
                                                   Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />

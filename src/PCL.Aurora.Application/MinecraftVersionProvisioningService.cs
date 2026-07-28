@@ -7,17 +7,24 @@ public sealed class MinecraftVersionProvisioningService(
     HttpClient httpClient,
     IMinecraftRootDirectoryProvider rootDirectoryProvider) : IMinecraftVersionProvisioningService
 {
+    public Task<MinecraftInstance> ProvisionAsync(
+        MinecraftVersionCatalogEntry version,
+        CancellationToken cancellationToken = default) =>
+        ProvisionAsync(version, rootDirectoryProvider.GetRootDirectory(), cancellationToken);
+
     public async Task<MinecraftInstance> ProvisionAsync(
         MinecraftVersionCatalogEntry version,
+        string minecraftRootDirectory,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(version);
+        ArgumentException.ThrowIfNullOrWhiteSpace(minecraftRootDirectory);
         if (!IsSafeVersionId(version.Id) || version.MetadataUrl.Scheme != Uri.UriSchemeHttps)
         {
             throw new InvalidOperationException("所选版本元数据无效。 ");
         }
 
-        var rootDirectory = Path.GetFullPath(rootDirectoryProvider.GetRootDirectory());
+        var rootDirectory = Path.GetFullPath(minecraftRootDirectory);
         var versionsDirectory = Path.Combine(rootDirectory, "versions");
         var instanceDirectory = Path.Combine(versionsDirectory, version.Id);
         if (Directory.Exists(instanceDirectory))

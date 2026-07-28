@@ -102,6 +102,12 @@ PCL Aurora also contains the following directly reused image asset:
 - PCL2: Plain Craft Launcher 2/Images/Blocks/CommandBlock.png
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/Pcl2CommandBlock.png;
   displayed in the snapshot-version summary on the download page.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/GoldBlock.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeGoldBlock.png;
+  displayed for April Fools and special Minecraft versions.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/CobbleStone.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeCobbleStone.png;
+  displayed for legacy Minecraft versions.
 
 PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 

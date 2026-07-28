@@ -34,6 +34,22 @@ public sealed class MinecraftVersionProvisioningServiceTests : IDisposable
         Assert.False(Directory.Exists(Path.Combine(rootDirectory, "versions", "1.21.4")));
     }
 
+    [Fact]
+    public async Task ProvisionAsync_UsesExplicitMinecraftRootDirectory()
+    {
+        var defaultRoot = Path.Combine(rootDirectory, "default");
+        var selectedRoot = Path.Combine(rootDirectory, "selected");
+        using var client = new HttpClient(new StaticResponseHandler("""{ "id": "1.21.4", "type": "release" }"""));
+        var service = new MinecraftVersionProvisioningService(client, new FixedRootDirectoryProvider(defaultRoot));
+        var version = new MinecraftVersionCatalogEntry("1.21.4", "release", new Uri("https://example.invalid/1.21.4.json"), DateTimeOffset.UtcNow);
+
+        var instance = await service.ProvisionAsync(version, selectedRoot);
+
+        Assert.Equal(Path.Combine(selectedRoot, "versions", "1.21.4"), instance.DirectoryPath);
+        Assert.True(File.Exists(Path.Combine(selectedRoot, "versions", "1.21.4", "1.21.4.json")));
+        Assert.False(Directory.Exists(defaultRoot));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(rootDirectory))

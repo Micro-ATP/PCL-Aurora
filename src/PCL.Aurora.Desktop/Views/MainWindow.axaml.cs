@@ -461,6 +461,27 @@ public partial class MainWindow : Window
         await viewModel.SaveSelectedVersionServerAsync(destinationPath);
     }
 
+    private async void OfficialVersionInstallClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel { SelectedCatalogVersion: { } version } viewModel)
+        {
+            return;
+        }
+
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = $"选择 Minecraft {version.Id} 的存放目录",
+            AllowMultiple = false,
+        });
+        var minecraftRootDirectory = folders.SingleOrDefault()?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(minecraftRootDirectory))
+        {
+            return;
+        }
+
+        await viewModel.InstallSelectedOfficialVersionAsync(minecraftRootDirectory);
+    }
+
     private async void VersionDetailLoaderClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string section })

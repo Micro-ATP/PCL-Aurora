@@ -7,4 +7,9 @@ public interface IMinecraftVersionProvisioningService
     Task<MinecraftInstance> ProvisionAsync(
         MinecraftVersionCatalogEntry version,
         CancellationToken cancellationToken = default);
+
+    Task<MinecraftInstance> ProvisionAsync(
+        MinecraftVersionCatalogEntry version,
+        string minecraftRootDirectory,
+        CancellationToken cancellationToken = default);
 }

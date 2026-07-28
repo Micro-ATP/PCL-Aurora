@@ -891,8 +891,7 @@ public partial class MainViewModel(
         }
     }
 
-    [RelayCommand]
-    private async Task InstallSelectedOfficialVersionAsync()
+    public async Task InstallSelectedOfficialVersionAsync(string minecraftRootDirectory)
     {
         if (SelectedCatalogVersion is null || IsInstallationRunning)
         {
@@ -902,23 +901,19 @@ public partial class MainViewModel(
         var version = SelectedCatalogVersion;
         try
         {
-            var instance = AvailableInstances.FirstOrDefault(candidate =>
-                string.Equals(candidate.Name, version.Id, StringComparison.Ordinal));
-            if (instance is null)
+            var rootDirectory = Path.GetFullPath(minecraftRootDirectory);
+            VersionCatalogSummary = $"正在 {rootDirectory} 创建 {version.Id}…";
+            var instance = await versionProvisioningService.ProvisionAsync(version, rootDirectory);
+            try
             {
-                VersionCatalogSummary = $"正在创建 {version.Id} 的本地实例元数据…";
-                await versionProvisioningService.ProvisionAsync(version);
-                await RefreshAsync();
-                instance = AvailableInstances.FirstOrDefault(candidate =>
-                    string.Equals(candidate.Name, version.Id, StringComparison.Ordinal));
+                isRefreshing = true;
+                SelectedInstance = instance;
+            }
+            finally
+            {
+                isRefreshing = false;
             }
 
-            if (instance is null)
-            {
-                throw new InvalidOperationException("实例元数据创建完成，但没有在本地目录中找到对应实例。");
-            }
-
-            SelectedInstance = instance;
             await RefreshSelectedInstanceStateAsync();
             if (!CanInstallGame)
             {
@@ -926,7 +921,7 @@ public partial class MainViewModel(
                 return;
             }
 
-            await InstallGameAsync();
+            await InstallGameCoreAsync(refreshDefaultInstanceCatalog: false);
         }
         catch (OperationCanceledException)
         {
@@ -2130,7 +2125,9 @@ public partial class MainViewModel(
     }
 
     [RelayCommand]
-    private async Task InstallGameAsync()
+    private Task InstallGameAsync() => InstallGameCoreAsync(refreshDefaultInstanceCatalog: true);
+
+    private async Task InstallGameCoreAsync(bool refreshDefaultInstanceCatalog)
     {
         if (SelectedInstance is null || !CanInstallGame)
         {
@@ -2149,7 +2146,14 @@ public partial class MainViewModel(
                 InstallationSummary = FormatInstallationProgress(update));
             await installationService.InstallAsync(SelectedInstance, progress, cancellation.Token);
             InstallationSummary = "安装下载完成。资源映射将在下一次显式启动时准备。";
-            await RefreshAsync();
+            if (refreshDefaultInstanceCatalog)
+            {
+                await RefreshAsync();
+            }
+            else
+            {
+                await RefreshSelectedInstanceStateAsync();
+            }
         }
         catch (OperationCanceledException)
         {
