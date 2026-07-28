@@ -7,4 +7,5 @@ public sealed record CommunityResourceSearchRequest(
     CommunityResourceLoader Loader,
     CommunityResourceSort Sort,
     int Page,
-    int PageSize = 20);
+    int PageSize = 20,
+    string? Category = null);

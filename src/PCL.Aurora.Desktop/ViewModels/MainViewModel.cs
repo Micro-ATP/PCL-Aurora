@@ -34,6 +34,22 @@ public partial class MainViewModel(
 {
     private const int MaximumGameLogLines = 500;
     private static readonly Uri AuroraReleasesUri = new("https://github.com/Micro-ATP/PCL-Aurora/releases");
+    private static readonly IReadOnlyList<CommunityResourceLoaderOption> ModLoaderOptions =
+    [
+        new(CommunityResourceLoader.Any, "任意"),
+        new(CommunityResourceLoader.Forge, "Forge"),
+        new(CommunityResourceLoader.NeoForge, "NeoForge"),
+        new(CommunityResourceLoader.Fabric, "Fabric"),
+        new(CommunityResourceLoader.Quilt, "Quilt"),
+    ];
+    private static readonly IReadOnlyList<CommunityResourceLoaderOption> ShaderLoaderOptions =
+    [
+        new(CommunityResourceLoader.Any, "任意加载器"),
+        new(CommunityResourceLoader.Vanilla, "原版可用"),
+        new(CommunityResourceLoader.Iris, "Iris"),
+        new(CommunityResourceLoader.OptiFine, "OptiFine"),
+    ];
+    private static readonly CommunityResourceCategoryOption AllCommunityResourceCategories = new(null, "全部");
 
     private readonly List<MinecraftVersionCatalogEntry> allCatalogVersions = [];
     private MinecraftAccount? selectedAccount;
@@ -99,20 +115,12 @@ public partial class MainViewModel(
 
     public IReadOnlyList<CommunityResourceSortOption> CommunityResourceSortOptions { get; } =
     [
-        new(CommunityResourceSort.Relevance, "综合排序"),
+        new(CommunityResourceSort.Default, "默认"),
+        new(CommunityResourceSort.Relevance, "相关性"),
         new(CommunityResourceSort.Downloads, "下载量"),
-        new(CommunityResourceSort.Follows, "关注数"),
+        new(CommunityResourceSort.Follows, "关注量"),
         new(CommunityResourceSort.Newest, "最新发布"),
         new(CommunityResourceSort.Updated, "最近更新"),
-    ];
-
-    public IReadOnlyList<CommunityResourceLoaderOption> CommunityResourceLoaderOptions { get; } =
-    [
-        new(CommunityResourceLoader.Any, "全部加载器"),
-        new(CommunityResourceLoader.Forge, "Forge"),
-        new(CommunityResourceLoader.NeoForge, "NeoForge"),
-        new(CommunityResourceLoader.Fabric, "Fabric"),
-        new(CommunityResourceLoader.Quilt, "Quilt"),
     ];
 
     [ObservableProperty]
@@ -307,10 +315,20 @@ public partial class MainViewModel(
     private string communityGameVersion = string.Empty;
 
     [ObservableProperty]
-    private CommunityResourceSortOption selectedCommunityResourceSort = new(CommunityResourceSort.Relevance, "综合排序");
+    private CommunityResourceSortOption selectedCommunityResourceSort = new(CommunityResourceSort.Default, "默认");
 
     [ObservableProperty]
-    private CommunityResourceLoaderOption selectedCommunityResourceLoader = new(CommunityResourceLoader.Any, "全部加载器");
+    private IReadOnlyList<CommunityResourceCategoryOption> communityResourceCategoryOptions =
+        [AllCommunityResourceCategories];
+
+    [ObservableProperty]
+    private CommunityResourceCategoryOption selectedCommunityResourceCategory = AllCommunityResourceCategories;
+
+    [ObservableProperty]
+    private IReadOnlyList<CommunityResourceLoaderOption> communityResourceLoaderOptions = ModLoaderOptions;
+
+    [ObservableProperty]
+    private CommunityResourceLoaderOption selectedCommunityResourceLoader = ModLoaderOptions[0];
 
     [ObservableProperty]
     private CommunityResourceItemViewModel? selectedCommunityResource;
@@ -378,7 +396,8 @@ public partial class MainViewModel(
 
     public bool IsCommunityFooterVisible => IsCommunityCatalogAvailable && !IsCommunitySearchRunning;
 
-    public bool IsCommunityStatusVisible => !IsCommunitySearchRunning;
+    public bool IsCommunityStatusVisible =>
+        !IsCommunitySearchRunning && !HasCommunityResources && !string.IsNullOrWhiteSpace(CommunityResourceSummary);
 
     public bool IsCommunityVersionCardVisible => SelectedCommunityResource is not null && !IsCommunitySearchRunning;
 
@@ -963,8 +982,14 @@ public partial class MainViewModel(
 
     partial void OnCommunityPageChanged(int value) => OnPropertyChanged(nameof(CommunityPageNumber));
 
-    partial void OnHasCommunityResourcesChanged(bool value) =>
+    partial void OnHasCommunityResourcesChanged(bool value)
+    {
         OnPropertyChanged(nameof(IsCommunityResultListVisible));
+        OnPropertyChanged(nameof(IsCommunityStatusVisible));
+    }
+
+    partial void OnCommunityResourceSummaryChanged(string value) =>
+        OnPropertyChanged(nameof(IsCommunityStatusVisible));
 
     partial void OnIsCommunityCatalogAvailableChanged(bool value) =>
         OnPropertyChanged(nameof(IsCommunityFooterVisible));
@@ -1119,15 +1144,22 @@ public partial class MainViewModel(
         CommunityPage = 0;
         CanGoToPreviousCommunityPage = false;
         CanGoToNextCommunityPage = false;
-        IsCommunityLoaderFilterVisible = communityResourceType is CommunityResourceType.Mod or CommunityResourceType.ModPack;
+        CommunityResourceCategoryOptions = GetCommunityResourceCategories(communityResourceType);
+        SelectedCommunityResourceCategory = CommunityResourceCategoryOptions[0];
+        CommunityResourceLoaderOptions = communityResourceType == CommunityResourceType.Shader
+            ? ShaderLoaderOptions
+            : ModLoaderOptions;
+        SelectedCommunityResourceLoader = CommunityResourceLoaderOptions[0];
+        SelectedCommunityResourceSort = CommunityResourceSortOptions[0];
+        IsCommunityLoaderFilterVisible = communityResourceType is
+            CommunityResourceType.Mod or CommunityResourceType.ModPack or CommunityResourceType.Shader;
         IsCommunityCatalogAvailable = communityResourceType is not null and not CommunityResourceType.World;
         CanSearchCommunityResources = IsCommunityCatalogAvailable;
         CommunityResourceSummary = section switch
         {
-            "favorites" => "收藏夹还是空的。",
-            "world" => "世界资源暂时不可用。",
-            _ when CanSearchCommunityResources => "调整筛选条件后开始搜索。",
-            _ => "当前社区资源类型尚未接入。",
+            "favorites" => "暂无收藏",
+            "world" => "世界资源暂不可用",
+            _ => string.Empty,
         };
     }
 
@@ -1369,18 +1401,19 @@ public partial class MainViewModel(
         IsCommunitySearchRunning = true;
         CanCancelCommunitySearch = true;
         CanSearchCommunityResources = false;
-        CommunityLoadingText = $"正在获取{GetCommunityResourceTypeName(type)}列表…";
-        CommunityResourceSummary = $"正在获取第 {page + 1} 页…";
+        CommunityLoadingText = $"正在获取 {GetCommunityResourceTypeName(type)} 列表";
+        CommunityResourceSummary = string.Empty;
         try
         {
             var result = await communityResourceSearchService.SearchAsync(
-                new(
+                new CommunityResourceSearchRequest(
                     type,
                     CommunitySearchText,
                     CommunityGameVersion,
                     SelectedCommunityResourceLoader.Loader,
                     SelectedCommunityResourceSort.Sort,
-                    page),
+                    page,
+                    Category: SelectedCommunityResourceCategory.Category),
                 cancellation.Token);
             if (!ReferenceEquals(communitySearchCancellation, cancellation) || communityResourceType != type)
             {
@@ -1389,7 +1422,7 @@ public partial class MainViewModel(
 
             if (!result.IsSuccess && result.Projects.Count == 0 && result.Limit == 0)
             {
-                CommunityResourceSummary = $"社区资源搜索失败：{string.Join("；", result.Errors)} 可调整条件或检查网络后重试。";
+                CommunityResourceSummary = "资源下载操作失败。请检查网络后重试。";
                 return;
             }
 
@@ -1406,21 +1439,17 @@ public partial class MainViewModel(
             StartCommunityIconLoading(items);
             CanGoToPreviousCommunityPage = page > 0;
             CanGoToNextCommunityPage = result.HasNextPage;
-            var rangeStart = result.Projects.Count == 0 ? 0 : result.Offset + 1;
-            var rangeEnd = result.Offset + result.Projects.Count;
-            CommunityResourceSummary = result.Errors.Count > 0
-                ? $"已显示 {rangeStart}–{rangeEnd} / {result.TotalHits} 个项目，部分条目不可用：{string.Join("；", result.Errors)}"
-                : result.Projects.Count == 0
-                    ? "没有符合当前筛选条件的 Modrinth 项目。可调整关键词、版本或加载器后重试。"
-                    : $"共 {result.TotalHits} 个项目，当前显示 {rangeStart}–{rangeEnd}。";
+            CommunityResourceSummary = result.Projects.Count == 0
+                ? "没有符合条件的结果"
+                : string.Empty;
         }
         catch (OperationCanceledException)
         {
-            CommunityResourceSummary = "社区资源搜索已取消；现有结果保持不变。";
+            CommunityResourceSummary = "已取消";
         }
-        catch (Exception exception)
+        catch (Exception)
         {
-            CommunityResourceSummary = $"社区资源搜索失败：{exception.Message}。可检查网络后重试。";
+            CommunityResourceSummary = "资源下载操作失败。请检查网络后重试。";
         }
         finally
         {
@@ -1517,6 +1546,108 @@ public partial class MainViewModel(
         CommunityResourceType.Shader => "光影包",
         CommunityResourceType.World => "世界资源",
         _ => "资源",
+    };
+
+    private static IReadOnlyList<CommunityResourceCategoryOption> GetCommunityResourceCategories(
+        CommunityResourceType? type) => type switch
+    {
+        CommunityResourceType.Mod =>
+        [
+            AllCommunityResourceCategories,
+            new("worldgen", "世界生成"),
+            new("technology", "科技"),
+            new("food", "食物与烹饪"),
+            new("game-mechanics", "游戏机制"),
+            new("transportation", "运输"),
+            new("storage", "仓储"),
+            new("magic", "魔法"),
+            new("adventure", "冒险"),
+            new("decoration", "装饰"),
+            new("mobs", "生物"),
+            new("utility", "辅助"),
+            new("equipment", "装备与工具"),
+            new("optimization", "性能优化"),
+            new("social", "服务端"),
+            new("library", "支持库"),
+        ],
+        CommunityResourceType.ModPack =>
+        [
+            AllCommunityResourceCategories,
+            new("optimization", "性能优化"),
+            new("challenging", "硬核"),
+            new("combat", "战斗"),
+            new("quests", "任务"),
+            new("technology", "科技"),
+            new("magic", "魔法"),
+            new("adventure", "冒险"),
+            new("kitchen-sink", "混合"),
+            new("lightweight", "轻量"),
+        ],
+        CommunityResourceType.DataPack =>
+        [
+            AllCommunityResourceCategories,
+            new("worldgen", "世界生成"),
+            new("technology", "科技"),
+            new("game-mechanics", "游戏机制"),
+            new("transportation", "运输"),
+            new("storage", "仓储"),
+            new("magic", "魔法"),
+            new("adventure", "冒险"),
+            new("decoration", "装饰"),
+            new("mobs", "生物"),
+            new("utility", "辅助"),
+            new("equipment", "装备与工具"),
+            new("optimization", "性能优化"),
+            new("social", "服务端"),
+            new("library", "支持库"),
+        ],
+        CommunityResourceType.ResourcePack =>
+        [
+            AllCommunityResourceCategories,
+            new("vanilla-like", "原版风格"),
+            new("realistic", "写实风格"),
+            new("themed", "主题风格"),
+            new("simplistic", "简约风格"),
+            new("decoration", "装饰"),
+            new("combat", "战斗"),
+            new("utility", "辅助"),
+            new("tweaks", "微调"),
+            new("cursed", "鬼畜"),
+            new("entities", "含实体"),
+            new("audio", "含声音"),
+            new("fonts", "含字体"),
+            new("models", "含模型"),
+            new("locale", "含语言"),
+            new("gui", "含 UI"),
+            new("core-shaders", "核心着色器"),
+            new("modded", "兼容模组"),
+            new("8x-", "8x 及以下"),
+            new("16x", "16x"),
+            new("32x", "32x"),
+            new("48x", "48x"),
+            new("64x", "64x"),
+            new("128x", "128x"),
+            new("256x", "256x"),
+            new("512x+", "512x 及以上"),
+        ],
+        CommunityResourceType.Shader =>
+        [
+            AllCommunityResourceCategories,
+            new("vanilla-like", "原版风格"),
+            new("fantasy", "幻想风"),
+            new("realistic", "写实风格"),
+            new("semi-realistic", "半写实风格"),
+            new("cartoon", "卡通风"),
+            new("colored-lighting", "彩色光照"),
+            new("path-tracing", "路径追踪"),
+            new("pbr", "PBR"),
+            new("reflections", "反射"),
+            new("potato", "极低性能需求"),
+            new("low", "低性能需求"),
+            new("medium", "中等性能需求"),
+            new("high", "高性能需求"),
+        ],
+        _ => [AllCommunityResourceCategories],
     };
 
     partial void OnHasAcknowledgedAccountGuidanceChanged(bool value)
@@ -2179,3 +2310,5 @@ public sealed record MinecraftMemoryAllocationModeOption(MinecraftMemoryAllocati
 public sealed record CommunityResourceSortOption(CommunityResourceSort Sort, string DisplayName);
 
 public sealed record CommunityResourceLoaderOption(CommunityResourceLoader Loader, string DisplayName);
+
+public sealed record CommunityResourceCategoryOption(string? Category, string DisplayName);

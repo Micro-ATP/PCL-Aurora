@@ -7,4 +7,7 @@ public enum CommunityResourceLoader
     NeoForge,
     Fabric,
     Quilt,
+    Vanilla,
+    Iris,
+    OptiFine,
 }

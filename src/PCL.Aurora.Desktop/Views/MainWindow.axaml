@@ -108,27 +108,33 @@
             <Setter Property="Height" Value="36" />
             <Setter Property="Template">
                 <ControlTemplate TargetType="controls:PclNavigationButton">
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{TemplateBinding CornerRadius}"
-                            Padding="{TemplateBinding Padding}">
-                        <Grid ColumnDefinitions="20,*" ColumnSpacing="8">
-                            <Path Width="16" Height="16" VerticalAlignment="Center"
-                                  Data="{TemplateBinding IconData}"
-                                  Stretch="Uniform"
-                                  Fill="Transparent"
-                                  Stroke="{TemplateBinding Foreground}"
-                                  StrokeThickness="2"
-                                  StrokeLineCap="Round"
-                                  StrokeJoin="Round" />
-                            <TextBlock Grid.Column="1"
-                                       VerticalAlignment="Center"
-                                       FontSize="{TemplateBinding FontSize}"
-                                       Foreground="{TemplateBinding Foreground}"
-                                       Text="{TemplateBinding Label}" />
-                        </Grid>
-                    </Border>
+                    <Grid>
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                Padding="{TemplateBinding Padding}">
+                            <Grid ColumnDefinitions="20,*" ColumnSpacing="8">
+                                <Path Width="16" Height="16" VerticalAlignment="Center"
+                                      Data="{TemplateBinding IconData}"
+                                      Stretch="Uniform"
+                                      Fill="Transparent"
+                                      Stroke="{TemplateBinding Foreground}"
+                                      StrokeThickness="2"
+                                      StrokeLineCap="Round"
+                                      StrokeJoin="Round" />
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           FontSize="{TemplateBinding FontSize}"
+                                           Foreground="{TemplateBinding Foreground}"
+                                           Text="{TemplateBinding Label}" />
+                            </Grid>
+                        </Border>
+                        <Border x:Name="SelectionIndicator" Width="3" Height="24"
+                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="#1370F3" CornerRadius="0,2,2,0"
+                                IsVisible="False" />
+                    </Grid>
                 </ControlTemplate>
             </Setter>
         </Style>
@@ -616,13 +622,23 @@
         <Style Selector="Grid.download-navigation-row.selected">
             <Setter Property="Background" Value="#E4F1FF" />
         </Style>
-        <Style Selector="Grid.download-navigation-row controls|PclNavigationButton.secondary-navigation.selected">
+        <Style Selector="Grid.pcl-shell Grid.download-navigation-row.selected">
+            <Setter Property="Background" Value="#E4F1FF" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Grid.download-navigation-row controls|PclNavigationButton.secondary-navigation.selected">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#1370F3" />
         </Style>
-        <Style Selector="Grid.download-navigation-row:pointerover controls|PclNavigationButton.secondary-navigation">
+        <Style Selector="Grid.pcl-shell Grid.download-navigation-row:pointerover controls|PclNavigationButton.secondary-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Grid.download-navigation-row:pointerover controls|PclNavigationButton.secondary-navigation.selected:pointerover">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.download-navigation-row controls|PclNavigationButton.selected /template/ Border#SelectionIndicator">
+            <Setter Property="IsVisible" Value="True" />
         </Style>
         <Style Selector="Grid.download-navigation-row Button.download-refresh">
             <Setter Property="Opacity" Value="0" />
@@ -635,6 +651,39 @@
             <Setter Property="Opacity" Value="1" />
             <Setter Property="BorderBrush" Value="#1370F3" />
             <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.download-loading-card">
+            <Setter Property="Width" Value="200" />
+            <Setter Property="Height" Value="114" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Background" Value="#FCFDFF" />
+            <Setter Property="BorderBrush" Value="#D1DDEA" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="BoxShadow" Value="0 1 4 0 #24000000" />
+        </Style>
+        <Style Selector="TextBox.community-search-input">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="5,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="15" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox.community-search-input /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox.community-search-input:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="Grid.pcl-shell TextBox.community-search-input:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="ComboBox.community-filter">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="MinWidth" Value="120" />
         </Style>
         <Style Selector="ListBox.download-list">
             <Setter Property="Background" Value="Transparent" />
@@ -879,7 +928,7 @@
             </Grid>
 
             <Grid x:Name="DownloadPage" IsVisible="False">
-                <Grid ColumnDefinitions="188,*" Background="#D9EAF9">
+                <Grid ColumnDefinitions="178,*" Background="#D9EAF9">
                     <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Column names follow PCL2 PageDownloadLeft.xaml with PCL-CE installer additions. -->
@@ -993,18 +1042,8 @@
                     </Border>
                     <ScrollViewer x:Name="DownloadContentScroller" Grid.Column="1" Background="#D9EAF9" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="25,18,25,25" MaxWidth="860" Spacing="15">
-                            <StackPanel Spacing="5">
-                                <TextBlock x:Name="DownloadPageTitle" FontSize="20" FontWeight="SemiBold" Foreground="#1370F3" Text="原版游戏" />
-                                <TextBlock x:Name="DownloadPageDescription" Foreground="#6F7C8B" TextWrapping="Wrap"
-                                           Text="选择官方 Minecraft 版本，再创建本地实例并执行已验证的安装流程。" />
-                            </StackPanel>
-
                             <!-- PCL2 PageDownloadClient/PageDownloadInstall structure adapted to Aurora's existing commands. -->
-                            <Grid x:Name="DownloadGameView" MinHeight="430">
-                                <controls:PclLoadingIndicator HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                              IsVisible="{Binding IsVersionCatalogLoading}"
-                                                              Text="正在获取版本列表…" />
-                                <StackPanel Spacing="15" IsVisible="{Binding !IsVersionCatalogLoading}">
+                            <StackPanel x:Name="DownloadGameView" MinHeight="430" Spacing="15">
                                 <Border Classes="pcl-card" Padding="16">
                                     <StackPanel Spacing="12">
                                         <TextBlock FontSize="16" FontWeight="SemiBold" Text="最新版本" />
@@ -1028,7 +1067,6 @@
                                                 </Grid>
                                             </Border>
                                         </Grid>
-                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding VersionCatalogSummary}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Border>
 
@@ -1043,6 +1081,7 @@
                                             <Button x:Name="AprilFoolsVersionGroup" Grid.Column="4" Classes="version-group" Width="82" Height="34" Padding="10,0" Click="VersionFilterClick" Tag="april-fools" Content="愚人节版" />
                                         </Grid>
                                         <ListBox Classes="download-list" MaxHeight="260"
+                                                 IsVisible="{Binding !IsVersionCatalogLoading}"
                                                  ItemsSource="{Binding AvailableVersions}"
                                                  SelectedItem="{Binding SelectedCatalogVersion}">
                                             <ListBox.ItemTemplate>
@@ -1062,7 +1101,12 @@
                                     </StackPanel>
                                 </Border>
 
-                                <Border Classes="pcl-card" Padding="16">
+                                <Border Classes="download-loading-card" Margin="0,38,0,38"
+                                        IsVisible="{Binding IsVersionCatalogLoading}">
+                                    <controls:PclLoadingIndicator Text="正在获取版本列表" />
+                                </Border>
+
+                                <Border Classes="pcl-card" Padding="16" IsVisible="{Binding !IsVersionCatalogLoading}">
                                     <StackPanel Spacing="11">
                                         <TextBlock FontSize="16" FontWeight="SemiBold" Text="安装所选版本" />
                                         <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="5">
@@ -1079,23 +1123,12 @@
                                                     IsEnabled="{Binding CanInstallGame}" Content="下载并安装游戏" />
                                             <Button Command="{Binding CancelInstallationCommand}" IsEnabled="{Binding CanCancelInstallation}" Content="取消下载" />
                                         </StackPanel>
-                                        <Border Classes="pcl-status-strip" Background="#EDF6FF">
-                                            <StackPanel Spacing="4">
-                                                <TextBlock FontSize="12" Foreground="#365879" Text="{Binding DownloadPreparationSummary}" TextWrapping="Wrap" />
-                                                <TextBlock FontSize="12" Foreground="#365879" Text="{Binding InstallationSummary}" TextWrapping="Wrap" />
-                                            </StackPanel>
-                                        </Border>
                                     </StackPanel>
                                 </Border>
-                                </StackPanel>
-                            </Grid>
+                            </StackPanel>
 
                             <!-- PCL-CE's four independent loader pages share one Aurora view while retaining a strict kind filter. -->
-                            <Grid x:Name="DownloadLoaderView" IsVisible="False" MinHeight="430">
-                                <controls:PclLoadingIndicator HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                              IsVisible="{Binding IsLoaderPageLoading}"
-                                                              Text="正在获取加载器列表…" />
-                                <StackPanel Spacing="15" IsVisible="{Binding !IsLoaderPageLoading}">
+                            <StackPanel x:Name="DownloadLoaderView" IsVisible="False" MinHeight="430" Spacing="15">
                                 <Border Classes="pcl-card" Padding="18">
                                     <Grid ColumnDefinitions="58,*" ColumnSpacing="14">
                                         <Grid Width="50" Height="50" VerticalAlignment="Top">
@@ -1143,11 +1176,16 @@
                                                 </ComboBox>
                                             </Grid>
                                         </Grid>
-                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="加载器只能安装到基础版本一致的既有实例；未满足条件时安装按钮会保持禁用。" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Border>
 
-                                <Border Classes="pcl-card" Padding="16">
+                                <Border Classes="download-loading-card" Margin="0,38,0,38"
+                                        IsVisible="{Binding IsLoaderPageLoading}">
+                                    <controls:PclLoadingIndicator x:Name="LoaderCatalogLoadingIndicator"
+                                                                  Text="正在获取 Forge 列表…" />
+                                </Border>
+
+                                <Border Classes="pcl-card" Padding="16" IsVisible="{Binding !IsLoaderPageLoading}">
                                     <StackPanel Spacing="11">
                                         <TextBlock FontSize="16" FontWeight="SemiBold" Text="版本列表" />
                                         <ListBox Classes="download-list" MaxHeight="280" IsEnabled="{Binding HasAvailableLoaders}"
@@ -1170,8 +1208,6 @@
                                                 </DataTemplate>
                                             </ListBox.ItemTemplate>
                                         </ListBox>
-                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding LoaderCatalogSummary}" TextWrapping="Wrap" />
-                                        <TextBlock FontSize="12" Foreground="#365879" Text="{Binding LoaderSelectionSummary}" TextWrapping="Wrap" />
                                         <Button Classes="download-primary" HorizontalAlignment="Left"
                                                 Command="{Binding InstallSelectedLoaderCommand}"
                                                 IsEnabled="{Binding CanInstallSelectedLoader}"
@@ -1179,94 +1215,89 @@
                                     </StackPanel>
                                 </Border>
 
-                                <Border Classes="pcl-card" Padding="16">
-                                    <StackPanel Spacing="9">
-                                        <TextBlock FontWeight="SemiBold" Text="本地目录" />
-                                        <TextBlock FontSize="12" Foreground="#6F7C8B" Text="需要离线或自定义目录时，可读取 Aurora 格式的 loaders.json。" />
-                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                            <TextBox PlaceholderText="本地 loaders.json 的完整路径" Text="{Binding LoaderCatalogPath}" />
-                                            <Button Grid.Column="1" Command="{Binding LoadLoaderCatalogCommand}" Content="读取目录" />
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
-                                </StackPanel>
-                            </Grid>
+                            </StackPanel>
 
                             <!-- Search structure directly adapts PCL2 PageResource and PCL-CE PageComp.
                                  Aurora uses its own Avalonia bindings and credential-free Modrinth service. -->
-                            <Grid x:Name="DownloadCommunityCard" MinHeight="430" IsVisible="False">
-                                <controls:PclLoadingIndicator HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                              IsVisible="{Binding IsCommunitySearchRunning}"
-                                                              Text="{Binding CommunityLoadingText}" />
-                                <StackPanel Spacing="12" IsVisible="{Binding !IsCommunitySearchRunning}">
-                                <Border Classes="pcl-card" Padding="18">
-                                    <StackPanel Spacing="13">
-                                        <StackPanel Spacing="4">
-                                            <TextBlock x:Name="DownloadCommunityTitle" FontSize="17" FontWeight="SemiBold" Text="社区资源" />
-                                            <TextBlock x:Name="DownloadCommunityDescription" FontSize="12" Foreground="#6F7C8B" Text="浏览来自主流资源平台的项目。" TextWrapping="Wrap" />
-                                        </StackPanel>
+                            <StackPanel x:Name="DownloadCommunityCard" MinHeight="430" Spacing="12" IsVisible="False">
+                                <Border Classes="pcl-card" Padding="10,7"
+                                        IsVisible="{Binding IsCommunityCatalogAvailable}">
+                                    <Grid Height="34" ColumnDefinitions="24,*,88" ColumnSpacing="8">
+                                        <Path Width="18" Height="18" VerticalAlignment="Center"
+                                              Data="M21 21l-4.35-4.35 M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16"
+                                              Fill="Transparent" Stroke="#36424F" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round" />
+                                        <TextBox Grid.Column="1" Classes="community-search-input"
+                                                 PlaceholderText="搜索资源"
+                                                 Text="{Binding CommunitySearchText}" />
+                                        <Button Grid.Column="2" Classes="community-action-primary"
+                                                Height="34" MinWidth="88"
+                                                Command="{Binding SearchCommunityResourcesCommand}"
+                                                Content="搜索" />
+                                    </Grid>
+                                </Border>
 
-                                        <Grid ColumnDefinitions="*,170" ColumnSpacing="10"
-                                              IsVisible="{Binding IsCommunityCatalogAvailable}">
-                                            <StackPanel Spacing="4">
-                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="关键词" />
-                                                <TextBox IsEnabled="{Binding CanSearchCommunityResources}"
-                                                         PlaceholderText="名称、作者或项目简介"
-                                                         Text="{Binding CommunitySearchText}" />
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="1" Spacing="4">
-                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="排序" />
-                                                <ComboBox IsEnabled="{Binding CanSearchCommunityResources}"
-                                                          ItemsSource="{Binding CommunityResourceSortOptions}"
-                                                          SelectedItem="{Binding SelectedCommunityResourceSort}">
-                                                    <ComboBox.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:CommunityResourceSortOption">
-                                                            <TextBlock Text="{Binding DisplayName}" />
-                                                        </DataTemplate>
-                                                    </ComboBox.ItemTemplate>
-                                                </ComboBox>
-                                            </StackPanel>
-                                        </Grid>
+                                <Border Classes="pcl-card" Padding="14"
+                                        IsVisible="{Binding IsCommunityCatalogAvailable}">
+                                    <Grid ColumnDefinitions="Auto,1*,Auto,1.3*,Auto,1*,Auto"
+                                          RowDefinitions="30,10,30" ColumnSpacing="8">
+                                        <TextBlock Grid.Column="0" Margin="0,0,2,0" VerticalAlignment="Center" Text="来源" />
+                                        <ComboBox Grid.Column="1" Classes="community-filter" SelectedIndex="0">
+                                            <ComboBoxItem Content="全部" />
+                                        </ComboBox>
 
-                                        <Grid ColumnDefinitions="*,170,Auto" ColumnSpacing="10"
-                                              IsVisible="{Binding IsCommunityCatalogAvailable}">
-                                            <StackPanel Spacing="4">
-                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="Minecraft 版本" />
-                                                <TextBox IsEnabled="{Binding CanSearchCommunityResources}"
-                                                         PlaceholderText="全部版本，例如 1.21.1"
-                                                         Text="{Binding CommunityGameVersion}" />
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="1" Spacing="4" IsVisible="{Binding IsCommunityLoaderFilterVisible}">
-                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="加载器" />
-                                                <ComboBox IsEnabled="{Binding CanSearchCommunityResources}"
-                                                          ItemsSource="{Binding CommunityResourceLoaderOptions}"
-                                                          SelectedItem="{Binding SelectedCommunityResourceLoader}">
-                                                    <ComboBox.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:CommunityResourceLoaderOption">
-                                                            <TextBlock Text="{Binding DisplayName}" />
-                                                        </DataTemplate>
-                                                    </ComboBox.ItemTemplate>
-                                                </ComboBox>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Orientation="Horizontal" Spacing="8">
-                                                <Button Classes="community-action-primary" MinWidth="82"
-                                                        Command="{Binding SearchCommunityResourcesCommand}"
-                                                        IsEnabled="{Binding CanSearchCommunityResources}"
-                                                        Content="搜索" />
-                                                <Button MinWidth="64" Height="34"
-                                                        Command="{Binding CancelCommunitySearchCommand}"
-                                                        IsEnabled="{Binding CanCancelCommunitySearch}"
-                                                        Content="取消" />
-                                            </StackPanel>
-                                        </Grid>
+                                        <TextBlock Grid.Column="2" Margin="0,0,2,0" VerticalAlignment="Center" Text="标签" />
+                                        <ComboBox Grid.Column="3" Classes="community-filter"
+                                                  ItemsSource="{Binding CommunityResourceCategoryOptions}"
+                                                  SelectedItem="{Binding SelectedCommunityResourceCategory}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:CommunityResourceCategoryOption">
+                                                    <TextBlock Text="{Binding DisplayName}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
 
-                                        <Border Classes="pcl-status-strip" Background="#EDF6FF"
-                                                IsVisible="{Binding IsCommunityStatusVisible}">
-                                            <TextBlock FontSize="12" Foreground="#365879"
-                                                       Text="{Binding CommunityResourceSummary}"
-                                                       TextWrapping="Wrap" />
-                                        </Border>
-                                    </StackPanel>
+                                        <TextBlock Grid.Column="4" Margin="0,0,2,0" VerticalAlignment="Center" Text="排序方式" />
+                                        <ComboBox Grid.Column="5" Classes="community-filter"
+                                                  ItemsSource="{Binding CommunityResourceSortOptions}"
+                                                  SelectedItem="{Binding SelectedCommunityResourceSort}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:CommunityResourceSortOption">
+                                                    <TextBlock Text="{Binding DisplayName}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,2,0" VerticalAlignment="Center" Text="版本" />
+                                        <TextBox Grid.Row="2" Grid.Column="1" Height="30"
+                                                 PlaceholderText="全部（也可自行输入）"
+                                                 Text="{Binding CommunityGameVersion}" />
+
+                                        <TextBlock Grid.Row="2" Grid.Column="2" Margin="0,0,2,0" VerticalAlignment="Center"
+                                                   IsVisible="{Binding IsCommunityLoaderFilterVisible}" Text="加载器" />
+                                        <ComboBox Grid.Row="2" Grid.Column="3" Classes="community-filter"
+                                                  IsVisible="{Binding IsCommunityLoaderFilterVisible}"
+                                                  ItemsSource="{Binding CommunityResourceLoaderOptions}"
+                                                  SelectedItem="{Binding SelectedCommunityResourceLoader}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:CommunityResourceLoaderOption">
+                                                    <TextBlock Text="{Binding DisplayName}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
+
+                                <Border Classes="pcl-status-strip" Background="#EDF6FF"
+                                        IsVisible="{Binding IsCommunityStatusVisible}">
+                                    <TextBlock FontSize="12" Foreground="#365879"
+                                               Text="{Binding CommunityResourceSummary}"
+                                               TextWrapping="Wrap" />
+                                </Border>
+
+                                <Border Classes="download-loading-card" Margin="0,41,0,41"
+                                        IsVisible="{Binding IsCommunitySearchRunning}">
+                                    <controls:PclLoadingIndicator Text="{Binding CommunityLoadingText}" />
                                 </Border>
 
                                 <Border Classes="pcl-card" Padding="7" IsVisible="{Binding IsCommunityResultListVisible}">
@@ -1418,16 +1449,12 @@
                                                 Content="打开项目页" />
                                     </Grid>
                                 </Border>
-                                </StackPanel>
-                            </Grid>
+                            </StackPanel>
 
                             <Border x:Name="DownloadDeferredCard" Classes="pcl-card" Padding="20" IsVisible="False">
-                                <StackPanel Spacing="12">
-                                    <TextBlock FontSize="17" FontWeight="SemiBold" Text="兼容性评估中" />
-                                    <TextBlock Foreground="#6F7C8B" Text="该安装器尚未通过 macOS、Arch Linux 与 Windows 的完整兼容性验证，因此暂不提供下载或执行入口。" TextWrapping="Wrap" />
-                                    <Border Classes="pcl-status-strip" Background="#EDF6FF">
-                                        <TextBlock FontSize="12" Foreground="#365879" Text="页面位置已经与 PCL-CE 同步；待验证安装器来源、Java 要求和实例写入规则后再接入真实功能。" TextWrapping="Wrap" />
-                                    </Border>
+                                <StackPanel Spacing="8">
+                                    <TextBlock x:Name="DownloadDeferredTitle" FontSize="17" FontWeight="SemiBold" Text="安装包" />
+                                    <TextBlock Foreground="#6F7C8B" Text="暂未开放" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>

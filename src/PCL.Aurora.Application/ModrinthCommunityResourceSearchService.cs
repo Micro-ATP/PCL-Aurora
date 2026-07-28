@@ -31,9 +31,11 @@ public sealed class ModrinthCommunityResourceSearchService(HttpClient httpClient
 
         var searchText = request.SearchText.Trim();
         var gameVersion = request.GameVersion?.Trim();
-        if (searchText.Length > 200 || gameVersion?.Length > 80)
+        var category = request.Category?.Trim();
+        if (searchText.Length > 200 || gameVersion?.Length > 80 ||
+            category?.Length > 80 || !IsSafeFacetValue(category))
         {
-            return CommunityResourceSearchResult.Failure("搜索文本或 Minecraft 版本筛选过长。");
+            return CommunityResourceSearchResult.Failure("搜索条件无效。");
         }
 
         try
@@ -42,6 +44,7 @@ public sealed class ModrinthCommunityResourceSearchService(HttpClient httpClient
             {
                 SearchText = searchText,
                 GameVersion = string.IsNullOrWhiteSpace(gameVersion) ? null : gameVersion,
+                Category = string.IsNullOrWhiteSpace(category) ? null : category,
             }));
             message.Headers.UserAgent.ParseAdd("PCL-Aurora/0.1");
             message.Headers.Accept.ParseAdd("application/json");
@@ -82,13 +85,17 @@ public sealed class ModrinthCommunityResourceSearchService(HttpClient httpClient
             facets.Add(new[] { "categories:datapack" });
         }
 
+        if (!string.IsNullOrWhiteSpace(request.Category))
+        {
+            facets.Add(new[] { $"categories:{request.Category}" });
+        }
+
         if (!string.IsNullOrWhiteSpace(request.GameVersion))
         {
             facets.Add(new[] { $"versions:{request.GameVersion}" });
         }
 
-        if (request.Loader != CommunityResourceLoader.Any &&
-            request.Type is CommunityResourceType.Mod or CommunityResourceType.ModPack)
+        if (ShouldApplyLoaderFacet(request))
         {
             facets.Add(new[] { $"categories:{GetLoaderValue(request.Loader)}" });
         }
@@ -116,11 +123,15 @@ public sealed class ModrinthCommunityResourceSearchService(HttpClient httpClient
         CommunityResourceLoader.NeoForge => "neoforge",
         CommunityResourceLoader.Fabric => "fabric",
         CommunityResourceLoader.Quilt => "quilt",
+        CommunityResourceLoader.Vanilla => "vanilla",
+        CommunityResourceLoader.Iris => "iris",
+        CommunityResourceLoader.OptiFine => "optifine",
         _ => throw new ArgumentOutOfRangeException(nameof(loader), loader, null),
     };
 
     private static string GetSortValue(CommunityResourceSort sort) => sort switch
     {
+        CommunityResourceSort.Default => "relevance",
         CommunityResourceSort.Relevance => "relevance",
         CommunityResourceSort.Downloads => "downloads",
         CommunityResourceSort.Follows => "follows",
@@ -128,4 +139,40 @@ public sealed class ModrinthCommunityResourceSearchService(HttpClient httpClient
         CommunityResourceSort.Updated => "updated",
         _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, null),
     };
+
+    private static bool ShouldApplyLoaderFacet(CommunityResourceSearchRequest request)
+    {
+        if (request.Loader == CommunityResourceLoader.Any ||
+            request.Type is not (CommunityResourceType.Mod or CommunityResourceType.ModPack or CommunityResourceType.Shader))
+        {
+            return false;
+        }
+
+        if (request.Type is CommunityResourceType.Mod or CommunityResourceType.ModPack &&
+            request.Loader == CommunityResourceLoader.Forge &&
+            TryGetMinecraftMinorVersion(request.GameVersion, out var minorVersion) &&
+            minorVersion < 14)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool TryGetMinecraftMinorVersion(string? version, out int minorVersion)
+    {
+        minorVersion = 0;
+        if (string.IsNullOrWhiteSpace(version))
+        {
+            return false;
+        }
+
+        var parts = version.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return parts.Length >= 2 && parts[0] == "1" &&
+               int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out minorVersion);
+    }
+
+    private static bool IsSafeFacetValue(string? value) =>
+        string.IsNullOrWhiteSpace(value) ||
+        value.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '+' or '_');
 }

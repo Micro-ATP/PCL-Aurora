@@ -211,14 +211,8 @@ public partial class MainWindow : Window
         DownloadDeferredCard.IsVisible = isDeferredInstaller;
         DownloadGameView.IsVisible = isGame;
         DownloadLoaderView.IsVisible = loaderKind is not null;
-        DownloadPageTitle.Text = GetDownloadSectionTitle(section);
-        DownloadPageDescription.Text = GetDownloadSectionDescription(section);
+        DownloadDeferredTitle.Text = GetDownloadSectionTitle(section);
         DownloadContentScroller.Offset = default;
-        if (isCommunity)
-        {
-            DownloadCommunityTitle.Text = DownloadPageTitle.Text;
-            DownloadCommunityDescription.Text = DownloadPageDescription.Text;
-        }
 
         if (DataContext is ViewModels.MainViewModel viewModel)
         {
@@ -235,7 +229,10 @@ public partial class MainWindow : Window
         {
             var isSelected = navigation == selectedNavigation;
             navigation.Classes.Set("selected", isSelected);
-            if (navigation.Parent is Grid row)
+            var row = navigation.GetVisualAncestors()
+                .OfType<Grid>()
+                .FirstOrDefault(candidate => candidate.Classes.Contains("download-navigation-row"));
+            if (row is not null)
             {
                 row.Classes.Set("selected", isSelected);
             }
@@ -282,13 +279,14 @@ public partial class MainWindow : Window
         DownloadNeoForgeImage.IsVisible = kind == MinecraftLoaderKind.NeoForge;
         DownloadFabricImage.IsVisible = kind == MinecraftLoaderKind.Fabric;
         DownloadOptiFineImage.IsVisible = kind == MinecraftLoaderKind.OptiFine;
-        DownloadLoaderIntroTitle.Text = kind.ToString();
+        DownloadLoaderIntroTitle.Text = $"{kind} 简介";
+        LoaderCatalogLoadingIndicator.Text = $"正在获取 {kind} 列表";
         DownloadLoaderIntroDescription.Text = kind switch
         {
-            MinecraftLoaderKind.Forge => "按 Minecraft 版本读取 Forge 官方 Maven 目录，并通过官方安装器写入已选择的本地实例。",
-            MinecraftLoaderKind.NeoForge => "按 Minecraft 版本读取 NeoForge 官方目录，并通过官方安装器写入已选择的本地实例。",
-            MinecraftLoaderKind.Fabric => "读取 Fabric Meta 的稳定版与预览版目录，并通过官方安装器写入已选择的本地实例。",
-            MinecraftLoaderKind.OptiFine => "读取 PCL 使用的公开 OptiFine 目录。1.14 及以上运行官方安装器，旧版本创建受控继承实例。",
+            MinecraftLoaderKind.Forge => "Forge 是一个模组加载器，你需要先安装 Forge 才能安装各种 Forge 模组。",
+            MinecraftLoaderKind.NeoForge => "NeoForge 是 Minecraft 1.20.1+ 的模组加载器，你需要先安装它才能安装各种 NeoForge 模组，它也兼容一些 Forge 模组。",
+            MinecraftLoaderKind.Fabric => "Fabric Loader 是新版 Minecraft 下的轻量化模组加载器，你需要先安装它才能安装各种 Fabric 模组。",
+            MinecraftLoaderKind.OptiFine => "OptiFine 又称为高清修复，以允许安装光影、使用高清材质、提高游戏性能，但与模组的兼容性不佳。",
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
         };
     }
@@ -312,21 +310,6 @@ public partial class MainWindow : Window
         "labymod" => "LabyMod",
         "liteloader" => "LiteLoader",
         _ => "下载",
-    };
-
-    private static string GetDownloadSectionDescription(string section) => section switch
-    {
-        "game" => "选择官方 Minecraft 版本，再创建本地实例并执行已验证的安装流程。",
-        "mod" => "浏览并筛选适用于当前 Minecraft 版本的模组。",
-        "pack" => "浏览整合包并查看其游戏版本、加载器与依赖信息。",
-        "datapack" => "浏览可安装到世界存档的数据包。",
-        "resourcepack" => "浏览资源包并按游戏版本和分辨率筛选。",
-        "shader" => "浏览光影包及其加载器兼容信息。",
-        "world" => "浏览世界存档与地图作品。",
-        "favorites" => "集中查看已收藏的社区资源。",
-        "optifine" => "选择与当前实例兼容的 OptiFine 版本。1.14+ 使用安装器，旧版创建受控继承版本。",
-        "forge" or "neoforge" or "fabric" => "选择当前实例兼容的加载器版本后，执行已验证的安装流程。",
-        _ => "选择目标游戏版本和安装通道；实际安装能力将在对应迁移阶段接入。",
     };
 
     private void VersionFilterClick(object? sender, RoutedEventArgs e)
