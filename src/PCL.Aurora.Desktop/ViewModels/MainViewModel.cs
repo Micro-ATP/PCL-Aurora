@@ -33,6 +33,8 @@ public partial class MainViewModel(
     IOpenPathService openPathService,
     IThemeService themeService) : ViewModelBase
 {
+    public event EventHandler<string>? MicrosoftDeviceCodeAvailable;
+
     private const int MaximumGameLogLines = 500;
     private static readonly Uri AuroraReleasesUri = new("https://github.com/Micro-ATP/PCL-Aurora/releases");
     private static readonly IReadOnlyList<CommunityResourceLoaderOption> ModLoaderOptions =
@@ -2042,6 +2044,7 @@ public partial class MainViewModel(
             HasMicrosoftDeviceCode = true;
             CanOpenMicrosoftVerificationPage = true;
             MicrosoftLoginSummary = "请在打开的网页中输入下方代码。";
+            MicrosoftDeviceCodeAvailable?.Invoke(this, session.Prompt.UserCode);
             await openPathService.OpenUriAsync(session.Prompt.OpenUri, cancellation.Token);
             var progress = new Progress<MicrosoftAuthenticationProgress>(update => MicrosoftLoginSummary = update.Description);
             var result = await microsoftAuthenticationService.CompleteDeviceCodeLoginAsync(session, progress, cancellation.Token);

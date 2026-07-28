@@ -9,6 +9,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Modules/Network/Downloader/FileDownloader.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModLaunch.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/MyMsgLogin.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/MyMsgLogin.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLaunch.xaml.cs
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModMinecraft.vb
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModLaunch.vb
@@ -19,6 +20,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchLeft.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchRight.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLoginMs.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageLaunch/MyMsgLogin.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml

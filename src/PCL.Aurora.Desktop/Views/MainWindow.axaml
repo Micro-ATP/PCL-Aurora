@@ -883,23 +883,6 @@
                                     </StackPanel>
 
                                     <StackPanel IsVisible="{Binding IsMicrosoftLoginConfigured}" Spacing="8">
-                                        <Border IsVisible="{Binding HasMicrosoftDeviceCode}"
-                                                Background="#EEF6FF" BorderBrush="#A9CCF3" BorderThickness="1"
-                                                CornerRadius="3" Padding="10,8">
-                                            <StackPanel Spacing="5">
-                                                <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="#627287"
-                                                           Text="登录代码" />
-                                                <TextBlock HorizontalAlignment="Center" FontSize="21" FontWeight="SemiBold"
-                                                           Foreground="#1370F3" Text="{Binding MicrosoftDeviceCode}" />
-                                                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
-                                                    <Button Height="30" Padding="10,0" Click="CopyMicrosoftCodeClick" Content="复制代码" />
-                                                    <Button Height="30" Padding="10,0"
-                                                            Command="{Binding OpenMicrosoftVerificationPageCommand}"
-                                                            IsEnabled="{Binding CanOpenMicrosoftVerificationPage}"
-                                                            Content="打开网页" />
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
                                         <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="#6F7C8B"
                                                    Text="{Binding MicrosoftLoginSummary}" TextAlignment="Center" TextWrapping="Wrap" />
                                         <WrapPanel HorizontalAlignment="Center">
@@ -910,9 +893,6 @@
                                                     IsVisible="{Binding HasMicrosoftAccountProfile}"
                                                     Command="{Binding RestoreMicrosoftLoginCommand}"
                                                     IsEnabled="{Binding CanRestoreMicrosoftLogin}" Content="恢复登录" />
-                                            <Button Height="32" MinWidth="66" Margin="4,0"
-                                                    IsVisible="{Binding IsMicrosoftLoginRunning}"
-                                                    Command="{Binding CancelMicrosoftLoginCommand}" Content="取消" />
                                             <Button Height="32" MinWidth="76" Margin="4,0"
                                                     IsVisible="{Binding HasMicrosoftAccountProfile}"
                                                     Command="{Binding ClearMicrosoftLoginCommand}" Content="退出登录" />
@@ -1889,6 +1869,91 @@
                     </ScrollViewer>
                 </Grid>
             </Grid>
+        </Grid>
+
+        <!-- Direct Avalonia adaptation of PCL/PCL-CE MyMsgLogin.xaml. -->
+        <Grid Grid.RowSpan="2"
+              ZIndex="100"
+              Background="#730D2438"
+              IsVisible="{Binding IsMicrosoftLoginRunning}">
+            <Border Width="520"
+                    MinHeight="248"
+                    MaxHeight="420"
+                    Margin="25"
+                    Padding="22,20,22,22"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="#FBFCFE"
+                    BorderBrush="#BFD2E4"
+                    BorderThickness="1"
+                    CornerRadius="7"
+                    BoxShadow="0 8 24 2 #590B2338">
+                <Grid RowDefinitions="Auto,2,16,*,Auto">
+                    <TextBlock Grid.Row="0"
+                               Margin="7,0,70,9"
+                               FontSize="23"
+                               Foreground="#1370F3"
+                               Text="登录 Minecraft" />
+                    <Border Grid.Row="1" Height="2" Background="#1370F3" />
+
+                    <Grid Grid.Row="3" MinHeight="122" Margin="7,0,7,17">
+                        <controls:PclLoadingIndicator IsVisible="{Binding !HasMicrosoftDeviceCode}"
+                                                      MinHeight="122"
+                                                      Text="正在准备登录…" />
+                        <StackPanel IsVisible="{Binding HasMicrosoftDeviceCode}"
+                                    VerticalAlignment="Center"
+                                    Spacing="10">
+                            <TextBlock FontSize="15"
+                                       Foreground="#536271"
+                                       Text="登录网页已经打开，设备代码也已复制。请在浏览器中完成 Microsoft 账户授权。"
+                                       TextWrapping="Wrap" />
+                            <Border Padding="14,9"
+                                    Background="#EAF4FF"
+                                    BorderBrush="#A8CBEF"
+                                    BorderThickness="1"
+                                    CornerRadius="3">
+                                <TextBlock HorizontalAlignment="Center"
+                                           FontFamily="Menlo, Consolas, monospace"
+                                           FontSize="25"
+                                           FontWeight="SemiBold"
+                                           Foreground="#1268C4"
+                                           Text="{Binding MicrosoftDeviceCode}" />
+                            </Border>
+                            <TextBlock FontSize="13"
+                                       Foreground="#758392"
+                                       Text="也可以在其他设备中打开 microsoft.com/devicelogin 并输入此代码。"
+                                       TextWrapping="Wrap" />
+                            <TextBlock FontSize="13"
+                                       Foreground="#3E7BB4"
+                                       Text="{Binding MicrosoftLoginSummary}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Grid.Row="4"
+                                Margin="150,0,8,0"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal"
+                                Spacing="12">
+                        <Button Height="32"
+                                Padding="10,0"
+                                Command="{Binding OpenMicrosoftVerificationPageCommand}"
+                                IsEnabled="{Binding CanOpenMicrosoftVerificationPage}"
+                                Content="重新打开网页" />
+                        <Button Height="32"
+                                Padding="10,0"
+                                Click="CopyMicrosoftCodeClick"
+                                IsEnabled="{Binding HasMicrosoftDeviceCode}"
+                                Content="复制代码" />
+                        <Button Height="32"
+                                MinWidth="64"
+                                Padding="10,0"
+                                Command="{Binding CancelMicrosoftLoginCommand}"
+                                IsEnabled="{Binding CanCancelMicrosoftLogin}"
+                                Content="取消" />
+                    </StackPanel>
+                </Grid>
+            </Border>
         </Grid>
     </Grid>
     </Border>

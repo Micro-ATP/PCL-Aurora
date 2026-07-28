@@ -11,6 +11,7 @@ namespace PCL.Aurora.Desktop.Views;
 public partial class MainWindow : Window
 {
     private string currentDownloadSection = "game";
+    private ViewModels.MainViewModel? subscribedViewModel;
 
     private static readonly string[] HelpTopics =
     {
@@ -26,13 +27,52 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         PopulateMorePlaceholder("help");
+        DataContextChanged += (_, _) => SubscribeToViewModel();
         Opened += async (_, _) =>
         {
+            SubscribeToViewModel();
             if (DataContext is ViewModels.MainViewModel viewModel)
             {
                 await viewModel.InitializeAsync();
             }
         };
+        Closed += (_, _) => SubscribeToViewModel(null);
+    }
+
+    private void SubscribeToViewModel() => SubscribeToViewModel(DataContext as ViewModels.MainViewModel);
+
+    private void SubscribeToViewModel(ViewModels.MainViewModel? viewModel)
+    {
+        if (ReferenceEquals(subscribedViewModel, viewModel))
+        {
+            return;
+        }
+
+        if (subscribedViewModel is not null)
+        {
+            subscribedViewModel.MicrosoftDeviceCodeAvailable -= MicrosoftDeviceCodeAvailable;
+        }
+
+        subscribedViewModel = viewModel;
+        if (subscribedViewModel is not null)
+        {
+            subscribedViewModel.MicrosoftDeviceCodeAvailable += MicrosoftDeviceCodeAvailable;
+        }
+    }
+
+    private async void MicrosoftDeviceCodeAvailable(object? sender, string code)
+    {
+        try
+        {
+            if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+            {
+                await clipboard.SetTextAsync(code);
+            }
+        }
+        catch
+        {
+            // Clipboard access is optional; the dialog still exposes an explicit copy action.
+        }
     }
 
     private async void MainNavigationClick(object? sender, RoutedEventArgs e)
