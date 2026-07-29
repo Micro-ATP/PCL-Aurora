@@ -16,6 +16,7 @@ namespace PCL.Aurora.Desktop.Views;
 public partial class MainWindow : Window
 {
     private string currentDownloadSection = "game";
+    private string currentMoreSection = "help";
     private ViewModels.MainViewModel? subscribedViewModel;
 
     private static readonly string[] HelpTopics =
@@ -88,17 +89,18 @@ public partial class MainWindow : Window
             return;
         }
 
-        SelectMainPage(page);
-        if (page == 1)
-        {
-            await LoadDownloadSectionAsync(currentDownloadSection);
-        }
+        var loadTask = page == 1
+            ? LoadDownloadSectionAsync(currentDownloadSection)
+            : Task.CompletedTask;
+        await SelectMainPageAsync(page);
+        await loadTask;
     }
 
     private async void OpenDownloadPageClick(object? sender, RoutedEventArgs e)
     {
-        SelectMainPage(1);
-        await LoadDownloadSectionAsync(currentDownloadSection);
+        var loadTask = LoadDownloadSectionAsync(currentDownloadSection);
+        await SelectMainPageAsync(1);
+        await loadTask;
     }
 
     private async void CopyMicrosoftCodeClick(object? sender, RoutedEventArgs e)
@@ -141,15 +143,10 @@ public partial class MainWindow : Window
         Close();
     }
 
-    private void SelectMainPage(int page)
+    private Task SelectMainPageAsync(int page)
     {
         var pages = new Control[] { LaunchPage, DownloadPage, SettingsPage, MorePage };
         var selectedPage = pages[page];
-        var pageChanged = !selectedPage.IsVisible;
-        LaunchPage.IsVisible = page == 0;
-        DownloadPage.IsVisible = page == 1;
-        SettingsPage.IsVisible = page == 2;
-        MorePage.IsVisible = page == 3;
 
         var navigation = new[] { LaunchNavigation, DownloadNavigation, SettingsNavigation, MoreNavigation };
         for (var index = 0; index < navigation.Length; index++)
@@ -157,19 +154,33 @@ public partial class MainWindow : Window
             navigation[index].Classes.Set("selected", index == page);
         }
 
-        if (pageChanged)
-        {
-            PclMotionService.AnimateSectionIn(selectedPage);
-        }
+        return PclMotionService.SwitchSectionsAsync(MainPages, pages, selectedPage);
     }
 
-    private void MoreNavigationClick(object? sender, RoutedEventArgs e)
+    private async void MoreNavigationClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not PclNavigationButton { Tag: string section } selectedNavigation)
         {
             return;
         }
 
+        foreach (var navigation in MoreNavigationPanel.Children.OfType<PclNavigationButton>())
+        {
+            navigation.Classes.Set("selected", navigation == selectedNavigation);
+        }
+
+        var sectionChanged = currentMoreSection != section;
+        currentMoreSection = section;
+        await PclMotionService.SwitchSectionsAsync(
+            MoreContentHost,
+            [MoreContentHost],
+            MoreContentHost,
+            () => ApplyMoreSection(section),
+            force: sectionChanged);
+    }
+
+    private void ApplyMoreSection(string section)
+    {
         MoreDirectorySection.IsVisible = section == "toolbox";
         MoreLogSection.IsVisible = section == "logs";
         MoreAboutSection.IsVisible = section == "about";
@@ -193,24 +204,10 @@ public partial class MainWindow : Window
             _ => "查看启动、下载、实例与故障排查入口。",
         };
 
-        foreach (var navigation in MoreNavigationPanel.Children.OfType<PclNavigationButton>())
-        {
-            navigation.Classes.Set("selected", navigation == selectedNavigation);
-        }
-
         if (MorePlaceholderSection.IsVisible)
         {
             PopulateMorePlaceholder(section);
         }
-
-        var selectedSection = section switch
-        {
-            "toolbox" => (Control)MoreDirectorySection,
-            "logs" => MoreLogSection,
-            "about" => MoreAboutSection,
-            _ => MorePlaceholderSection,
-        };
-        PclMotionService.AnimateSectionIn(selectedSection);
     }
 
     private void PopulateMorePlaceholder(string section)
@@ -287,29 +284,13 @@ public partial class MainWindow : Window
         };
         var isGame = section == "game";
         var isDeferredInstaller = !isGame && !isCommunity && loaderKind is null;
+        var sectionChanged = currentDownloadSection != section;
         currentDownloadSection = section;
-
-        DownloadCommunityCard.IsVisible = isCommunity;
-        DownloadDeferredCard.IsVisible = isDeferredInstaller;
-        DownloadGameView.IsVisible = isGame;
-        DownloadCombinedInstallView.IsVisible = false;
-        DownloadLoaderView.IsVisible = loaderKind is not null;
-        DownloadDeferredTitle.Text = GetDownloadSectionTitle(section);
-        DownloadContentScroller.Offset = default;
-        if (isCommunity)
-        {
-            ShowCommunityCatalog(animate: false);
-        }
 
         if (DataContext is ViewModels.MainViewModel viewModel)
         {
             viewModel.SetLoaderKindFilter(loaderKind);
             viewModel.SetCommunityResourceSection(isCommunity ? section : string.Empty);
-        }
-
-        if (loaderKind is { } selectedLoaderKind)
-        {
-            ConfigureLoaderPage(selectedLoaderKind);
         }
 
         foreach (var navigation in DownloadNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>())
@@ -332,9 +313,35 @@ public partial class MainWindow : Window
                 : loaderKind is not null
                     ? DownloadLoaderView
                     : DownloadDeferredCard;
-        PclMotionService.AnimateSectionIn(selectedSection);
+        Control[] downloadSections =
+        [
+            DownloadGameView,
+            DownloadCombinedInstallView,
+            DownloadLoaderView,
+            DownloadCommunityCard,
+            DownloadDeferredCard,
+        ];
+        var loadTask = LoadDownloadSectionAsync(section);
+        await PclMotionService.SwitchSectionsAsync(
+            DownloadContentScroller,
+            downloadSections,
+            selectedSection,
+            () =>
+            {
+                DownloadDeferredTitle.Text = GetDownloadSectionTitle(section);
+                DownloadContentScroller.Offset = default;
+                if (isCommunity)
+                {
+                    ApplyCommunityCatalogState();
+                }
 
-        await LoadDownloadSectionAsync(section);
+                if (loaderKind is { } selectedLoaderKind)
+                {
+                    ConfigureLoaderPage(selectedLoaderKind);
+                }
+            },
+            force: sectionChanged);
+        await loadTask;
     }
 
     private async Task LoadDownloadSectionAsync(string section)
@@ -514,18 +521,23 @@ public partial class MainWindow : Window
         ViewModels.CommunityResourceItemViewModel item)
     {
         viewModel.SelectedCommunityResource = item;
-        MainTitleBar.IsVisible = false;
-        CommunityDetailTitleBar.IsVisible = true;
-        CommunityDetailTitleBarTitle.Text = item.Project.HasTranslatedTitle
-            ? $"资源下载 - {item.Project.DisplayTitle} ({item.Project.Title})"
-            : $"资源下载 - {item.Project.DisplayTitle}";
-        DownloadPageLayout.ColumnDefinitions[0].Width = new GridLength(0);
-        DownloadSidebar.IsVisible = false;
-        DownloadCommunityCatalogView.IsVisible = false;
-        DownloadCommunityDetailView.IsVisible = true;
-        DownloadContentScroller.Offset = default;
-        PclMotionService.AnimateSectionIn(DownloadCommunityDetailView);
-        await viewModel.LoadSelectedCommunityResourceVersionsAsync();
+        var loadTask = viewModel.LoadSelectedCommunityResourceVersionsAsync();
+        await PclMotionService.SwitchSectionsAsync(
+            DownloadContentScroller,
+            [DownloadCommunityCatalogView, DownloadCommunityDetailView],
+            DownloadCommunityDetailView,
+            () =>
+            {
+                MainTitleBar.IsVisible = false;
+                CommunityDetailTitleBar.IsVisible = true;
+                CommunityDetailTitleBarTitle.Text = item.Project.HasTranslatedTitle
+                    ? $"资源下载 - {item.Project.DisplayTitle} ({item.Project.Title})"
+                    : $"资源下载 - {item.Project.DisplayTitle}";
+                DownloadPageLayout.ColumnDefinitions[0].Width = new GridLength(0);
+                DownloadSidebar.IsVisible = false;
+                DownloadContentScroller.Offset = default;
+            });
+        await loadTask;
     }
 
     private void CommunityVersionGameFilterClick(object? sender, RoutedEventArgs e)
@@ -973,14 +985,21 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(() => firstMenuItem?.Focus());
     }
 
-    private void CommunityResourceBackClick(object? sender, RoutedEventArgs e)
+    private async void CommunityResourceBackClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ViewModels.MainViewModel viewModel)
-        {
-            viewModel.SelectedCommunityResource = null;
-        }
+        await PclMotionService.SwitchSectionsAsync(
+            DownloadContentScroller,
+            [DownloadCommunityCatalogView, DownloadCommunityDetailView],
+            DownloadCommunityCatalogView,
+            () =>
+            {
+                if (DataContext is ViewModels.MainViewModel viewModel)
+                {
+                    viewModel.SelectedCommunityResource = null;
+                }
 
-        ShowCommunityCatalog();
+                ApplyCommunityCatalogState();
+            });
     }
 
     private async void CommunityResourceCopyNameClick(object? sender, RoutedEventArgs e)
@@ -1003,7 +1022,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ShowCommunityCatalog(bool animate = true)
+    private void ApplyCommunityCatalogState()
     {
         MainTitleBar.IsVisible = true;
         CommunityDetailTitleBar.IsVisible = false;
@@ -1012,10 +1031,6 @@ public partial class MainWindow : Window
         DownloadCommunityCatalogView.IsVisible = true;
         DownloadCommunityDetailView.IsVisible = false;
         DownloadContentScroller.Offset = default;
-        if (animate)
-        {
-            PclMotionService.AnimateSectionIn(DownloadCommunityCatalogView);
-        }
     }
 
     private async Task<string?> ShowTextPromptAsync(
@@ -1132,14 +1147,13 @@ public partial class MainWindow : Window
             return;
         }
 
-        DownloadGameView.IsVisible = false;
-        DownloadLoaderView.IsVisible = false;
-        DownloadDeferredCard.IsVisible = false;
-        DownloadCommunityCard.IsVisible = false;
-        DownloadCombinedInstallView.IsVisible = true;
-        DownloadContentScroller.Offset = default;
-        PclMotionService.AnimateSectionIn(DownloadCombinedInstallView);
-        await viewModel.PrepareCombinedInstallerAsync(viewModel.SelectedCatalogVersion!);
+        var prepareTask = viewModel.PrepareCombinedInstallerAsync(viewModel.SelectedCatalogVersion!);
+        await PclMotionService.SwitchSectionsAsync(
+            DownloadContentScroller,
+            [DownloadGameView, DownloadCombinedInstallView, DownloadLoaderView, DownloadCommunityCard, DownloadDeferredCard],
+            DownloadCombinedInstallView,
+            () => DownloadContentScroller.Offset = default);
+        await prepareTask;
     }
 
     private async void OfficialVersionChangelogClick(object? sender, RoutedEventArgs e)
@@ -1204,12 +1218,13 @@ public partial class MainWindow : Window
         await viewModel.InstallSelectedOfficialVersionAsync(minecraftRootDirectory);
     }
 
-    private void CombinedInstallBackClick(object? sender, RoutedEventArgs e)
+    private async void CombinedInstallBackClick(object? sender, RoutedEventArgs e)
     {
-        DownloadCombinedInstallView.IsVisible = false;
-        DownloadGameView.IsVisible = true;
-        DownloadContentScroller.Offset = default;
-        PclMotionService.AnimateSectionIn(DownloadGameView);
+        await PclMotionService.SwitchSectionsAsync(
+            DownloadContentScroller,
+            [DownloadGameView, DownloadCombinedInstallView, DownloadLoaderView, DownloadCommunityCard, DownloadDeferredCard],
+            DownloadGameView,
+            () => DownloadContentScroller.Offset = default);
     }
 
     private void CombinedInstallComponentVersionClick(object? sender, RoutedEventArgs e)
@@ -1273,24 +1288,12 @@ public partial class MainWindow : Window
         return true;
     }
 
-    private void SettingsNavigationClick(object? sender, RoutedEventArgs e)
+    private async void SettingsNavigationClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not PclNavigationButton { Tag: string section } selectedNavigation)
         {
             return;
         }
-
-        SettingsLaunchSection.IsVisible = section == "launch";
-        SettingsJavaSection.IsVisible = section == "java";
-        SettingsManageSection.IsVisible = section == "manage";
-        SettingsLinkSection.IsVisible = section == "link";
-        SettingsInterfaceSection.IsVisible = section == "interface";
-        SettingsLanguageSection.IsVisible = section == "language";
-        SettingsMiscSection.IsVisible = section == "misc";
-        SettingsAboutSection.IsVisible = section == "about";
-        SettingsUpdateSection.IsVisible = section == "update";
-        SettingsFeedbackSection.IsVisible = section == "feedback";
-        SettingsLogSection.IsVisible = section == "log";
 
         foreach (var navigation in SettingsNavigationPanel.Children.OfType<PclNavigationButton>())
         {
@@ -1312,6 +1315,21 @@ public partial class MainWindow : Window
             "log" => SettingsLogSection,
             _ => throw new ArgumentOutOfRangeException(nameof(section), section, null),
         };
-        PclMotionService.AnimateSectionIn(selectedSection);
+        await PclMotionService.SwitchSectionsAsync(
+            SettingsPage,
+            [
+                SettingsLaunchSection,
+                SettingsJavaSection,
+                SettingsManageSection,
+                SettingsLinkSection,
+                SettingsInterfaceSection,
+                SettingsLanguageSection,
+                SettingsMiscSection,
+                SettingsAboutSection,
+                SettingsUpdateSection,
+                SettingsFeedbackSection,
+                SettingsLogSection,
+            ],
+            selectedSection);
     }
 }

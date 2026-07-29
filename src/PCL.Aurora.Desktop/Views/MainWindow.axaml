@@ -1476,10 +1476,10 @@
             </Grid>
         </Border>
 
-        <Grid x:Name="MainPages" Grid.Row="1">
+        <Grid x:Name="MainPages" Grid.Row="1" ClipToBounds="True">
             <Grid x:Name="LaunchPage">
                 <Grid ColumnDefinitions="300,*" Background="#D9EAF9">
-                    <Border Background="#FCFCFD" BorderBrush="#D7DCE2" BorderThickness="0,0,1,0">
+                    <Border Classes="pcl-page-left" Background="#FCFCFD" BorderBrush="#D7DCE2" BorderThickness="0,0,1,0">
                         <Grid Margin="20,20" RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="8">
                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
                                 <!-- Icons reused from PCL2 PageLaunchLeft.xaml under the upstream project license. -->
@@ -1595,7 +1595,7 @@
                             </ComboBox>
                         </Grid>
                     </Border>
-                    <Border Grid.Column="1" Background="#D9EAF9">
+                    <Border Grid.Column="1" Classes="pcl-page-right" Background="#D9EAF9">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Margin="28,24,28,28" MaxWidth="520"
                                         HorizontalAlignment="Stretch" VerticalAlignment="Top" Spacing="14">
@@ -1644,7 +1644,7 @@
                         <ColumnDefinition Width="178" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border x:Name="DownloadSidebar" Background="#FCFCFD" Padding="0,12,0,0"
+                    <Border x:Name="DownloadSidebar" Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0"
                             BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Column names follow PCL2 PageDownloadLeft.xaml with PCL-CE installer additions. -->
@@ -1756,7 +1756,8 @@
                             </StackPanel>
                         </ScrollViewer>
                     </Border>
-                    <ScrollViewer x:Name="DownloadContentScroller" Grid.Column="1" Background="#D9EAF9" HorizontalScrollBarVisibility="Disabled">
+                    <ScrollViewer x:Name="DownloadContentScroller" Grid.Column="1" Classes="pcl-page-right"
+                                  Background="#D9EAF9" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="25,10,25,25" MaxWidth="860" Spacing="15">
                             <!-- PCL2 PageDownloadClient/PageDownloadInstall structure adapted to Aurora's existing commands. -->
                             <StackPanel x:Name="DownloadGameView" MinHeight="430" Spacing="15">
@@ -2507,7 +2508,7 @@
 
             <Grid x:Name="SettingsPage" IsVisible="False">
                 <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
-                    <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
+                    <Border Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Category structure follows PCL-CE PageSetupLeft.xaml; visual treatment follows PCL2. -->
                             <StackPanel x:Name="SettingsNavigationPanel" Spacing="2">
@@ -2540,7 +2541,7 @@
                             </StackPanel>
                         </ScrollViewer>
                     </Border>
-                    <ScrollViewer Grid.Column="1" Background="#D9EAF9">
+                    <ScrollViewer Grid.Column="1" Classes="pcl-page-right" Background="#D9EAF9">
                     <StackPanel Margin="25,25,25,10" Spacing="15">
 
                         <StackPanel x:Name="SettingsLaunchSection" Spacing="15">
@@ -3120,7 +3121,7 @@
 
             <Grid x:Name="MorePage" IsVisible="False">
                 <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
-                    <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
+                    <Border Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <!-- PCL2 PageOtherLeft.xaml structure, plus PCL-CE/Aurora session log access. -->
                         <StackPanel x:Name="MoreNavigationPanel" Spacing="2">
                             <controls:PclNavigationButton Classes="secondary-navigation selected" Click="MoreNavigationClick" Tag="help" Label="帮助"
@@ -3138,8 +3139,8 @@
                                                           IconData="M4 2h16v20H4z M8 7h8 M8 11h8 M8 15h5" />
                         </StackPanel>
                     </Border>
-                    <ScrollViewer Grid.Column="1" Background="#D9EAF9">
-                    <StackPanel Margin="25,25,25,10" MaxWidth="860" Spacing="15">
+                    <ScrollViewer Grid.Column="1" Classes="pcl-page-right" Background="#D9EAF9">
+                    <StackPanel x:Name="MoreContentHost" Margin="25,25,25,10" MaxWidth="860" Spacing="15">
                         <StackPanel Spacing="6">
                             <TextBlock x:Name="MorePageTitle" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}" Text="帮助" />
                             <TextBlock x:Name="MorePageDescription" Foreground="#6F7C8B"
