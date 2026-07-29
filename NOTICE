@@ -18,6 +18,8 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Modules/Resource/ResourceVersion.vb
 - PCL2: Plain Craft Launcher 2/Modules/Base/ModNet.vb
 - PCL2: Plain Craft Launcher 2/FormMain.xaml
+- PCL2: Plain Craft Launcher 2/Controls/MyRadioButton.xaml
+- PCL2: Plain Craft Launcher 2/Modules/ModSecret.vb
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchLeft.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchRight.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLoginMs.xaml
@@ -146,10 +148,6 @@ PCL Aurora also contains the following directly reused upstream resources:
 
 PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 
-- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/play.svg
-- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/download.svg
-- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/settings.svg
-- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/grid-2x2.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/box.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/gauge.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/anvil.svg
@@ -193,9 +191,11 @@ LICENSES/HarmonyOS-Sans-Fonts.txt. The fonts are not licensed under the PCL
 Aurora root license and must not be redistributed on a stand-alone basis.
 Adapted source files identify their origin and modifications in file headers.
 The Avalonia desktop shell and launch-page layout in
-`src/PCL.Aurora.Desktop/Views/MainWindow.axaml` adapts the three PCL2 XAML
-references listed above. It does not include the upstream WPF implementation;
-Aurora retains its own bindings and cross-platform window behavior.
+`src/PCL.Aurora.Desktop/Views/MainWindow.axaml` adapts the PCL2 title-bar,
+navigation-control and launch-page XAML references listed above. The title-bar
+gradient follows PCL2 `ModSecret.vb`; it does not include the upstream WPF
+implementation. Aurora retains its own bindings and cross-platform window
+behavior.
 The community-resource version organizer and dependency resolver adapt the
 filter, card-grouping, dependency classification and pre-download confirmation
 rules from the PCL-CE `PageDownloadCompDetail` and `ModComp` sources listed
