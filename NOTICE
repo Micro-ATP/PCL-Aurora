@@ -179,3 +179,8 @@ The Avalonia desktop shell and launch-page layout in
 `src/PCL.Aurora.Desktop/Views/MainWindow.axaml` adapts the three PCL2 XAML
 references listed above. It does not include the upstream WPF implementation;
 Aurora retains its own bindings and cross-platform window behavior.
+The community-resource version organizer and dependency resolver adapt the
+filter, card-grouping, dependency classification and pre-download confirmation
+rules from the PCL-CE `PageDownloadCompDetail` and `ModComp` sources listed
+above. Network requests, immutable models, file dialogs and verified downloads
+are implemented through Aurora's cross-platform application boundaries.

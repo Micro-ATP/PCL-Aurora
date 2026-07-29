@@ -34,6 +34,30 @@ public sealed class CommunityResourceDownloadServiceTests
         Assert.Contains("不安全", exception.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task DownloadWithDependenciesAsync_BuildsOneVerifiedPlan()
+    {
+        var executor = new CapturingDownloadExecutor();
+        var service = new CommunityResourceDownloadService(executor);
+        var root = CreateVersion("sodium.jar");
+        var dependency = CreateVersion("fabric-api.jar") with
+        {
+            Id = "dependency-version",
+            Name = "Fabric API",
+        };
+        var destination = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "aurora-dependency-folder"));
+
+        var result = await service.DownloadWithDependenciesAsync(
+            CreateProject(),
+            root,
+            [dependency],
+            destination);
+
+        Assert.Equal(1, result.DependencyCount);
+        Assert.Equal(2, result.Paths.Count);
+        Assert.Equal(["sodium.jar", "fabric-api.jar"], executor.Plan!.Artifacts.Select(item => item.RelativePath));
+    }
+
     private static CommunityResourceProject CreateProject() =>
         new(
             "AANobbMI", "sodium", "Sodium", "Rendering engine", "jellysquid3",

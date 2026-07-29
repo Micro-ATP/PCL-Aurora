@@ -806,6 +806,32 @@
             <Setter Property="Foreground" Value="#1F65A3" />
             <Setter Property="BorderBrush" Value="#83B8F8" />
         </Style>
+        <Style Selector="RadioButton.community-version-filter">
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#405364" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="RadioButton.community-version-filter:pointerover">
+            <Setter Property="Background" Value="#EDF6FF" />
+            <Setter Property="Foreground" Value="#1F65A3" />
+            <Setter Property="BorderBrush" Value="#C3DCF4" />
+        </Style>
+        <Style Selector="RadioButton.community-version-filter:checked">
+            <Setter Property="Background" Value="#DCEEFF" />
+            <Setter Property="Foreground" Value="#155FA6" />
+            <Setter Property="BorderBrush" Value="#83B8F8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="RadioButton.community-version-filter:focus-visible">
+            <Setter Property="BorderBrush" Value="#2D78C4" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
         <Style Selector="ToggleButton.community-version-group-toggle">
             <Setter Property="Height" Value="40" />
             <Setter Property="Padding" Value="15,0" />
@@ -2131,6 +2157,56 @@
                                     <Border Classes="download-loading-card" Margin="0,35,0,35"
                                             IsVisible="{Binding IsCommunityVersionLoading}">
                                         <controls:PclLoadingIndicator Text="正在获取版本列表" />
+                                    </Border>
+
+                                    <Border Classes="pcl-card" Padding="10,8"
+                                            IsVisible="{Binding IsCommunityVersionFilterVisible}">
+                                        <StackPanel Spacing="4">
+                                            <Grid ColumnDefinitions="72,*" IsVisible="{Binding IsCommunityGameVersionFilterVisible}">
+                                                <TextBlock Margin="4,0,0,0" VerticalAlignment="Center"
+                                                           Foreground="#405364" Text="游戏版本" />
+                                                <ItemsControl Grid.Column="1" ItemsSource="{Binding CommunityGameVersionFilters}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Orientation="Horizontal" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:CommunityResourceVersionFilterOption">
+                                                            <RadioButton Classes="community-version-filter"
+                                                                         GroupName="CommunityGameVersionFilter"
+                                                                         Tag="{Binding}"
+                                                                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                                         Click="CommunityVersionGameFilterClick"
+                                                                         AutomationProperties.Name="{Binding DisplayName, StringFormat=筛选游戏版本 {0}}"
+                                                                         Content="{Binding DisplayName}" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Grid>
+                                            <Grid ColumnDefinitions="72,*" IsVisible="{Binding IsCommunityLoaderVersionFilterVisible}">
+                                                <TextBlock Margin="4,0,0,0" VerticalAlignment="Center"
+                                                           Foreground="#405364" Text="加载器" />
+                                                <ItemsControl Grid.Column="1" ItemsSource="{Binding CommunityLoaderVersionFilters}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Orientation="Horizontal" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:CommunityResourceVersionFilterOption">
+                                                            <RadioButton Classes="community-version-filter"
+                                                                         GroupName="CommunityLoaderVersionFilter"
+                                                                         Tag="{Binding}"
+                                                                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                                         Click="CommunityVersionLoaderFilterClick"
+                                                                         AutomationProperties.Name="{Binding DisplayName, StringFormat=筛选加载器 {0}}"
+                                                                         Content="{Binding DisplayName}" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Grid>
+                                        </StackPanel>
                                     </Border>
 
                                     <ItemsControl ItemsSource="{Binding CommunityResourceVersionGroups}"

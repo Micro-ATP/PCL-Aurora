@@ -10,4 +10,12 @@ public interface ICommunityResourceDownloadService
         string destinationDirectory,
         IProgress<MinecraftDownloadProgress>? progress = null,
         CancellationToken cancellationToken = default);
+
+    Task<CommunityResourceDownloadResult> DownloadWithDependenciesAsync(
+        CommunityResourceProject project,
+        CommunityResourceVersion version,
+        IReadOnlyList<CommunityResourceVersion> dependencies,
+        string destinationDirectory,
+        IProgress<MinecraftDownloadProgress>? progress = null,
+        CancellationToken cancellationToken = default);
 }

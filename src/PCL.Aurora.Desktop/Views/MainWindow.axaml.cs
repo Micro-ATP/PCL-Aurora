@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using PCL.Aurora.Application;
 using PCL.Aurora.Desktop.Controls;
 using PCL.Aurora.Domain;
 
@@ -491,12 +492,48 @@ public partial class MainWindow : Window
         await viewModel.LoadSelectedCommunityResourceVersionsAsync();
     }
 
+    private void CommunityVersionGameFilterClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: ViewModels.CommunityResourceVersionFilterOption option } &&
+            DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.SelectCommunityGameVersionFilter(option);
+        }
+    }
+
+    private void CommunityVersionLoaderFilterClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: ViewModels.CommunityResourceVersionFilterOption option } &&
+            DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.SelectCommunityLoaderFilter(option);
+        }
+    }
+
     private async void CommunityVersionDownloadClick(object? sender, RoutedEventArgs e)
     {
         e.Handled = true;
         if (sender is Button { Tag: CommunityResourceVersion version } &&
             DataContext is ViewModels.MainViewModel viewModel)
         {
+            var preparation = await viewModel.PrepareCommunityResourceDependenciesAsync(version);
+            if (preparation is null)
+            {
+                return;
+            }
+
+            IReadOnlyList<CommunityResourceVersion> dependencies = preparation.RequiredVersions;
+            if (preparation.HasDependencies || preparation.Errors.Count > 0)
+            {
+                var selection = await ShowCommunityDependencySelectionAsync(preparation);
+                if (selection is null)
+                {
+                    return;
+                }
+
+                dependencies = selection;
+            }
+
             var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = $"选择 {version.VersionNumber} 的下载目录",
@@ -508,20 +545,171 @@ public partial class MainWindow : Window
                 return;
             }
 
-            if (version.PrimaryFile is { } file)
+            var existingFiles = new[] { version }
+                .Concat(dependencies)
+                .DistinctBy(item => item.Id, StringComparer.OrdinalIgnoreCase)
+                .Select(item => item.PrimaryFile?.FileName)
+                .Where(fileName => !string.IsNullOrWhiteSpace(fileName))
+                .Select(fileName => Path.Combine(destinationDirectory, Path.GetFileName(fileName!)))
+                .Where(File.Exists)
+                .Select(Path.GetFileName)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            if (existingFiles.Length > 0 &&
+                !await ShowConfirmationAsync(
+                    "文件已存在",
+                    existingFiles.Length == 1
+                        ? $"“{existingFiles[0]}”已经存在，是否覆盖？"
+                        : $"目标目录中已有 {existingFiles.Length} 个同名文件，是否覆盖？"))
             {
-                var destinationPath = Path.Combine(destinationDirectory, Path.GetFileName(file.FileName));
-                if (File.Exists(destinationPath) &&
-                    !await ShowConfirmationAsync(
-                        "文件已存在",
-                        $"“{Path.GetFileName(destinationPath)}”已经存在，是否覆盖？"))
-                {
-                    return;
-                }
+                return;
             }
 
-            await viewModel.DownloadCommunityResourceVersionAsync(version, destinationDirectory);
+            await viewModel.DownloadCommunityResourceVersionAsync(version, destinationDirectory, dependencies);
         }
+    }
+
+    private async Task<IReadOnlyList<CommunityResourceVersion>?> ShowCommunityDependencySelectionAsync(
+        CommunityResourceDependencyPreparation preparation)
+    {
+        var dependencyItems = new StackPanel { Spacing = 6 };
+        if (preparation.RequiredVersions.Count > 0)
+        {
+            dependencyItems.Children.Add(new TextBlock
+            {
+                Text = "必要依赖",
+                FontWeight = Avalonia.Media.FontWeight.SemiBold,
+                Foreground = Avalonia.Media.Brushes.DimGray,
+            });
+            foreach (var version in preparation.RequiredVersions)
+            {
+                dependencyItems.Children.Add(new CheckBox
+                {
+                    Content = $"{version.Name}（{version.VersionNumber}）",
+                    IsChecked = true,
+                    IsEnabled = false,
+                    MinHeight = 32,
+                    VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                });
+            }
+        }
+
+        var optionalChecks = new List<(CheckBox CheckBox, CommunityResourceOptionalDependency Dependency)>();
+        if (preparation.OptionalDependencies.Count > 0)
+        {
+            dependencyItems.Children.Add(new TextBlock
+            {
+                Text = "可选依赖",
+                Margin = new Avalonia.Thickness(0, 6, 0, 0),
+                FontWeight = Avalonia.Media.FontWeight.SemiBold,
+                Foreground = Avalonia.Media.Brushes.DimGray,
+            });
+            foreach (var dependency in preparation.OptionalDependencies)
+            {
+                var checkBox = new CheckBox
+                {
+                    Content = dependency.DisplayName,
+                    IsChecked = false,
+                    MinHeight = 32,
+                    VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                };
+                optionalChecks.Add((checkBox, dependency));
+                dependencyItems.Children.Add(checkBox);
+            }
+        }
+
+        if (preparation.Errors.Count > 0)
+        {
+            dependencyItems.Children.Add(new Border
+            {
+                Margin = new Avalonia.Thickness(0, 6, 0, 0),
+                Padding = new Avalonia.Thickness(10, 8),
+                Background = Avalonia.Media.Brush.Parse("#FFF4D8"),
+                CornerRadius = new Avalonia.CornerRadius(4),
+                Child = new TextBlock
+                {
+                    Text = string.Join(Environment.NewLine, preparation.Errors),
+                    Foreground = Avalonia.Media.Brush.Parse("#795A16"),
+                    TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+                },
+            });
+        }
+
+        var dialog = new Window
+        {
+            Title = "选择依赖",
+            Width = 480,
+            Height = Math.Clamp(220 + dependencyItems.Children.Count * 38, 280, 520),
+            CanResize = false,
+            ShowInTaskbar = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+        };
+        var cancel = new Button
+        {
+            Content = "取消",
+            MinWidth = 76,
+            Height = 34,
+            Background = Avalonia.Media.Brush.Parse("#F9FCFF"),
+            Foreground = Avalonia.Media.Brush.Parse("#405364"),
+            BorderBrush = Avalonia.Media.Brush.Parse("#B8D2EA"),
+            BorderThickness = new Avalonia.Thickness(1),
+            CornerRadius = new Avalonia.CornerRadius(3),
+        };
+        var confirm = new Button
+        {
+            Content = "继续下载",
+            MinWidth = 92,
+            Height = 34,
+            Background = Avalonia.Media.Brush.Parse("#DCEEFF"),
+            Foreground = Avalonia.Media.Brush.Parse("#245F98"),
+            BorderBrush = Avalonia.Media.Brush.Parse("#86BAEF"),
+            BorderThickness = new Avalonia.Thickness(1),
+            CornerRadius = new Avalonia.CornerRadius(3),
+        };
+        cancel.Click += (_, _) => dialog.Close(null);
+        confirm.Click += (_, _) =>
+        {
+            var selected = preparation.RequiredVersions
+                .Concat(optionalChecks
+                    .Where(item => item.CheckBox.IsChecked == true)
+                    .SelectMany(item => item.Dependency.Versions))
+                .DistinctBy(version => version.Id, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            dialog.Close(selected);
+        };
+        dialog.Content = new Border
+        {
+            Padding = new Avalonia.Thickness(20),
+            Child = new Grid
+            {
+                RowDefinitions = new RowDefinitions("Auto,*,Auto"),
+                RowSpacing = 12,
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = "必要依赖将与模组本体一起下载，可选依赖由你决定。",
+                        TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+                    },
+                    new ScrollViewer
+                    {
+                        [Grid.RowProperty] = 1,
+                        VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                        Content = dependencyItems,
+                    },
+                    new StackPanel
+                    {
+                        [Grid.RowProperty] = 2,
+                        Orientation = Avalonia.Layout.Orientation.Horizontal,
+                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+                        Spacing = 8,
+                        Children = { cancel, confirm },
+                    },
+                },
+            },
+        };
+        dialog.Opened += (_, _) => cancel.Focus();
+        return await dialog.ShowDialog<IReadOnlyList<CommunityResourceVersion>?>(this);
     }
 
     private void CommunityResourceFavoriteClick(object? sender, RoutedEventArgs e)

@@ -15,6 +15,19 @@ public sealed record CommunityResourceVersion(
     IReadOnlyList<CommunityResourceVersionFile> Files,
     IReadOnlyList<CommunityResourceDependency> Dependencies)
 {
+    private static readonly IReadOnlyDictionary<string, string> LoaderDisplayNames =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["forge"] = "Forge",
+            ["neoforge"] = "NeoForge",
+            ["fabric"] = "Fabric",
+            ["quilt"] = "Quilt",
+            ["iris"] = "Iris",
+            ["optifine"] = "OptiFine",
+            ["minecraft"] = "Minecraft",
+            ["vanilla"] = "原版",
+        };
+
     public CommunityResourceVersionFile? PrimaryFile =>
         Files.FirstOrDefault(file => file.IsPrimary) ?? Files.FirstOrDefault();
 
@@ -29,7 +42,9 @@ public sealed record CommunityResourceVersion(
     public string PublishedAtDisplay =>
         PublishedAt?.ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.CurrentCulture) ?? "未知日期";
 
-    public string LoaderSummary => Loaders.Count == 0 ? "通用" : string.Join(" · ", Loaders);
+    public string LoaderSummary => Loaders.Count == 0
+        ? "通用"
+        : string.Join(" · ", Loaders.Select(loader => LoaderDisplayNames.GetValueOrDefault(loader, loader)));
 
     public string GameVersionSummary => GameVersions.Count == 0
         ? "未标注游戏版本"
