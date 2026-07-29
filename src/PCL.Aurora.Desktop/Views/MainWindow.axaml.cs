@@ -268,6 +268,7 @@ public partial class MainWindow : Window
         DownloadCommunityCard.IsVisible = isCommunity;
         DownloadDeferredCard.IsVisible = isDeferredInstaller;
         DownloadGameView.IsVisible = isGame;
+        DownloadCombinedInstallView.IsVisible = false;
         DownloadLoaderView.IsVisible = loaderKind is not null;
         DownloadDeferredTitle.Text = GetDownloadSectionTitle(section);
         DownloadContentScroller.Offset = default;
@@ -327,22 +328,22 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (viewModel.SelectedCatalogVersion is null)
+        var loaderKind = section switch
         {
-            await viewModel.LoadVersionCatalogPageAsync();
-        }
-
-        await viewModel.LoadOfficialLoaderCatalogPageAsync();
+            "optifine" => MinecraftLoaderKind.OptiFine,
+            "forge" => MinecraftLoaderKind.Forge,
+            "neoforge" => MinecraftLoaderKind.NeoForge,
+            "fabric" => MinecraftLoaderKind.Fabric,
+            _ => throw new ArgumentOutOfRangeException(nameof(section), section, null),
+        };
+        await viewModel.LoadOfficialLoaderDirectoryPageAsync(loaderKind);
     }
 
     private void ConfigureLoaderPage(MinecraftLoaderKind kind)
     {
-        DownloadForgeImage.IsVisible = kind == MinecraftLoaderKind.Forge;
-        DownloadNeoForgeImage.IsVisible = kind == MinecraftLoaderKind.NeoForge;
-        DownloadFabricImage.IsVisible = kind == MinecraftLoaderKind.Fabric;
-        DownloadOptiFineImage.IsVisible = kind == MinecraftLoaderKind.OptiFine;
         DownloadLoaderIntroTitle.Text = $"{kind} 简介";
         LoaderCatalogLoadingIndicator.Text = $"正在获取 {kind} 列表";
+        DownloadLoaderWebsiteButton.Tag = kind;
         DownloadLoaderIntroDescription.Text = kind switch
         {
             MinecraftLoaderKind.Forge => "Forge 是一个模组加载器，你需要先安装 Forge 才能安装各种 Forge 模组。",
@@ -383,6 +384,74 @@ public partial class MainWindow : Window
         }
 
         await ShowCommunityResourceDetailAsync(viewModel, item);
+    }
+
+    private async void LoaderWebsiteClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: MinecraftLoaderKind kind } &&
+            DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.OpenLoaderWebsiteAsync(kind);
+        }
+    }
+
+    private async void LoaderDirectoryGroupClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: ViewModels.MinecraftLoaderDirectoryGroupViewModel group } ||
+            DataContext is not ViewModels.MainViewModel viewModel || !group.IsCollapsible)
+        {
+            return;
+        }
+
+        group.IsExpanded = !group.IsExpanded;
+        if (group.IsExpanded)
+        {
+            await viewModel.LoadLoaderDirectoryGroupAsync(group);
+        }
+    }
+
+    private async void LoaderPackageDownloadClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: ViewModels.MinecraftLoaderPackageItemViewModel item } ||
+            DataContext is not ViewModels.MainViewModel viewModel || viewModel.IsLoaderPackageDownloading)
+        {
+            return;
+        }
+
+        var extension = Path.GetExtension(item.Package.FileName).TrimStart('.');
+        var fileType = new FilePickerFileType(extension.Equals("zip", StringComparison.OrdinalIgnoreCase)
+            ? "ZIP Archive"
+            : "Java Archive")
+        {
+            Patterns = [$"*.{extension}"],
+            MimeTypes = extension.Equals("zip", StringComparison.OrdinalIgnoreCase)
+                ? ["application/zip"]
+                : ["application/java-archive"],
+        };
+        var destination = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "选择保存位置",
+            SuggestedFileName = item.Package.FileName,
+            DefaultExtension = extension,
+            FileTypeChoices = [fileType],
+            SuggestedFileType = fileType,
+            ShowOverwritePrompt = true,
+        });
+        var destinationPath = destination?.TryGetLocalPath();
+        if (!string.IsNullOrWhiteSpace(destinationPath))
+        {
+            await viewModel.SaveLoaderPackageAsync(item.Package, destinationPath);
+        }
+    }
+
+    private async void LoaderPackageChangelogClick(object? sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is Button { Tag: ViewModels.MinecraftLoaderPackageItemViewModel item } &&
+            DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.OpenLoaderPackageChangelogAsync(item.Package);
+        }
     }
 
     private async void CommunityResourceQuickDownloadClick(object? sender, RoutedEventArgs e)
@@ -735,7 +804,13 @@ public partial class MainWindow : Window
             return;
         }
 
-        await ChooseDirectoryAndInstallOfficialVersionAsync(viewModel);
+        DownloadGameView.IsVisible = false;
+        DownloadLoaderView.IsVisible = false;
+        DownloadDeferredCard.IsVisible = false;
+        DownloadCommunityCard.IsVisible = false;
+        DownloadCombinedInstallView.IsVisible = true;
+        DownloadContentScroller.Offset = default;
+        await viewModel.PrepareCombinedInstallerAsync(viewModel.SelectedCatalogVersion!);
     }
 
     private async void OfficialVersionChangelogClick(object? sender, RoutedEventArgs e)
@@ -798,6 +873,54 @@ public partial class MainWindow : Window
         }
 
         await viewModel.InstallSelectedOfficialVersionAsync(minecraftRootDirectory);
+    }
+
+    private void CombinedInstallBackClick(object? sender, RoutedEventArgs e)
+    {
+        DownloadCombinedInstallView.IsVisible = false;
+        DownloadGameView.IsVisible = true;
+        DownloadContentScroller.Offset = default;
+    }
+
+    private void CombinedInstallComponentVersionClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: MinecraftLoaderCatalogEntry loader } &&
+            DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.SelectCombinedInstallComponent(loader);
+        }
+    }
+
+    private void CombinedInstallComponentClearClick(object? sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is Button { Tag: MinecraftLoaderKind kind } &&
+            DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.ClearCombinedInstallComponent(kind);
+        }
+    }
+
+    private async void CombinedInstallStartClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel { SelectedCatalogVersion: { } version } viewModel ||
+            viewModel.IsInstallationRunning)
+        {
+            return;
+        }
+
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = $"选择 {viewModel.CombinedInstallationName} 的 Minecraft 目录",
+            AllowMultiple = false,
+        });
+        var minecraftRootDirectory = folders.SingleOrDefault()?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(minecraftRootDirectory))
+        {
+            return;
+        }
+
+        await viewModel.InstallSelectedCombinedVersionAsync(minecraftRootDirectory);
     }
 
     private bool TrySelectOfficialVersion(object? sender, out ViewModels.MainViewModel viewModel)

@@ -85,27 +85,19 @@ public static class MinecraftOfficialLoaderCatalogParser
     private static void AddNeoForgeEntries(List<MinecraftLoaderCatalogEntry> entries, string minecraftVersion, string responseJson)
     {
         using var document = JsonDocument.Parse(responseJson);
-        if (document.RootElement.ValueKind != JsonValueKind.Object ||
-            !document.RootElement.TryGetProperty("versions", out var versions) ||
-            versions.ValueKind != JsonValueKind.Array)
+        if (document.RootElement.ValueKind != JsonValueKind.Object)
         {
-            throw new FormatException("NeoForge Maven 响应缺少 versions 数组。 ");
+            throw new FormatException("NeoForge Maven 响应不是对象。 ");
         }
 
-        foreach (var item in versions.EnumerateArray())
+        foreach (var version in EnumerateNeoForgeVersionNames(document.RootElement))
         {
-            if (item.ValueKind != JsonValueKind.String)
+            if (!IsSafeToken(version, 128) || !PclCeNeoForgeVersionPattern.IsMatch(version))
             {
                 continue;
             }
 
-            var version = item.GetString()?.Trim();
-            if (!IsSafeToken(version, 128) || !PclCeNeoForgeVersionPattern.IsMatch(version!))
-            {
-                continue;
-            }
-
-            var entry = new PclCeNeoForgeListEntry(version!);
+            var entry = new PclCeNeoForgeListEntry(version);
             if (!string.Equals(entry.Inherit, minecraftVersion, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
@@ -114,10 +106,35 @@ public static class MinecraftOfficialLoaderCatalogParser
             entries.Add(new(
                 MinecraftLoaderKind.NeoForge,
                 minecraftVersion,
-                version!,
+                version,
                 entry.IsBeta ? MinecraftLoaderChannel.Beta : MinecraftLoaderChannel.Release,
                 IsRecommended: false,
                 entry));
+        }
+    }
+
+    private static IEnumerable<string> EnumerateNeoForgeVersionNames(JsonElement root)
+    {
+        if (root.TryGetProperty("versions", out var versions) && versions.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in versions.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String && item.GetString()?.Trim() is { Length: > 0 } version)
+                {
+                    yield return version;
+                }
+            }
+        }
+
+        if (root.TryGetProperty("files", out var files) && files.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in files.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.Object && TryGetString(item, "name", out var version))
+                {
+                    yield return version;
+                }
+            }
         }
     }
 

@@ -12,4 +12,13 @@ public interface IMinecraftOfficialLoaderCatalogService
         string minecraftVersion,
         MinecraftLoaderKind? loaderKind = null,
         CancellationToken cancellationToken = default);
+
+    Task<MinecraftLoaderDirectoryResult> FetchDirectoryAsync(
+        MinecraftLoaderKind loaderKind,
+        CancellationToken cancellationToken = default);
+
+    Task<MinecraftLoaderDirectoryResult> FetchDirectoryGroupAsync(
+        MinecraftLoaderKind loaderKind,
+        string groupKey,
+        CancellationToken cancellationToken = default);
 }

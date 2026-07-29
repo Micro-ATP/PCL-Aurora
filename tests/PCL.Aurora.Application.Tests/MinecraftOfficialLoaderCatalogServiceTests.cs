@@ -59,6 +59,21 @@ public sealed class MinecraftOfficialLoaderCatalogServiceTests
         Assert.Equal(["maven.minecraftforge.net"], handler.RequestedHosts);
     }
 
+    [Fact]
+    public async Task FetchDirectoryAsync_UsesIndependentPclCeDirectoryEndpoints()
+    {
+        using var client = new HttpClient(new IndependentDirectoryHandler());
+        var service = new MinecraftOfficialLoaderCatalogService(client);
+
+        var forge = await service.FetchDirectoryAsync(PCL.Aurora.Domain.MinecraftLoaderKind.Forge);
+        var fabric = await service.FetchDirectoryAsync(PCL.Aurora.Domain.MinecraftLoaderKind.Fabric);
+        var forgeGroup = await service.FetchDirectoryGroupAsync(PCL.Aurora.Domain.MinecraftLoaderKind.Forge, "1.20.1");
+
+        Assert.Equal("1.20.1", Assert.Single(forge.Directory!.Groups).Key);
+        Assert.False(Assert.Single(fabric.Directory!.Groups).IsCollapsible);
+        Assert.Equal("47.2.0", Assert.Single(forgeGroup.Directory!.Groups[0].Entries).Version);
+    }
+
     private sealed class OfficialCatalogHandler : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -69,6 +84,11 @@ public sealed class MinecraftOfficialLoaderCatalogServiceTests
                 "maven.neoforged.net" when request.RequestUri.AbsolutePath.EndsWith("/neoforge", StringComparison.Ordinal) => """{ "versions": ["20.1.1"] }""",
                 "maven.neoforged.net" => """{ "versions": ["1.20.1-47.1.99"] }""",
                 "meta.fabricmc.net" => """[{ "loader": { "version": "0.16.10", "stable": true } }]""",
+                "bmclapi2.bangbang93.com" when request.RequestUri.AbsolutePath.Contains("/neoforge/", StringComparison.Ordinal) &&
+                                                       request.RequestUri.AbsolutePath.EndsWith("/neoforge", StringComparison.Ordinal) =>
+                    """{ "files": [{ "name": "20.1.1", "type": "DIRECTORY" }] }""",
+                "bmclapi2.bangbang93.com" when request.RequestUri.AbsolutePath.Contains("/neoforge/", StringComparison.Ordinal) =>
+                    """{ "files": [{ "name": "1.20.1-47.1.99", "type": "DIRECTORY" }] }""",
                 "bmclapi2.bangbang93.com" => """[{ "mcversion": "1.20.1", "type": "HD_U", "patch": "I6", "filename": "OptiFine_1.20.1_HD_U_I6.jar", "forge": "Forge 47.2.0" }]""",
                 _ => throw new InvalidOperationException($"意外请求：{request.RequestUri}"),
             };
@@ -86,7 +106,8 @@ public sealed class MinecraftOfficialLoaderCatalogServiceTests
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (request.RequestUri!.Host == "maven.neoforged.net")
+            if (request.RequestUri!.Host == "maven.neoforged.net" ||
+                request.RequestUri.AbsolutePath.Contains("/neoforge/", StringComparison.Ordinal))
             {
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway));
             }
@@ -109,6 +130,21 @@ public sealed class MinecraftOfficialLoaderCatalogServiceTests
         {
             RequestedHosts.Add(request.RequestUri!.Host);
             const string content = "<metadata><versioning><versions><version>1.20.1-47.2.0</version></versions></versioning></metadata>";
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content) });
+        }
+    }
+
+    private sealed class IndependentDirectoryHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var content = request.RequestUri!.AbsolutePath switch
+            {
+                "/forge/minecraft" => """["1.20.1"]""",
+                "/forge/minecraft/1.20.1" => """[{"version":"47.2.0","files":[{"category":"installer","format":"jar"}]}]""",
+                "/v2/versions/installer" => """[{"version":"1.0.3","stable":true,"url":"https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.0.3/fabric-installer-1.0.3.jar"}]""",
+                _ => throw new InvalidOperationException($"意外请求：{request.RequestUri}"),
+            };
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content) });
         }
     }

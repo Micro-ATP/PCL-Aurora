@@ -27,6 +27,7 @@ public partial class MainViewModel(
     ICommunityResourceDescriptionTranslationService communityDescriptionTranslationService,
     IMinecraftLoaderCatalogService loaderCatalogService,
     IMinecraftOfficialLoaderCatalogService officialLoaderCatalogService,
+    IMinecraftLoaderPackageDownloadService loaderPackageDownloadService,
     IMinecraftLoaderInstallerService loaderInstallerService,
     IMinecraftVersionProvisioningService versionProvisioningService,
     IMinecraftDirectoryService minecraftDirectoryService,
@@ -82,6 +83,7 @@ public partial class MainViewModel(
     private CancellationTokenSource? communityVersionCancellation;
     private CancellationTokenSource? communityDownloadCancellation;
     private CancellationTokenSource? communityDescriptionTranslationCancellation;
+    private CancellationTokenSource? loaderDirectoryCancellation;
 
     public ObservableCollection<MinecraftVersionCatalogEntry> AvailableVersions { get; } = [];
 
@@ -94,6 +96,16 @@ public partial class MainViewModel(
     public ObservableCollection<MinecraftVersionCatalogEntry> AprilFoolsVersions { get; } = [];
 
     public ObservableCollection<MinecraftLoaderCatalogEntry> AvailableLoaders { get; } = [];
+
+    public ObservableCollection<MinecraftInstallComponentViewModel> CombinedInstallComponents { get; } =
+    [
+        new(MinecraftLoaderKind.Forge, "Forge", "/Assets/Loaders/PclCeForge.png"),
+        new(MinecraftLoaderKind.NeoForge, "NeoForge", "/Assets/Loaders/PclCeNeoForge.png"),
+        new(MinecraftLoaderKind.Fabric, "Fabric", "/Assets/Loaders/PclCeFabric.png"),
+        new(MinecraftLoaderKind.OptiFine, "OptiFine", "/Assets/Loaders/PclCeOptiFine.png"),
+    ];
+
+    public ObservableCollection<MinecraftLoaderDirectoryGroupViewModel> LoaderDirectoryGroups { get; } = [];
 
     public ObservableCollection<CommunityResourceItemViewModel> CommunityResources { get; } = [];
 
@@ -328,6 +340,16 @@ public partial class MainViewModel(
     private string loaderSelectionSummary = "请先导入目录并选择一个 Minecraft 版本；不会下载或执行安装器。";
 
     [ObservableProperty]
+    private bool isLoaderDirectoryLoading;
+
+    [ObservableProperty]
+    private bool isLoaderPackageDownloading;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLoaderDirectorySummary))]
+    private string loaderDirectorySummary = string.Empty;
+
+    [ObservableProperty]
     private bool hasAvailableLoaders;
 
     [ObservableProperty]
@@ -335,6 +357,18 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private bool canInstallSelectedLoader;
+
+    [ObservableProperty]
+    private bool isCombinedInstallerLoading;
+
+    [ObservableProperty]
+    private bool canStartCombinedInstallation;
+
+    [ObservableProperty]
+    private string combinedInstallationName = string.Empty;
+
+    [ObservableProperty]
+    private string combinedInstallationSummary = "选择 Minecraft 版本后可添加安装组件。";
 
     [ObservableProperty]
     private string communitySearchText = string.Empty;
@@ -472,11 +506,156 @@ public partial class MainViewModel(
 
     public bool IsCommunityVersionCardVisible => SelectedCommunityResource is not null && !IsCommunitySearchRunning;
 
-    public bool IsLoaderPageLoading => IsVersionCatalogLoading || IsOfficialLoaderCatalogLoading;
+    public bool IsLoaderPageLoading => IsLoaderDirectoryLoading;
+
+    public bool HasLoaderDirectorySummary => !string.IsNullOrWhiteSpace(LoaderDirectorySummary);
 
     public Task LoadVersionCatalogPageAsync() => RefreshVersionCatalogAsync();
 
     public Task LoadOfficialLoaderCatalogPageAsync() => RefreshOfficialLoaderCatalogAsync();
+
+    public async Task LoadOfficialLoaderDirectoryPageAsync(MinecraftLoaderKind kind)
+    {
+        loaderDirectoryCancellation?.Cancel();
+        loaderDirectoryCancellation?.Dispose();
+        loaderDirectoryCancellation = new();
+        var cancellationToken = loaderDirectoryCancellation.Token;
+        IsLoaderDirectoryLoading = true;
+        LoaderDirectoryGroups.Clear();
+        LoaderDirectorySummary = $"正在获取 {kind} 列表…";
+        try
+        {
+            var result = await officialLoaderCatalogService.FetchDirectoryAsync(kind, cancellationToken);
+            if (result.Directory is null)
+            {
+                LoaderDirectorySummary = string.Join(Environment.NewLine, result.Errors);
+                return;
+            }
+
+            foreach (var group in result.Directory.Groups)
+            {
+                LoaderDirectoryGroups.Add(new(kind, group));
+            }
+
+            LoaderDirectorySummary = result.Errors.Count == 0
+                ? string.Empty
+                : string.Join(Environment.NewLine, result.Errors);
+        }
+        catch (OperationCanceledException)
+        {
+            LoaderDirectorySummary = string.Empty;
+        }
+        catch (Exception exception)
+        {
+            LoaderDirectorySummary = $"获取 {kind} 列表失败：{exception.Message}";
+        }
+        finally
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                IsLoaderDirectoryLoading = false;
+            }
+        }
+    }
+
+    public async Task LoadLoaderDirectoryGroupAsync(MinecraftLoaderDirectoryGroupViewModel group)
+    {
+        ArgumentNullException.ThrowIfNull(group);
+        if (!group.IsLazy || group.IsLoaded || group.IsLoading)
+        {
+            return;
+        }
+
+        group.IsLoading = true;
+        group.Error = string.Empty;
+        try
+        {
+            var result = await officialLoaderCatalogService.FetchDirectoryGroupAsync(group.Kind, group.Key);
+            var loadedGroup = result.Directory?.Groups.SingleOrDefault();
+            if (loadedGroup is null)
+            {
+                group.IsLoading = false;
+                group.Error = string.Join(Environment.NewLine, result.Errors);
+                return;
+            }
+
+            group.ReplaceEntries(loadedGroup.Entries);
+        }
+        catch (OperationCanceledException)
+        {
+            group.IsLoading = false;
+        }
+        catch (Exception exception)
+        {
+            group.IsLoading = false;
+            group.Error = $"获取版本列表失败：{exception.Message}";
+        }
+    }
+
+    public async Task SaveLoaderPackageAsync(MinecraftLoaderPackageEntry package, string destinationFile)
+    {
+        if (IsLoaderPackageDownloading)
+        {
+            return;
+        }
+
+        IsLoaderPackageDownloading = true;
+        LoaderDirectorySummary = $"正在下载 {package.Kind} {package.DisplayName}…";
+        try
+        {
+            var savedPath = await loaderPackageDownloadService.DownloadAsync(package, destinationFile);
+            LoaderDirectorySummary = $"{package.Kind} {package.DisplayName} 已保存到 {savedPath}。";
+        }
+        catch (OperationCanceledException)
+        {
+            LoaderDirectorySummary = "安装包下载已取消。";
+        }
+        catch (Exception exception)
+        {
+            LoaderDirectorySummary = $"安装包下载失败：{exception.Message}";
+        }
+        finally
+        {
+            IsLoaderPackageDownloading = false;
+        }
+    }
+
+    public async Task OpenLoaderPackageChangelogAsync(MinecraftLoaderPackageEntry package)
+    {
+        if (package.ChangelogUri is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await openPathService.OpenUriAsync(package.ChangelogUri);
+        }
+        catch (Exception exception)
+        {
+            LoaderDirectorySummary = $"无法打开更新日志：{exception.Message}";
+        }
+    }
+
+    public async Task OpenLoaderWebsiteAsync(MinecraftLoaderKind kind)
+    {
+        var uri = kind switch
+        {
+            MinecraftLoaderKind.Forge => new Uri("https://files.minecraftforge.net"),
+            MinecraftLoaderKind.NeoForge => new Uri("https://neoforged.net"),
+            MinecraftLoaderKind.Fabric => new Uri("https://www.fabricmc.net"),
+            MinecraftLoaderKind.OptiFine => new Uri("https://www.optifine.net"),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+        };
+        try
+        {
+            await openPathService.OpenUriAsync(uri);
+        }
+        catch (Exception exception)
+        {
+            LoaderDirectorySummary = $"无法打开官方网站：{exception.Message}";
+        }
+    }
 
     public async Task SaveSelectedVersionServerAsync(string destinationFile)
     {
@@ -892,26 +1071,7 @@ public partial class MainViewModel(
         try
         {
             var rootDirectory = Path.GetFullPath(minecraftRootDirectory);
-            VersionCatalogSummary = $"正在 {rootDirectory} 创建 {version.Id}…";
-            var instance = await versionProvisioningService.ProvisionAsync(version, rootDirectory);
-            try
-            {
-                isRefreshing = true;
-                SelectedInstance = instance;
-            }
-            finally
-            {
-                isRefreshing = false;
-            }
-
-            await RefreshSelectedInstanceStateAsync();
-            if (!CanInstallGame)
-            {
-                InstallationSummary = "当前实例的下载计划尚未准备完成。";
-                return;
-            }
-
-            await InstallGameCoreAsync(refreshDefaultInstanceCatalog: false);
+            await InstallSelectedOfficialVersionCoreAsync(version, rootDirectory);
         }
         catch (OperationCanceledException)
         {
@@ -921,6 +1081,249 @@ public partial class MainViewModel(
         {
             InstallationSummary = $"安装失败：{exception.Message}";
         }
+    }
+
+    public async Task PrepareCombinedInstallerAsync(MinecraftVersionCatalogEntry version)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+        SelectedCatalogVersion = version;
+        CombinedInstallationName = version.Id;
+        CombinedInstallationSummary = $"正在获取 Minecraft {version.Id} 的可选组件…";
+        CanStartCombinedInstallation = false;
+        IsCombinedInstallerLoading = true;
+        foreach (var component in CombinedInstallComponents)
+        {
+            component.ResetForLoading();
+        }
+
+        try
+        {
+            var result = await officialLoaderCatalogService.FetchAsync(version.Id);
+            loaderCatalog = result.Catalog;
+            var failure = result.Errors.Count == 0
+                ? $"没有适用于 Minecraft {version.Id} 的版本"
+                : string.Join("；", result.Errors);
+            foreach (var component in CombinedInstallComponents)
+            {
+                var entries = result.Catalog is null
+                    ? []
+                    : MinecraftLoaderCatalogFilter.ForMinecraftVersion(result.Catalog, version.Id, component.Kind);
+                component.ReplaceVersions(entries, failure);
+            }
+
+            UpdateCombinedInstallationSelection();
+            CombinedInstallationSummary = result.Catalog is null
+                ? failure
+                : result.Errors.Count == 0
+                    ? "可以直接安装原版游戏，或展开下方卡片添加组件。"
+                    : $"部分组件目录未能获取：{failure}";
+        }
+        catch (OperationCanceledException)
+        {
+            CombinedInstallationSummary = "获取安装组件已取消。";
+            throw;
+        }
+        catch (Exception exception)
+        {
+            foreach (var component in CombinedInstallComponents)
+            {
+                component.ReplaceVersions([], "获取版本列表失败");
+            }
+            CombinedInstallationSummary = $"获取安装组件失败：{exception.Message}";
+        }
+        finally
+        {
+            IsCombinedInstallerLoading = false;
+            CanStartCombinedInstallation = SelectedCatalogVersion is not null;
+        }
+    }
+
+    public void SelectCombinedInstallComponent(MinecraftLoaderCatalogEntry loader)
+    {
+        ArgumentNullException.ThrowIfNull(loader);
+        var target = CombinedInstallComponents.Single(component => component.Kind == loader.Kind);
+        target.SelectedVersion = loader;
+        target.IsExpanded = false;
+
+        if (loader.Kind is MinecraftLoaderKind.Forge or MinecraftLoaderKind.NeoForge or MinecraftLoaderKind.Fabric)
+        {
+            foreach (var component in CombinedInstallComponents.Where(component =>
+                         component.Kind is MinecraftLoaderKind.Forge or MinecraftLoaderKind.NeoForge or MinecraftLoaderKind.Fabric &&
+                         component.Kind != loader.Kind))
+            {
+                component.SelectedVersion = null;
+                component.IsExpanded = false;
+            }
+        }
+
+        var optiFine = GetCombinedComponent(MinecraftLoaderKind.OptiFine);
+        var forge = GetCombinedComponent(MinecraftLoaderKind.Forge);
+        if (loader.Kind is MinecraftLoaderKind.NeoForge or MinecraftLoaderKind.Fabric)
+        {
+            optiFine.SelectedVersion = null;
+            optiFine.IsExpanded = false;
+        }
+        else if (loader.Kind == MinecraftLoaderKind.OptiFine)
+        {
+            GetCombinedComponent(MinecraftLoaderKind.NeoForge).SelectedVersion = null;
+            GetCombinedComponent(MinecraftLoaderKind.Fabric).SelectedVersion = null;
+            if (forge.SelectedVersion is { } selectedForge && !IsOptiFineCompatibleWithForge(loader, selectedForge))
+            {
+                forge.SelectedVersion = null;
+                forge.IsExpanded = false;
+            }
+        }
+        else if (loader.Kind == MinecraftLoaderKind.Forge &&
+                 optiFine.SelectedVersion is { } selectedOptiFine &&
+                 !IsOptiFineCompatibleWithForge(selectedOptiFine, loader))
+        {
+            optiFine.SelectedVersion = null;
+            optiFine.IsExpanded = false;
+        }
+
+        UpdateCombinedInstallationSelection();
+    }
+
+    public void ClearCombinedInstallComponent(MinecraftLoaderKind kind)
+    {
+        var component = GetCombinedComponent(kind);
+        component.SelectedVersion = null;
+        component.IsExpanded = false;
+        UpdateCombinedInstallationSelection();
+    }
+
+    public async Task InstallSelectedCombinedVersionAsync(string minecraftRootDirectory)
+    {
+        if (SelectedCatalogVersion is not { } version || IsInstallationRunning)
+        {
+            return;
+        }
+
+        try
+        {
+            var rootDirectory = Path.GetFullPath(minecraftRootDirectory);
+            var baseInstalled = await InstallSelectedOfficialVersionCoreAsync(version, rootDirectory);
+            if (!baseInstalled)
+            {
+                return;
+            }
+
+            var selectedLoaders = GetSelectedCombinedLoaders();
+            foreach (var loader in selectedLoaders)
+            {
+                CombinedInstallationSummary = $"正在准备 {loader.Kind} {loader.Version}…";
+                var plan = await loaderInstallerService.PrepareAsync(loader, rootDirectory, SelectedJava);
+                if (!plan.CanInstall)
+                {
+                    CombinedInstallationSummary = string.Join(Environment.NewLine, plan.BlockingReasons);
+                    return;
+                }
+
+                var result = await loaderInstallerService.InstallAsync(
+                    plan,
+                    rootDirectory,
+                    hasExplicitUserConfirmation: true);
+                if (!result.Succeeded)
+                {
+                    CombinedInstallationSummary = string.Join(
+                        Environment.NewLine,
+                        result.Errors.Concat(result.Output.TakeLast(5).Select(line => line.Text)));
+                    return;
+                }
+            }
+
+            CombinedInstallationSummary = selectedLoaders.Count == 0
+                ? $"Minecraft {version.Id} 安装完成。"
+                : $"Minecraft {version.Id} 与 {string.Join(" + ", selectedLoaders.Select(loader => $"{loader.Kind} {loader.Version}"))} 安装完成。";
+            InstallationSummary = CombinedInstallationSummary;
+        }
+        catch (OperationCanceledException)
+        {
+            CombinedInstallationSummary = "组合安装已取消。";
+        }
+        catch (Exception exception)
+        {
+            CombinedInstallationSummary = $"组合安装失败：{exception.Message}";
+        }
+    }
+
+    private async Task<bool> InstallSelectedOfficialVersionCoreAsync(
+        MinecraftVersionCatalogEntry version,
+        string rootDirectory)
+    {
+        VersionCatalogSummary = $"正在 {rootDirectory} 创建 {version.Id}…";
+        var instance = await versionProvisioningService.ProvisionAsync(version, rootDirectory);
+        try
+        {
+            isRefreshing = true;
+            SelectedInstance = instance;
+        }
+        finally
+        {
+            isRefreshing = false;
+        }
+
+        await RefreshSelectedInstanceStateAsync();
+        if (!CanInstallGame)
+        {
+            InstallationSummary = "当前实例的下载计划尚未准备完成。";
+            return false;
+        }
+
+        return await InstallGameCoreAsync(refreshDefaultInstanceCatalog: false);
+    }
+
+    private MinecraftInstallComponentViewModel GetCombinedComponent(MinecraftLoaderKind kind) =>
+        CombinedInstallComponents.Single(component => component.Kind == kind);
+
+    private IReadOnlyList<MinecraftLoaderCatalogEntry> GetSelectedCombinedLoaders()
+    {
+        var selected = CombinedInstallComponents
+            .Where(component => component.SelectedVersion is not null)
+            .Select(component => component.SelectedVersion!)
+            .ToList();
+        return selected
+            .OrderBy(loader => loader.Kind == MinecraftLoaderKind.OptiFine ? 1 : 0)
+            .ToArray();
+    }
+
+    private void UpdateCombinedInstallationSelection()
+    {
+        var version = SelectedCatalogVersion?.Id ?? "Minecraft";
+        var selected = GetSelectedCombinedLoaders();
+        CombinedInstallationName = selected.Count == 0
+            ? version
+            : $"{version}-{string.Join("-", selected.Select(loader => $"{loader.Kind}_{loader.Version}"))}";
+        CombinedInstallationSummary = selected.Count == 0
+            ? "未添加额外组件，将安装原版游戏。"
+            : $"已选择 {string.Join(" + ", selected.Select(loader => $"{loader.Kind} {loader.Version}"))}。";
+        CanStartCombinedInstallation = SelectedCatalogVersion is not null && !IsCombinedInstallerLoading;
+    }
+
+    private static bool IsOptiFineCompatibleWithForge(
+        MinecraftLoaderCatalogEntry optiFine,
+        MinecraftLoaderCatalogEntry forge)
+    {
+        if (optiFine.Kind != MinecraftLoaderKind.OptiFine ||
+            forge.Kind != MinecraftLoaderKind.Forge ||
+            !string.Equals(optiFine.MinecraftVersion, forge.MinecraftVersion, StringComparison.OrdinalIgnoreCase) ||
+            optiFine.OptiFineEntry?.RequiredForgeVersion is not { } requiredForgeVersion)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(requiredForgeVersion))
+        {
+            return true;
+        }
+
+        if (requiredForgeVersion.Contains('.', StringComparison.Ordinal))
+        {
+            return PclCeVersionComparer.CompareVersion(forge.Version, requiredForgeVersion) == 0;
+        }
+
+        var segments = forge.Version.Split('.');
+        return segments.Length > 0 && string.Equals(segments[^1], requiredForgeVersion, StringComparison.OrdinalIgnoreCase);
     }
 
     partial void OnSelectedCatalogVersionChanged(MinecraftVersionCatalogEntry? value)
@@ -1252,6 +1655,9 @@ public partial class MainViewModel(
         OnPropertyChanged(nameof(IsLoaderPageLoading));
 
     partial void OnIsOfficialLoaderCatalogLoadingChanged(bool value) =>
+        OnPropertyChanged(nameof(IsLoaderPageLoading));
+
+    partial void OnIsCombinedInstallerLoadingChanged(bool value) =>
         OnPropertyChanged(nameof(IsLoaderPageLoading));
 
     partial void OnSelectedJavaChanged(JavaInstallation? value)
@@ -2496,14 +2902,14 @@ public partial class MainViewModel(
     }
 
     [RelayCommand]
-    private Task InstallGameAsync() => InstallGameCoreAsync(refreshDefaultInstanceCatalog: true);
+    private async Task InstallGameAsync() => await InstallGameCoreAsync(refreshDefaultInstanceCatalog: true);
 
-    private async Task InstallGameCoreAsync(bool refreshDefaultInstanceCatalog)
+    private async Task<bool> InstallGameCoreAsync(bool refreshDefaultInstanceCatalog)
     {
         if (SelectedInstance is null || !CanInstallGame)
         {
             InstallationSummary = "安装条件尚未满足，未发起下载。";
-            return;
+            return false;
         }
 
         using var cancellation = new CancellationTokenSource();
@@ -2525,16 +2931,19 @@ public partial class MainViewModel(
             {
                 await RefreshSelectedInstanceStateAsync();
             }
+            return true;
         }
         catch (OperationCanceledException)
         {
             InstallationSummary = "安装已取消。";
             CanInstallGame = true;
+            return false;
         }
         catch (Exception exception)
         {
             InstallationSummary = $"安装失败：{exception.Message}";
             CanInstallGame = true;
+            return false;
         }
         finally
         {

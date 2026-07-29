@@ -27,6 +27,7 @@
 
     <Window.Resources>
         <converters:MinecraftVersionIconConverter x:Key="MinecraftVersionIconConverter" />
+        <converters:MinecraftLoaderIconConverter x:Key="MinecraftLoaderIconConverter" />
         <StreamGeometry x:Key="DownloadRefreshIcon">M20 11a8.1 8.1 0 0 0-15.5-2 M4 4v5h5 M4 13a8.1 8.1 0 0 0 15.5 2 M20 20v-5h-5</StreamGeometry>
         <StreamGeometry x:Key="VersionInfoIcon">M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 10v7 M12 7h.01</StreamGeometry>
         <StreamGeometry x:Key="VersionServerIcon">M4 4h16v6H4z M4 14h16v6H4z M8 7h.01 M8 17h.01</StreamGeometry>
@@ -1096,6 +1097,57 @@
         <Style Selector="ToggleButton.version-category-header:pressed">
             <Setter Property="Background" Value="#EAF4FF" />
         </Style>
+        <Style Selector="Button.loader-directory-header">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="15,0,16,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          HorizontalContentAlignment="Stretch"
+                                          VerticalContentAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.loader-directory-header:pointerover">
+            <Setter Property="Background" Value="#F8FBFE" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Button.loader-directory-header:pressed">
+            <Setter Property="Background" Value="#EAF4FF" />
+        </Style>
+        <Style Selector="Button.loader-package-main">
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Padding" Value="8,0,44,0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          HorizontalContentAlignment="Stretch"
+                                          VerticalContentAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.loader-package-main:pointerover">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.loader-package-main:pressed">
+            <Setter Property="Background" Value="#D3E9FF" />
+        </Style>
         <Style Selector="Button.version-component">
             <Setter Property="MinHeight" Value="58" />
             <Setter Property="Padding" Value="14,0" />
@@ -1122,6 +1174,39 @@
         <Style Selector="Button.version-detail-back:pointerover">
             <Setter Property="Background" Value="#EDF6FF" />
             <Setter Property="Foreground" Value="#176FC5" />
+        </Style>
+        <Style Selector="Button.install-component-clear">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,5,32,0" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#6F7C8B" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="Button.install-component-clear:pointerover">
+            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Button.install-version-row">
+            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#344150" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.install-version-row:pointerover">
+            <Setter Property="Background" Value="#EAF4FF" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Button.install-version-row:pressed">
+            <Setter Property="Background" Value="#D3E9FF" />
         </Style>
     </Window.Styles>
 
@@ -1583,55 +1668,126 @@
                                 </Border>
                             </StackPanel>
 
-                            <!-- PCL-CE's four independent loader pages share one Aurora view while retaining a strict kind filter. -->
-                            <StackPanel x:Name="DownloadLoaderView" IsVisible="False" MinHeight="430" Spacing="15">
-                                <Border Classes="pcl-card" Padding="18">
-                                    <Grid ColumnDefinitions="58,*" ColumnSpacing="14">
-                                        <Grid Width="50" Height="50" VerticalAlignment="Top">
-                                            <Image x:Name="DownloadForgeImage" Stretch="Uniform" Source="/Assets/Loaders/PclCeForge.png" />
-                                            <Image x:Name="DownloadNeoForgeImage" IsVisible="False" Stretch="Uniform" Source="/Assets/Loaders/PclCeNeoForge.png" />
-                                            <Image x:Name="DownloadFabricImage" IsVisible="False" Stretch="Uniform" Source="/Assets/Loaders/PclCeFabric.png" />
-                                            <Image x:Name="DownloadOptiFineImage" IsVisible="False" Stretch="Uniform" Source="/Assets/Loaders/PclCeOptiFine.png" />
-                                        </Grid>
-                                        <StackPanel Grid.Column="1" Spacing="5">
-                                            <TextBlock x:Name="DownloadLoaderIntroTitle" FontSize="16" FontWeight="SemiBold" Text="Forge" />
-                                            <TextBlock x:Name="DownloadLoaderIntroDescription" Foreground="#6F7C8B" TextWrapping="Wrap"
-                                                       Text="选择目标实例与兼容版本，再明确触发官方安装器。" />
+                            <!-- Direct Avalonia adaptation of PCL-CE PageDownloadInstall's component selection page. -->
+                            <StackPanel x:Name="DownloadCombinedInstallView" IsVisible="False" MinHeight="430" Spacing="12">
+                                <Border Classes="version-category-card" Height="62" Margin="0,15,0,3">
+                                    <Grid ColumnDefinitions="42,40,*" Margin="10,0,16,0">
+                                        <Button Classes="version-detail-back" Click="CombinedInstallBackClick"
+                                                ToolTip.Tip="返回版本列表" AutomationProperties.Name="返回版本列表">
+                                            <Path Width="18" Height="18" Data="M19 12H5 M12 19l-7-7 7-7"
+                                                  Stretch="Uniform" Fill="Transparent"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                        </Button>
+                                        <Image Grid.Column="1" Width="32" Height="32" VerticalAlignment="Center"
+                                               Source="{Binding SelectedCatalogVersion, Converter={StaticResource MinecraftVersionIconConverter}}" />
+                                        <StackPanel Grid.Column="2" Margin="7,0,0,0" VerticalAlignment="Center" Spacing="1">
+                                            <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding CombinedInstallationName}" />
+                                            <TextBlock FontSize="11" Foreground="#7D8894"
+                                                       Text="{Binding SelectedCatalogVersion.Id, StringFormat=Minecraft {0}}" />
                                         </StackPanel>
                                     </Grid>
                                 </Border>
 
-                                <Border Classes="pcl-card" Padding="16">
-                                    <StackPanel Spacing="11">
-                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="目标游戏" />
-                                        <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="9">
-                                            <TextBlock VerticalAlignment="Center" Text="目标实例" />
-                                            <ComboBox Grid.Column="1" MinWidth="280" HorizontalAlignment="Stretch"
-                                                      ItemsSource="{Binding AvailableInstances}" SelectedItem="{Binding SelectedInstance}">
-                                                <ComboBox.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                                            <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
-                                                            <TextBlock Grid.Column="1" Foreground="#6F7C8B" Text="{Binding BaseVersionId}" />
-                                                        </Grid>
-                                                    </DataTemplate>
-                                                </ComboBox.ItemTemplate>
-                                            </ComboBox>
-                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="Minecraft 版本" />
-                                            <Grid Grid.Row="1" Grid.Column="1" MinWidth="280" HorizontalAlignment="Stretch">
-                                                <ComboBox MinWidth="280" HorizontalAlignment="Stretch"
-                                                          ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedCatalogVersion}">
-                                                    <ComboBox.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                                                <TextBlock FontWeight="SemiBold" Text="{Binding Id}" />
-                                                                <TextBlock Grid.Column="1" Foreground="#6F7C8B" Text="{Binding Type}" />
+                                <Border Classes="download-loading-card" Margin="0,32,0,32"
+                                        IsVisible="{Binding IsCombinedInstallerLoading}">
+                                    <controls:PclLoadingIndicator Text="正在获取可选组件" />
+                                </Border>
+
+                                <ItemsControl ItemsSource="{Binding CombinedInstallComponents}"
+                                              IsVisible="{Binding !IsCombinedInstallerLoading}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:MinecraftInstallComponentViewModel">
+                                            <Border Classes="version-category-card" Margin="0,0,0,12">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <ToggleButton Classes="version-category-header"
+                                                                      IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                                                                      IsEnabled="{Binding CanExpand}">
+                                                            <Grid ColumnDefinitions="110,22,*,20" ColumnSpacing="7">
+                                                                <TextBlock VerticalAlignment="Center" FontSize="13" FontWeight="Bold"
+                                                                           Text="{Binding DisplayName}" />
+                                                                <Image Grid.Column="1" Width="18" Height="18" VerticalAlignment="Center"
+                                                                       Stretch="Uniform" Source="{Binding IconPath}"
+                                                                       IsVisible="{Binding HasSelection}" />
+                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Foreground="#6F7C8B"
+                                                                           TextTrimming="CharacterEllipsis" Text="{Binding HeaderSummary}" />
+                                                                <Grid Grid.Column="3" Width="18" Height="18" IsVisible="{Binding CanExpand}">
+                                                                    <Path Width="12" Height="7" Data="{StaticResource VersionExpandDownIcon}"
+                                                                          Stretch="Uniform" Fill="Transparent" Stroke="#6F7C8B"
+                                                                          StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                                          IsVisible="{Binding !IsExpanded}" />
+                                                                    <Path Width="12" Height="7" Data="{StaticResource VersionExpandUpIcon}"
+                                                                          Stretch="Uniform" Fill="Transparent" Stroke="#1370F3"
+                                                                          StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                                          IsVisible="{Binding IsExpanded}" />
+                                                                </Grid>
                                                             </Grid>
-                                                        </DataTemplate>
-                                                    </ComboBox.ItemTemplate>
-                                                </ComboBox>
-                                            </Grid>
-                                        </Grid>
+                                                        </ToggleButton>
+                                                        <Button Classes="install-component-clear" Tag="{Binding Kind}"
+                                                                Click="CombinedInstallComponentClearClick"
+                                                                IsVisible="{Binding HasSelection}"
+                                                                ToolTip.Tip="清除所选版本"
+                                                                AutomationProperties.Name="{Binding DisplayName, StringFormat=清除所选 {0}}">
+                                                            <Path Width="10" Height="10" Stretch="Uniform"
+                                                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                                  Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                                                        </Button>
+                                                    </Grid>
+                                                    <ItemsControl Margin="20,0,18,15" ItemsSource="{Binding Versions}"
+                                                                  IsVisible="{Binding IsExpanded}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="domain:MinecraftLoaderCatalogEntry">
+                                                                <Button Classes="install-version-row" Tag="{Binding}"
+                                                                        Click="CombinedInstallComponentVersionClick"
+                                                                        AutomationProperties.Name="{Binding Version, StringFormat=选择版本 {0}}">
+                                                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                                                                        <StackPanel VerticalAlignment="Center" Spacing="0">
+                                                                            <TextBlock FontSize="13" FontWeight="SemiBold" Text="{Binding Version}" />
+                                                                            <TextBlock FontSize="11" Foreground="#89939E"
+                                                                                       Text="{Binding MinecraftVersion, StringFormat=Minecraft {0}}" />
+                                                                        </StackPanel>
+                                                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="11"
+                                                                                   Foreground="#6F7C8B" Text="{Binding Channel}" />
+                                                                        <Border Grid.Column="2" VerticalAlignment="Center" Padding="6,2"
+                                                                                CornerRadius="2" Background="#E8F7EE"
+                                                                                IsVisible="{Binding IsRecommended}">
+                                                                            <TextBlock FontSize="11" Foreground="#287A49" Text="推荐" />
+                                                                        </Border>
+                                                                    </Grid>
+                                                                </Button>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Border Classes="version-category-card" Padding="16,13" Margin="0,3,0,15"
+                                        IsVisible="{Binding !IsCombinedInstallerLoading}">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                                        <TextBlock VerticalAlignment="Center" Foreground="#5F6C79" TextWrapping="Wrap"
+                                                   Text="{Binding CombinedInstallationSummary}" />
+                                        <Button Grid.Column="1" Classes="download-primary" MinWidth="112"
+                                                Click="CombinedInstallStartClick"
+                                                IsEnabled="{Binding CanStartCombinedInstallation}"
+                                                Content="开始安装" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Direct Avalonia adaptation of PCL-CE's independent Forge, NeoForge, Fabric and OptiFine directories. -->
+                            <StackPanel x:Name="DownloadLoaderView" IsVisible="False" MinHeight="430" Spacing="15">
+                                <Border Classes="pcl-card" Padding="18">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock x:Name="DownloadLoaderIntroTitle" FontSize="16" FontWeight="SemiBold" Text="Forge 简介" />
+                                        <TextBlock x:Name="DownloadLoaderIntroDescription" Foreground="#5F6C79" TextWrapping="Wrap"
+                                                   Text="Forge 是一个模组加载器，你需要先安装 Forge 才能安装各种 Forge 模组。" />
+                                        <Button x:Name="DownloadLoaderWebsiteButton" Classes="download-primary"
+                                                MinWidth="140" Height="35" HorizontalAlignment="Left"
+                                                Click="LoaderWebsiteClick" Content="打开官方网站" />
                                     </StackPanel>
                                 </Border>
 
@@ -1641,35 +1797,94 @@
                                                                   Text="正在获取 Forge 列表…" />
                                 </Border>
 
-                                <Border Classes="pcl-card" Padding="16" IsVisible="{Binding !IsLoaderPageLoading}">
-                                    <StackPanel Spacing="11">
-                                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="版本列表" />
-                                        <ListBox Classes="download-list" MaxHeight="280" IsEnabled="{Binding HasAvailableLoaders}"
-                                                 ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
-                                                        <StackPanel Spacing="1">
-                                                            <TextBlock FontSize="14" FontWeight="SemiBold" Text="{Binding Version}" />
-                                                            <TextBlock FontSize="11" Foreground="#6F7C8B" Text="{Binding MinecraftVersion, StringFormat=Minecraft {0}}" />
-                                                        </StackPanel>
-                                                        <Border Grid.Column="1" VerticalAlignment="Center" Background="#E4F1FF" CornerRadius="2" Padding="7,3">
-                                                            <TextBlock FontSize="11" Foreground="#1370F3" Text="{Binding Channel}" />
-                                                        </Border>
-                                                        <Border Grid.Column="2" IsVisible="{Binding IsRecommended}" VerticalAlignment="Center"
-                                                                Background="#E8F7EE" CornerRadius="2" Padding="7,3">
-                                                            <TextBlock FontSize="11" Foreground="#287A49" Text="推荐" />
-                                                        </Border>
+                                <ItemsControl ItemsSource="{Binding LoaderDirectoryGroups}"
+                                              IsVisible="{Binding !IsLoaderPageLoading}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:MinecraftLoaderDirectoryGroupViewModel">
+                                            <Border Classes="version-category-card" Margin="0,0,0,15">
+                                                <StackPanel>
+                                                    <Button Classes="loader-directory-header" Tag="{Binding}"
+                                                            Click="LoaderDirectoryGroupClick"
+                                                            IsVisible="{Binding IsCollapsible}"
+                                                            AutomationProperties.Name="{Binding Title, StringFormat=展开 {0}}">
+                                                        <Grid ColumnDefinitions="*,20">
+                                                            <TextBlock VerticalAlignment="Center" FontSize="13" FontWeight="Bold"
+                                                                       Text="{Binding Title}" />
+                                                            <Grid Grid.Column="1" Width="18" Height="18">
+                                                                <Path Width="12" Height="7" Data="{StaticResource VersionExpandDownIcon}"
+                                                                      Stretch="Uniform" Fill="Transparent" Stroke="#6F7C8B"
+                                                                      StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                                      IsVisible="{Binding !IsExpanded}" />
+                                                                <Path Width="12" Height="7" Data="{StaticResource VersionExpandUpIcon}"
+                                                                      Stretch="Uniform" Fill="Transparent" Stroke="#1370F3"
+                                                                      StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                                      IsVisible="{Binding IsExpanded}" />
+                                                            </Grid>
+                                                        </Grid>
+                                                    </Button>
+                                                    <Grid Height="40" Margin="15,0,16,0" IsVisible="{Binding !IsCollapsible}">
+                                                        <TextBlock VerticalAlignment="Center" FontSize="13" FontWeight="Bold"
+                                                                   Text="{Binding Title}" />
                                                     </Grid>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
-                                        <Button Classes="download-primary" HorizontalAlignment="Left"
-                                                Command="{Binding InstallSelectedLoaderCommand}"
-                                                IsEnabled="{Binding CanInstallSelectedLoader}"
-                                                Content="下载并安装所选版本" />
-                                    </StackPanel>
-                                </Border>
+                                                    <Border Classes="download-loading-card" Margin="18,4,18,14"
+                                                            IsVisible="{Binding IsLoading}">
+                                                        <controls:PclLoadingIndicator Text="{Binding StatusText}" />
+                                                    </Border>
+                                                    <TextBlock Margin="20,4,18,14" Foreground="#A44343" TextWrapping="Wrap"
+                                                               IsVisible="{Binding HasError}"
+                                                               Text="{Binding Error}" />
+                                                    <ItemsControl Margin="12,0,12,12" ItemsSource="{Binding Entries}"
+                                                                  IsVisible="{Binding IsExpanded}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="vm:MinecraftLoaderPackageItemViewModel">
+                                                                <Border Classes="official-version-row">
+                                                                    <Grid>
+                                                                        <Button Classes="loader-package-main" Tag="{Binding}"
+                                                                                Click="LoaderPackageDownloadClick"
+                                                                                AutomationProperties.Name="{Binding DisplayName, StringFormat=下载 {0}}">
+                                                                            <Grid ColumnDefinitions="34,*" ColumnSpacing="8">
+                                                                                <Image Width="30" Height="30" VerticalAlignment="Center"
+                                                                                       Stretch="Uniform"
+                                                                                       Source="{Binding Kind, Converter={StaticResource MinecraftLoaderIconConverter}}" />
+                                                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="0">
+                                                                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                                        <TextBlock FontSize="14" Text="{Binding DisplayName}" />
+                                                                                        <TextBlock FontSize="11" Foreground="#287A49"
+                                                                                                   VerticalAlignment="Center" IsVisible="{Binding IsRecommended}"
+                                                                                                   Text="推荐" />
+                                                                                    </StackPanel>
+                                                                                    <TextBlock FontSize="11" Foreground="#88929D"
+                                                                                               Text="{Binding Information}" TextTrimming="CharacterEllipsis" />
+                                                                                </StackPanel>
+                                                                            </Grid>
+                                                                        </Button>
+                                                                        <StackPanel Classes="version-actions" Margin="0,0,6,0"
+                                                                                    Orientation="Horizontal" HorizontalAlignment="Right"
+                                                                                    VerticalAlignment="Center" Spacing="1">
+                                                                            <Button Classes="version-row-action" Tag="{Binding}"
+                                                                                    Click="LoaderPackageChangelogClick"
+                                                                                    IsVisible="{Binding HasChangelog}"
+                                                                                    ToolTip.Tip="更新日志" AutomationProperties.Name="查看更新日志">
+                                                                                <Path Width="18" Height="18" Data="{StaticResource VersionInfoIcon}"
+                                                                                      Stretch="Uniform" Fill="Transparent"
+                                                                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                                                      StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                                            </Button>
+                                                                        </StackPanel>
+                                                                    </Grid>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Margin="5,0" Foreground="#A44343" TextWrapping="Wrap"
+                                           IsVisible="{Binding HasLoaderDirectorySummary}"
+                                           Text="{Binding LoaderDirectorySummary}" />
 
                             </StackPanel>
 
