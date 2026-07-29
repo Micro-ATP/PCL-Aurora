@@ -20,6 +20,7 @@ public sealed class MinecraftDownloadExecutor(
     ILauncherPreferencesService? preferencesService = null) : IMinecraftDownloadExecutor
 {
     private const long MinimumSizeForParallelRanges = 1024 * 1024;
+    private const int MaximumParallelRangesPerArtifact = 4;
     private const int ReadBufferSize = 81920;
 
     public async Task ExecuteAsync(
@@ -224,7 +225,9 @@ public sealed class MinecraftDownloadExecutor(
             return null;
         }
 
-        var chunkCount = Math.Min(concurrency, (int)Math.Ceiling(size / (double)MinimumSizeForParallelRanges));
+        var chunkCount = Math.Min(
+            Math.Min(concurrency, MaximumParallelRangesPerArtifact),
+            (int)Math.Ceiling(size / (double)MinimumSizeForParallelRanges));
         var chunkSize = (long)Math.Ceiling(size / (double)chunkCount);
         var ranges = Enumerable.Range(0, chunkCount)
             .Select(index =>

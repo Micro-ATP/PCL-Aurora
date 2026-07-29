@@ -137,6 +137,23 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
     }
 
     [Fact]
+    public async Task ExecuteAsync_ForLargeFile_LimitsParallelRangesPerArtifactToFour()
+    {
+        var content = Enumerable.Range(0, 8 * 1024 * 1024).Select(index => (byte)(index % 251)).ToArray();
+        var handler = new RangeResponseHandler(content);
+        using var client = new HttpClient(handler);
+        var preferencesService = new LauncherPreferencesService(new StaticPreferencesStore(
+            new LauncherPreferences(LauncherThemeMode.System, DownloadConcurrency: LauncherDownloadSettings.MaximumConcurrency)));
+        await preferencesService.LoadAsync();
+        var executor = new MinecraftDownloadExecutor(client, preferencesService);
+
+        await executor.ExecuteAsync(CreatePlan(content), rootDirectory);
+
+        Assert.Equal(4, handler.RangeRequests);
+        Assert.Equal(content, await File.ReadAllBytesAsync(Path.Combine(rootDirectory, "versions", "1.21.4", "1.21.4.jar")));
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WhenServerRejectsRange_FallsBackToSingleConnection()
     {
         var content = Enumerable.Repeat((byte)0x3a, 2 * 1024 * 1024).ToArray();
@@ -214,6 +231,15 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
     private sealed class InlineProgress<T>(Action<T> report) : IProgress<T>
     {
         public void Report(T value) => report(value);
+    }
+
+    private sealed class StaticPreferencesStore(LauncherPreferences preferences) : ILauncherPreferencesStore
+    {
+        public Task<LauncherPreferencesLoadResult> LoadAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new LauncherPreferencesLoadResult(preferences, null));
+
+        public Task SaveAsync(LauncherPreferences savedPreferences, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
     }
 
     private sealed class StaticResponseHandler(byte[] content) : HttpMessageHandler
