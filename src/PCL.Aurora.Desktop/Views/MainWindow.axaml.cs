@@ -521,29 +521,59 @@ public partial class MainWindow : Window
     {
         e.Handled = true;
         if (sender is Button { Tag: CommunityResourceVersion version } &&
-            DataContext is ViewModels.MainViewModel viewModel)
+            DataContext is ViewModels.MainViewModel { SelectedCommunityResource.Project: { } project } viewModel)
         {
-            var preparation = await viewModel.PrepareCommunityResourceDependenciesAsync(version);
-            if (preparation is null)
+            if (project.Type == CommunityResourceType.ModPack)
             {
-                return;
-            }
-
-            IReadOnlyList<CommunityResourceVersion> dependencies = preparation.RequiredVersions;
-            if (preparation.HasDependencies || preparation.Errors.Count > 0)
-            {
-                var selection = await ShowCommunityDependencySelectionAsync(preparation);
-                if (selection is null)
+                var instanceName = await ShowTextPromptAsync(
+                    "导入整合包",
+                    "输入整合包文件夹名称",
+                    GetSuggestedModpackName(project));
+                if (string.IsNullOrWhiteSpace(instanceName))
                 {
                     return;
                 }
 
-                dependencies = selection;
+                var parentFolders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                {
+                    Title = "选择整合包保存位置",
+                    AllowMultiple = false,
+                });
+                var parentDirectory = parentFolders.SingleOrDefault()?.TryGetLocalPath();
+                if (string.IsNullOrWhiteSpace(parentDirectory))
+                {
+                    return;
+                }
+
+                await viewModel.ImportCommunityModpackVersionAsync(version, parentDirectory, instanceName.Trim());
+                return;
+            }
+
+            IReadOnlyList<CommunityResourceVersion> dependencies = [];
+            if (project.Type == CommunityResourceType.Mod)
+            {
+                var preparation = await viewModel.PrepareCommunityResourceDependenciesAsync(version);
+                if (preparation is null)
+                {
+                    return;
+                }
+
+                dependencies = preparation.RequiredVersions;
+                if (preparation.HasDependencies || preparation.Errors.Count > 0)
+                {
+                    var selection = await ShowCommunityDependencySelectionAsync(preparation);
+                    if (selection is null)
+                    {
+                        return;
+                    }
+
+                    dependencies = selection;
+                }
             }
 
             var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
-                Title = $"选择 {version.VersionNumber} 的下载目录",
+                Title = GetCommunityDownloadFolderTitle(project.Type, version.VersionNumber),
                 AllowMultiple = false,
             });
             var destinationDirectory = folders.SingleOrDefault()?.TryGetLocalPath();
@@ -574,6 +604,26 @@ public partial class MainWindow : Window
 
             await viewModel.DownloadCommunityResourceVersionAsync(version, destinationDirectory, dependencies);
         }
+    }
+
+    private static string GetCommunityDownloadFolderTitle(CommunityResourceType type, string versionNumber) =>
+        type switch
+        {
+            CommunityResourceType.Mod => $"选择 {versionNumber} 的模组保存目录",
+            CommunityResourceType.DataPack => "选择数据包保存目录",
+            CommunityResourceType.ResourcePack => "选择资源包保存目录",
+            CommunityResourceType.Shader => "选择光影包保存目录",
+            CommunityResourceType.World => "选择世界保存目录",
+            _ => $"选择 {versionNumber} 的下载目录",
+        };
+
+    private static string GetSuggestedModpackName(CommunityResourceProject project)
+    {
+        var name = new string(project.DisplayTitle
+            .Where(character => !char.IsControl(character) && "<>:\"/\\|?*".IndexOf(character) < 0)
+            .Take(80)
+            .ToArray()).Trim();
+        return string.IsNullOrWhiteSpace(name) ? project.Slug : name;
     }
 
     private async Task<IReadOnlyList<CommunityResourceVersion>?> ShowCommunityDependencySelectionAsync(

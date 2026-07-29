@@ -72,6 +72,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<ICommunityResourceDependencyResolver, CommunityResourceDependencyResolver>();
         services.AddSingleton<ICommunityResourceInstallationService, CommunityResourceInstallationService>();
         services.AddSingleton<ICommunityResourceDownloadService, CommunityResourceDownloadService>();
+        services.AddSingleton<IModrinthModpackImportService, ModrinthModpackImportService>();
         services.AddSingleton<ICommunityFavoritesStore, JsonCommunityFavoritesStore>();
         services.AddSingleton<ICommunityResourceDescriptionTranslationService, PclCeCommunityResourceDescriptionTranslationService>();
         services.AddSingleton<IMinecraftLoaderCatalogService, MinecraftLoaderCatalogService>();

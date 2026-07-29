@@ -24,6 +24,7 @@ public partial class MainViewModel(
     ICommunityResourceVersionService communityResourceVersionService,
     ICommunityResourceDependencyResolver communityResourceDependencyResolver,
     ICommunityResourceDownloadService communityResourceDownloadService,
+    IModrinthModpackImportService modrinthModpackImportService,
     ICommunityFavoritesStore communityFavoritesStore,
     ICommunityResourceDescriptionTranslationService communityDescriptionTranslationService,
     IMinecraftLoaderCatalogService loaderCatalogService,
@@ -2008,6 +2009,80 @@ public partial class MainViewModel(
         ArgumentNullException.ThrowIfNull(version);
         SelectedCommunityResourceVersion = version;
         await DownloadCommunityResourceAsync(destinationDirectory, dependencies ?? []);
+    }
+
+    public async Task ImportCommunityModpackVersionAsync(
+        CommunityResourceVersion version,
+        string destinationDirectory,
+        string instanceName)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+        if (!CanDownloadCommunityResource ||
+            SelectedCommunityResource?.Project is not { Type: CommunityResourceType.ModPack } project)
+        {
+            CommunityVersionSummary = "所选版本不是可导入的 Modrinth 整合包。";
+            return;
+        }
+
+        SelectedCommunityResourceVersion = version;
+        using var cancellation = new CancellationTokenSource();
+        communityDownloadCancellation = cancellation;
+        CanDownloadCommunityResource = false;
+        CanLoadCommunityResourceVersions = false;
+        CanCancelCommunityResourceOperation = true;
+        try
+        {
+            var progress = new Progress<MinecraftDownloadProgress>(update =>
+            {
+                var size = update.TotalBytes is { } total
+                    ? $"{FormatByteCount(update.DownloadedBytes)} / {FormatByteCount(total)}"
+                    : FormatByteCount(update.DownloadedBytes);
+                CommunityVersionSummary = $"正在导入 {update.CurrentDescription} · {size}";
+            });
+            var result = await modrinthModpackImportService.ImportAsync(
+                project,
+                version,
+                destinationDirectory,
+                instanceName,
+                includeOptionalClientFiles: true,
+                progress,
+                cancellation.Token);
+            if (!ReferenceEquals(communityDownloadCancellation, cancellation))
+            {
+                return;
+            }
+
+            var loader = result.LoaderKind is null
+                ? string.Empty
+                : $"，{result.LoaderKind} {result.LoaderVersion}";
+            CommunityVersionSummary =
+                $"已导入 {project.DisplayTitle}：Minecraft {result.MinecraftVersion}{loader}，" +
+                $"{result.DownloadedFileCount} 个下载文件，{result.OverrideFileCount} 个覆盖文件。";
+        }
+        catch (OperationCanceledException)
+        {
+            if (ReferenceEquals(communityDownloadCancellation, cancellation))
+            {
+                CommunityVersionSummary = "整合包导入已取消。";
+            }
+        }
+        catch (Exception exception)
+        {
+            if (ReferenceEquals(communityDownloadCancellation, cancellation))
+            {
+                CommunityVersionSummary = $"整合包导入失败：{exception.Message}";
+            }
+        }
+        finally
+        {
+            if (ReferenceEquals(communityDownloadCancellation, cancellation))
+            {
+                communityDownloadCancellation = null;
+                CanCancelCommunityResourceOperation = false;
+                CanLoadCommunityResourceVersions = SelectedCommunityResource is not null;
+                RefreshCommunityDownloadState();
+            }
+        }
     }
 
     public async Task<CommunityResourceDependencyPreparation?> PrepareCommunityResourceDependenciesAsync(
