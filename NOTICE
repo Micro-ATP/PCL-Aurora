@@ -151,6 +151,12 @@ PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/settings.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/grid-2x2.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/box.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/gauge.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/anvil.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/cat.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/flask-conical.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/scroll.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/egg.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/file-archive.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/layers.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/sparkles.svg

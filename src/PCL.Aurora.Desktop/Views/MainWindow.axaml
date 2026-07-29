@@ -1616,49 +1616,49 @@
                                 </Grid>
                                 <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="安装包" />
                                 <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
-                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="optifine" Label="OptiFine" IconData="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="optifine" Label="OptiFine" IconData="M12 14l4-4 M3.34 19a10 10 0 1 1 17.32 0" />
                                     <Button Grid.Column="1" Classes="download-refresh" Tag="optifine" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 OptiFine">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
                                 <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
-                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="forge" Label="Forge" IconData="M14.7 6.3 17.7 3.3 20.7 6.3 17.7 9.3 M14.7 6.3 4 17v3h3l10.7-10.7" />
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="forge" Label="Forge" IconData="M7 10H6a4 4 0 0 1-4-4 1 1 0 0 1 1-1h4 M7 5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1 7 7 0 0 1-7 7H8a1 1 0 0 1-1-1z M9 12v5 M15 12v5 M5 20a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3 1 1 0 0 1-1 1H6a1 1 0 0 1-1-1" />
                                     <Button Grid.Column="1" Classes="download-refresh" Tag="forge" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Forge">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
                                 <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
-                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="neoforge" Label="NeoForge" IconData="M21 16V8l-9-5-9 5v8l9 5 9-5z M3.3 7 12 12l8.7-5 M12 22V12" />
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="neoforge" Label="NeoForge" IconData="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z M8 14v.5 M16 14v.5 M11.25 16.25h1.5L12 17l-.75-.75Z" />
                                     <Button Grid.Column="1" Classes="download-refresh" Tag="neoforge" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 NeoForge">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
                                 <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
-                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="fabric" Label="Fabric" IconData="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76z M16 8 2 22 M17.5 15H9" />
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="fabric" Label="Fabric" IconData="M19 17V5a2 2 0 0 0-2-2H4 M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" />
                                     <Button Grid.Column="1" Classes="download-refresh" Tag="fabric" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Fabric">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
                                 <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
-                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="cleanroom" Label="Cleanroom" IconData="M3 6h18 M7 6V4h10v2 M5 6l1 16h12l1-16 M9 10v8 M15 10v8" />
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="cleanroom" Label="Cleanroom" IconData="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2 M6.453 15h11.094 M8.5 2h7" />
                                     <Button Grid.Column="1" Classes="download-refresh" Tag="cleanroom" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Cleanroom">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
                                 <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
-                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="legacy-fabric" Label="Legacy Fabric" IconData="M12 2v20 M5 5h14 M5 19h14 M7 9h10 M7 15h10" />
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="legacy-fabric" Label="Legacy Fabric" IconData="M19 17V5a2 2 0 0 0-2-2H4 M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" />
                                     <Button Grid.Column="1" Classes="download-refresh" Tag="legacy-fabric" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Legacy Fabric">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
                                 <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
-                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="labymod" Label="LabyMod" IconData="M4 4h16v16H4z M8 8v8h8" />
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="labymod" Label="LabyMod" IconData="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z M3.3 7l8.7 5 8.7-5 M12 22V12" />
                                     <Button Grid.Column="1" Classes="download-refresh" Tag="labymod" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 LabyMod">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
                                 <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
-                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="liteloader" Label="LiteLoader" IconData="M13 2 3 14h9l-1 8 10-12h-9z" />
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="liteloader" Label="LiteLoader" IconData="M12 2C8 2 4 8 4 14a8 8 0 0 0 16 0c0-6-4-12-8-12" />
                                     <Button Grid.Column="1" Classes="download-refresh" Tag="liteloader" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 LiteLoader">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
