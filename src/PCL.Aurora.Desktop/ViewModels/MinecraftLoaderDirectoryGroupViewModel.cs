@@ -89,6 +89,10 @@ public sealed class MinecraftLoaderPackageItemViewModel(MinecraftLoaderPackageEn
         MinecraftLoaderKind.NeoForge => "/Assets/Loaders/PclCeNeoForge.png",
         MinecraftLoaderKind.Fabric => "/Assets/Loaders/PclCeFabric.png",
         MinecraftLoaderKind.OptiFine => "/Assets/Loaders/PclCeOptiFine.png",
+        MinecraftLoaderKind.Cleanroom => "/Assets/Loaders/PclCeCleanroom.png",
+        MinecraftLoaderKind.LegacyFabric => "/Assets/Loaders/PclCeFabric.png",
+        MinecraftLoaderKind.LabyMod => "/Assets/Loaders/PclCeLabyMod.png",
+        MinecraftLoaderKind.LiteLoader => "/Assets/Loaders/PclCeLiteLoader.png",
         _ => "/Assets/Loaders/Pcl2Grass.png",
     };
 }

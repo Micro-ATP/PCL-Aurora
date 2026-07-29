@@ -56,6 +56,14 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadFabric.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadOptiFine.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadOptiFine.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadCleanroom.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadCleanroom.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLegacyFabric.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLegacyFabric.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLabyMod.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLabyMod.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLiteLoader.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLiteLoader.xaml.cs
 - PCL2: Plain Craft Launcher 2/Pages/PageDownload/Resource/PageResource.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageDownload/Resource/PageResource.xaml.vb
 - PCL2: Plain Craft Launcher 2/Pages/PageDownload/Resource/PageDownloadMod.xaml
@@ -109,6 +117,15 @@ PCL Aurora also contains the following directly reused upstream resources:
 - PCL-CE: Plain Craft Launcher 2/Images/Blocks/GrassPath.png
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeOptiFine.png;
   displayed as the OptiFine loader image for the 1.14+ installer entry.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/Cleanroom.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeCleanroom.png;
+  displayed as the Cleanroom loader image.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/LabyMod.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeLabyMod.png;
+  displayed as the LabyMod installer image.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/Egg.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeLiteLoader.png;
+  displayed as the LiteLoader installer image.
 - PCL2: Plain Craft Launcher 2/Images/Blocks/Grass.png
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/Pcl2Grass.png;
   displayed in the official-version summary on the download page.

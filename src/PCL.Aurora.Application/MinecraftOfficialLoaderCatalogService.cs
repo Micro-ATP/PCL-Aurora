@@ -13,6 +13,12 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
     private static readonly Uri OptiFineCatalogUri = new("https://bmclapi2.bangbang93.com/optifine/versionList");
     private static readonly Uri ForgeMinecraftVersionsUri = new("https://bmclapi2.bangbang93.com/forge/minecraft");
     private static readonly Uri FabricInstallersUri = new("https://meta.fabricmc.net/v2/versions/installer");
+    private static readonly Uri CleanroomReleasesUri = new("https://api.github.com/repos/CleanroomMC/Cleanroom/releases?per_page=100");
+    private static readonly Uri LegacyFabricVersionsUri = new("https://meta.legacyfabric.net/v2/versions");
+    private static readonly Uri LabyModProductionUri = new("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json");
+    private static readonly Uri LabyModSnapshotUri = new("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json");
+    private static readonly Uri LiteLoaderMirrorUri = new("https://bmclapi2.bangbang93.com/maven/com/mumfrey/liteloader/versions.json");
+    private static readonly Uri LiteLoaderOfficialUri = new("https://dl.liteloader.com/versions/versions.json");
 
     public async Task<MinecraftLoaderCatalogParseResult> FetchAsync(
         string minecraftVersion,
@@ -95,6 +101,20 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
                 MinecraftLoaderKind.Fabric => ParseSingle(
                     await TryFetchAsync("Fabric", FabricInstallersUri, cancellationToken).ConfigureAwait(false),
                     MinecraftLoaderDirectoryParser.ParseFabricInstallers),
+                MinecraftLoaderKind.Cleanroom => ParseSingle(
+                    await TryFetchAsync("Cleanroom", CleanroomReleasesUri, cancellationToken).ConfigureAwait(false),
+                    MinecraftLoaderDirectoryParser.ParseCleanroomVersions),
+                MinecraftLoaderKind.LegacyFabric => ParseSingle(
+                    await TryFetchAsync("Legacy Fabric", LegacyFabricVersionsUri, cancellationToken).ConfigureAwait(false),
+                    MinecraftLoaderDirectoryParser.ParseLegacyFabricInstallers),
+                MinecraftLoaderKind.LabyMod => await FetchLabyModDirectoryAsync(cancellationToken).ConfigureAwait(false),
+                MinecraftLoaderKind.LiteLoader => ParseSingle(
+                    await TryFetchWithFallbackAsync(
+                        "LiteLoader",
+                        LiteLoaderOfficialUri,
+                        LiteLoaderMirrorUri,
+                        cancellationToken).ConfigureAwait(false),
+                    MinecraftLoaderDirectoryParser.ParseLiteLoaderVersions),
                 _ => new(null, [$"暂不支持 {loaderKind} 的独立安装包目录。"]),
             };
         }
@@ -158,6 +178,24 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
         }
     }
 
+    private async Task<MinecraftLoaderDirectoryResult> FetchLabyModDirectoryAsync(CancellationToken cancellationToken)
+    {
+        var productionTask = TryFetchAsync("LabyMod 正式版", LabyModProductionUri, cancellationToken);
+        var snapshotTask = TryFetchAsync("LabyMod 快照版", LabyModSnapshotUri, cancellationToken);
+        await Task.WhenAll(productionTask, snapshotTask).ConfigureAwait(false);
+        var production = await productionTask.ConfigureAwait(false);
+        var snapshot = await snapshotTask.ConfigureAwait(false);
+        var errors = new[] { production.Error, snapshot.Error }.OfType<string>().ToArray();
+        if (production.Content is null || snapshot.Content is null)
+        {
+            return new(null, errors);
+        }
+
+        return new(
+            MinecraftLoaderDirectoryParser.ParseLabyModVersions(production.Content, snapshot.Content),
+            errors);
+    }
+
     private static MinecraftLoaderDirectoryResult ParseSingle(
         CatalogResponse response,
         Func<string, MinecraftLoaderDirectory> parser)
@@ -175,7 +213,9 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
     {
         try
         {
-            using var response = await httpClient.GetAsync(uri, cancellationToken).ConfigureAwait(false);
+            using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            request.Headers.UserAgent.ParseAdd("PCL-Aurora/1.0");
+            using var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             return new(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false), null);
         }

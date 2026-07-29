@@ -32,4 +32,26 @@ public sealed class MinecraftLoaderDirectoryParserTests
         Assert.False(fabric.Groups[0].IsCollapsible);
         Assert.Equal("版本列表 (1)", fabric.Groups[0].Title);
     }
+
+    [Fact]
+    public void ParseAdditionalDirectories_PreservesTheirDistinctPclCeLayouts()
+    {
+        var cleanroom = MinecraftLoaderDirectoryParser.ParseCleanroomVersions(
+            """[{"tag_name":"0.6.8-alpha","html_url":"https://github.com/CleanroomMC/Cleanroom/releases/tag/0.6.8-alpha","assets":[{"name":"cleanroom-0.6.8-alpha-installer.jar","browser_download_url":"https://github.com/CleanroomMC/Cleanroom/releases/download/0.6.8-alpha/cleanroom-0.6.8-alpha-installer.jar"}]}]""");
+        var legacyFabric = MinecraftLoaderDirectoryParser.ParseLegacyFabricInstallers(
+            """{"installer":[{"url":"https://maven.legacyfabric.net/net/legacyfabric/fabric-installer/1.1.1/fabric-installer-1.1.1.jar","version":"1.1.1","stable":true}]}""");
+        var labyMod = MinecraftLoaderDirectoryParser.ParseLabyModVersions(
+            """{"labyModVersion":"4.6.12","releaseTime":"2026-07-27T12:00:00Z"}""",
+            """{"labyModVersion":"4.6.13-beta","releaseTime":"2026-07-28T12:00:00Z"}""");
+        var liteLoader = MinecraftLoaderDirectoryParser.ParseLiteLoaderVersions(
+            """{"versions":{"1.12.2":{"artefacts":{"com.mumfrey:liteloader":{"latest":{"stream":"RELEASE","version":"1.12.2-SNAPSHOT","timestamp":"1704067200000"}}}},"1.7.10":{"snapshots":{"com.mumfrey:liteloader":{"latest":{"stream":"SNAPSHOT","version":"1.7.10-SNAPSHOT","timestamp":1704067200000}}}}}}""");
+
+        Assert.Equal("1.12.2 (1)", Assert.Single(cleanroom.Groups).Title);
+        Assert.Equal("github.com", Assert.Single(cleanroom.Groups[0].Entries).DownloadUri.Host);
+        Assert.False(Assert.Single(legacyFabric.Groups).IsCollapsible);
+        Assert.True(Assert.Single(legacyFabric.Groups[0].Entries).IsRecommended);
+        Assert.Equal(["4.6.12 正式版", "4.6.13-beta 快照版"], labyMod.Groups[0].Entries.Select(entry => entry.DisplayName));
+        Assert.Equal(["1.12", "1.7"], liteLoader.Groups.Select(group => group.Key));
+        Assert.All(liteLoader.Groups.SelectMany(group => group.Entries), entry => Assert.Equal(Uri.UriSchemeHttps, entry.DownloadUri.Scheme));
+    }
 }

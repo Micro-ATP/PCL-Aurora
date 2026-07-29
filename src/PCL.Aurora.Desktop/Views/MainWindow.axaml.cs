@@ -259,6 +259,10 @@ public partial class MainWindow : Window
             "forge" => MinecraftLoaderKind.Forge,
             "neoforge" => MinecraftLoaderKind.NeoForge,
             "fabric" => MinecraftLoaderKind.Fabric,
+            "cleanroom" => MinecraftLoaderKind.Cleanroom,
+            "legacy-fabric" => MinecraftLoaderKind.LegacyFabric,
+            "labymod" => MinecraftLoaderKind.LabyMod,
+            "liteloader" => MinecraftLoaderKind.LiteLoader,
             _ => (MinecraftLoaderKind?)null,
         };
         var isGame = section == "game";
@@ -323,7 +327,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (section is not ("optifine" or "forge" or "neoforge" or "fabric"))
+        if (section is not ("optifine" or "forge" or "neoforge" or "fabric" or "cleanroom" or
+            "legacy-fabric" or "labymod" or "liteloader"))
         {
             return;
         }
@@ -334,6 +339,10 @@ public partial class MainWindow : Window
             "forge" => MinecraftLoaderKind.Forge,
             "neoforge" => MinecraftLoaderKind.NeoForge,
             "fabric" => MinecraftLoaderKind.Fabric,
+            "cleanroom" => MinecraftLoaderKind.Cleanroom,
+            "legacy-fabric" => MinecraftLoaderKind.LegacyFabric,
+            "labymod" => MinecraftLoaderKind.LabyMod,
+            "liteloader" => MinecraftLoaderKind.LiteLoader,
             _ => throw new ArgumentOutOfRangeException(nameof(section), section, null),
         };
         await viewModel.LoadOfficialLoaderDirectoryPageAsync(loaderKind);
@@ -341,8 +350,9 @@ public partial class MainWindow : Window
 
     private void ConfigureLoaderPage(MinecraftLoaderKind kind)
     {
-        DownloadLoaderIntroTitle.Text = $"{kind} 简介";
-        LoaderCatalogLoadingIndicator.Text = $"正在获取 {kind} 列表";
+        var displayName = kind == MinecraftLoaderKind.LegacyFabric ? "Legacy Fabric" : kind.ToString();
+        DownloadLoaderIntroTitle.Text = $"{displayName} 简介";
+        LoaderCatalogLoadingIndicator.Text = $"正在获取 {displayName} 列表";
         DownloadLoaderWebsiteButton.Tag = kind;
         DownloadLoaderIntroDescription.Text = kind switch
         {
@@ -350,6 +360,10 @@ public partial class MainWindow : Window
             MinecraftLoaderKind.NeoForge => "NeoForge 是 Minecraft 1.20.1+ 的模组加载器，你需要先安装它才能安装各种 NeoForge 模组，它也兼容一些 Forge 模组。",
             MinecraftLoaderKind.Fabric => "Fabric Loader 是新版 Minecraft 下的轻量化模组加载器，你需要先安装它才能安装各种 Fabric 模组。",
             MinecraftLoaderKind.OptiFine => "OptiFine 又称为高清修复，以允许安装光影、使用高清材质、提高游戏性能，但与模组的兼容性不佳。",
+            MinecraftLoaderKind.Cleanroom => "Cleanroom 是针对 1.12.2 基于 Forge 二次开发的模组加载器，理论上与 99% 的 Forge 模组兼容。",
+            MinecraftLoaderKind.LegacyFabric => "Legacy Fabric 是 Fabric 的旧版本移植，你需要先安装它才能安装各种 Legacy Fabric 模组。\n本页面提供 Legacy Fabric 安装器下载，在下载后你需要手动打开安装器进行安装。",
+            MinecraftLoaderKind.LabyMod => "LabyMod 是 Minecraft 下的优化客户端。\n本页面提供 LabyMod 安装器下载，在下载后你需要手动打开安装器进行安装。",
+            MinecraftLoaderKind.LiteLoader => "与 Forge 类似，LiteLoader 可以用于加载老版本 Minecraft 中的 LiteLoader 模组。",
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
         };
     }

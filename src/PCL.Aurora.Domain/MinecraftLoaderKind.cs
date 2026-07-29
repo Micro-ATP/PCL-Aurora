@@ -6,4 +6,8 @@ public enum MinecraftLoaderKind
     NeoForge,
     Fabric,
     OptiFine,
+    Cleanroom,
+    LegacyFabric,
+    LabyMod,
+    LiteLoader,
 }

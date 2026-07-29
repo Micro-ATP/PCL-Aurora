@@ -271,6 +271,265 @@ public static class MinecraftLoaderDirectoryParser
             [new("installers", $"版本列表 ({ordered.Length})", ordered, IsCollapsible: false)]);
     }
 
+    public static MinecraftLoaderDirectory ParseCleanroomVersions(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+        if (document.RootElement.ValueKind != JsonValueKind.Array)
+        {
+            throw new FormatException("Cleanroom GitHub Releases 响应不是数组。");
+        }
+
+        var entries = new List<MinecraftLoaderPackageEntry>();
+        foreach (var release in document.RootElement.EnumerateArray())
+        {
+            if (release.ValueKind != JsonValueKind.Object || !TryGetString(release, "tag_name", out var tag) ||
+                !IsSafeToken(tag, 96) || !release.TryGetProperty("assets", out var assets) ||
+                assets.ValueKind != JsonValueKind.Array)
+            {
+                continue;
+            }
+
+            var expectedAssetName = $"cleanroom-{tag}-installer.jar";
+            var installer = assets.EnumerateArray().FirstOrDefault(asset =>
+                asset.ValueKind == JsonValueKind.Object &&
+                TryGetString(asset, "name", out var name) &&
+                string.Equals(name, expectedAssetName, StringComparison.OrdinalIgnoreCase));
+            if (installer.ValueKind != JsonValueKind.Object ||
+                !TryGetString(installer, "browser_download_url", out var downloadText) ||
+                !TryCreateHttpsUri(downloadText, "github.com", out var downloadUri))
+            {
+                continue;
+            }
+
+            var isPreview = tag.Contains("alpha", StringComparison.OrdinalIgnoreCase) ||
+                            tag.Contains("beta", StringComparison.OrdinalIgnoreCase) ||
+                            tag.Contains("pre", StringComparison.OrdinalIgnoreCase) ||
+                            tag.Contains("rc", StringComparison.OrdinalIgnoreCase);
+            var changelogUri = TryGetString(release, "html_url", out var htmlText) &&
+                               TryCreateHttpsUri(htmlText, "github.com", out var parsedChangelog)
+                ? parsedChangelog
+                : new Uri($"https://github.com/CleanroomMC/Cleanroom/releases/tag/{Uri.EscapeDataString(tag)}");
+            entries.Add(new(
+                MinecraftLoaderKind.Cleanroom,
+                "1.12.2",
+                tag,
+                tag,
+                isPreview ? MinecraftLoaderChannel.Beta : MinecraftLoaderChannel.Release,
+                IsRecommended: !isPreview,
+                $"Cleanroom-1.12.2-{tag}.jar",
+                downloadUri,
+                [],
+                changelogUri,
+                isPreview ? "测试版" : "稳定版"));
+        }
+
+        var ordered = entries.OrderByDescending(entry => entry.Version, VersionComparer).ToArray();
+        return CreateDirectory(
+            MinecraftLoaderKind.Cleanroom,
+            "Cleanroom GitHub Releases",
+            [new("1.12.2", $"1.12.2 ({ordered.Length})", ordered)]);
+    }
+
+    public static MinecraftLoaderDirectory ParseLegacyFabricInstallers(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+        if (document.RootElement.ValueKind != JsonValueKind.Object ||
+            !document.RootElement.TryGetProperty("installer", out var installers) ||
+            installers.ValueKind != JsonValueKind.Array)
+        {
+            throw new FormatException("Legacy Fabric 安装器目录格式无效。");
+        }
+
+        var entries = new List<MinecraftLoaderPackageEntry>();
+        foreach (var item in installers.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object || !TryGetString(item, "version", out var version) ||
+                !IsSafeToken(version, 96) || !TryGetString(item, "url", out var urlText) ||
+                !TryCreateHttpsUri(urlText, "maven.legacyfabric.net", out var url))
+            {
+                continue;
+            }
+
+            var fileName = Path.GetFileName(url.AbsolutePath);
+            if (!IsSafeFileName(fileName) || !fileName.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var stable = TryGetBoolean(item, "stable");
+            entries.Add(new(
+                MinecraftLoaderKind.LegacyFabric,
+                string.Empty,
+                version,
+                version,
+                stable ? MinecraftLoaderChannel.Release : MinecraftLoaderChannel.Beta,
+                IsRecommended: stable,
+                fileName,
+                url,
+                [],
+                ChangelogUri: null,
+                stable ? "稳定版" : "测试版"));
+        }
+
+        var ordered = entries.OrderByDescending(entry => entry.Version, VersionComparer).ToArray();
+        return CreateDirectory(
+            MinecraftLoaderKind.LegacyFabric,
+            "Legacy Fabric Meta",
+            [new("installers", $"版本列表 ({ordered.Length})", ordered, IsCollapsible: false)]);
+    }
+
+    public static MinecraftLoaderDirectory ParseLabyModVersions(string productionJson, string snapshotJson)
+    {
+        var entries = new[]
+        {
+            ParseLabyModChannel(productionJson, "production", "正式版", "LabyMod4ProductionInstaller.jar", isRecommended: true),
+            ParseLabyModChannel(snapshotJson, "snapshot", "快照版", "LabyMod4SnapshotInstaller.jar", isRecommended: false),
+        };
+        return CreateDirectory(
+            MinecraftLoaderKind.LabyMod,
+            "LabyMod Releases",
+            [new("channels", $"版本列表 ({entries.Length})", entries, IsCollapsible: false)]);
+    }
+
+    public static MinecraftLoaderDirectory ParseLiteLoaderVersions(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+        if (document.RootElement.ValueKind != JsonValueKind.Object ||
+            !document.RootElement.TryGetProperty("versions", out var versions) ||
+            versions.ValueKind != JsonValueKind.Object)
+        {
+            throw new FormatException("LiteLoader 版本目录格式无效。");
+        }
+
+        var entries = new List<MinecraftLoaderPackageEntry>();
+        foreach (var versionProperty in versions.EnumerateObject())
+        {
+            var minecraftVersion = versionProperty.Name.Trim();
+            if (!IsSafeToken(minecraftVersion, 64) || minecraftVersion.StartsWith("1.5", StringComparison.Ordinal) ||
+                minecraftVersion.StartsWith("1.6", StringComparison.Ordinal) ||
+                versionProperty.Value.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var descriptorRoot = versionProperty.Value.TryGetProperty("artefacts", out var artifacts)
+                ? artifacts
+                : versionProperty.Value.TryGetProperty("snapshots", out var snapshots)
+                    ? snapshots
+                    : default;
+            if (descriptorRoot.ValueKind != JsonValueKind.Object ||
+                !descriptorRoot.TryGetProperty("com.mumfrey:liteloader", out var coordinate) ||
+                coordinate.ValueKind != JsonValueKind.Object ||
+                !coordinate.TryGetProperty("latest", out var latest) || latest.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var isPreview = TryGetString(latest, "stream", out var stream) &&
+                            string.Equals(stream, "snapshot", StringComparison.OrdinalIgnoreCase);
+            var loaderVersion = TryGetString(latest, "version", out var parsedVersion) && IsSafeToken(parsedVersion, 96)
+                ? parsedVersion
+                : minecraftVersion;
+            var generatedFileName = $"liteloader-installer-{minecraftVersion}{(minecraftVersion is "1.8" or "1.9" ? ".0" : string.Empty)}-00-SNAPSHOT.jar";
+            var downloadUri = CreateLiteLoaderDownloadUri(minecraftVersion, generatedFileName);
+            if (downloadUri is null)
+            {
+                continue;
+            }
+
+            var information = isPreview ? "测试版" : "稳定版";
+            if (TryGetInt64(latest, "timestamp", out var timestamp))
+            {
+                try
+                {
+                    var releaseTime = timestamp > 10_000_000_000
+                        ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp)
+                        : DateTimeOffset.FromUnixTimeSeconds(timestamp);
+                    information += $"  |  发布时间：{releaseTime.ToLocalTime():yyyy/M/d HH:mm}";
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    // Keep the stable/preview label when an upstream timestamp is malformed.
+                }
+            }
+
+            entries.Add(new(
+                MinecraftLoaderKind.LiteLoader,
+                minecraftVersion,
+                loaderVersion,
+                minecraftVersion,
+                isPreview ? MinecraftLoaderChannel.Beta : MinecraftLoaderChannel.Release,
+                IsRecommended: !isPreview,
+                generatedFileName.Replace("-SNAPSHOT", string.Empty, StringComparison.Ordinal),
+                downloadUri,
+                [],
+                new Uri($"https://jenkins.liteloader.com/view/{Uri.EscapeDataString(minecraftVersion)}"),
+                information,
+                MinimumSize: 1_048_576));
+        }
+
+        var groups = entries
+            .GroupBy(entry => GetMinecraftMainVersion(entry.MinecraftVersion), StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(group => group.Key, VersionComparer)
+            .Select(group => new MinecraftLoaderDirectoryGroup(
+                group.Key,
+                $"{group.Key} ({group.Count()})",
+                group.OrderByDescending(entry => entry.MinecraftVersion, VersionComparer).ToArray()))
+            .ToArray();
+        return CreateDirectory(MinecraftLoaderKind.LiteLoader, "LiteLoader 版本目录", groups);
+    }
+
+    private static MinecraftLoaderPackageEntry ParseLabyModChannel(
+        string json,
+        string channel,
+        string channelLabel,
+        string fileName,
+        bool isRecommended)
+    {
+        using var document = JsonDocument.Parse(json);
+        if (document.RootElement.ValueKind != JsonValueKind.Object ||
+            !TryGetString(document.RootElement, "labyModVersion", out var version) ||
+            !IsSafeToken(version, 96))
+        {
+            throw new FormatException($"LabyMod {channel} 目录格式无效。");
+        }
+
+        var information = channelLabel;
+        if (TryGetString(document.RootElement, "releaseTime", out var releaseTimeText) &&
+            DateTimeOffset.TryParse(releaseTimeText, out var releaseTime))
+        {
+            information += $"  |  发布时间：{releaseTime.ToLocalTime():yyyy/M/d HH:mm}";
+        }
+
+        return new(
+            MinecraftLoaderKind.LabyMod,
+            string.Empty,
+            version,
+            $"{version} {channelLabel}",
+            channel == "production" ? MinecraftLoaderChannel.Release : MinecraftLoaderChannel.Beta,
+            isRecommended,
+            fileName,
+            new Uri($"https://releases.labymod.net/api/v1/installer/{channel}/java"),
+            [],
+            new Uri("https://www.labymod.net/zh_Hans/download"),
+            information);
+    }
+
+    private static Uri? CreateLiteLoaderDownloadUri(string minecraftVersion, string generatedFileName) => minecraftVersion switch
+    {
+        "1.7.10" => new Uri("https://dl.liteloader.com/redist/1.7.10/liteloader-installer-1.7.10-04.jar"),
+        "1.7.2" => new Uri("https://dl.liteloader.com/redist/1.7.2/liteloader-installer-1.7.2-04.jar"),
+        _ when minecraftVersion.StartsWith("1.", StringComparison.Ordinal) => new Uri(
+            $"https://jenkins.liteloader.com/job/LiteLoaderInstaller%20{Uri.EscapeDataString(minecraftVersion)}/lastSuccessfulBuild/artifact/{(minecraftVersion == "1.8" ? "ant/dist/" : "build/libs/")}{generatedFileName}"),
+        _ => null,
+    };
+
+    private static string GetMinecraftMainVersion(string minecraftVersion)
+    {
+        var parts = minecraftVersion.Split('.');
+        return parts.Length >= 2 ? $"{parts[0]}.{parts[1]}" : minecraftVersion;
+    }
+
     private static MinecraftLoaderDirectory CreateDirectory(
         MinecraftLoaderKind kind,
         string sourceName,
@@ -350,6 +609,32 @@ public static class MinecraftLoaderDirectoryParser
 
     private static bool TryGetBoolean(JsonElement item, string propertyName) =>
         item.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.True;
+
+    private static bool TryGetInt64(JsonElement item, string propertyName, out long value)
+    {
+        value = 0;
+        if (!item.TryGetProperty(propertyName, out var property))
+        {
+            return false;
+        }
+
+        return property.ValueKind == JsonValueKind.Number
+            ? property.TryGetInt64(out value)
+            : property.ValueKind == JsonValueKind.String && long.TryParse(property.GetString(), out value);
+    }
+
+    private static bool TryCreateHttpsUri(string value, string expectedHost, out Uri uri)
+    {
+        if (Uri.TryCreate(value, UriKind.Absolute, out var parsed) && parsed.Scheme == Uri.UriSchemeHttps &&
+            string.Equals(parsed.Host, expectedHost, StringComparison.OrdinalIgnoreCase))
+        {
+            uri = parsed;
+            return true;
+        }
+
+        uri = null!;
+        return false;
+    }
 
     private static IEnumerable<string> EnumerateNeoForgeVersionNames(JsonElement root)
     {

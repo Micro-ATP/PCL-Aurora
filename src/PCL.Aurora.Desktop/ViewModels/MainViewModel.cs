@@ -516,13 +516,14 @@ public partial class MainViewModel(
 
     public async Task LoadOfficialLoaderDirectoryPageAsync(MinecraftLoaderKind kind)
     {
+        var displayName = GetLoaderDisplayName(kind);
         loaderDirectoryCancellation?.Cancel();
         loaderDirectoryCancellation?.Dispose();
         loaderDirectoryCancellation = new();
         var cancellationToken = loaderDirectoryCancellation.Token;
         IsLoaderDirectoryLoading = true;
         LoaderDirectoryGroups.Clear();
-        LoaderDirectorySummary = $"正在获取 {kind} 列表…";
+        LoaderDirectorySummary = $"正在获取 {displayName} 列表…";
         try
         {
             var result = await officialLoaderCatalogService.FetchDirectoryAsync(kind, cancellationToken);
@@ -547,7 +548,7 @@ public partial class MainViewModel(
         }
         catch (Exception exception)
         {
-            LoaderDirectorySummary = $"获取 {kind} 列表失败：{exception.Message}";
+            LoaderDirectorySummary = $"获取 {displayName} 列表失败：{exception.Message}";
         }
         finally
         {
@@ -599,12 +600,13 @@ public partial class MainViewModel(
             return;
         }
 
+        var displayName = GetLoaderDisplayName(package.Kind);
         IsLoaderPackageDownloading = true;
-        LoaderDirectorySummary = $"正在下载 {package.Kind} {package.DisplayName}…";
+        LoaderDirectorySummary = $"正在下载 {displayName} {package.DisplayName}…";
         try
         {
             var savedPath = await loaderPackageDownloadService.DownloadAsync(package, destinationFile);
-            LoaderDirectorySummary = $"{package.Kind} {package.DisplayName} 已保存到 {savedPath}。";
+            LoaderDirectorySummary = $"{displayName} {package.DisplayName} 已保存到 {savedPath}。";
         }
         catch (OperationCanceledException)
         {
@@ -645,6 +647,10 @@ public partial class MainViewModel(
             MinecraftLoaderKind.NeoForge => new Uri("https://neoforged.net"),
             MinecraftLoaderKind.Fabric => new Uri("https://www.fabricmc.net"),
             MinecraftLoaderKind.OptiFine => new Uri("https://www.optifine.net"),
+            MinecraftLoaderKind.Cleanroom => new Uri("https://cleanroommc.com/zh/"),
+            MinecraftLoaderKind.LegacyFabric => new Uri("https://legacyfabric.net/"),
+            MinecraftLoaderKind.LabyMod => new Uri("https://www.labymod.net/"),
+            MinecraftLoaderKind.LiteLoader => new Uri("https://www.liteloader.com/"),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
         };
         try
@@ -656,6 +662,12 @@ public partial class MainViewModel(
             LoaderDirectorySummary = $"无法打开官方网站：{exception.Message}";
         }
     }
+
+    private static string GetLoaderDisplayName(MinecraftLoaderKind kind) => kind switch
+    {
+        MinecraftLoaderKind.LegacyFabric => "Legacy Fabric",
+        _ => kind.ToString(),
+    };
 
     public async Task SaveSelectedVersionServerAsync(string destinationFile)
     {

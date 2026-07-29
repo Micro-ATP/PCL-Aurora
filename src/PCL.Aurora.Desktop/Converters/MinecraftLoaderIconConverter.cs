@@ -16,6 +16,10 @@ public sealed class MinecraftLoaderIconConverter : IValueConverter
             [MinecraftLoaderKind.NeoForge] = Load("PclCeNeoForge.png"),
             [MinecraftLoaderKind.Fabric] = Load("PclCeFabric.png"),
             [MinecraftLoaderKind.OptiFine] = Load("PclCeOptiFine.png"),
+            [MinecraftLoaderKind.Cleanroom] = Load("PclCeCleanroom.png"),
+            [MinecraftLoaderKind.LegacyFabric] = Load("PclCeFabric.png"),
+            [MinecraftLoaderKind.LabyMod] = Load("PclCeLabyMod.png"),
+            [MinecraftLoaderKind.LiteLoader] = Load("PclCeLiteLoader.png"),
         };
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>

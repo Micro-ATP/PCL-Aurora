@@ -74,6 +74,23 @@ public sealed class MinecraftOfficialLoaderCatalogServiceTests
         Assert.Equal("47.2.0", Assert.Single(forgeGroup.Directory!.Groups[0].Entries).Version);
     }
 
+    [Fact]
+    public async Task FetchDirectoryAsync_UsesAdditionalPclCeDirectoryEndpoints()
+    {
+        using var client = new HttpClient(new AdditionalDirectoryHandler());
+        var service = new MinecraftOfficialLoaderCatalogService(client);
+
+        var cleanroom = await service.FetchDirectoryAsync(PCL.Aurora.Domain.MinecraftLoaderKind.Cleanroom);
+        var legacyFabric = await service.FetchDirectoryAsync(PCL.Aurora.Domain.MinecraftLoaderKind.LegacyFabric);
+        var labyMod = await service.FetchDirectoryAsync(PCL.Aurora.Domain.MinecraftLoaderKind.LabyMod);
+        var liteLoader = await service.FetchDirectoryAsync(PCL.Aurora.Domain.MinecraftLoaderKind.LiteLoader);
+
+        Assert.Equal("0.6.8-alpha", Assert.Single(cleanroom.Directory!.Groups[0].Entries).Version);
+        Assert.Equal("1.1.1", Assert.Single(legacyFabric.Directory!.Groups[0].Entries).Version);
+        Assert.Equal(2, Assert.Single(labyMod.Directory!.Groups).Entries.Count);
+        Assert.Equal("1.12", Assert.Single(liteLoader.Directory!.Groups).Key);
+    }
+
     private sealed class OfficialCatalogHandler : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -144,6 +161,29 @@ public sealed class MinecraftOfficialLoaderCatalogServiceTests
                 "/forge/minecraft/1.20.1" => """[{"version":"47.2.0","files":[{"category":"installer","format":"jar"}]}]""",
                 "/v2/versions/installer" => """[{"version":"1.0.3","stable":true,"url":"https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.0.3/fabric-installer-1.0.3.jar"}]""",
                 _ => throw new InvalidOperationException($"意外请求：{request.RequestUri}"),
+            };
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content) });
+        }
+    }
+
+    private sealed class AdditionalDirectoryHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var uri = request.RequestUri!;
+            var content = (uri.Host, uri.AbsolutePath) switch
+            {
+                ("api.github.com", "/repos/CleanroomMC/Cleanroom/releases") =>
+                    """[{"tag_name":"0.6.8-alpha","html_url":"https://github.com/CleanroomMC/Cleanroom/releases/tag/0.6.8-alpha","assets":[{"name":"cleanroom-0.6.8-alpha-installer.jar","browser_download_url":"https://github.com/CleanroomMC/Cleanroom/releases/download/0.6.8-alpha/cleanroom-0.6.8-alpha-installer.jar"}]}]""",
+                ("meta.legacyfabric.net", "/v2/versions") =>
+                    """{"installer":[{"url":"https://maven.legacyfabric.net/net/legacyfabric/fabric-installer/1.1.1/fabric-installer-1.1.1.jar","version":"1.1.1","stable":true}]}""",
+                ("releases.r2.labymod.net", "/api/v1/manifest/production/latest.json") =>
+                    """{"labyModVersion":"4.6.12"}""",
+                ("releases.r2.labymod.net", "/api/v1/manifest/snapshot/latest.json") =>
+                    """{"labyModVersion":"4.6.13-beta"}""",
+                ("dl.liteloader.com", "/versions/versions.json") =>
+                    """{"versions":{"1.12.2":{"artefacts":{"com.mumfrey:liteloader":{"latest":{"stream":"RELEASE","version":"1.12.2-SNAPSHOT","timestamp":"1704067200000"}}}}}}""",
+                _ => throw new InvalidOperationException($"意外请求：{uri}"),
             };
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content) });
         }
