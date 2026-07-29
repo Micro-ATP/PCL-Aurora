@@ -2491,153 +2491,187 @@
                         <StackPanel x:Name="SettingsLaunchSection" Spacing="15">
                             <Border Classes="setup-card">
                                 <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="Java 与运行环境" />
+                                    <TextBlock Classes="setup-card-title" Text="启动选项" />
                                     <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
-                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="150,*" RowSpacing="10">
-                                        <TextBlock Text="当前平台" />
-                                        <TextBlock Grid.Column="1" Text="{Binding OperatingSystem}" TextWrapping="Wrap" />
-                                        <TextBlock Grid.Row="1" Text="系统架构" />
-                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Architecture}" />
-                                        <TextBlock Grid.Row="2" Text="Java 状态" />
-                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding JavaSummary}" TextWrapping="Wrap" />
-                                    </Grid>
-                                    <Grid ColumnDefinitions="150,*" ColumnSpacing="10">
-                                        <TextBlock VerticalAlignment="Center" Text="启动 Java" />
-                                        <ComboBox x:Name="JavaSelector" Grid.Column="1"
-                                                  AutomationProperties.Name="启动 Java"
-                                                  IsEnabled="{Binding HasAvailableJavaInstallations}"
-                                                  ItemsSource="{Binding AvailableJavaInstallations}"
-                                                  SelectedItem="{Binding SelectedJava}">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
-                                                        <TextBlock Grid.Column="1" Foreground="#6F7C8B" Text="{Binding Vendor}" />
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                    </Grid>
-                                    <Grid ColumnDefinitions="150,*">
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                                            <Button Command="{Binding RefreshCommand}" Content="重新搜索" />
-                                            <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="#6F7C8B"
-                                                       Text="仅显示与当前架构兼容的 Java" />
-                                        </StackPanel>
-                                    </Grid>
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                                              ColumnSpacing="12" RowSpacing="8">
+                                            <TextBlock VerticalAlignment="Center" Text="默认实例隔离" />
+                                            <ComboBox Grid.Column="1" SelectedIndex="4" IsEnabled="False">
+                                                <ComboBoxItem Content="关闭" />
+                                                <ComboBoxItem Content="隔离可安装模组的实例" />
+                                                <ComboBoxItem Content="隔离非正式版" />
+                                                <ComboBoxItem Content="隔离可安装模组的实例与非正式版" />
+                                                <ComboBoxItem Content="隔离所有实例" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="游戏窗口标题" />
+                                            <ComboBox Grid.Row="1" Grid.Column="1" IsEditable="True" IsEnabled="False"
+                                                      SelectedIndex="-1" Text="">
+                                                <ComboBoxItem Content="{}{name} | 玩家 : {user} | 使用 {login} 登录" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="自定义信息" />
+                                            <TextBox Grid.Row="2" Grid.Column="1" Text="PCL Aurora" IsEnabled="False" />
+                                            <TextBlock Grid.Row="3" VerticalAlignment="Center" Text="启动器可见性" />
+                                            <ComboBox Grid.Row="3" Grid.Column="1" SelectedIndex="4" IsEnabled="False">
+                                                <ComboBoxItem Content="游戏启动后立即关闭" />
+                                                <ComboBoxItem Content="游戏启动后隐藏，游戏退出后自动关闭" />
+                                                <ComboBoxItem Content="游戏启动后隐藏，游戏退出后重新打开" />
+                                                <ComboBoxItem Content="游戏启动后最小化" />
+                                                <ComboBoxItem Content="游戏启动后仍保持不变" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="4" VerticalAlignment="Center" Text="进程优先级" />
+                                            <ComboBox Grid.Row="4" Grid.Column="1" SelectedIndex="3" IsEnabled="False">
+                                                <ComboBoxItem Content="实时（使游戏以最高优先级运行）" />
+                                                <ComboBoxItem Content="极高（谨慎使用）" />
+                                                <ComboBoxItem Content="高（优先保证游戏运行）" />
+                                                <ComboBoxItem Content="中（平衡）" />
+                                                <ComboBoxItem Content="低（优先保证其他程序运行）" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="5" VerticalAlignment="Center" Text="窗口大小" />
+                                            <Grid Grid.Row="5" Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                                <ComboBox x:Name="GameWindowModeSelector"
+                                                          AutomationProperties.Name="Minecraft 窗口模式"
+                                                          ItemsSource="{Binding GameWindowModes}"
+                                                          SelectedItem="{Binding SelectedGameWindowMode}">
+                                                    <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                                                </ComboBox>
+                                                <StackPanel Grid.Column="1" IsEnabled="{Binding UsesCustomGameWindowSize}" Orientation="Horizontal" Spacing="6">
+                                                    <TextBox Width="66" AutomationProperties.Name="自定义 Minecraft 窗口宽度" Text="{Binding CustomGameWindowWidth}" />
+                                                    <TextBlock VerticalAlignment="Center" Text="×" />
+                                                    <TextBox Width="66" AutomationProperties.Name="自定义 Minecraft 窗口高度" Text="{Binding CustomGameWindowHeight}" />
+                                                </StackPanel>
+                                            </Grid>
+                                            <TextBlock Grid.Row="6" VerticalAlignment="Center" Text="正版验证方式" />
+                                            <ComboBox Grid.Row="6" Grid.Column="1" SelectedIndex="1" IsEnabled="False">
+                                                <ComboBoxItem Content="Web 账户管理器（暂时强制设备代码流）" />
+                                                <ComboBoxItem Content="设备代码流" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="7" VerticalAlignment="Center" Text="IP 协议偏好" />
+                                            <ComboBox Grid.Row="7" Grid.Column="1" SelectedIndex="1" IsEnabled="False">
+                                                <ComboBoxItem Content="IPv4 优先" /><ComboBoxItem Content="Java 默认" /><ComboBoxItem Content="IPv6 优先" />
+                                            </ComboBox>
+                                        </Grid>
+                                        <Border Classes="setup-hint">
+                                            <TextBlock TextWrapping="Wrap" Text="默认实例隔离只对今后新安装的实例生效；已有实例的隔离策略需要在实例设置中调整。" />
+                                        </Border>
                                     </StackPanel>
                                 </Grid>
                             </Border>
 
                             <Border Classes="setup-card">
                                 <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="游戏启动" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
-                                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
-                                          ColumnSpacing="10" RowSpacing="10">
-                                        <TextBlock VerticalAlignment="Center" Text="窗口模式" />
-                                        <ComboBox x:Name="GameWindowModeSelector" Grid.Column="1"
-                                                  AutomationProperties.Name="Minecraft 窗口模式"
-                                                  ItemsSource="{Binding GameWindowModes}"
-                                                  SelectedItem="{Binding SelectedGameWindowMode}">
-                                            <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="窗口尺寸" />
-                                        <StackPanel Grid.Row="1" Grid.Column="1" IsEnabled="{Binding UsesCustomGameWindowSize}" Orientation="Horizontal" Spacing="8">
-                                            <TextBox Width="90" AutomationProperties.Name="自定义 Minecraft 窗口宽度" Text="{Binding CustomGameWindowWidth}" />
-                                            <TextBlock VerticalAlignment="Center" Text="×" />
-                                            <TextBox Width="90" AutomationProperties.Name="自定义 Minecraft 窗口高度" Text="{Binding CustomGameWindowHeight}" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="内存分配" />
-                                        <ComboBox x:Name="MemoryAllocationModeSelector" Grid.Row="2" Grid.Column="1"
-                                                  AutomationProperties.Name="Minecraft 内存分配模式"
-                                                  ItemsSource="{Binding MemoryAllocationModes}"
-                                                  SelectedItem="{Binding SelectedMemoryAllocationMode}">
-                                            <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                        <TextBlock Grid.Row="3" VerticalAlignment="Center" Text="自定义内存" />
-                                        <StackPanel Grid.Row="3" Grid.Column="1" IsEnabled="{Binding UsesCustomMemoryAllocation}" Orientation="Horizontal" Spacing="8">
-                                            <TextBox Width="120" AutomationProperties.Name="自定义 Minecraft 堆内存（MiB）" Text="{Binding CustomMemoryMiB}" />
-                                            <TextBlock VerticalAlignment="Center" Text="MiB" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Row="4" VerticalAlignment="Top" Margin="0,8,0,0" Text="额外 JVM 参数" />
-                                        <TextBox Grid.Row="4" Grid.Column="1" AcceptsReturn="True" Height="66" MaxLength="4000"
-                                                 PlaceholderText="例如：-Xmx4G -Dexample=value" Text="{Binding AdditionalJvmArguments}"
-                                                 TextWrapping="Wrap" VerticalContentAlignment="Top" />
-                                        <TextBlock Grid.Row="5" VerticalAlignment="Top" Margin="0,8,0,0" Text="额外游戏参数" />
-                                        <TextBox Grid.Row="5" Grid.Column="1" AcceptsReturn="True" Height="66" MaxLength="4000"
-                                                 PlaceholderText="例如：--demo" Text="{Binding AdditionalGameArguments}"
-                                                 TextWrapping="Wrap" VerticalContentAlignment="Top" />
-                                    </Grid>
-                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                                        <Button Command="{Binding SaveLaunchOptionsCommand}" Content="保存启动选项" />
-                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Foreground="#6F7C8B"
-                                                   Text="{Binding LaunchOptionsSummary}" TextWrapping="Wrap" />
-                                    </Grid>
+                                    <TextBlock Classes="setup-card-title" Text="游戏内存" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="10">
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                            <TextBlock VerticalAlignment="Center" Text="内存分配" />
+                                            <ComboBox x:Name="MemoryAllocationModeSelector" Grid.Column="1"
+                                                      AutomationProperties.Name="Minecraft 内存分配模式"
+                                                      ItemsSource="{Binding MemoryAllocationModes}"
+                                                      SelectedItem="{Binding SelectedMemoryAllocationMode}">
+                                                <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="自定义内存" />
+                                            <StackPanel Grid.Row="1" Grid.Column="1" IsEnabled="{Binding UsesCustomMemoryAllocation}" Orientation="Horizontal" Spacing="8">
+                                                <TextBox Width="120" AutomationProperties.Name="自定义 Minecraft 堆内存（MiB）" Text="{Binding CustomMemoryMiB}" />
+                                                <TextBlock VerticalAlignment="Center" Text="MiB" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <TextBlock Classes="setup-muted" Text="自动配置会根据实例模组量与当前可用内存动态计算；自定义值将在启动前经过安全范围校验。" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
 
                             <Border Classes="setup-card">
                                 <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="下载设置" />
+                                    <TextBlock Classes="setup-card-title" Text="高级启动选项" />
                                     <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
-                                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                                        <TextBlock VerticalAlignment="Center" Text="最大下载连接数" />
-                                        <ComboBox x:Name="DownloadConcurrencySelector" Grid.Column="1"
-                                                  AutomationProperties.Name="最大下载连接数"
-                                                  ItemsSource="{Binding DownloadConcurrencyOptions}"
-                                                  SelectedItem="{Binding SelectedDownloadConcurrency}" />
-                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="总下载限速" />
-                                        <ComboBox x:Name="DownloadSpeedSelector" Grid.Row="1" Grid.Column="1"
-                                                  AutomationProperties.Name="总下载限速"
-                                                  ItemsSource="{Binding DownloadSpeedOptions}"
-                                                  SelectedItem="{Binding SelectedDownloadSpeedLimit}">
-                                            <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                    </Grid>
-                                    <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding DownloadSettingsSummary}" TextWrapping="Wrap" />
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                            <TextBlock VerticalAlignment="Center" Text="渲染器" />
+                                            <ComboBox Grid.Column="1" SelectedIndex="0" IsEnabled="False">
+                                                <ComboBoxItem Content="游戏默认" /><ComboBoxItem Content="软渲染（llvmpipe）" />
+                                                <ComboBoxItem Content="DirectX12（d3d12）" /><ComboBoxItem Content="Vulkan（zink）" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Top" Margin="0,7,0,0" Text="JVM 参数头部" />
+                                            <TextBox Grid.Row="1" Grid.Column="1" AcceptsReturn="True" Height="82" MaxLength="4000"
+                                                     Text="{Binding AdditionalJvmArguments}" TextWrapping="Wrap"
+                                                     VerticalContentAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="游戏参数尾部" />
+                                            <TextBox Grid.Row="2" Grid.Column="1" MaxLength="4000"
+                                                     PlaceholderText="例如：--demo" Text="{Binding AdditionalGameArguments}" />
+                                            <TextBlock Grid.Row="3" VerticalAlignment="Center" Text="启动前执行命令" />
+                                            <TextBox Grid.Row="3" Grid.Column="1" IsEnabled="False" />
+                                        </Grid>
+                                        <CheckBox IsChecked="True" IsEnabled="False" Content="等待命令执行完成后再继续启动" />
+                                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="20">
+                                            <CheckBox IsChecked="True" IsEnabled="False" Content="禁用 Java Launch Wrapper" />
+                                            <CheckBox Grid.Column="1" IsEnabled="False" Content="禁用 LegacyFix" />
+                                            <CheckBox Grid.Row="1" IsChecked="True" IsEnabled="False" Content="要求 Java 使用高性能显卡" />
+                                            <CheckBox Grid.Row="1" Grid.Column="1" IsEnabled="False" Content="使用 java.exe 而不是 javaw.exe" />
+                                            <CheckBox Grid.Row="2" IsEnabled="False" Content="禁用 LWJGL Unsafe Agent" />
+                                            <CheckBox Grid.Row="2" Grid.Column="1" IsEnabled="False" Content="禁用自动崩溃分析" />
+                                            <CheckBox Grid.Row="3" IsEnabled="False" Content="锁定内存分配（-Xms = -Xmx）" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                            <Button Command="{Binding SaveLaunchOptionsCommand}" Content="保存启动选项" />
+                                            <TextBlock Grid.Column="1" VerticalAlignment="Center" Classes="setup-muted"
+                                                       Text="{Binding LaunchOptionsSummary}" />
+                                        </Grid>
                                     </StackPanel>
                                 </Grid>
                             </Border>
                         </StackPanel>
 
-                        <Border x:Name="SettingsJavaSection" Classes="setup-card" IsVisible="False">
-                            <Grid RowDefinitions="40,*">
-                                <TextBlock Classes="setup-card-title" Text="Java 列表" />
-                                <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
-                                <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="150,*" RowSpacing="10">
-                                    <TextBlock Text="操作系统" />
-                                    <TextBlock Grid.Column="1" Text="{Binding OperatingSystem}" />
-                                    <TextBlock Grid.Row="1" Text="系统架构" />
-                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Architecture}" />
-                                    <TextBlock Grid.Row="2" Text=".NET 运行时" />
-                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Runtime}" />
-                                    <TextBlock Grid.Row="3" Text="Java 状态" />
-                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding JavaSummary}" TextWrapping="Wrap" />
+                        <StackPanel x:Name="SettingsJavaSection" IsVisible="False">
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="Java 操作" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Orientation="Horizontal" Spacing="10">
+                                        <Button MinWidth="110" IsEnabled="False" Content="添加 Java" />
+                                        <Button MinWidth="110" Command="{Binding RefreshCommand}" Content="自动搜索" />
+                                        <TextBlock VerticalAlignment="Center" Classes="setup-muted" Text="仅列出与当前系统架构兼容且可执行的 Java。" />
+                                    </StackPanel>
                                 </Grid>
-                                <Label Content="启动 Java" Target="{Binding #SettingsJavaSelector}" />
-                                <ComboBox x:Name="SettingsJavaSelector" MinWidth="360" HorizontalAlignment="Left"
-                                          IsEnabled="{Binding HasAvailableJavaInstallations}"
-                                          ItemsSource="{Binding AvailableJavaInstallations}"
-                                          SelectedItem="{Binding SelectedJava}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Spacing="2">
-                                                <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
-                                                <TextBlock Foreground="#6F7C8B" Text="{Binding Vendor}" />
-                                                <TextBlock FontSize="11" Foreground="#6F7C8B" Text="{Binding ExecutablePath}" TextWrapping="Wrap" />
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Command="{Binding RefreshCommand}" Content="重新搜索" />
-                                    <Button IsEnabled="False" Content="手动导入" />
-                                </StackPanel>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="Java 列表" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="10">
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                                            <TextBlock Text="操作系统" /><TextBlock Grid.Column="1" Text="{Binding OperatingSystem}" />
+                                            <TextBlock Grid.Row="1" Text="系统架构" /><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Architecture}" />
+                                            <TextBlock Grid.Row="2" Text=".NET 运行时" /><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Runtime}" />
+                                            <TextBlock Grid.Row="3" Text="Java 状态" /><TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding JavaSummary}" TextWrapping="Wrap" />
+                                        </Grid>
+                                        <ComboBox x:Name="SettingsJavaSelector" MinWidth="360" HorizontalAlignment="Stretch"
+                                                  IsEnabled="{Binding HasAvailableJavaInstallations}"
+                                                  ItemsSource="{Binding AvailableJavaInstallations}"
+                                                  SelectedItem="{Binding SelectedJava}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
+                                                        <TextBlock Grid.Column="1" Foreground="#6F7C8B" Text="{Binding Vendor}" />
+                                                        <TextBlock Grid.Column="2" Foreground="#6F7C8B" Text="{Binding ExecutablePath}" TextTrimming="CharacterEllipsis" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <ItemsControl ItemsSource="{Binding AvailableJavaInstallations}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderBrush="#D8E2EC" BorderThickness="0,1,0,0" Padding="4,9">
+                                                        <Grid ColumnDefinitions="90,130,*" ColumnSpacing="10">
+                                                            <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
+                                                            <TextBlock Grid.Column="1" Foreground="#536272" Text="{Binding Vendor}" TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Grid.Column="2" FontSize="11" Foreground="#6F7C8B" Text="{Binding ExecutablePath}" TextWrapping="Wrap" />
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
 
                         <!-- Direct Avalonia adaptation of the PCL-CE PageSetup page family. -->
                         <StackPanel x:Name="SettingsManageSection" IsVisible="False">
@@ -2671,8 +2705,8 @@
                                                        Text="每次下载前询问保存位置" />
                                         </Grid>
                                         <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                            <CheckBox IsEnabled="False" Content="安装新实例后自动选定该实例" />
-                                            <CheckBox Grid.Column="1" IsEnabled="False" Content="升级部分版本的 Authlib" />
+                                            <CheckBox IsChecked="True" IsEnabled="False" Content="安装新实例后自动选定该实例" />
+                                            <CheckBox Grid.Column="1" IsChecked="True" IsEnabled="False" Content="升级部分版本的 Authlib" />
                                         </Grid>
                                         <TextBlock Classes="setup-muted" Text="{Binding DownloadSettingsSummary}" />
                                     </StackPanel>
@@ -2710,7 +2744,7 @@
                                                 <ComboBoxItem Content="询问并下载到一个路径" />
                                             </ComboBox>
                                         </Grid>
-                                        <CheckBox IsEnabled="False" Content="不显示 Quilt 加载器" />
+                                        <CheckBox IsChecked="True" IsEnabled="False" Content="不显示 Quilt 加载器" />
                                         <CheckBox IsChecked="True" IsEnabled="False" Content="下载模组时自动检查并安装必需前置" />
                                     </StackPanel>
                                 </Grid>
@@ -2726,7 +2760,7 @@
                                         </Grid>
                                         <Grid ColumnDefinitions="155,*">
                                             <TextBlock VerticalAlignment="Center" Text="游戏语言" />
-                                            <CheckBox Grid.Column="1" IsEnabled="False" Content="自动设置为启动器语言" />
+                                            <CheckBox Grid.Column="1" IsChecked="True" IsEnabled="False" Content="自动设置为启动器语言" />
                                         </Grid>
                                         <CheckBox IsEnabled="False" Content="识别跳转剪贴板中的社区资源链接" />
                                     </StackPanel>
@@ -2786,6 +2820,14 @@
                                                       SelectedItem="{Binding SelectedThemeMode}">
                                                 <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
                                             </ComboBox>
+                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="亮色主题色" />
+                                            <ComboBox Grid.Row="2" Grid.Column="1" SelectedIndex="1" IsEnabled="False">
+                                                <ComboBoxItem Content="天蓝" /><ComboBoxItem Content="龙猫蓝" /><ComboBoxItem Content="死亡蓝" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="3" VerticalAlignment="Center" Text="暗色主题色" />
+                                            <ComboBox Grid.Row="3" Grid.Column="1" SelectedIndex="1" IsEnabled="False">
+                                                <ComboBoxItem Content="天蓝" /><ComboBoxItem Content="龙猫蓝" /><ComboBoxItem Content="死亡蓝" />
+                                            </ComboBox>
                                         </Grid>
                                         <CheckBox IsChecked="True" IsEnabled="False" Content="显示启动器标志" />
                                         <CheckBox IsEnabled="False" Content="锁定窗口大小" />
@@ -2800,7 +2842,7 @@
                                     <TextBlock Classes="setup-card-title" Text="字体" />
                                     <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
                                         <TextBlock VerticalAlignment="Center" Text="全局字体" />
-                                        <ComboBox Grid.Column="1" SelectedIndex="0" IsEnabled="False"><ComboBoxItem Content="HarmonyOS Sans SC" /></ComboBox>
+                                        <ComboBox Grid.Column="1" SelectedIndex="0" IsEnabled="False"><ComboBoxItem Content="默认（HarmonyOS Sans SC）" /></ComboBox>
                                         <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="MOTD 字体" />
                                         <ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="0" IsEnabled="False"><ComboBoxItem Content="跟随全局字体" /></ComboBox>
                                     </Grid>
@@ -2821,8 +2863,8 @@
                                             <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="背景模糊" />
                                             <Slider Grid.Row="2" Grid.Column="1" Maximum="40" Value="0" />
                                         </Grid>
-                                        <CheckBox Content="播放视频背景时自动暂停" />
-                                        <CheckBox Content="使用主题色覆盖背景" />
+                                        <CheckBox IsChecked="True" Content="播放视频背景时自动暂停" />
+                                        <CheckBox IsChecked="True" Content="使用主题色覆盖背景" />
                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                             <Button Content="打开文件夹" /><Button Content="刷新背景" /><Button Content="清空背景" />
                                         </StackPanel>
@@ -2833,9 +2875,10 @@
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="背景音乐" />
                                     <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8" IsEnabled="False">
-                                        <Grid ColumnDefinitions="155,*"><TextBlock VerticalAlignment="Center" Text="音量" /><Slider Grid.Column="1" Maximum="100" Value="70" /></Grid>
-                                        <CheckBox Content="随机播放" /><CheckBox Content="启动器打开时自动播放" />
+                                        <Grid ColumnDefinitions="155,*"><TextBlock VerticalAlignment="Center" Text="音量" /><Slider Grid.Column="1" Maximum="100" Value="50" /></Grid>
+                                        <CheckBox IsChecked="True" Content="随机播放" /><CheckBox IsChecked="True" Content="启动器打开时自动播放" />
                                         <CheckBox Content="进入游戏后继续播放" /><CheckBox Content="进入游戏后停止播放" />
+                                        <CheckBox IsChecked="True" Content="启用系统媒体控制" />
                                         <StackPanel Orientation="Horizontal" Spacing="10"><Button Content="打开文件夹" /><Button Content="刷新音乐" /></StackPanel>
                                     </StackPanel>
                                 </Grid>
@@ -2849,7 +2892,7 @@
                                     <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="10">
                                         <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="9" IsEnabled="False">
                                             <TextBlock VerticalAlignment="Center" Text="界面语言" />
-                                            <ComboBox Grid.Column="1" SelectedIndex="0"><ComboBoxItem Content="简体中文" /></ComboBox>
+                                            <ComboBox Grid.Column="1" SelectedIndex="0"><ComboBoxItem Content="跟随系统" /><ComboBoxItem Content="简体中文" /><ComboBoxItem Content="English (US)" /></ComboBox>
                                             <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="区域格式" />
                                             <ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="0"><ComboBoxItem Content="跟随系统" /><ComboBoxItem Content="简体中文（中国）" /></ComboBox>
                                         </Grid>
@@ -2883,7 +2926,7 @@
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="网络" />
                                     <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9" IsEnabled="False">
-                                        <CheckBox Content="使用 DoH 解析地址" />
+                                        <CheckBox IsChecked="True" Content="使用 DoH 解析地址" />
                                         <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
                                             <TextBlock VerticalAlignment="Center" Text="HTTP 代理" />
                                             <ComboBox Grid.Column="1" SelectedIndex="1"><ComboBoxItem Content="不使用代理" /><ComboBoxItem Content="使用系统代理" /><ComboBoxItem Content="自定义代理" /></ComboBox>
@@ -2900,7 +2943,7 @@
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="调试选项" />
                                     <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8" IsEnabled="False">
-                                        <Grid ColumnDefinitions="155,*"><TextBlock VerticalAlignment="Center" Text="动画速度" /><Slider Grid.Column="1" Maximum="30" Value="10" /></Grid>
+                                        <Grid ColumnDefinitions="155,*"><TextBlock VerticalAlignment="Center" Text="动画速度" /><Slider Grid.Column="1" Maximum="30" Value="9" /></Grid>
                                         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12"><CheckBox Content="禁止在下载时从其他文件夹复制文件" /><CheckBox Grid.Column="1" Content="调试模式" /><CheckBox Grid.Column="2" Content="添加延迟" /></Grid>
                                     </StackPanel>
                                 </Grid>
@@ -2950,7 +2993,7 @@
                                     <TextBlock Classes="setup-card-title" Text="更新设置" />
                                     <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8" IsEnabled="False">
                                         <TextBlock VerticalAlignment="Center" Text="更新通道" /><ComboBox Grid.Column="1" SelectedIndex="0"><ComboBoxItem Content="正式版 / Release" /><ComboBoxItem Content="测试版 / Beta" /><ComboBoxItem Content="开发版 / Dev" /></ComboBox>
-                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="自动更新设置" /><ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="2"><ComboBoxItem Content="自动下载并安装更新" /><ComboBoxItem Content="自动下载并提示更新" /><ComboBoxItem Content="提示更新" /><ComboBoxItem Content="不自动检查更新（不推荐）" /></ComboBox>
+                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="自动更新设置" /><ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="1"><ComboBoxItem Content="自动下载并安装更新" /><ComboBoxItem Content="自动下载并提示更新" /><ComboBoxItem Content="提示更新" /><ComboBoxItem Content="不自动检查更新（不推荐）" /></ComboBox>
                                     </Grid>
                                 </Grid>
                             </Border>

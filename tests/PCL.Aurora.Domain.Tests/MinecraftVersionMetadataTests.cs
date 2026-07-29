@@ -184,7 +184,12 @@ public sealed class MinecraftVersionMetadataTests
 
         Assert.True(preparation.IsReady);
         Assert.Equal(
-            ["-Djava.library.path=/minecraft/natives", "-cp", "/libraries/legacy.jar"],
+            [
+                "-Djava.library.path=/minecraft/natives",
+                "-cp",
+                "/libraries/legacy.jar",
+                .. MinecraftLaunchOptions.DefaultAdditionalJvmArguments.Split(' ', StringSplitOptions.RemoveEmptyEntries),
+            ],
             preparation.Arguments!.JvmArguments);
         Assert.Equal(
             [
@@ -554,7 +559,14 @@ public sealed class MinecraftVersionMetadataTests
         Assert.True(parsed.Metadata!.Launch!.HasConditionalArguments);
         Assert.True(preparation.IsReady);
         Assert.Equal(
-            ["-cp", "/libraries/game.jar", "-Dos.name=macOS", "-Dapple.awt.UIElement=true", "-Dwithout-rules=true"],
+            [
+                "-cp",
+                "/libraries/game.jar",
+                "-Dos.name=macOS",
+                "-Dapple.awt.UIElement=true",
+                "-Dwithout-rules=true",
+                .. MinecraftLaunchOptions.DefaultAdditionalJvmArguments.Split(' ', StringSplitOptions.RemoveEmptyEntries),
+            ],
             preparation.Arguments!.JvmArguments);
         Assert.Equal(["--demoFlag", "false"], preparation.Arguments.GameArguments);
     }

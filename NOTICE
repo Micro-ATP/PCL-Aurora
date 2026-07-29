@@ -112,6 +112,8 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUpdate.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupFeedback.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLog.xaml
+- PCL-CE: PCL.Core/App/Config.cs (setup defaults and default JVM arguments only)
+- PCL-CE: PCL.Core/App/ConfigEnums.cs (setup option ordering only)
 - PCL-CE: PCL.Core/App/Localization/Languages/zh-CN.xaml (setup-page wording)
 
 PCL Aurora also contains the following directly reused upstream resources:

@@ -4,14 +4,21 @@ namespace PCL.Aurora.Domain;
 /// 用户明确配置且可安全持久化的全局 Minecraft 启动选项。
 /// </summary>
 public sealed record MinecraftLaunchOptions(
-    string? AdditionalJvmArguments = null,
+    string? AdditionalJvmArguments = MinecraftLaunchOptions.DefaultAdditionalJvmArguments,
     string? AdditionalGameArguments = null,
     MinecraftGameWindowMode WindowMode = MinecraftGameWindowMode.Default,
     int WindowWidth = 854,
     int WindowHeight = 480,
     MinecraftMemoryAllocationMode MemoryAllocationMode = MinecraftMemoryAllocationMode.Automatic,
-    int CustomMemoryMiB = 4096)
+    int CustomMemoryMiB = 3072)
 {
+    public const string DefaultAdditionalJvmArguments =
+        "-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow " +
+        "-Djdk.lang.Process.allowAmbiguousCommands=true " +
+        "-Dfml.ignoreInvalidMinecraftCertificates=True " +
+        "-Dfml.ignorePatchDiscrepancies=True " +
+        "-Dlog4j2.formatMsgNoLookups=true";
+
     public const int DefaultWindowWidth = 854;
 
     public const int DefaultWindowHeight = 480;
@@ -22,7 +29,7 @@ public sealed record MinecraftLaunchOptions(
 
     public const int MaximumArgumentTextLength = 4000;
 
-    public const int DefaultCustomMemoryMiB = 4096;
+    public const int DefaultCustomMemoryMiB = 3072;
 
     public const int MinimumCustomMemoryMiB = 256;
 

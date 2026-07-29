@@ -7,6 +7,17 @@ public sealed class PclCeMinecraftMemoryAllocatorTests
     private const long GiB = 1024L * 1024L * 1024L;
 
     [Fact]
+    public void Defaults_MatchPclCeLaunchConfiguration()
+    {
+        Assert.Equal(MinecraftMemoryAllocationMode.Automatic, MinecraftLaunchOptions.Default.MemoryAllocationMode);
+        Assert.Equal(3072, MinecraftLaunchOptions.Default.CustomMemoryMiB);
+        Assert.Equal(MinecraftLaunchOptions.DefaultAdditionalJvmArguments, MinecraftLaunchOptions.Default.AdditionalJvmArguments);
+        Assert.Equal(MinecraftGameWindowMode.Default, MinecraftLaunchOptions.Default.WindowMode);
+        Assert.Equal(854, MinecraftLaunchOptions.Default.WindowWidth);
+        Assert.Equal(480, MinecraftLaunchOptions.Default.WindowHeight);
+    }
+
+    [Fact]
     public void Prepare_AutomaticUsesPclCeStagesForVanillaInstance()
     {
         var instance = new MinecraftInstance("1.21.4", "/minecraft/versions/1.21.4", "1.21.4", "release", null, MinecraftInstanceStatus.Valid);
