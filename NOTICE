@@ -130,6 +130,19 @@ PCL Aurora also contains the following directly reused upstream resources:
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Skins/PclCeAlex.png;
   displayed as a cropped face and outer-layer avatar.
 
+- PCL-CE: Plain Craft Launcher 2/Images/Heads/LTCat.jpg
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/About/LTCat.jpg;
+  displayed for the original PCL author on the software information page.
+- PCL-CE: Plain Craft Launcher 2/Images/Heads/PCL-Community.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/About/PclCommunity.png;
+  displayed for the PCL Community team on the software information page.
+- PCL-CE: Plain Craft Launcher 2/Images/Heads/bangbang93.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/About/Bangbang93.png;
+  displayed for the BMCLAPI acknowledgement on the software information page.
+- PCL-CE: Plain Craft Launcher 2/Images/Heads/wiki.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/About/McmodWiki.png;
+  displayed for the MC Encyclopedia acknowledgement on the software information page.
+
 - PCL-CE: Plain Craft Launcher 2/Images/Blocks/Anvil.png
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeForge.png;
   displayed as the Forge loader image.

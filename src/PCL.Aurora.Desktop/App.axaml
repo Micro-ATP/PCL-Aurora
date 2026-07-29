@@ -5,12 +5,92 @@
 
     <Application.Resources>
         <FontFamily x:Key="PclAuroraInterfaceFont">avares://PCL.Aurora.Desktop/Fonts/HarmonyOS_Sans_SC#HarmonyOS Sans SC</FontFamily>
+        <ControlTheme x:Key="PclScrollBarThumbTheme" TargetType="Thumb">
+            <Setter Property="Background" Value="#804890F5" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Margin="2"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="#E61370F3" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="#FF4890F5" />
+            </Style>
+        </ControlTheme>
+        <ControlTheme x:Key="PclScrollBarPageButtonTheme" TargetType="RepeatButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" />
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
     </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
         <Style Selector="Window">
             <Setter Property="FontFamily" Value="{StaticResource PclAuroraInterfaceFont}" />
+        </Style>
+        <Style Selector="ScrollViewer">
+            <Setter Property="AllowAutoHide" Value="False" />
+        </Style>
+        <Style Selector="ScrollBar:vertical">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="MinWidth" Value="8" />
+            <Setter Property="MaxWidth" Value="8" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Track Minimum="{TemplateBinding Minimum}"
+                           Maximum="{TemplateBinding Maximum}"
+                           Value="{TemplateBinding Value, Mode=TwoWay}"
+                           ViewportSize="{TemplateBinding ViewportSize}"
+                           Orientation="Vertical"
+                           IsDirectionReversed="True">
+                        <Track.DecreaseButton>
+                            <RepeatButton Theme="{StaticResource PclScrollBarPageButtonTheme}" />
+                        </Track.DecreaseButton>
+                        <Track.IncreaseButton>
+                            <RepeatButton Theme="{StaticResource PclScrollBarPageButtonTheme}" />
+                        </Track.IncreaseButton>
+                        <Track.Thumb>
+                            <Thumb Width="8" MinHeight="20" Theme="{StaticResource PclScrollBarThumbTheme}" />
+                        </Track.Thumb>
+                    </Track>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ScrollBar:horizontal">
+            <Setter Property="Height" Value="8" />
+            <Setter Property="MinHeight" Value="8" />
+            <Setter Property="MaxHeight" Value="8" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Track Minimum="{TemplateBinding Minimum}"
+                           Maximum="{TemplateBinding Maximum}"
+                           Value="{TemplateBinding Value, Mode=TwoWay}"
+                           ViewportSize="{TemplateBinding ViewportSize}"
+                           Orientation="Horizontal">
+                        <Track.DecreaseButton>
+                            <RepeatButton Theme="{StaticResource PclScrollBarPageButtonTheme}" />
+                        </Track.DecreaseButton>
+                        <Track.IncreaseButton>
+                            <RepeatButton Theme="{StaticResource PclScrollBarPageButtonTheme}" />
+                        </Track.IncreaseButton>
+                        <Track.Thumb>
+                            <Thumb Height="8" MinWidth="20" Theme="{StaticResource PclScrollBarThumbTheme}" />
+                        </Track.Thumb>
+                    </Track>
+                </ControlTemplate>
+            </Setter>
         </Style>
     </Application.Styles>
 </Application>

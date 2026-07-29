@@ -80,6 +80,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<ICommunityWorldImportService, CommunityWorldImportService>();
         services.AddSingleton<ICommunityFavoritesStore, JsonCommunityFavoritesStore>();
         services.AddSingleton<ICommunityResourceDescriptionTranslationService, PclCeCommunityResourceDescriptionTranslationService>();
+        services.AddSingleton<IGitHubContributorService, GitHubContributorService>();
         services.AddSingleton<IMinecraftLoaderCatalogService, MinecraftLoaderCatalogService>();
         services.AddSingleton<IMinecraftOfficialLoaderCatalogService, MinecraftOfficialLoaderCatalogService>();
         services.AddSingleton<IMinecraftLoaderPackageDownloadService, MinecraftLoaderPackageDownloadService>();

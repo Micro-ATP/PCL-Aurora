@@ -231,6 +231,32 @@
             <Setter Property="Foreground" Value="#6F7C8B" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
+        <Style Selector="Border.about-avatar">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="Background" Value="#DCEEFF" />
+        </Style>
+        <Style Selector="Button.about-action">
+            <Setter Property="MinWidth" Value="132" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.contributor-item">
+            <Setter Property="Width" Value="86" />
+            <Setter Property="MinWidth" Value="86" />
+            <Setter Property="Height" Value="92" />
+            <Setter Property="Padding" Value="4,7" />
+            <Setter Property="Margin" Value="2,3" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+        <Style Selector="Button.contributor-item:pointerover">
+            <Setter Property="Background" Value="#E7F3FF" />
+        </Style>
         <Style Selector="Border.setup-hint">
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="Padding" Value="12,8" />
@@ -2825,38 +2851,20 @@
                         </StackPanel>
 
                         <StackPanel x:Name="SettingsLinkSection" IsVisible="False">
-                            <Border Classes="setup-hint warning" Margin="0,0,0,15">
-                                <TextBlock TextWrapping="Wrap" Text="修改此处的设置后，需要重新启动大厅以使设置生效。" />
-                            </Border>
-                            <Border Classes="setup-card">
-                                <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="EasyTier" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9" IsEnabled="False">
-                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
-                                            <TextBlock VerticalAlignment="Center" Text="用户名" />
-                                            <TextBox Grid.Column="1" PlaceholderText="使用 Natayark ID 用户名" />
-                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="协议偏好" />
-                                            <ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="0">
-                                                <ComboBoxItem Content="TCP" />
-                                                <ComboBoxItem Content="UDP" />
-                                            </ComboBox>
-                                        </Grid>
-                                        <CheckBox IsChecked="True" Content="选择最低延迟路径而不是最短路径" />
-                                        <CheckBox IsChecked="True" Content="对对称型 NAT 进行端口猜测" />
-                                        <CheckBox IsChecked="True" Content="允许使用 IPv6 通信" />
-                                        <CheckBox Content="在日志中输出 Cli 信息以用于调试" />
+                            <Border Classes="setup-card" MinHeight="350">
+                                <Grid>
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                                        <Border Width="70" Height="70" CornerRadius="35" Background="#E1F0FF">
+                                            <Path Width="34" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Data="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+                                                  Stretch="Uniform" Fill="Transparent" Stroke="{StaticResource PclThemePrimaryBrush}"
+                                                  StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                        </Border>
+                                        <TextBlock HorizontalAlignment="Center" FontSize="22" FontWeight="SemiBold"
+                                                   Foreground="#344150" Text="敬请期待" />
+                                        <TextBlock HorizontalAlignment="Center" FontSize="13" Foreground="#6F7C8B"
+                                                   Text="PCL Aurora 的联机功能正在准备中。" />
                                     </StackPanel>
-                                </Grid>
-                            </Border>
-                            <Border Classes="setup-card" IsVisible="False">
-                                <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="网络测试" />
-                                    <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="7">
-                                        <TextBlock Text="UDP NAT 类型：尚未检测" />
-                                        <TextBlock Grid.Row="1" Text="TCP NAT 类型：尚未检测" />
-                                        <TextBlock Grid.Row="2" Text="IPv6：尚未检测" />
-                                        <Button Grid.Column="1" Grid.RowSpan="3" Width="100" IsEnabled="False" Content="开始测试" />
-                                    </Grid>
                                 </Grid>
                             </Border>
                         </StackPanel>
@@ -2866,7 +2874,7 @@
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="启动器" />
                                     <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
-                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
                                             <TextBlock VerticalAlignment="Center" Text="界面不透明度" />
                                             <Slider Grid.Column="1" Minimum="40" Maximum="100" Value="100" IsEnabled="False" />
                                             <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="主题" />
@@ -3009,35 +3017,160 @@
                         <StackPanel x:Name="SettingsAboutSection" IsVisible="False">
                             <Border Classes="setup-card">
                                 <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="PCL Aurora" />
-                                    <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="64,*" RowDefinitions="Auto,Auto">
-                                        <Image Width="50" Height="50" Source="/Assets/Icons/AppIcon-2048.png" />
-                                        <StackPanel Grid.Column="1" Spacing="4"><TextBlock FontSize="20" FontWeight="SemiBold" Text="{Binding LauncherVersionDisplay}" /><TextBlock Classes="setup-muted" Text="PCL 跨平台发行版 · Micro-ATP" /></StackPanel>
-                                        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,14,0,0" Orientation="Horizontal" Spacing="10">
-                                            <Button Command="{Binding OpenProjectPageCommand}" CommandParameter="source" Content="查看源代码" />
-                                            <Button Command="{Binding OpenProjectPageCommand}" CommandParameter="issues" Content="问题反馈" />
-                                            <Button Command="{Binding OpenProjectPageCommand}" CommandParameter="license" Content="许可文档" />
+                                    <TextBlock Classes="setup-card-title" Text="关于" />
+                                    <Grid Grid.Row="1" Margin="21,0,21,16" ColumnDefinitions="46,*,150"
+                                          RowDefinitions="52,52,52">
+                                        <Border Grid.Row="0" Classes="about-avatar">
+                                            <Image Source="/Assets/About/LTCat.jpg" Stretch="UniformToFill" />
+                                        </Border>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                            <TextBlock FontSize="15" Text="龙腾猫跃" />
+                                            <TextBlock Classes="setup-muted" Text="Plain Craft Launcher 的原作者" />
                                         </StackPanel>
+                                        <Button Grid.Row="0" Grid.Column="2" Classes="about-action"
+                                                Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl-sponsor"
+                                                Content="赞助原作者" />
+
+                                        <Border Grid.Row="1" Classes="about-avatar" CornerRadius="3">
+                                            <Image Source="/Assets/About/PclCommunity.png" Stretch="Uniform" />
+                                        </Border>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                            <TextBlock FontSize="15" Text="PCL Community" />
+                                            <TextBlock Classes="setup-muted" Text="Plain Craft Launcher Community Edition 的开发团队" />
+                                        </StackPanel>
+                                        <Button Grid.Row="1" Grid.Column="2" Classes="about-action"
+                                                Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl-community"
+                                                Content="GitHub 主页" />
+
+                                        <Border Grid.Row="2" Classes="about-avatar">
+                                            <Image Source="/Assets/Icons/AppIcon-2048.png" Stretch="UniformToFill" />
+                                        </Border>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                            <TextBlock FontSize="15" Text="Micro-ATP" />
+                                            <TextBlock Classes="setup-muted" Text="PCL Aurora 作者" />
+                                        </StackPanel>
+                                        <Button Grid.Row="2" Grid.Column="2" Classes="about-action"
+                                                Command="{Binding OpenProjectPageCommand}" CommandParameter="source"
+                                                Content="查看源代码" />
                                     </Grid>
                                 </Grid>
                             </Border>
+
                             <Border Classes="setup-card">
                                 <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="项目来源" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="10">
-                                        <TextBlock TextWrapping="Wrap" Text="PCL Aurora 基于 Plain Craft Launcher 与 PCL Community Edition 迁移，并保留各来源项目的许可、署名与分发条件。" />
-                                        <StackPanel Orientation="Horizontal" Spacing="10"><Button Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl" Content="PCL 源代码" /><Button Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl-ce" Content="PCL-CE 源代码" /></StackPanel>
+                                    <TextBlock Classes="setup-card-title" Foreground="{StaticResource PclThemePrimaryBrush}" Text="特别鸣谢" />
+                                    <Grid Grid.Row="1" Margin="21,0,21,16" ColumnDefinitions="46,*,150"
+                                          RowDefinitions="52,52,52,52">
+                                        <Border Grid.Row="0" Classes="about-avatar">
+                                            <Image Source="/Assets/About/Bangbang93.png" Stretch="UniformToFill" />
+                                        </Border>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                            <TextBlock FontSize="15" Text="bangbang93" />
+                                            <TextBlock Classes="setup-muted" Text="提供 BMCLAPI 下载镜像服务" />
+                                        </StackPanel>
+                                        <Button Grid.Row="0" Grid.Column="2" Classes="about-action"
+                                                Command="{Binding OpenProjectPageCommand}" CommandParameter="bmclapi-sponsor"
+                                                Content="赞助镜像源" />
+
+                                        <Border Grid.Row="1" Classes="about-avatar">
+                                            <Image Source="/Assets/About/McmodWiki.png" Stretch="UniformToFill" />
+                                        </Border>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                            <TextBlock FontSize="15" Text="MC 百科" />
+                                            <TextBlock Classes="setup-muted" Text="提供社区资源中文名称数据" />
+                                        </StackPanel>
+                                        <Button Grid.Row="1" Grid.Column="2" Classes="about-action"
+                                                Command="{Binding OpenProjectPageCommand}" CommandParameter="mcmod"
+                                                Content="打开百科" />
+
+                                        <Border Grid.Row="2" Classes="about-avatar">
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="17"
+                                                       FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}" Text="M" />
+                                        </Border>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                            <TextBlock FontSize="15" Text="Modrinth" />
+                                            <TextBlock Classes="setup-muted" Text="提供模组、整合包及其他社区资源目录" />
+                                        </StackPanel>
+                                        <Button Grid.Row="2" Grid.Column="2" Classes="about-action"
+                                                Command="{Binding OpenProjectPageCommand}" CommandParameter="modrinth"
+                                                Content="打开网站" />
+
+                                        <Border Grid.Row="3" Classes="about-avatar">
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="17"
+                                                       FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}" Text="C" />
+                                        </Border>
+                                        <StackPanel Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                            <TextBlock FontSize="15" Text="CurseForge" />
+                                            <TextBlock Classes="setup-muted" Text="提供世界资源目录与文件信息" />
+                                        </StackPanel>
+                                        <Button Grid.Row="3" Grid.Column="2" Classes="about-action"
+                                                Command="{Binding OpenProjectPageCommand}" CommandParameter="curseforge"
+                                                Content="打开网站" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="贡献者" />
+                                    <StackPanel Grid.Row="1" Margin="17,0,17,16" Spacing="7">
+                                        <TextBlock HorizontalAlignment="Center" Margin="0,12" Classes="setup-muted"
+                                                   IsVisible="{Binding !HasContributors}" Text="{Binding ContributorSummary}" />
+                                        <ItemsControl ItemsSource="{Binding Contributors}" IsVisible="{Binding HasContributors}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:GitHubContributorItemViewModel">
+                                                    <Button Classes="contributor-item" Tag="{Binding ProfileUri}" Click="ContributorClick"
+                                                            ToolTip.Tip="{Binding Login}">
+                                                        <StackPanel HorizontalAlignment="Center" Spacing="5">
+                                                            <Border Classes="about-avatar">
+                                                                <Grid>
+                                                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                               FontSize="15" FontWeight="SemiBold"
+                                                                               Foreground="{StaticResource PclThemePrimaryBrush}"
+                                                                               IsVisible="{Binding !HasAvatar}" Text="{Binding Initial}" />
+                                                                    <Image Width="36" Height="36" Stretch="UniformToFill"
+                                                                           IsVisible="{Binding HasAvatar}" Source="{Binding Avatar}" />
+                                                                </Grid>
+                                                            </Border>
+                                                            <TextBlock MaxWidth="78" HorizontalAlignment="Center" FontSize="12"
+                                                                       Text="{Binding Login}" TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#7B8794"
+                                                                       Text="{Binding Contributions, StringFormat={}{0} 次贡献}" />
+                                                        </StackPanel>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Button HorizontalAlignment="Center" Background="Transparent" BorderThickness="0"
+                                                Foreground="{StaticResource PclThemePrimaryBrush}"
+                                                Command="{Binding OpenProjectPageCommand}" CommandParameter="contributors"
+                                                Content="查看完整贡献记录" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
+
                             <Border Classes="setup-card">
                                 <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="版权声明与法律信息" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8">
+                                    <TextBlock Classes="setup-card-title" Text="法律与隐私" />
+                                    <StackPanel Grid.Row="1" Margin="21,0,21,18" Spacing="6">
                                         <TextBlock FontWeight="SemiBold" Text="隐私说明" />
-                                        <TextBlock TextWrapping="Wrap" Text="PCL Aurora 不会向开发者上传账户密码或令牌；联网功能仅在用户触发登录、下载、更新或打开网页时访问相应服务。" />
-                                        <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="其他信息" />
-                                        <TextBlock TextWrapping="Wrap" Text="Copyright © 2026 Micro-ATP. 非 Minecraft 官方产品。未经 Mojang 或 Microsoft 批准，也不与 Mojang 或 Microsoft 关联。" />
+                                        <TextBlock LineHeight="18" TextWrapping="Wrap"
+                                                   Text="PCL Aurora 将设置、收藏与运行日志保存在本机。Microsoft 登录的刷新令牌由系统安全凭据库保存，普通偏好文件只记录账户名称与 UUID。打开登录、下载、更新、社区资源及本页贡献者列表时，应用会连接 Microsoft、Minecraft、GitHub、Modrinth、CurseForge、BMCLAPI 等相应第三方服务；当前不设自营账户服务器，也不收集遥测数据。问题反馈仅在你主动打开 GitHub Issues 后提交。" />
+                                        <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="许可与来源" />
+                                        <TextBlock LineHeight="18" TextWrapping="Wrap"
+                                                   Text="PCL Aurora 是基于 Plain Craft Launcher 与 PCL Community Edition 的跨平台迁移项目。迁移内容及第三方依赖分别遵循随项目附带的原始许可证与 NOTICE；Micro-ATP 独立实现的新增内容适用仓库根许可证。" />
+                                        <TextBlock Margin="0,8,0,0" TextWrapping="Wrap"
+                                                   Text="Copyright © 2026 Micro-ATP。非 Minecraft 官方产品，未经 Mojang 或 Microsoft 批准，也不与其关联。" />
+                                        <WrapPanel Margin="0,8,0,0" Orientation="Horizontal">
+                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="license" Content="许可文档" />
+                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl" Content="PCL 源代码" />
+                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl-ce" Content="PCL-CE 源代码" />
+                                        </WrapPanel>
                                     </StackPanel>
                                 </Grid>
                             </Border>

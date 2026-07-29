@@ -1300,6 +1300,11 @@ public partial class MainWindow : Window
             navigation.Classes.Set("selected", navigation == selectedNavigation);
         }
 
+        if (section == "about" && DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.LoadContributorsCommand.Execute(null);
+        }
+
         var selectedSection = section switch
         {
             "launch" => (Control)SettingsLaunchSection,
@@ -1331,5 +1336,14 @@ public partial class MainWindow : Window
                 SettingsLogSection,
             ],
             selectedSection);
+    }
+
+    private async void ContributorClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: Uri profileUri } &&
+            DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.OpenContributorPageCommand.ExecuteAsync(profileUri);
+        }
     }
 }

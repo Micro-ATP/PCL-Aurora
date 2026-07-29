@@ -38,6 +38,7 @@ public partial class MainViewModel(
     ILauncherPreferencesService preferencesService,
     IMicrosoftAccountAuthenticationService microsoftAuthenticationService,
     IMicrosoftAccountSessionService microsoftAccountSessionService,
+    IGitHubContributorService gitHubContributorService,
     IOpenPathService openPathService,
     IThemeService themeService) : ViewModelBase
 {
@@ -83,6 +84,7 @@ public partial class MainViewModel(
     private bool isRefreshing;
     private bool isLoadingPreferences;
     private bool isSelectingJavaForRequirement;
+    private bool contributorsLoadAttempted;
     private MinecraftJavaRequirement? currentJavaRequirement;
     private CancellationTokenSource? installationCancellation;
     private CancellationTokenSource? microsoftLoginCancellation;
@@ -138,6 +140,8 @@ public partial class MainViewModel(
 
     public ObservableCollection<GameLogLine> GameLogLines { get; } = [];
 
+    public ObservableCollection<GitHubContributorItemViewModel> Contributors { get; } = [];
+
     public string MinecraftRootDirectory { get; } = minecraftDirectoryService.GetRootDirectory();
 
     public string LauncherVersionDisplay { get; } =
@@ -192,6 +196,15 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string themeSummary = "正在读取本地主题偏好…";
+
+    [ObservableProperty]
+    private string contributorSummary = "正在读取 GitHub 贡献者…";
+
+    [ObservableProperty]
+    private bool hasContributors;
+
+    [ObservableProperty]
+    private bool isLoadingContributors;
 
     [ObservableProperty]
     private int selectedDownloadConcurrency = LauncherDownloadSettings.DefaultConcurrency;
@@ -3723,6 +3736,57 @@ public partial class MainViewModel(
         }
     }
 
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task LoadContributorsAsync()
+    {
+        if (contributorsLoadAttempted)
+        {
+            return;
+        }
+
+        contributorsLoadAttempted = true;
+        IsLoadingContributors = true;
+        ContributorSummary = "正在读取 GitHub 贡献者…";
+
+        try
+        {
+            var contributors = await gitHubContributorService.GetContributorsAsync();
+            foreach (var contributor in Contributors)
+            {
+                contributor.Dispose();
+            }
+
+            Contributors.Clear();
+            foreach (var contributor in contributors)
+            {
+                Contributors.Add(new GitHubContributorItemViewModel(contributor));
+            }
+
+            HasContributors = Contributors.Count > 0;
+            ContributorSummary = HasContributors
+                ? $"已加载 {Contributors.Count} 位贡献者。"
+                : "该仓库暂时还没有可显示的代码贡献者。";
+        }
+        catch (OperationCanceledException)
+        {
+            contributorsLoadAttempted = false;
+            ContributorSummary = "贡献者列表加载已取消。";
+        }
+        catch (Exception)
+        {
+            contributorsLoadAttempted = false;
+            ContributorSummary = "暂时无法读取 GitHub 贡献者。";
+        }
+        finally
+        {
+            IsLoadingContributors = false;
+        }
+    }
+
+    [RelayCommand]
+    private Task OpenContributorPageAsync(Uri? profileUri) =>
+        profileUri is null ? Task.CompletedTask : openPathService.OpenUriAsync(profileUri);
+
     [RelayCommand]
     private async Task OpenProjectPageAsync(string target)
     {
@@ -3733,6 +3797,13 @@ public partial class MainViewModel(
             "license" => AuroraLicenseUri,
             "pcl" => PclRepositoryUri,
             "pcl-ce" => PclCeRepositoryUri,
+            "pcl-sponsor" => new Uri("https://ifdian.net/a/LTCat"),
+            "pcl-community" => new Uri("https://github.com/PCL-Community"),
+            "bmclapi-sponsor" => new Uri("https://afdian.com/a/bangbang93"),
+            "mcmod" => new Uri("https://www.mcmod.cn"),
+            "modrinth" => new Uri("https://modrinth.com"),
+            "curseforge" => new Uri("https://www.curseforge.com/minecraft"),
+            "contributors" => new Uri("https://github.com/Micro-ATP/PCL-Aurora/graphs/contributors"),
             _ => throw new ArgumentOutOfRangeException(nameof(target), target, "未知的项目页面。"),
         };
 
