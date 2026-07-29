@@ -5,7 +5,7 @@ public sealed class ModrinthCommunityResourceIconService(HttpClient httpClient) 
     private const int MaximumIconBytes = 512 * 1024;
     private const int MaximumCachedIcons = 64;
     private const int MaximumConcurrentRequests = 6;
-    private const string ModrinthCdnHost = "cdn.modrinth.com";
+    private static readonly string[] AllowedIconHosts = ["cdn.modrinth.com", "media.forgecdn.net"];
 
     private readonly object cacheGate = new();
     private readonly Dictionary<string, byte[]> cache = new(StringComparer.Ordinal);
@@ -93,7 +93,7 @@ public sealed class ModrinthCommunityResourceIconService(HttpClient httpClient) 
     private static bool IsAllowedIconUri(Uri iconUrl) =>
         iconUrl.IsAbsoluteUri &&
         iconUrl.Scheme == Uri.UriSchemeHttps &&
-        string.Equals(iconUrl.Host, ModrinthCdnHost, StringComparison.OrdinalIgnoreCase);
+        AllowedIconHosts.Contains(iconUrl.Host, StringComparer.OrdinalIgnoreCase);
 
     private bool TryGetCached(string key, out byte[]? bytes)
     {

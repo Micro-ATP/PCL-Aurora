@@ -1,6 +1,6 @@
 // Category localization and compatibility summaries directly adapt PCL-CE
 // Plain Craft Launcher 2/Modules/Minecraft/ModComp.cs. Modified by Micro-ATP
-// for the Aurora domain model and Modrinth-only cross-platform catalog.
+// for the Aurora domain model and cross-platform community catalog.
 using System.Globalization;
 
 namespace PCL.Aurora.Domain;
@@ -71,6 +71,12 @@ public sealed record CommunityResourceProject(
             ["path-tracing"] = "路径追踪",
             ["pbr"] = "PBR",
             ["reflections"] = "反射",
+            ["creation"] = "创造",
+            ["game-map"] = "小游戏",
+            ["parkour"] = "跑酷",
+            ["puzzle"] = "解谜",
+            ["survival"] = "生存",
+            ["modded-world"] = "模组世界",
         };
 
     private static readonly IReadOnlyDictionary<string, string> LoaderNames =
@@ -174,7 +180,7 @@ public sealed record CommunityResourceProject(
         }
     }
 
-    public string SourceDisplay => "Modrinth";
+    public string SourceDisplay => Id.All(char.IsAsciiDigit) ? "CurseForge" : "Modrinth";
 
     public IReadOnlyList<string> CategoryTags => Categories
         .Where(category => !LoaderNames.ContainsKey(category) &&

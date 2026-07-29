@@ -25,6 +25,7 @@ public partial class MainViewModel(
     ICommunityResourceDependencyResolver communityResourceDependencyResolver,
     ICommunityResourceDownloadService communityResourceDownloadService,
     IModrinthModpackImportService modrinthModpackImportService,
+    ICommunityWorldImportService communityWorldImportService,
     ICommunityFavoritesStore communityFavoritesStore,
     ICommunityResourceDescriptionTranslationService communityDescriptionTranslationService,
     IMinecraftLoaderCatalogService loaderCatalogService,
@@ -539,7 +540,7 @@ public partial class MainViewModel(
         var cancellationToken = loaderDirectoryCancellation.Token;
         IsLoaderDirectoryLoading = true;
         LoaderDirectoryGroups.Clear();
-        LoaderDirectorySummary = $"正在获取 {displayName} 列表…";
+        LoaderDirectorySummary = string.Empty;
         try
         {
             var result = await officialLoaderCatalogService.FetchDirectoryAsync(kind, cancellationToken);
@@ -1837,12 +1838,12 @@ public partial class MainViewModel(
         SelectedCommunityResourceSort = CommunityResourceSortOptions[0];
         IsCommunityLoaderFilterVisible = communityResourceType is
             CommunityResourceType.Mod or CommunityResourceType.ModPack or CommunityResourceType.Shader;
-        IsCommunityCatalogAvailable = !isCommunityFavoritesSection && communityResourceType is not null and not CommunityResourceType.World;
+        IsCommunityCatalogAvailable = !isCommunityFavoritesSection && communityResourceType is not null;
         CanSearchCommunityResources = IsCommunityCatalogAvailable;
         CommunityResourceSummary = section switch
         {
             "favorites" => string.Empty,
-            "world" => "世界资源暂不可用",
+            "world" => string.Empty,
             _ => string.Empty,
         };
     }
@@ -2085,6 +2086,75 @@ public partial class MainViewModel(
         }
     }
 
+    public async Task ImportCommunityWorldVersionAsync(
+        CommunityResourceVersion version,
+        string destinationDirectory,
+        string worldName)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+        if (!CanDownloadCommunityResource ||
+            SelectedCommunityResource?.Project is not { Type: CommunityResourceType.World } project)
+        {
+            CommunityVersionSummary = "所选版本不是可导入的世界资源。";
+            return;
+        }
+
+        SelectedCommunityResourceVersion = version;
+        using var cancellation = new CancellationTokenSource();
+        communityDownloadCancellation = cancellation;
+        CanDownloadCommunityResource = false;
+        CanLoadCommunityResourceVersions = false;
+        CanCancelCommunityResourceOperation = true;
+        try
+        {
+            var progress = new Progress<MinecraftDownloadProgress>(update =>
+            {
+                var size = update.TotalBytes is { } total
+                    ? $"{FormatByteCount(update.DownloadedBytes)} / {FormatByteCount(total)}"
+                    : FormatByteCount(update.DownloadedBytes);
+                CommunityVersionSummary = $"正在导入 {update.CurrentDescription} · {size}";
+            });
+            var result = await communityWorldImportService.ImportAsync(
+                project,
+                version,
+                destinationDirectory,
+                worldName,
+                progress,
+                cancellation.Token);
+            if (!ReferenceEquals(communityDownloadCancellation, cancellation))
+            {
+                return;
+            }
+
+            CommunityVersionSummary =
+                $"已导入 {project.DisplayTitle}：{result.WorldDirectory}（{result.ExtractedFileCount} 个文件）。";
+        }
+        catch (OperationCanceledException)
+        {
+            if (ReferenceEquals(communityDownloadCancellation, cancellation))
+            {
+                CommunityVersionSummary = "世界导入已取消。";
+            }
+        }
+        catch (Exception exception)
+        {
+            if (ReferenceEquals(communityDownloadCancellation, cancellation))
+            {
+                CommunityVersionSummary = $"世界导入失败：{exception.Message}";
+            }
+        }
+        finally
+        {
+            if (ReferenceEquals(communityDownloadCancellation, cancellation))
+            {
+                communityDownloadCancellation = null;
+                CanCancelCommunityResourceOperation = false;
+                CanLoadCommunityResourceVersions = SelectedCommunityResource is not null;
+                RefreshCommunityDownloadState();
+            }
+        }
+    }
+
     public async Task<CommunityResourceDependencyPreparation?> PrepareCommunityResourceDependenciesAsync(
         CommunityResourceVersion version)
     {
@@ -2161,7 +2231,7 @@ public partial class MainViewModel(
 
         try
         {
-            CommunityResourceSummary = $"正在打开 {project.DisplayTitle} 的 Modrinth 项目页…";
+            CommunityResourceSummary = $"正在打开 {project.DisplayTitle} 的 {project.SourceDisplay} 项目页…";
             await openPathService.OpenUriAsync(project.WebsiteUrl);
             CommunityResourceSummary = $"已打开 {project.DisplayTitle}。";
         }
@@ -2947,6 +3017,17 @@ public partial class MainViewModel(
             new("low", "低性能需求"),
             new("medium", "中等性能需求"),
             new("high", "高性能需求"),
+        ],
+        CommunityResourceType.World =>
+        [
+            AllCommunityResourceCategories,
+            new("248", "冒险"),
+            new("249", "创造"),
+            new("250", "小游戏"),
+            new("251", "跑酷"),
+            new("252", "解谜"),
+            new("253", "生存"),
+            new("4464", "模组世界"),
         ],
         _ => [AllCommunityResourceCategories],
     };

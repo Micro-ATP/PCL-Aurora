@@ -549,6 +549,35 @@ public partial class MainWindow : Window
                 return;
             }
 
+            if (project.Type == CommunityResourceType.World)
+            {
+                var worldName = await ShowTextPromptAsync(
+                    "导入世界",
+                    "输入世界文件夹名称",
+                    GetSuggestedResourceFolderName(project));
+                if (string.IsNullOrWhiteSpace(worldName))
+                {
+                    return;
+                }
+
+                var parentFolders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                {
+                    Title = "选择世界保存位置",
+                    AllowMultiple = false,
+                });
+                var parentDirectory = parentFolders.SingleOrDefault()?.TryGetLocalPath();
+                if (string.IsNullOrWhiteSpace(parentDirectory))
+                {
+                    return;
+                }
+
+                await viewModel.ImportCommunityWorldVersionAsync(
+                    version,
+                    parentDirectory,
+                    worldName.Trim());
+                return;
+            }
+
             IReadOnlyList<CommunityResourceVersion> dependencies = [];
             if (project.Type == CommunityResourceType.Mod)
             {
@@ -617,7 +646,10 @@ public partial class MainWindow : Window
             _ => $"选择 {versionNumber} 的下载目录",
         };
 
-    private static string GetSuggestedModpackName(CommunityResourceProject project)
+    private static string GetSuggestedModpackName(CommunityResourceProject project) =>
+        GetSuggestedResourceFolderName(project);
+
+    private static string GetSuggestedResourceFolderName(CommunityResourceProject project)
     {
         var name = new string(project.DisplayTitle
             .Where(character => !char.IsControl(character) && "<>:\"/\\|?*".IndexOf(character) < 0)

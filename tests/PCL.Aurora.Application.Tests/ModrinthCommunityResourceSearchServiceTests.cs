@@ -35,7 +35,7 @@ public sealed class ModrinthCommunityResourceSearchServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_WorldDoesNotUseCredentialedSourceOrSendRequest()
+    public async Task SearchAsync_WorldDoesNotSendUnsupportedModrinthRequest()
     {
         var handler = new RecordingHandler();
         using var client = new HttpClient(handler);
@@ -51,7 +51,7 @@ public sealed class ModrinthCommunityResourceSearchServiceTests
 
         Assert.False(result.IsSuccess);
         Assert.Null(handler.RequestUri);
-        Assert.Contains(result.Errors, error => error.Contains("私有 API 凭据", StringComparison.Ordinal));
+        Assert.Contains(result.Errors, error => error.Contains("不提供世界资源", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -1890,7 +1890,7 @@
                                 </Border>
                             </StackPanel>
 
-                            <!-- Direct Avalonia adaptation of PCL-CE's independent Forge, NeoForge, Fabric and OptiFine directories. -->
+                            <!-- Direct Avalonia adaptation of PCL-CE's independent installer directories. -->
                             <StackPanel x:Name="DownloadLoaderView" IsVisible="False" MinHeight="430" Spacing="15">
                                 <Border Classes="pcl-card" Padding="18">
                                     <StackPanel Spacing="10">
@@ -2001,7 +2001,7 @@
                             </StackPanel>
 
                             <!-- Search structure directly adapts PCL2 PageResource and PCL-CE PageComp.
-                                 Aurora uses its own Avalonia bindings and credential-free Modrinth service. -->
+                                 Aurora uses Avalonia bindings and credential-free public catalogs. -->
                             <StackPanel x:Name="DownloadCommunityCard" MinHeight="430" Spacing="12" IsVisible="False">
                                 <StackPanel x:Name="DownloadCommunityCatalogView" Spacing="12">
                                 <StackPanel IsVisible="{Binding IsCommunityFavoritesPage}" Spacing="15">
@@ -2186,7 +2186,8 @@
                                                         <Path Width="14" Height="14" Data="{StaticResource CommunitySourceIcon}" Stretch="Uniform"
                                                               Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                                               StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
-                                                        <TextBlock VerticalAlignment="Center" Text="Modrinth" />
+                                                        <TextBlock VerticalAlignment="Center"
+                                                                   Text="{Binding SelectedCommunityResource.Project.SourceDisplay}" />
                                                     </StackPanel>
                                                 </Button>
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
@@ -2282,11 +2283,11 @@
                                     <Border Classes="pcl-card community-detail-card" Padding="0"
                                             IsVisible="{Binding IsCommunityVersionFilterVisible}">
                                         <StackPanel>
-                                            <StackPanel Margin="10,10,0,5" Orientation="Horizontal"
-                                                        IsVisible="{Binding IsCommunityGameVersionFilterVisible}">
-                                                <TextBlock Margin="2,0,0,0" VerticalAlignment="Center"
+                                            <Grid Margin="10,10,10,5" ColumnDefinitions="Auto,*" ColumnSpacing="4"
+                                                  IsVisible="{Binding IsCommunityGameVersionFilterVisible}">
+                                                <TextBlock Margin="2,4,0,0" VerticalAlignment="Top"
                                                            FontSize="13" Foreground="#343D4A" Text="实例筛选：" />
-                                                <ItemsControl ItemsSource="{Binding CommunityGameVersionFilters}">
+                                                <ItemsControl Grid.Column="1" ItemsSource="{Binding CommunityGameVersionFilters}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <WrapPanel Orientation="Horizontal" />
@@ -2304,12 +2305,12 @@
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
-                                            </StackPanel>
-                                            <StackPanel Margin="10,5,0,10" Orientation="Horizontal"
-                                                        IsVisible="{Binding IsCommunityLoaderVersionFilterVisible}">
-                                                <TextBlock Margin="2,0,0,0" VerticalAlignment="Center"
+                                            </Grid>
+                                            <Grid Margin="10,5,10,10" ColumnDefinitions="Auto,*" ColumnSpacing="4"
+                                                  IsVisible="{Binding IsCommunityLoaderVersionFilterVisible}">
+                                                <TextBlock Margin="2,4,0,0" VerticalAlignment="Top"
                                                            FontSize="13" Foreground="#343D4A" Text="模组加载器筛选：" />
-                                                <ItemsControl ItemsSource="{Binding CommunityLoaderVersionFilters}">
+                                                <ItemsControl Grid.Column="1" ItemsSource="{Binding CommunityLoaderVersionFilters}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <WrapPanel Orientation="Horizontal" />
@@ -2327,7 +2328,7 @@
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
-                                            </StackPanel>
+                                            </Grid>
                                         </StackPanel>
                                     </Border>
 

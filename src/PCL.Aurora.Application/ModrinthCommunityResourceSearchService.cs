@@ -34,7 +34,7 @@ public sealed class ModrinthCommunityResourceSearchService : ICommunityResourceS
         if (request.Type == CommunityResourceType.World)
         {
             return CommunityResourceSearchResult.Failure(
-                "世界目录当前只有需要私有 API 凭据的来源，Aurora 未访问网络。");
+                "Modrinth 不提供世界资源项目类型，未发送搜索请求。");
         }
 
         if (request.Page < 0 ||

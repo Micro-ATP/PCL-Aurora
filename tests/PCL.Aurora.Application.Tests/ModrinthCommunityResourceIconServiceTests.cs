@@ -26,6 +26,21 @@ public sealed class ModrinthCommunityResourceIconServiceTests
     }
 
     [Fact]
+    public async Task LoadAsync_AllowsCurseForgeProjectImage()
+    {
+        var handler = new IconHandler(Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="));
+        using var client = new HttpClient(handler);
+        var service = new ModrinthCommunityResourceIconService(client);
+
+        var result = await service.LoadAsync(
+            new Uri("https://media.forgecdn.net/avatars/thumbnails/1/2/icon.png"));
+
+        Assert.NotNull(result);
+        Assert.Equal(1, handler.RequestCount);
+    }
+
+    [Fact]
     public async Task LoadAsync_RejectsUnexpectedHostWithoutSendingRequest()
     {
         var handler = new IconHandler([1, 2, 3]);
