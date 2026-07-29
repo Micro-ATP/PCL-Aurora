@@ -52,6 +52,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadClient.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml
 - PCL-CE: Plain Craft Launcher 2/Controls/MyCard.cs
+- PCL-CE: Plain Craft Launcher 2/Controls/AnimatedBackgroundGrid.cs
 - PCL-CE: Plain Craft Launcher 2/Controls/MyListItem.xaml
 - PCL-CE: Plain Craft Launcher 2/Controls/MyListItem.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Controls/MyRadioButton.xaml
@@ -214,7 +215,7 @@ LICENSES/PCL-CE-Plain-Craft-Launcher-2-LICENCE.txt and LICENSES/PCL2-LICENCE.txt
 PCL Aurora uses protobuf-net 3.2.56 by Marc Gravell to decode the bundled
 translation data. protobuf-net is distributed under Apache License 2.0,
 whose text is provided in LICENSES/Apache-2.0.txt.
-PCL Aurora embeds unmodified HarmonyOS Sans SC Regular, Medium and Bold font
+PCL Aurora embeds unmodified HarmonyOS Sans SC Light, Regular, Medium and Bold font
 files. Copyright 2021 Huawei Device Co., Ltd. The fonts are distributed under
 the HarmonyOS Sans Fonts License Agreement. The complete agreement is retained
 in Fonts/HarmonyOS_Sans_SC/LICENSE.txt and copied to published applications as

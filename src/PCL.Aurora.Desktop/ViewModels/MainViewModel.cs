@@ -3804,6 +3804,7 @@ public partial class MainViewModel(
             "modrinth" => new Uri("https://modrinth.com"),
             "curseforge" => new Uri("https://www.curseforge.com/minecraft"),
             "contributors" => new Uri("https://github.com/Micro-ATP/PCL-Aurora/graphs/contributors"),
+            "author" => new Uri("https://github.com/Micro-ATP"),
             _ => throw new ArgumentOutOfRangeException(nameof(target), target, "未知的项目页面。"),
         };
 

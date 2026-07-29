@@ -31,6 +31,8 @@
     <AvaloniaResource Include="Assets/**" />
     <AvaloniaResource Include="../../Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf"
                       Link="Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf" />
+    <AvaloniaResource Include="../../Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Light.ttf"
+                      Link="Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Light.ttf" />
     <AvaloniaResource Include="../../Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Medium.ttf"
                       Link="Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Medium.ttf" />
     <AvaloniaResource Include="../../Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Bold.ttf"
