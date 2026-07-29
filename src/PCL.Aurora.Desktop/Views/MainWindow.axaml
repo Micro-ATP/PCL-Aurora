@@ -175,19 +175,19 @@
         <Style Selector="Button.main-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="20" />
+            <Setter Property="CornerRadius" Value="13.5" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="MinWidth" Value="84" />
-            <Setter Property="Height" Value="30" />
-            <Setter Property="Margin" Value="5,9" />
+            <Setter Property="Height" Value="27" />
+            <Setter Property="Margin" Value="5,10" />
             <Setter Property="Padding" Value="16,0" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.main-navigation:pointerover">
-            <Setter Property="Background" Value="#247DF5" />
+            <Setter Property="Background" Value="#4890F5" />
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="Button.main-navigation.selected">
@@ -493,14 +493,14 @@
             </Setter>
         </Style>
         <Style Selector="Grid.pcl-shell Button:pointerover">
-            <Setter Property="Background" Value="#EEF6FF" />
-            <Setter Property="Foreground" Value="#1766A8" />
-            <Setter Property="BorderBrush" Value="#8DB9E2" />
+            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="#D5E6FD" />
         </Style>
         <Style Selector="Grid.pcl-shell Button:pressed">
-            <Setter Property="Background" Value="#DFEEFC" />
-            <Setter Property="Foreground" Value="#12598F" />
-            <Setter Property="BorderBrush" Value="#6DA4D7" />
+            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
         </Style>
         <Style Selector="Grid.pcl-shell Button:focus-visible">
             <Setter Property="BorderBrush" Value="#1370F3" />
@@ -514,6 +514,9 @@
         <Style Selector="Grid.pcl-shell Button.main-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="13.5" />
+            <Setter Property="Height" Value="27" />
+            <Setter Property="Margin" Value="5,10" />
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.main-navigation.selected">
@@ -521,11 +524,11 @@
             <Setter Property="Foreground" Value="#1370F3" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.main-navigation:pointerover">
-            <Setter Property="Background" Value="#4192F7" />
+            <Setter Property="Background" Value="#4890F5" />
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.main-navigation.selected:pointerover">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="#EAF2FE" />
             <Setter Property="Foreground" Value="#1370F3" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.main-navigation TextBlock">
@@ -669,7 +672,7 @@
             </Setter>
         </Style>
         <Style Selector="Grid.pcl-shell Button.window-control:pointerover">
-            <Setter Property="Background" Value="#4A96EE" />
+            <Setter Property="Background" Value="#4890F5" />
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="Button.version-group">
@@ -684,48 +687,48 @@
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.version-group:pointerover">
-            <Setter Property="BorderBrush" Value="#82B2DE" />
-            <Setter Property="Background" Value="#F4F9FE" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Background" Value="#EAF2FE" />
         </Style>
         <Style Selector="Button.version-group.selected">
-            <Setter Property="Foreground" Value="#1766A8" />
-            <Setter Property="BorderBrush" Value="#5A9DE0" />
-            <Setter Property="Background" Value="#F2F8FF" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Background" Value="#EAF2FE" />
         </Style>
         <Style Selector="Button.download-primary">
-            <Setter Property="Background" Value="#EAF4FF" />
-            <Setter Property="Foreground" Value="#175F9E" />
-            <Setter Property="BorderBrush" Value="#78ADE0" />
+            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
             <Setter Property="MinHeight" Value="34" />
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.download-primary:pointerover">
-            <Setter Property="Background" Value="#D8EBFF" />
-            <Setter Property="Foreground" Value="#12558D" />
-            <Setter Property="BorderBrush" Value="#6099D0" />
+            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
         </Style>
         <Style Selector="Button.download-primary:pressed">
-            <Setter Property="Background" Value="#C9E1F8" />
-            <Setter Property="Foreground" Value="#0F4C7C" />
-            <Setter Property="BorderBrush" Value="#4D88C0" />
+            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
         </Style>
         <Style Selector="Button.community-action-primary">
             <Setter Property="Height" Value="34" />
-            <Setter Property="Background" Value="#DCEEFF" />
-            <Setter Property="Foreground" Value="#2D6EA7" />
-            <Setter Property="BorderBrush" Value="#86BAEF" />
+            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.community-action-primary:pointerover">
-            <Setter Property="Background" Value="#C9E3FD" />
-            <Setter Property="Foreground" Value="#245F98" />
-            <Setter Property="BorderBrush" Value="#72ABE2" />
+            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
         </Style>
         <Style Selector="Button.community-action-primary:pressed">
-            <Setter Property="Background" Value="#B5D8FA" />
-            <Setter Property="Foreground" Value="#1F5487" />
-            <Setter Property="BorderBrush" Value="#609BD4" />
+            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
         </Style>
         <Style Selector="Button.community-project-row">
             <Setter Property="Height" Value="64" />
@@ -793,52 +796,102 @@
             <Setter Property="Foreground" Value="#9F3030" />
         </Style>
         <Style Selector="Button.community-detail-action">
-            <Setter Property="Height" Value="32" />
+            <Setter Property="Height" Value="27" />
             <Setter Property="Padding" Value="10,0" />
-            <Setter Property="Background" Value="#F9FCFF" />
-            <Setter Property="Foreground" Value="#365879" />
-            <Setter Property="BorderBrush" Value="#B8D2EA" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="BorderBrush" Value="#D5E6FD" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="CornerRadius" Value="13.5" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.community-detail-action:pointerover">
-            <Setter Property="Background" Value="#E8F3FF" />
-            <Setter Property="Foreground" Value="#1F65A3" />
-            <Setter Property="BorderBrush" Value="#83B8F8" />
+            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="#D5E6FD" />
+        </Style>
+        <Style Selector="Button.community-detail-action:pressed">
+            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Foreground" Value="#0B5BCB" />
+        </Style>
+        <Style Selector="Button.community-detail-title-back">
+            <Setter Property="Width" Value="42" />
+            <Setter Property="Height" Value="48" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="Button.community-detail-title-back:pointerover">
+            <Setter Property="Background" Value="#4890F5" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Border.community-detail-card">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="BoxShadow" Value="0 1 4 0 #1C000000" />
         </Style>
         <Style Selector="RadioButton.community-version-filter">
-            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="MinHeight" Value="27" />
+            <Setter Property="MaxHeight" Value="27" />
             <Setter Property="Margin" Value="2,0" />
-            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="FontSize" Value="13" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#405364" />
+            <Setter Property="Foreground" Value="#1370F3" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="CornerRadius" Value="13.5" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="RadioButton">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <TextBlock x:Name="CommunityVersionFilterText"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Text="{TemplateBinding Content}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
         </Style>
         <Style Selector="RadioButton.community-version-filter:pointerover">
-            <Setter Property="Background" Value="#EDF6FF" />
-            <Setter Property="Foreground" Value="#1F65A3" />
-            <Setter Property="BorderBrush" Value="#C3DCF4" />
+            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="RadioButton.community-version-filter /template/ TextBlock#CommunityVersionFilterText">
+            <Setter Property="Foreground" Value="#1370F3" />
         </Style>
         <Style Selector="RadioButton.community-version-filter:checked">
-            <Setter Property="Background" Value="#DCEEFF" />
-            <Setter Property="Foreground" Value="#155FA6" />
-            <Setter Property="BorderBrush" Value="#83B8F8" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="RadioButton.community-version-filter:checked /template/ TextBlock#CommunityVersionFilterText">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="RadioButton.community-version-filter:checked:pointerover">
+            <Setter Property="Background" Value="#4890F5" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#4890F5" />
+        </Style>
+        <Style Selector="RadioButton.community-version-filter:checked:pointerover /template/ TextBlock#CommunityVersionFilterText">
+            <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="RadioButton.community-version-filter:focus-visible">
-            <Setter Property="BorderBrush" Value="#2D78C4" />
-            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="#0B5BCB" />
         </Style>
         <Style Selector="ToggleButton.community-version-group-toggle">
             <Setter Property="Height" Value="40" />
             <Setter Property="Padding" Value="15,0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#E0E8F0" />
-            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="BorderBrush" Value="#E6EDF4" />
+            <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="5" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -859,22 +912,25 @@
             </Setter>
         </Style>
         <Style Selector="ToggleButton.community-version-group-toggle:pointerover">
-            <Setter Property="Background" Value="#EDF6FF" />
-            <Setter Property="Foreground" Value="#176FC5" />
+            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="ToggleButton.community-version-group-toggle:checked">
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
         </Style>
         <Style Selector="Button.community-version-install">
             <Setter Property="Height" Value="30" />
             <Setter Property="Padding" Value="11,0" />
-            <Setter Property="Background" Value="#E4F1FF" />
-            <Setter Property="Foreground" Value="#2D6EA7" />
-            <Setter Property="BorderBrush" Value="#A8CBEF" />
+            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="BorderBrush" Value="#D5E6FD" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
         </Style>
         <Style Selector="Button.community-version-install:pointerover">
-            <Setter Property="Background" Value="#CFE7FE" />
-            <Setter Property="Foreground" Value="#176FC5" />
-            <Setter Property="BorderBrush" Value="#72ABE2" />
+            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
         </Style>
         <Style Selector="Button.download-refresh">
             <Setter Property="Width" Value="36" />
@@ -1086,13 +1142,12 @@
         <Style Selector="Border.version-category-card">
             <Setter Property="CornerRadius" Value="5" />
             <Setter Property="Background" Value="#FCFDFF" />
-            <Setter Property="BorderBrush" Value="#D1DDEA" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BoxShadow" Value="0 1 3 0 #1A000000" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="BoxShadow" Value="0 1 3 0 #16000000" />
         </Style>
         <Style Selector="Border.version-category-card:pointerover">
-            <Setter Property="BorderBrush" Value="#BFD8EF" />
-            <Setter Property="BoxShadow" Value="0 2 5 0 #26000000" />
+            <Setter Property="BoxShadow" Value="0 2 5 0 #240B5BCB" />
         </Style>
         <Style Selector="ToggleButton.version-category-header">
             <Setter Property="Height" Value="40" />
@@ -1239,7 +1294,7 @@
     <Grid>
     <Border CornerRadius="8" ClipToBounds="True">
     <Grid Classes="pcl-shell" RowDefinitions="48,*">
-        <Border Background="#1370F3" PointerPressed="TitleBarPointerPressed">
+        <Border x:Name="MainTitleBar" Background="#1370F3" PointerPressed="TitleBarPointerPressed">
             <Grid ColumnDefinitions="*,Auto,*">
                 <StackPanel Margin="18,0,0,0" VerticalAlignment="Center" Spacing="0">
                     <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="White" Text="PCL Aurora" />
@@ -1293,6 +1348,32 @@
                 <StackPanel Grid.Column="2" Margin="0,0,12,0" Spacing="4"
                             HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <!-- Paths and 28 px sizing follow PCL2 FormMain.xaml title controls. -->
+                    <Button Classes="window-control" Click="MinimizeWindowClick" ToolTip.Tip="最小化">
+                        <Path Width="15" Height="2" Stretch="Fill" Fill="White"
+                              Data="M0,0 h15 v2 h-15 v-2 Z" />
+                    </Button>
+                    <Button Classes="window-control" Click="CloseWindowClick" ToolTip.Tip="关闭">
+                        <Path Width="14.4" Height="14.4" Stretch="Uniform" Fill="White"
+                              Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border x:Name="CommunityDetailTitleBar" Background="#1370F3"
+                PointerPressed="TitleBarPointerPressed" IsVisible="False">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Classes="community-detail-title-back" Click="CommunityResourceBackClick"
+                        ToolTip.Tip="返回资源目录" AutomationProperties.Name="返回资源目录">
+                    <Path Width="18" Height="18" Data="{StaticResource CommunityBackIcon}" Stretch="Uniform"
+                          Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                          StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                </Button>
+                <TextBlock x:Name="CommunityDetailTitleBarTitle" Grid.Column="1" VerticalAlignment="Center"
+                           FontSize="14" FontWeight="SemiBold" Foreground="White"
+                           Text="资源下载" TextTrimming="CharacterEllipsis" />
+                <StackPanel Grid.Column="2" Margin="0,0,12,0" Spacing="4"
+                            HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Classes="window-control" Click="MinimizeWindowClick" ToolTip.Tip="最小化">
                         <Path Width="15" Height="2" Stretch="Fill" Fill="White"
                               Data="M0,0 h15 v2 h-15 v-2 Z" />
@@ -1468,8 +1549,13 @@
             </Grid>
 
             <Grid x:Name="DownloadPage" IsVisible="False">
-                <Grid ColumnDefinitions="178,*" Background="#D9EAF9">
-                    <Border Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
+                <Grid x:Name="DownloadPageLayout" Background="#D9EAF9">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="178" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border x:Name="DownloadSidebar" Background="#FCFCFD" Padding="0,12,0,0"
+                            BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Column names follow PCL2 PageDownloadLeft.xaml with PCL-CE installer additions. -->
                             <StackPanel x:Name="DownloadNavigationPanel" Spacing="2">
@@ -2087,39 +2173,73 @@
                                 </StackPanel>
 
                                 <StackPanel x:Name="DownloadCommunityDetailView" IsVisible="False" Spacing="15">
-                                    <Border Classes="pcl-card" Padding="12">
-                                        <StackPanel Spacing="10">
-                                            <Button Classes="community-detail-action" Width="36" Padding="0"
-                                                    HorizontalAlignment="Left" Click="CommunityResourceBackClick"
-                                                    ToolTip.Tip="返回项目列表" AutomationProperties.Name="返回项目列表">
-                                                <Path Width="18" Height="18" Data="{StaticResource CommunityBackIcon}" Stretch="Uniform"
-                                                      Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                                                      StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
-                                            </Button>
-
+                                    <Border Classes="pcl-card community-detail-card" Padding="12,10">
+                                        <StackPanel Spacing="7">
                                             <ContentControl Content="{Binding SelectedCommunityResource}"
                                                             ContentTemplate="{StaticResource CommunityProjectRowTemplate}"
                                                             IsHitTestVisible="False" />
 
                                             <WrapPanel Orientation="Horizontal">
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
-                                                        Command="{Binding OpenCommunityResourceCommand}" Content="Modrinth" />
+                                                        Command="{Binding OpenCommunityResourceCommand}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                                        <Path Width="14" Height="14" Data="{StaticResource CommunitySourceIcon}" Stretch="Uniform"
+                                                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                              StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                        <TextBlock VerticalAlignment="Center" Text="Modrinth" />
+                                                    </StackPanel>
+                                                </Button>
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
-                                                        Click="CommunityResourceCopyNameClick" Content="复制名称" />
+                                                        Click="CommunityResourceCopyNameClick">
+                                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                                        <Path Width="14" Height="14" Data="{StaticResource CommunityCopyIcon}" Stretch="Uniform"
+                                                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                              StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                        <TextBlock VerticalAlignment="Center" Text="复制名称" />
+                                                    </StackPanel>
+                                                </Button>
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
-                                                        Click="CommunityResourceCopyLinkClick" Content="复制链接" />
+                                                        Click="CommunityResourceCopyLinkClick">
+                                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                                        <Path Width="14" Height="14" Data="{StaticResource CommunityCopyIcon}" Stretch="Uniform"
+                                                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                              StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                        <TextBlock VerticalAlignment="Center" Text="复制链接" />
+                                                    </StackPanel>
+                                                </Button>
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
                                                         Command="{Binding TranslateCommunityDescriptionCommand}"
-                                                        IsEnabled="{Binding CanTranslateCommunityDescription}"
-                                                        Content="翻译简介" />
+                                                        IsEnabled="{Binding CanTranslateCommunityDescription}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                                        <Path Width="14" Height="14" Data="{StaticResource CommunitySourceIcon}" Stretch="Uniform"
+                                                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                              StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                        <TextBlock VerticalAlignment="Center" Text="翻译简介" />
+                                                    </StackPanel>
+                                                </Button>
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
                                                         Tag="{Binding SelectedCommunityResource}"
-                                                        Click="CommunityResourceFavoriteClick" Content="收藏"
-                                                        IsVisible="{Binding !SelectedCommunityResource.IsFavorite}" />
+                                                        Click="CommunityResourceFavoriteClick"
+                                                        IsVisible="{Binding !SelectedCommunityResource.IsFavorite}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                                        <Path Width="14" Height="14" Data="{StaticResource CommunityHeartIcon}" Stretch="Uniform"
+                                                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                              StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                        <TextBlock VerticalAlignment="Center" Text="收藏" />
+                                                    </StackPanel>
+                                                </Button>
                                                 <Button Classes="community-detail-action" Margin="0,0,5,5"
                                                         Tag="{Binding SelectedCommunityResource}"
-                                                        Click="CommunityResourceFavoriteClick" Content="已收藏"
-                                                        IsVisible="{Binding SelectedCommunityResource.IsFavorite}" />
+                                                        Click="CommunityResourceFavoriteClick"
+                                                        IsVisible="{Binding SelectedCommunityResource.IsFavorite}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                                        <Path Width="14" Height="14" Data="{StaticResource CommunityHeartIcon}" Stretch="Uniform"
+                                                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                              StrokeThickness="1.3" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                        <TextBlock VerticalAlignment="Center" Text="已收藏" />
+                                                    </StackPanel>
+                                                </Button>
                                             </WrapPanel>
 
                                             <Border Padding="12,10" Background="#F3F8FD" CornerRadius="4"
@@ -2159,13 +2279,14 @@
                                         <controls:PclLoadingIndicator Text="正在获取版本列表" />
                                     </Border>
 
-                                    <Border Classes="pcl-card" Padding="10,8"
+                                    <Border Classes="pcl-card community-detail-card" Padding="0"
                                             IsVisible="{Binding IsCommunityVersionFilterVisible}">
-                                        <StackPanel Spacing="4">
-                                            <Grid ColumnDefinitions="72,*" IsVisible="{Binding IsCommunityGameVersionFilterVisible}">
-                                                <TextBlock Margin="4,0,0,0" VerticalAlignment="Center"
-                                                           Foreground="#405364" Text="游戏版本" />
-                                                <ItemsControl Grid.Column="1" ItemsSource="{Binding CommunityGameVersionFilters}">
+                                        <StackPanel>
+                                            <StackPanel Margin="10,10,0,5" Orientation="Horizontal"
+                                                        IsVisible="{Binding IsCommunityGameVersionFilterVisible}">
+                                                <TextBlock Margin="2,0,0,0" VerticalAlignment="Center"
+                                                           FontSize="13" Foreground="#343D4A" Text="实例筛选：" />
+                                                <ItemsControl ItemsSource="{Binding CommunityGameVersionFilters}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <WrapPanel Orientation="Horizontal" />
@@ -2183,11 +2304,12 @@
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
-                                            </Grid>
-                                            <Grid ColumnDefinitions="72,*" IsVisible="{Binding IsCommunityLoaderVersionFilterVisible}">
-                                                <TextBlock Margin="4,0,0,0" VerticalAlignment="Center"
-                                                           Foreground="#405364" Text="加载器" />
-                                                <ItemsControl Grid.Column="1" ItemsSource="{Binding CommunityLoaderVersionFilters}">
+                                            </StackPanel>
+                                            <StackPanel Margin="10,5,0,10" Orientation="Horizontal"
+                                                        IsVisible="{Binding IsCommunityLoaderVersionFilterVisible}">
+                                                <TextBlock Margin="2,0,0,0" VerticalAlignment="Center"
+                                                           FontSize="13" Foreground="#343D4A" Text="模组加载器筛选：" />
+                                                <ItemsControl ItemsSource="{Binding CommunityLoaderVersionFilters}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <WrapPanel Orientation="Horizontal" />
@@ -2205,7 +2327,7 @@
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
-                                            </Grid>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Border>
 
@@ -2220,9 +2342,7 @@
                                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                                                 <TextBlock VerticalAlignment="Center" FontSize="13" FontWeight="Bold"
                                                                            Text="{Binding Title, StringFormat={}{0}}" />
-                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="9">
-                                                                    <TextBlock FontSize="11" Foreground="#7B8794"
-                                                                               Text="{Binding Count, StringFormat={}{0} 个文件}" />
+                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                                                     <Grid Width="18" Height="18">
                                                                         <Path Width="12" Height="7" Data="{StaticResource VersionExpandDownIcon}" Stretch="Uniform"
                                                                               Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
@@ -2630,6 +2750,10 @@
                                 <TextBlock Foreground="#6F7C8B"
                                            Text="直接适配内容及其分发遵循随附的上游许可证和 NOTICE；Micro-ATP 的新增内容适用根目录许可证。"
                                            TextWrapping="Wrap" />
+                                <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="界面字体" />
+                                <TextBlock Foreground="#6F7C8B"
+                                           Text="本软件使用 HarmonyOS Sans SC 字体，字体版权归 Huawei Device Co., Ltd. 所有。字体许可协议随软件一同提供。"
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
@@ -2699,15 +2823,15 @@
                                        Text="登录网页已经打开，设备代码也已复制。请在浏览器中完成 Microsoft 账户授权。"
                                        TextWrapping="Wrap" />
                             <Border Padding="14,9"
-                                    Background="#EAF4FF"
-                                    BorderBrush="#A8CBEF"
+                                    Background="#EAF2FE"
+                                    BorderBrush="#96C0F9"
                                     BorderThickness="1"
                                     CornerRadius="3">
                                 <TextBlock HorizontalAlignment="Center"
                                            FontFamily="Menlo, Consolas, monospace"
                                            FontSize="25"
                                            FontWeight="SemiBold"
-                                           Foreground="#1268C4"
+                                           Foreground="#0B5BCB"
                                            Text="{Binding MicrosoftDeviceCode}" />
                             </Border>
                             <TextBlock FontSize="13"

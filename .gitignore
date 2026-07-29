@@ -430,6 +430,12 @@ FodyWeavers.xsd
 /upstream
 .DS_Store
 /tips
+
+# Local font source files not bundled by the desktop application
+/Fonts/HarmonyOS_Sans/
+/Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Black.ttf
+/Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Light.ttf
+/Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Thin.ttf
 /docs
 
 # PCL Aurora local-only development state

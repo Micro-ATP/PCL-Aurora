@@ -3,7 +3,14 @@
              x:Class="PCL.Aurora.Desktop.App"
              RequestedThemeVariant="Default">
 
+    <Application.Resources>
+        <FontFamily x:Key="PclAuroraInterfaceFont">avares://PCL.Aurora.Desktop/Fonts/HarmonyOS_Sans_SC#HarmonyOS Sans SC</FontFamily>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
+        <Style Selector="Window">
+            <Setter Property="FontFamily" Value="{StaticResource PclAuroraInterfaceFont}" />
+        </Style>
     </Application.Styles>
 </Application>

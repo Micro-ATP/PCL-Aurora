@@ -29,6 +29,16 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets/**" />
+    <AvaloniaResource Include="../../Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf"
+                      Link="Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf" />
+    <AvaloniaResource Include="../../Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Medium.ttf"
+                      Link="Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Medium.ttf" />
+    <AvaloniaResource Include="../../Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Bold.ttf"
+                      Link="Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Bold.ttf" />
+    <None Include="../../Fonts/HarmonyOS_Sans_SC/LICENSE.txt"
+          Link="LICENSES/HarmonyOS-Sans-Fonts.txt"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
     <ProjectReference Include="../PCL.Aurora.Application/PCL.Aurora.Application.csproj" />
     <ProjectReference Include="../PCL.Aurora.Infrastructure/PCL.Aurora.Infrastructure.csproj" />
     <ProjectReference Include="../PCL.Aurora.Platform.MacOS/PCL.Aurora.Platform.MacOS.csproj" />

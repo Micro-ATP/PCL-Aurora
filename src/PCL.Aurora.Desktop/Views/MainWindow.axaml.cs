@@ -486,6 +486,13 @@ public partial class MainWindow : Window
         ViewModels.CommunityResourceItemViewModel item)
     {
         viewModel.SelectedCommunityResource = item;
+        MainTitleBar.IsVisible = false;
+        CommunityDetailTitleBar.IsVisible = true;
+        CommunityDetailTitleBarTitle.Text = item.Project.HasTranslatedTitle
+            ? $"资源下载 - {item.Project.DisplayTitle} ({item.Project.Title})"
+            : $"资源下载 - {item.Project.DisplayTitle}";
+        DownloadPageLayout.ColumnDefinitions[0].Width = new GridLength(0);
+        DownloadSidebar.IsVisible = false;
         DownloadCommunityCatalogView.IsVisible = false;
         DownloadCommunityDetailView.IsVisible = true;
         DownloadContentScroller.Offset = default;
@@ -887,6 +894,10 @@ public partial class MainWindow : Window
 
     private void ShowCommunityCatalog()
     {
+        MainTitleBar.IsVisible = true;
+        CommunityDetailTitleBar.IsVisible = false;
+        DownloadPageLayout.ColumnDefinitions[0].Width = new GridLength(178);
+        DownloadSidebar.IsVisible = true;
         DownloadCommunityCatalogView.IsVisible = true;
         DownloadCommunityDetailView.IsVisible = false;
         DownloadContentScroller.Offset = default;
