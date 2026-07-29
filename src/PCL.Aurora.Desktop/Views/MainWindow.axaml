@@ -210,6 +210,38 @@
             <Setter Property="BorderBrush" Value="#D1DDEA" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
+        <Style Selector="Border.setup-card">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="#FCFDFF" />
+            <Setter Property="BorderBrush" Value="#D1DDEA" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Margin" Value="0,0,0,15" />
+            <Setter Property="BoxShadow" Value="0 1 3 0 #16000000" />
+        </Style>
+        <Style Selector="TextBlock.setup-card-title">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Margin" Value="18,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#344150" />
+        </Style>
+        <Style Selector="TextBlock.setup-muted">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="#6F7C8B" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="Border.setup-hint">
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Background" Value="#EAF4FF" />
+            <Setter Property="BorderBrush" Value="#BFD9F3" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.setup-hint.warning">
+            <Setter Property="Background" Value="#FFF5D6" />
+            <Setter Property="BorderBrush" Value="#E8D69A" />
+        </Style>
         <Style Selector="Border.pcl-notice">
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Background" Value="#FCFDFF" />
@@ -2454,17 +2486,13 @@
                         </ScrollViewer>
                     </Border>
                     <ScrollViewer Grid.Column="1" Background="#D9EAF9">
-                    <StackPanel Margin="25,25,25,10" MaxWidth="860" Spacing="15">
+                    <StackPanel Margin="25,25,25,10" Spacing="15">
 
                         <StackPanel x:Name="SettingsLaunchSection" Spacing="15">
-                            <StackPanel Spacing="5">
-                                <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}" Text="启动" />
-                                <TextBlock Foreground="#6F7C8B" Text="配置游戏运行环境、窗口、内存与下载行为。" />
-                            </StackPanel>
-
-                            <Border Classes="pcl-card" Padding="18">
-                                <StackPanel Spacing="12">
-                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Java 与运行环境" />
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="Java 与运行环境" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
                                     <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="150,*" RowSpacing="10">
                                         <TextBlock Text="当前平台" />
                                         <TextBlock Grid.Column="1" Text="{Binding OperatingSystem}" TextWrapping="Wrap" />
@@ -2497,12 +2525,14 @@
                                                        Text="仅显示与当前架构兼容的 Java" />
                                         </StackPanel>
                                     </Grid>
-                                </StackPanel>
+                                    </StackPanel>
+                                </Grid>
                             </Border>
 
-                            <Border Classes="pcl-card" Padding="18">
-                                <StackPanel Spacing="12">
-                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="游戏启动" />
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="游戏启动" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
                                     <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
                                           ColumnSpacing="10" RowSpacing="10">
                                         <TextBlock VerticalAlignment="Center" Text="窗口模式" />
@@ -2544,12 +2574,14 @@
                                         <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Foreground="#6F7C8B"
                                                    Text="{Binding LaunchOptionsSummary}" TextWrapping="Wrap" />
                                     </Grid>
-                                </StackPanel>
+                                    </StackPanel>
+                                </Grid>
                             </Border>
 
-                            <Border Classes="pcl-card" Padding="18">
-                                <StackPanel Spacing="12">
-                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="下载设置" />
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="下载设置" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
                                     <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
                                         <TextBlock VerticalAlignment="Center" Text="最大下载连接数" />
                                         <ComboBox x:Name="DownloadConcurrencySelector" Grid.Column="1"
@@ -2565,14 +2597,15 @@
                                         </ComboBox>
                                     </Grid>
                                     <TextBlock FontSize="12" Foreground="#6F7C8B" Text="{Binding DownloadSettingsSummary}" TextWrapping="Wrap" />
-                                </StackPanel>
+                                    </StackPanel>
+                                </Grid>
                             </Border>
                         </StackPanel>
 
-                        <Border x:Name="SettingsJavaSection" Classes="pcl-card" Padding="20" IsVisible="False">
-                            <StackPanel Spacing="14">
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}" Text="Java" />
-                                <TextBlock Foreground="#6F7C8B" Text="管理当前平台检测到的 Java 运行环境。" />
+                        <Border x:Name="SettingsJavaSection" Classes="setup-card" IsVisible="False">
+                            <Grid RowDefinitions="40,*">
+                                <TextBlock Classes="setup-card-title" Text="Java 列表" />
+                                <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
                                 <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="150,*" RowSpacing="10">
                                     <TextBlock Text="操作系统" />
                                     <TextBlock Grid.Column="1" Text="{Binding OperatingSystem}" />
@@ -2602,54 +2635,386 @@
                                     <Button Command="{Binding RefreshCommand}" Content="重新搜索" />
                                     <Button IsEnabled="False" Content="手动导入" />
                                 </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <Border x:Name="SettingsInterfaceSection" Classes="pcl-card" Padding="20" IsVisible="False">
-                            <StackPanel Spacing="12">
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}" Text="个性化" />
-                                <Label Content="主题模式" Target="{Binding #ThemeModeSelector}" />
-                                <ComboBox x:Name="ThemeModeSelector"
-                                          Width="240"
-                                          HorizontalAlignment="Left"
-                                          AutomationProperties.Name="主题模式"
-                                          ItemsSource="{Binding ThemeModes}"
-                                          SelectedItem="{Binding SelectedThemeMode}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding DisplayName}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="{Binding ThemeSummary}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="主题偏好只保存在本机；不保存账户密码或令牌。更新入口位于“更多 → 关于与鸣谢”。"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
-
-                        <Border x:Name="SettingsPlaceholderSection" Classes="pcl-card" Padding="20" IsVisible="False">
-                            <StackPanel Spacing="14">
-                                <TextBlock x:Name="SettingsPlaceholderTitle" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}" Text="设置" />
-                                <TextBlock x:Name="SettingsPlaceholderDescription" Foreground="#6F7C8B" TextWrapping="Wrap" />
-                                <Border Background="#F8FAFC" BorderBrush="#D1DDEA" BorderThickness="1" CornerRadius="3" Padding="16">
-                                    <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
-                                        <TextBlock x:Name="SettingsPlaceholderLabel1" VerticalAlignment="Center" />
-                                        <ComboBox x:Name="SettingsPlaceholderOption1" Grid.Column="1" IsEnabled="False" />
-                                        <TextBlock x:Name="SettingsPlaceholderLabel2" Grid.Row="1" VerticalAlignment="Center" />
-                                        <ComboBox x:Name="SettingsPlaceholderOption2" Grid.Row="1" Grid.Column="1" IsEnabled="False" />
-                                        <TextBlock x:Name="SettingsPlaceholderLabel3" Grid.Row="2" VerticalAlignment="Center" />
-                                        <ComboBox x:Name="SettingsPlaceholderOption3" Grid.Row="2" Grid.Column="1" IsEnabled="False" />
-                                    </Grid>
-                                </Border>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button IsEnabled="False" Content="保存设置" />
-                                    <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="#6F7C8B" Text="页面结构已完成，设置写入将在后续迁移阶段启用。" />
                                 </StackPanel>
-                            </StackPanel>
+                            </Grid>
                         </Border>
+
+                        <!-- Direct Avalonia adaptation of the PCL-CE PageSetup page family. -->
+                        <StackPanel x:Name="SettingsManageSection" IsVisible="False">
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="游戏资源获取行为" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                            <TextBlock VerticalAlignment="Center" Text="文件下载源" />
+                                            <ComboBox Grid.Column="1" SelectedIndex="1">
+                                                <ComboBoxItem Content="尽量使用镜像源" />
+                                                <ComboBoxItem Content="优先使用官方源，在加载缓慢时换用镜像源" />
+                                                <ComboBoxItem Content="尽量使用官方源" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="版本列表源" />
+                                            <ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="1">
+                                                <ComboBoxItem Content="尽量使用镜像源（可能缺少刚更新的版本）" />
+                                                <ComboBoxItem Content="优先使用官方源，在加载缓慢时换用镜像源" />
+                                                <ComboBoxItem Content="尽量使用官方源" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="下载线程" />
+                                            <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding DownloadConcurrencyOptions}"
+                                                      SelectedItem="{Binding SelectedDownloadConcurrency}" />
+                                            <TextBlock Grid.Row="3" VerticalAlignment="Center" Text="下载速度限制" />
+                                            <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding DownloadSpeedOptions}"
+                                                      SelectedItem="{Binding SelectedDownloadSpeedLimit}">
+                                                <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="4" VerticalAlignment="Top" Margin="0,5,0,0" Text="目标文件夹" />
+                                            <TextBlock Grid.Row="4" Grid.Column="1" Classes="setup-muted"
+                                                       Text="每次下载前询问保存位置" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
+                                            <CheckBox IsEnabled="False" Content="安装新实例后自动选定该实例" />
+                                            <CheckBox Grid.Column="1" IsEnabled="False" Content="升级部分版本的 Authlib" />
+                                        </Grid>
+                                        <TextBlock Classes="setup-muted" Text="{Binding DownloadSettingsSummary}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="社区资源获取行为" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                            <TextBlock VerticalAlignment="Center" Text="下载源" />
+                                            <ComboBox Grid.Column="1" SelectedIndex="1">
+                                                <ComboBoxItem Content="尽量使用镜像源" />
+                                                <ComboBoxItem Content="优先使用官方源，失败时换用镜像源" />
+                                                <ComboBoxItem Content="尽量使用官方源" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="文件名格式" />
+                                            <ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="1">
+                                                <ComboBoxItem Content="【机械动力】create-1.21.1-6.0.4" />
+                                                <ComboBoxItem Content="[机械动力] create-1.21.1-6.0.4" />
+                                                <ComboBoxItem Content="机械动力-create-1.21.1-6.0.4" />
+                                                <ComboBoxItem Content="create-1.21.1-6.0.4-机械动力" />
+                                                <ComboBoxItem Content="create-1.21.1-6.0.4" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="模组管理样式" />
+                                            <ComboBox Grid.Row="2" Grid.Column="1" SelectedIndex="0">
+                                                <ComboBoxItem Content="标题显示译名，详情显示文件名" />
+                                                <ComboBoxItem Content="标题显示文件名，详情显示译名" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="3" VerticalAlignment="Center" Text="快速下载行为" />
+                                            <ComboBox Grid.Row="3" Grid.Column="1" SelectedIndex="0">
+                                                <ComboBoxItem Content="总是询问" />
+                                                <ComboBoxItem Content="下载到当前选中实例" />
+                                                <ComboBoxItem Content="询问并下载到选择的实例" />
+                                                <ComboBoxItem Content="询问并下载到一个路径" />
+                                            </ComboBox>
+                                        </Grid>
+                                        <CheckBox IsEnabled="False" Content="不显示 Quilt 加载器" />
+                                        <CheckBox IsChecked="True" IsEnabled="False" Content="下载模组时自动检查并安装必需前置" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="辅助功能" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8">
+                                        <Grid ColumnDefinitions="155,*,*" ColumnSpacing="16">
+                                            <TextBlock VerticalAlignment="Center" Text="游戏更新提示" />
+                                            <CheckBox Grid.Column="1" IsEnabled="False" Content="正式版更新提示" />
+                                            <CheckBox Grid.Column="2" IsEnabled="False" Content="测试版更新提示" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="155,*">
+                                            <TextBlock VerticalAlignment="Center" Text="游戏语言" />
+                                            <CheckBox Grid.Column="1" IsEnabled="False" Content="自动设置为启动器语言" />
+                                        </Grid>
+                                        <CheckBox IsEnabled="False" Content="识别跳转剪贴板中的社区资源链接" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel x:Name="SettingsLinkSection" IsVisible="False">
+                            <Border Classes="setup-hint warning" Margin="0,0,0,15">
+                                <TextBlock TextWrapping="Wrap" Text="修改此处的设置后，需要重新启动大厅以使设置生效。" />
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="EasyTier" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9" IsEnabled="False">
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                            <TextBlock VerticalAlignment="Center" Text="用户名" />
+                                            <TextBox Grid.Column="1" PlaceholderText="使用 Natayark ID 用户名" />
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="协议偏好" />
+                                            <ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="0">
+                                                <ComboBoxItem Content="TCP" />
+                                                <ComboBoxItem Content="UDP" />
+                                            </ComboBox>
+                                        </Grid>
+                                        <CheckBox IsChecked="True" Content="选择最低延迟路径而不是最短路径" />
+                                        <CheckBox IsChecked="True" Content="对对称型 NAT 进行端口猜测" />
+                                        <CheckBox IsChecked="True" Content="允许使用 IPv6 通信" />
+                                        <CheckBox Content="在日志中输出 Cli 信息以用于调试" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card" IsVisible="False">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="网络测试" />
+                                    <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="7">
+                                        <TextBlock Text="UDP NAT 类型：尚未检测" />
+                                        <TextBlock Grid.Row="1" Text="TCP NAT 类型：尚未检测" />
+                                        <TextBlock Grid.Row="2" Text="IPv6：尚未检测" />
+                                        <Button Grid.Column="1" Grid.RowSpan="3" Width="100" IsEnabled="False" Content="开始测试" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel x:Name="SettingsInterfaceSection" IsVisible="False">
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="启动器" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                            <TextBlock VerticalAlignment="Center" Text="界面不透明度" />
+                                            <Slider Grid.Column="1" Minimum="40" Maximum="100" Value="100" IsEnabled="False" />
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="主题" />
+                                            <ComboBox x:Name="ThemeModeSelector" Grid.Row="1" Grid.Column="1"
+                                                      AutomationProperties.Name="主题模式"
+                                                      ItemsSource="{Binding ThemeModes}"
+                                                      SelectedItem="{Binding SelectedThemeMode}">
+                                                <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                        </Grid>
+                                        <CheckBox IsChecked="True" IsEnabled="False" Content="显示启动器标志" />
+                                        <CheckBox IsEnabled="False" Content="锁定窗口大小" />
+                                        <CheckBox IsChecked="True" IsEnabled="False" Content="在启动时显示趣味提示" />
+                                        <CheckBox IsEnabled="False" Content="启用高级背景材质" />
+                                        <TextBlock Classes="setup-muted" Text="{Binding ThemeSummary}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="字体" />
+                                    <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                        <TextBlock VerticalAlignment="Center" Text="全局字体" />
+                                        <ComboBox Grid.Column="1" SelectedIndex="0" IsEnabled="False"><ComboBoxItem Content="HarmonyOS Sans SC" /></ComboBox>
+                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="MOTD 字体" />
+                                        <ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="0" IsEnabled="False"><ComboBoxItem Content="跟随全局字体" /></ComboBox>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="背景" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9" IsEnabled="False">
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                            <TextBlock VerticalAlignment="Center" Text="内容适应" />
+                                            <ComboBox Grid.Column="1" SelectedIndex="0">
+                                                <ComboBoxItem Content="智能适应" /><ComboBoxItem Content="居中" /><ComboBoxItem Content="适应窗口" />
+                                                <ComboBoxItem Content="拉伸" /><ComboBoxItem Content="平铺" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="背景不透明度" />
+                                            <Slider Grid.Row="1" Grid.Column="1" Maximum="100" Value="100" />
+                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="背景模糊" />
+                                            <Slider Grid.Row="2" Grid.Column="1" Maximum="40" Value="0" />
+                                        </Grid>
+                                        <CheckBox Content="播放视频背景时自动暂停" />
+                                        <CheckBox Content="使用主题色覆盖背景" />
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Button Content="打开文件夹" /><Button Content="刷新背景" /><Button Content="清空背景" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="背景音乐" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8" IsEnabled="False">
+                                        <Grid ColumnDefinitions="155,*"><TextBlock VerticalAlignment="Center" Text="音量" /><Slider Grid.Column="1" Maximum="100" Value="70" /></Grid>
+                                        <CheckBox Content="随机播放" /><CheckBox Content="启动器打开时自动播放" />
+                                        <CheckBox Content="进入游戏后继续播放" /><CheckBox Content="进入游戏后停止播放" />
+                                        <StackPanel Orientation="Horizontal" Spacing="10"><Button Content="打开文件夹" /><Button Content="刷新音乐" /></StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel x:Name="SettingsLanguageSection" IsVisible="False">
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="语言" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="10">
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="9" IsEnabled="False">
+                                            <TextBlock VerticalAlignment="Center" Text="界面语言" />
+                                            <ComboBox Grid.Column="1" SelectedIndex="0"><ComboBoxItem Content="简体中文" /></ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="区域格式" />
+                                            <ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="0"><ComboBoxItem Content="跟随系统" /><ComboBoxItem Content="简体中文（中国）" /></ComboBox>
+                                        </Grid>
+                                        <Border Classes="setup-hint"><TextBlock TextWrapping="Wrap" Text="目前仅部分新增界面支持多语言功能，其余界面将在后续迁移中逐步完成生效。迁移期间优先确保简体中文与 English (US) 可用。" /></Border>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel x:Name="SettingsMiscSection" IsVisible="False">
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="系统" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9" IsEnabled="False">
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                            <TextBlock VerticalAlignment="Center" Text="启动器公告" />
+                                            <ComboBox Grid.Column="1" SelectedIndex="0"><ComboBoxItem Content="显示所有公告" /><ComboBoxItem Content="仅在有重要通知时显示公告" /><ComboBoxItem Content="关闭所有公告" /></ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="最高动画帧率" />
+                                            <Slider Grid.Row="1" Grid.Column="1" Minimum="1" Maximum="60" Value="60" />
+                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="实时日志行数" />
+                                            <Slider Grid.Row="2" Grid.Column="1" Minimum="100" Maximum="5000" Value="500" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
+                                            <CheckBox Content="禁用硬件加速" /><CheckBox Grid.Column="1" Content="启用遥测数据收集" />
+                                        </Grid>
+                                        <StackPanel Orientation="Horizontal" Spacing="10"><Button Content="导出设置" /><Button Content="导入设置" /><Button Content="停止使用 PCL Aurora" /></StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="网络" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9" IsEnabled="False">
+                                        <CheckBox Content="使用 DoH 解析地址" />
+                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                            <TextBlock VerticalAlignment="Center" Text="HTTP 代理" />
+                                            <ComboBox Grid.Column="1" SelectedIndex="1"><ComboBoxItem Content="不使用代理" /><ComboBoxItem Content="使用系统代理" /><ComboBoxItem Content="自定义代理" /></ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="代理地址" />
+                                            <TextBox Grid.Row="1" Grid.Column="1" PlaceholderText="例如 http://127.0.0.1:1080/" />
+                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="代理身份" />
+                                            <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,*" ColumnSpacing="8"><TextBox PlaceholderText="用户名（可选）" /><TextBox Grid.Column="1" PlaceholderText="密码（可选）" /></Grid>
+                                        </Grid>
+                                        <Button HorizontalAlignment="Left" Content="应用代理" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="调试选项" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8" IsEnabled="False">
+                                        <Grid ColumnDefinitions="155,*"><TextBlock VerticalAlignment="Center" Text="动画速度" /><Slider Grid.Column="1" Maximum="30" Value="10" /></Grid>
+                                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12"><CheckBox Content="禁止在下载时从其他文件夹复制文件" /><CheckBox Grid.Column="1" Content="调试模式" /><CheckBox Grid.Column="2" Content="添加延迟" /></Grid>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel x:Name="SettingsAboutSection" IsVisible="False">
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="PCL Aurora" />
+                                    <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="64,*" RowDefinitions="Auto,Auto">
+                                        <Image Width="50" Height="50" Source="/Assets/Icons/AppIcon-2048.png" />
+                                        <StackPanel Grid.Column="1" Spacing="4"><TextBlock FontSize="20" FontWeight="SemiBold" Text="{Binding LauncherVersionDisplay}" /><TextBlock Classes="setup-muted" Text="PCL 跨平台发行版 · Micro-ATP" /></StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,14,0,0" Orientation="Horizontal" Spacing="10">
+                                            <Button Command="{Binding OpenProjectPageCommand}" CommandParameter="source" Content="查看源代码" />
+                                            <Button Command="{Binding OpenProjectPageCommand}" CommandParameter="issues" Content="问题反馈" />
+                                            <Button Command="{Binding OpenProjectPageCommand}" CommandParameter="license" Content="许可文档" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="项目来源" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="10">
+                                        <TextBlock TextWrapping="Wrap" Text="PCL Aurora 基于 Plain Craft Launcher 与 PCL Community Edition 迁移，并保留各来源项目的许可、署名与分发条件。" />
+                                        <StackPanel Orientation="Horizontal" Spacing="10"><Button Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl" Content="PCL 源代码" /><Button Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl-ce" Content="PCL-CE 源代码" /></StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="版权声明与法律信息" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8">
+                                        <TextBlock FontWeight="SemiBold" Text="隐私说明" />
+                                        <TextBlock TextWrapping="Wrap" Text="PCL Aurora 不会向开发者上传账户密码或令牌；联网功能仅在用户触发登录、下载、更新或打开网页时访问相应服务。" />
+                                        <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="其他信息" />
+                                        <TextBlock TextWrapping="Wrap" Text="Copyright © 2026 Micro-ATP. 非 Minecraft 官方产品。未经 Mojang 或 Microsoft 批准，也不与 Mojang 或 Microsoft 关联。" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel x:Name="SettingsUpdateSection" IsVisible="False">
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="更新设置" />
+                                    <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8" IsEnabled="False">
+                                        <TextBlock VerticalAlignment="Center" Text="更新通道" /><ComboBox Grid.Column="1" SelectedIndex="0"><ComboBoxItem Content="正式版 / Release" /><ComboBoxItem Content="测试版 / Beta" /><ComboBoxItem Content="开发版 / Dev" /></ComboBox>
+                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="自动更新设置" /><ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="2"><ComboBoxItem Content="自动下载并安装更新" /><ComboBoxItem Content="自动下载并提示更新" /><ComboBoxItem Content="提示更新" /><ComboBoxItem Content="不自动检查更新（不推荐）" /></ComboBox>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="当前版本" />
+                                    <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="64,*,Auto">
+                                        <Image Width="50" Height="50" Source="/Assets/Icons/AppIcon-2048.png" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3"><TextBlock FontSize="20" FontWeight="SemiBold" Text="{Binding LauncherVersionDisplay}" /><TextBlock Classes="setup-muted" Text="{Binding AuroraReleaseSummary}" /></StackPanel>
+                                        <Button Grid.Column="2" VerticalAlignment="Center" Command="{Binding OpenAuroraReleasesCommand}" Content="检查更新" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel x:Name="SettingsFeedbackSection" IsVisible="False">
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="提交反馈" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="12">
+                                        <TextBlock TextWrapping="Wrap" Text="提交前请先搜索是否已有相同问题，并确认问题仍能在当前版本中复现。" />
+                                        <Button HorizontalAlignment="Left" Command="{Binding OpenProjectPageCommand}" CommandParameter="issues" Content="前往反馈" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="反馈列表" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8">
+                                        <TextBlock Classes="setup-muted" Text="PCL Aurora 的公开问题、功能建议与处理状态均在 GitHub Issues 中维护。" />
+                                        <Button HorizontalAlignment="Left" Command="{Binding OpenProjectPageCommand}" CommandParameter="issues" Content="查看全部反馈" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel x:Name="SettingsLogSection" IsVisible="False">
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="日志操作" />
+                                    <WrapPanel Grid.Row="1" Margin="18,0,18,16" ItemHeight="34">
+                                        <Button MinWidth="100" Margin="0,0,10,0" IsEnabled="False" Content="导出日志" />
+                                        <Button MinWidth="120" Margin="0,0,10,0" IsEnabled="False" Content="导出全部日志" />
+                                        <Button MinWidth="120" Margin="0,0,10,0" Command="{Binding OpenApplicationDataDirectoryCommand}" Content="打开日志文件夹" />
+                                        <Button MinWidth="120" Command="{Binding ClearGameLogsCommand}" IsEnabled="{Binding HasGameLogLines}" Content="清理历史日志" />
+                                    </WrapPanel>
+                                </Grid>
+                            </Border>
+                            <Border Classes="setup-card">
+                                <Grid RowDefinitions="40,*">
+                                    <TextBlock Classes="setup-card-title" Text="全部日志" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8">
+                                        <TextBlock Classes="setup-muted" Text="{Binding GameLogSummary}" />
+                                        <Border MinHeight="160" MaxHeight="420" Background="#F7F9FB" BorderBrush="#D9E2EB" BorderThickness="1" CornerRadius="3" Padding="10">
+                                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                                <ItemsControl ItemsSource="{Binding GameLogLines}">
+                                                    <ItemsControl.ItemTemplate><DataTemplate><TextBlock FontFamily="Menlo,Consolas,monospace" FontSize="11" Foreground="#4B5563" Text="{Binding DisplayText}" TextWrapping="Wrap" /></DataTemplate></ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
                     </ScrollViewer>
                 </Grid>

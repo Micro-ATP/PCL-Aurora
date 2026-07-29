@@ -101,6 +101,18 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Controls/MyLoading.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Controls/MyImage.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLaunch.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupJava.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupGameManage.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupGameLink.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUI.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLauncherLanguage.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLauncherMisc.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupAbout.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUpdate.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupFeedback.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLog.xaml
+- PCL-CE: PCL.Core/App/Localization/Languages/zh-CN.xaml (setup-page wording)
 
 PCL Aurora also contains the following directly reused upstream resources:
 

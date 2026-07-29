@@ -44,7 +44,12 @@ public partial class MainViewModel(
     public event EventHandler<string>? MicrosoftDeviceCodeAvailable;
 
     private const int MaximumGameLogLines = 500;
+    private static readonly Uri AuroraRepositoryUri = new("https://github.com/Micro-ATP/PCL-Aurora");
     private static readonly Uri AuroraReleasesUri = new("https://github.com/Micro-ATP/PCL-Aurora/releases");
+    private static readonly Uri AuroraIssuesUri = new("https://github.com/Micro-ATP/PCL-Aurora/issues");
+    private static readonly Uri AuroraLicenseUri = new("https://github.com/Micro-ATP/PCL-Aurora/blob/main/LICENSE");
+    private static readonly Uri PclRepositoryUri = new("https://github.com/Meloong-Git/PCL");
+    private static readonly Uri PclCeRepositoryUri = new("https://github.com/PCL-Community/PCL2-CE");
     private static readonly JsonSerializerOptions FavoriteTransferSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -134,6 +139,9 @@ public partial class MainViewModel(
     public ObservableCollection<GameLogLine> GameLogLines { get; } = [];
 
     public string MinecraftRootDirectory { get; } = minecraftDirectoryService.GetRootDirectory();
+
+    public string LauncherVersionDisplay { get; } =
+        $"PCL Aurora {typeof(MainViewModel).Assembly.GetName().Version?.ToString(3) ?? "开发版本"}";
 
     public IReadOnlyList<ThemeOption> ThemeModes { get; } =
     [
@@ -3714,6 +3722,26 @@ public partial class MainViewModel(
             AuroraReleaseSummary = $"无法打开 PCL Aurora 的发行页：{exception.Message}";
         }
     }
+
+    [RelayCommand]
+    private async Task OpenProjectPageAsync(string target)
+    {
+        var uri = target switch
+        {
+            "source" => AuroraRepositoryUri,
+            "issues" => AuroraIssuesUri,
+            "license" => AuroraLicenseUri,
+            "pcl" => PclRepositoryUri,
+            "pcl-ce" => PclCeRepositoryUri,
+            _ => throw new ArgumentOutOfRangeException(nameof(target), target, "未知的项目页面。"),
+        };
+
+        await openPathService.OpenUriAsync(uri);
+    }
+
+    [RelayCommand]
+    private Task OpenApplicationDataDirectoryAsync() =>
+        openPathService.OpenFolderAsync(ApplicationDataDirectory);
 
     private async Task ObserveGameProcessAsync(GameProcessSession session)
     {

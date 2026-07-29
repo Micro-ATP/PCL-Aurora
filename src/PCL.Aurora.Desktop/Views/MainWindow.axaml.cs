@@ -1247,46 +1247,19 @@ public partial class MainWindow : Window
 
         SettingsLaunchSection.IsVisible = section == "launch";
         SettingsJavaSection.IsVisible = section == "java";
+        SettingsManageSection.IsVisible = section == "manage";
+        SettingsLinkSection.IsVisible = section == "link";
         SettingsInterfaceSection.IsVisible = section == "interface";
-        SettingsPlaceholderSection.IsVisible = section is not ("launch" or "java" or "interface");
+        SettingsLanguageSection.IsVisible = section == "language";
+        SettingsMiscSection.IsVisible = section == "misc";
+        SettingsAboutSection.IsVisible = section == "about";
+        SettingsUpdateSection.IsVisible = section == "update";
+        SettingsFeedbackSection.IsVisible = section == "feedback";
+        SettingsLogSection.IsVisible = section == "log";
 
         foreach (var navigation in SettingsNavigationPanel.Children.OfType<PclNavigationButton>())
         {
             navigation.Classes.Set("selected", navigation == selectedNavigation);
         }
-
-        if (SettingsPlaceholderSection.IsVisible)
-        {
-            PopulateSettingsPlaceholder(section);
-        }
-    }
-
-    private void PopulateSettingsPlaceholder(string section)
-    {
-        var model = section switch
-        {
-            "manage" => ("管理", "管理实例扫描、分类与默认游戏目录。", "实例隔离", new[] { "隔离所有实例" }, "自动扫描", new[] { "启动时扫描" }, "默认排序", new[] { "按名称" }),
-            "link" => ("联机", "配置跨平台联机方式与房间可见性。", "联机服务", new[] { "选择服务" }, "房间权限", new[] { "仅邀请" }, "连接质量", new[] { "自动检测" }),
-            "language" => ("语言", "选择启动器界面语言和区域格式。", "界面语言", new[] { "简体中文" }, "区域格式", new[] { "跟随系统" }, "游戏语言", new[] { "跟随实例" }),
-            "misc" => ("杂项", "配置通知、下载行为和启动器后台策略。", "关闭行为", new[] { "询问" }, "通知方式", new[] { "系统通知" }, "缓存清理", new[] { "手动" }),
-            "about" => ("软件信息", "查看 PCL Aurora、PCL2 与 PCL-CE 的版本和来源信息。", "当前版本", new[] { "开发版本" }, "更新渠道", new[] { "正式版" }, "许可证", new[] { "查看随附材料" }),
-            "update" => ("软件更新", "检查 PCL Aurora 发布页和可用更新。", "更新通道", new[] { "正式版" }, "检查频率", new[] { "启动时" }, "下载策略", new[] { "手动确认" }),
-            "feedback" => ("反馈", "整理诊断信息并前往 Aurora 的问题反馈入口。", "反馈类型", new[] { "问题报告" }, "附加日志", new[] { "由用户确认" }, "公开范围", new[] { "提交前检查" }),
-            "log" => ("查看日志", "查看启动器诊断、下载任务和游戏会话日志。", "日志来源", new[] { "启动器" }, "日志级别", new[] { "信息" }, "时间范围", new[] { "本次会话" }),
-            _ => ("设置", "该设置页面将在后续迁移阶段接入。", "选项", new[] { "默认" }, "范围", new[] { "全局" }, "状态", new[] { "尚未接入" }),
-        };
-
-        SettingsPlaceholderTitle.Text = model.Item1;
-        SettingsPlaceholderDescription.Text = model.Item2;
-        SetPlaceholderOption(SettingsPlaceholderLabel1, SettingsPlaceholderOption1, model.Item3, model.Item4);
-        SetPlaceholderOption(SettingsPlaceholderLabel2, SettingsPlaceholderOption2, model.Item5, model.Item6);
-        SetPlaceholderOption(SettingsPlaceholderLabel3, SettingsPlaceholderOption3, model.Item7, model.Item8);
-    }
-
-    private static void SetPlaceholderOption(TextBlock label, ComboBox comboBox, string labelText, string[] options)
-    {
-        label.Text = labelText;
-        comboBox.ItemsSource = options;
-        comboBox.SelectedIndex = 0;
     }
 }
