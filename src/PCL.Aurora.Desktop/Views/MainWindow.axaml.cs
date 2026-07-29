@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Aurora.Application;
 using PCL.Aurora.Desktop.Controls;
+using PCL.Aurora.Desktop.Services;
 using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Desktop.Views;
@@ -30,6 +31,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        PclMotionService.Attach(this);
         PopulateMorePlaceholder("help");
         DataContextChanged += (_, _) => SubscribeToViewModel();
         Opened += async (_, _) =>
@@ -141,6 +143,9 @@ public partial class MainWindow : Window
 
     private void SelectMainPage(int page)
     {
+        var pages = new Control[] { LaunchPage, DownloadPage, SettingsPage, MorePage };
+        var selectedPage = pages[page];
+        var pageChanged = !selectedPage.IsVisible;
         LaunchPage.IsVisible = page == 0;
         DownloadPage.IsVisible = page == 1;
         SettingsPage.IsVisible = page == 2;
@@ -150,6 +155,11 @@ public partial class MainWindow : Window
         for (var index = 0; index < navigation.Length; index++)
         {
             navigation[index].Classes.Set("selected", index == page);
+        }
+
+        if (pageChanged)
+        {
+            PclMotionService.AnimateSectionIn(selectedPage);
         }
     }
 
@@ -192,6 +202,15 @@ public partial class MainWindow : Window
         {
             PopulateMorePlaceholder(section);
         }
+
+        var selectedSection = section switch
+        {
+            "toolbox" => (Control)MoreDirectorySection,
+            "logs" => MoreLogSection,
+            "about" => MoreAboutSection,
+            _ => MorePlaceholderSection,
+        };
+        PclMotionService.AnimateSectionIn(selectedSection);
     }
 
     private void PopulateMorePlaceholder(string section)
@@ -279,7 +298,7 @@ public partial class MainWindow : Window
         DownloadContentScroller.Offset = default;
         if (isCommunity)
         {
-            ShowCommunityCatalog();
+            ShowCommunityCatalog(animate: false);
         }
 
         if (DataContext is ViewModels.MainViewModel viewModel)
@@ -305,6 +324,15 @@ public partial class MainWindow : Window
                 row.Classes.Set("selected", isSelected);
             }
         }
+
+        var selectedSection = isCommunity
+            ? (Control)DownloadCommunityCard
+            : isGame
+                ? DownloadGameView
+                : loaderKind is not null
+                    ? DownloadLoaderView
+                    : DownloadDeferredCard;
+        PclMotionService.AnimateSectionIn(selectedSection);
 
         await LoadDownloadSectionAsync(section);
     }
@@ -496,6 +524,7 @@ public partial class MainWindow : Window
         DownloadCommunityCatalogView.IsVisible = false;
         DownloadCommunityDetailView.IsVisible = true;
         DownloadContentScroller.Offset = default;
+        PclMotionService.AnimateSectionIn(DownloadCommunityDetailView);
         await viewModel.LoadSelectedCommunityResourceVersionsAsync();
     }
 
@@ -974,7 +1003,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ShowCommunityCatalog()
+    private void ShowCommunityCatalog(bool animate = true)
     {
         MainTitleBar.IsVisible = true;
         CommunityDetailTitleBar.IsVisible = false;
@@ -983,6 +1012,10 @@ public partial class MainWindow : Window
         DownloadCommunityCatalogView.IsVisible = true;
         DownloadCommunityDetailView.IsVisible = false;
         DownloadContentScroller.Offset = default;
+        if (animate)
+        {
+            PclMotionService.AnimateSectionIn(DownloadCommunityCatalogView);
+        }
     }
 
     private async Task<string?> ShowTextPromptAsync(
@@ -1105,6 +1138,7 @@ public partial class MainWindow : Window
         DownloadCommunityCard.IsVisible = false;
         DownloadCombinedInstallView.IsVisible = true;
         DownloadContentScroller.Offset = default;
+        PclMotionService.AnimateSectionIn(DownloadCombinedInstallView);
         await viewModel.PrepareCombinedInstallerAsync(viewModel.SelectedCatalogVersion!);
     }
 
@@ -1175,6 +1209,7 @@ public partial class MainWindow : Window
         DownloadCombinedInstallView.IsVisible = false;
         DownloadGameView.IsVisible = true;
         DownloadContentScroller.Offset = default;
+        PclMotionService.AnimateSectionIn(DownloadGameView);
     }
 
     private void CombinedInstallComponentVersionClick(object? sender, RoutedEventArgs e)
@@ -1261,5 +1296,22 @@ public partial class MainWindow : Window
         {
             navigation.Classes.Set("selected", navigation == selectedNavigation);
         }
+
+        var selectedSection = section switch
+        {
+            "launch" => (Control)SettingsLaunchSection,
+            "java" => SettingsJavaSection,
+            "manage" => SettingsManageSection,
+            "link" => SettingsLinkSection,
+            "interface" => SettingsInterfaceSection,
+            "language" => SettingsLanguageSection,
+            "misc" => SettingsMiscSection,
+            "about" => SettingsAboutSection,
+            "update" => SettingsUpdateSection,
+            "feedback" => SettingsFeedbackSection,
+            "log" => SettingsLogSection,
+            _ => throw new ArgumentOutOfRangeException(nameof(section), section, null),
+        };
+        PclMotionService.AnimateSectionIn(selectedSection);
     }
 }

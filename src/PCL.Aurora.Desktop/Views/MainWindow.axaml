@@ -346,6 +346,13 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Grid.pcl-shell TextBox /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="#FFFFFF" />
@@ -391,6 +398,13 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ Border#Background">
             <Setter Property="Background" Value="#FFFFFF" />
@@ -464,6 +478,12 @@
             <Setter Property="Padding" Value="9,6" />
             <Setter Property="MinHeight" Value="30" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
             <Setter Property="Template">
                 <ControlTemplate TargetType="ComboBoxItem">
                     <Border Background="{TemplateBinding Background}"
@@ -510,6 +530,14 @@
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
             <Setter Property="Template">
                 <ControlTemplate TargetType="Button">
                     <Border Background="{TemplateBinding Background}"
@@ -791,6 +819,11 @@
         <Style Selector="Border.community-row-action-surface">
             <Setter Property="Opacity" Value="0" />
             <Setter Property="Background" Value="#EDF6FF" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Grid.community-project-item:pointerover Border.community-row-action-surface">
             <Setter Property="Opacity" Value="1" />
@@ -999,6 +1032,11 @@
         </Style>
         <Style Selector="Grid.download-navigation-row">
             <Setter Property="Height" Value="36" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Grid.download-navigation-row:pointerover">
             <Setter Property="Background" Value="#E4F1FF" />
@@ -1083,6 +1121,13 @@
             <Setter Property="Padding" Value="11,9" />
             <Setter Property="MinHeight" Value="48" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
             <Setter Property="Template">
                 <ControlTemplate TargetType="ListBoxItem">
                     <Border Background="{TemplateBinding Background}"
@@ -1123,6 +1168,11 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Border.official-version-row:pointerover">
             <Setter Property="Background" Value="#EDF6FF" />
@@ -1157,6 +1207,11 @@
         </Style>
         <Style Selector="StackPanel.version-actions">
             <Setter Property="Opacity" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Border.official-version-row:pointerover StackPanel.version-actions">
             <Setter Property="Opacity" Value="1" />
