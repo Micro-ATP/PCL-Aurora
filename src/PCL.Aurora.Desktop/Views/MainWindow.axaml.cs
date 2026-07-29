@@ -82,6 +82,15 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void ProjectPageLinkClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string target } &&
+            DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.OpenProjectPageCommand.ExecuteAsync(target);
+        }
+    }
+
     private async void MainNavigationClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string value } || !int.TryParse(value, out var page))

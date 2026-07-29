@@ -50,7 +50,7 @@ public partial class MainViewModel(
     private static readonly Uri AuroraIssuesUri = new("https://github.com/Micro-ATP/PCL-Aurora/issues");
     private static readonly Uri AuroraLicenseUri = new("https://github.com/Micro-ATP/PCL-Aurora/blob/main/LICENSE");
     private static readonly Uri PclRepositoryUri = new("https://github.com/Meloong-Git/PCL");
-    private static readonly Uri PclCeRepositoryUri = new("https://github.com/PCL-Community/PCL2-CE");
+    private static readonly Uri PclCeRepositoryUri = new("https://github.com/PCL-Community/PCL-CE");
     private static readonly JsonSerializerOptions FavoriteTransferSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -141,6 +141,75 @@ public partial class MainViewModel(
     public ObservableCollection<GameLogLine> GameLogLines { get; } = [];
 
     public ObservableCollection<GitHubContributorItemViewModel> Contributors { get; } = [];
+
+    public IReadOnlyList<LicenseEntryViewModel> LicenseEntries { get; } =
+    [
+        new(
+            "PCL Aurora 新增内容",
+            "Copyright © 2026 Micro-ATP。由 Micro-ATP 独立实现并拥有版权的新增内容适用仓库根目录《PCL Aurora 严格专有迁移许可证》；来源内容不在该许可证授权范围内。",
+            "source",
+            "license"),
+        new(
+            "Plain Craft Launcher (PCL)",
+            "Copyright © 龙腾猫跃。Aurora 中来源于 PCL 的代码、界面结构和资源继续受 PCL 专门许可约束，并保留相应署名、分发与二次创作条件。",
+            "pcl",
+            "pcl-license"),
+        new(
+            "PCL-CE / Plain Craft Launcher 2",
+            "Copyright © PCL Community & 龙腾猫跃。Aurora 迁移或复用的 PCL-CE 启动器代码、界面与资源继续受其 Plain Craft Launcher 2 专门许可约束。",
+            "pcl-ce",
+            "pcl-ce-license"),
+        new(
+            "PCL.Core",
+            "Copyright © PCL Community。Aurora 直接适配的 PCL.Core 通用代码以及其许可范围内的内容按 Apache License 2.0 使用；具体来源见 NOTICE。",
+            "pcl-core",
+            "apache-license"),
+        new(
+            "Avalonia UI",
+            "Copyright © AvaloniaUI Project。桌面界面、Fluent 主题、平台后端与 Avalonia.Fonts.Inter 运行组件采用 MIT License。",
+            "avalonia",
+            "mit-license"),
+        new(
+            "CommunityToolkit.Mvvm",
+            "Copyright © .NET Foundation and Contributors。用于视图模型通知与命令生成，采用 MIT License。",
+            "community-toolkit",
+            "mit-license"),
+        new(
+            ".NET 与 Microsoft.Extensions",
+            "Copyright © .NET Foundation and Contributors。应用运行时、依赖注入及日志抽象组件采用 MIT License。",
+            "dotnet",
+            "mit-license"),
+        new(
+            "protobuf-net",
+            "Copyright © Marc Gravell and Contributors。用于读取随项目分发的 PCL-CE 中文资源名称数据库，采用 Apache License 2.0。",
+            "protobuf-net",
+            "apache-license"),
+        new(
+            "Lucide Icons",
+            "Copyright © Lucide Contributors。Aurora 使用的部分图标路径采用 ISC License，并包含源自 Feather Icons、按 MIT License 提供的部分。",
+            "lucide",
+            "lucide-license"),
+        new(
+            "HarmonyOS Sans SC",
+            "Copyright © 2021 Huawei Device Co., Ltd.。Aurora 嵌入 Light、Regular、Medium 与 Bold 字体文件，适用 HarmonyOS Sans Fonts License Agreement，不按 Aurora 根许可证授权。",
+            "harmony-font",
+            "harmony-license"),
+        new(
+            "SkiaSharp 与 HarfBuzzSharp",
+            "Copyright © Microsoft Corporation and Contributors。由 Avalonia 带入并用于跨平台图形绘制与字体塑形，采用 MIT License。",
+            "skiasharp",
+            "mit-license"),
+        new(
+            "桌面平台传递组件",
+            "MicroCom.Runtime、Tmds.DBus.Protocol 与 Microsoft.IO.RecyclableMemoryStream 由 Avalonia 平台后端传递引用，均采用 MIT License。",
+            "runtime-components",
+            "mit-license"),
+        new(
+            "ANGLE Windows Natives",
+            "Copyright © 2018 The ANGLE Project Authors。由 Avalonia Windows 图形后端传递引用，采用 BSD 三条款许可证。",
+            "angle",
+            "angle-license"),
+    ];
 
     public string MinecraftRootDirectory { get; } = minecraftDirectoryService.GetRootDirectory();
 
@@ -3795,8 +3864,27 @@ public partial class MainViewModel(
             "source" => AuroraRepositoryUri,
             "issues" => AuroraIssuesUri,
             "license" => AuroraLicenseUri,
+            "notice" => new Uri("https://github.com/Micro-ATP/PCL-Aurora/blob/main/NOTICE"),
             "pcl" => PclRepositoryUri,
+            "pcl-license" => new Uri("https://github.com/Meloong-Git/PCL/blob/main/LICENCE"),
+            "pcl-terms" => new Uri("https://shimo.im/docs/rGrd8pY8xWkt6ryW"),
             "pcl-ce" => PclCeRepositoryUri,
+            "pcl-ce-license" => new Uri("https://github.com/PCL-Community/PCL-CE/blob/dev/Plain%20Craft%20Launcher%202/LICENCE"),
+            "pcl-core" => new Uri("https://github.com/PCL-Community/PCL-CE/tree/dev/PCL.Core"),
+            "apache-license" => new Uri("https://github.com/Micro-ATP/PCL-Aurora/blob/main/LICENSES/Apache-2.0.txt"),
+            "mit-license" => new Uri("https://github.com/Micro-ATP/PCL-Aurora/blob/main/LICENSES/MIT.txt"),
+            "lucide-license" => new Uri("https://github.com/Micro-ATP/PCL-Aurora/blob/main/LICENSES/Lucide-Icons.txt"),
+            "harmony-license" => new Uri("https://github.com/Micro-ATP/PCL-Aurora/blob/main/Fonts/HarmonyOS_Sans_SC/LICENSE.txt"),
+            "angle-license" => new Uri("https://github.com/Micro-ATP/PCL-Aurora/blob/main/LICENSES/ANGLE-BSD-3-Clause.txt"),
+            "avalonia" => new Uri("https://github.com/AvaloniaUI/Avalonia"),
+            "community-toolkit" => new Uri("https://github.com/CommunityToolkit/dotnet"),
+            "dotnet" => new Uri("https://github.com/dotnet/dotnet"),
+            "protobuf-net" => new Uri("https://github.com/protobuf-net/protobuf-net"),
+            "lucide" => new Uri("https://github.com/lucide-icons/lucide"),
+            "harmony-font" => new Uri("https://developer.huawei.com/consumer/cn/design/resource/"),
+            "skiasharp" => new Uri("https://github.com/mono/SkiaSharp"),
+            "runtime-components" => new Uri("https://github.com/AvaloniaUI/Avalonia"),
+            "angle" => new Uri("https://github.com/AvaloniaUI/angle"),
             "pcl-sponsor" => new Uri("https://ifdian.net/a/LTCat"),
             "pcl-community" => new Uri("https://github.com/PCL-Community"),
             "bmclapi-sponsor" => new Uri("https://afdian.com/a/bangbang93"),

@@ -1,0 +1,107 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PCL.Aurora.Desktop.Controls.PclCollapsibleCard"
+             x:Name="Root"
+             MinHeight="40"
+             ClipToBounds="True"
+             Classes="setup-card">
+    <UserControl.Styles>
+        <Style Selector="Border.collapsible-card-surface">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="#D2FBFBFB" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BoxShadow" Value="0 1 3 0 #12343D4A" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.3" />
+                    <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.09" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.collapsible-card-surface:pointerover">
+            <Setter Property="BoxShadow" Value="0 1 3 0 #664890F5" />
+        </Style>
+        <Style Selector="Button.collapsible-card-header">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="4,4,0,0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.collapsible-card-header:pointerover">
+            <Setter Property="Background" Value="#0A4890F5" />
+        </Style>
+        <Style Selector="Button.collapsible-card-header:pressed">
+            <Setter Property="Background" Value="#144890F5" />
+        </Style>
+        <Style Selector="TextBlock.collapsible-card-title">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.09" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.collapsible-card-surface:pointerover TextBlock.collapsible-card-title">
+            <Setter Property="Foreground" Value="#0B5BCB" />
+        </Style>
+        <Style Selector="Path.collapsible-card-arrow">
+            <Setter Property="Stroke" Value="#343D4A" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Stroke" Duration="0:0:0.09" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.collapsible-card-surface:pointerover Path.collapsible-card-arrow">
+            <Setter Property="Stroke" Value="#0B5BCB" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Classes="collapsible-card-surface">
+        <Grid RowDefinitions="40,Auto">
+            <Button x:Name="HeaderButton"
+                    Classes="collapsible-card-header"
+                    Click="HeaderButtonClick"
+                    AutomationProperties.Name="{Binding Title, ElementName=Root}"
+                    AutomationProperties.HelpText="展开或收起内容">
+                <Grid ColumnDefinitions="*,Auto"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                    <TextBlock Margin="16,0"
+                               VerticalAlignment="Center"
+                               Classes="collapsible-card-title"
+                               Text="{Binding Title, ElementName=Root}"
+                               IsHitTestVisible="False" />
+                    <Path x:Name="ArrowPath"
+                          Grid.Column="1"
+                          Width="10"
+                          Height="6"
+                          Margin="0,0,16,0"
+                          VerticalAlignment="Center"
+                          Classes="collapsible-card-arrow"
+                          Data="M1,1 L5,5 L9,1"
+                          Fill="Transparent"
+                          StrokeThickness="2"
+                          StrokeLineCap="Round"
+                          StrokeJoin="Round"
+                          RenderTransformOrigin="50%,50%"
+                          IsHitTestVisible="False">
+                        <Path.RenderTransform>
+                            <RotateTransform Angle="180" />
+                        </Path.RenderTransform>
+                    </Path>
+                </Grid>
+            </Button>
+            <ContentPresenter x:Name="BodyPresenter"
+                              Grid.Row="1"
+                              Content="{Binding Body, ElementName=Root}" />
+        </Grid>
+    </Border>
+</UserControl>

@@ -210,8 +210,12 @@ PCL Aurora also adapts the following PCL-CE Lucide icon paths:
   adapted as Avalonia Paths in src/PCL.Aurora.Desktop/Views/MainWindow.axaml.
   The applicable ISC and MIT license text is provided in LICENSES/Lucide-Icons.txt.
 
-The original license texts are provided in LICENSES/Apache-2.0.txt,
-LICENSES/PCL-CE-Plain-Craft-Launcher-2-LICENCE.txt and LICENSES/PCL2-LICENCE.txt.
+The applicable license texts are provided in LICENSES/Apache-2.0.txt,
+LICENSES/MIT.txt, LICENSES/ANGLE-BSD-3-Clause.txt,
+LICENSES/Lucide-Icons.txt, LICENSES/PCL-CE-Plain-Craft-Launcher-2-LICENCE.txt
+and LICENSES/PCL2-LICENCE.txt. The desktop build also copies the repository
+root LICENSE, this NOTICE and the complete LICENSES directory into published
+applications.
 PCL Aurora uses protobuf-net 3.2.56 by Marc Gravell to decode the bundled
 translation data. protobuf-net is distributed under Apache License 2.0,
 whose text is provided in LICENSES/Apache-2.0.txt.
@@ -228,6 +232,12 @@ navigation-control and launch-page XAML references listed above. The title-bar
 gradient follows PCL2 `ModSecret.vb`; it does not include the upstream WPF
 implementation. Aurora retains its own bindings and cross-platform window
 behavior.
+The software-information legal section and `PclCollapsibleCard` adapt the
+three-card organization, 40-pixel collapsed title area, title-only hit testing,
+arrow rotation timing and distance-sensitive height motion from PCL-CE
+`PageSetupAbout.xaml` and `MyCard.cs`. The legal wording and dependency list
+describe PCL Aurora's actual data flow, upstream use and distributed packages;
+they do not copy PCL-CE service claims that Aurora does not implement.
 The community-resource version organizer and dependency resolver adapt the
 filter, card-grouping, dependency classification and pre-download confirmation
 rules from the PCL-CE `PageDownloadCompDetail` and `ModComp` sources listed

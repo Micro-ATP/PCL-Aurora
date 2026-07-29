@@ -3253,26 +3253,93 @@
                                 </Grid>
                             </Border>
 
-                            <Border Classes="setup-card">
-                                <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="法律与隐私" />
-                                    <StackPanel Grid.Row="1" Margin="21,0,21,18" Spacing="6">
+                            <controls:PclCollapsibleCard Margin="0,0,0,15"
+                                                         Title="版权声明与法律信息"
+                                                         IsExpanded="True">
+                                <controls:PclCollapsibleCard.Body>
+                                    <StackPanel Margin="25,5,23,20" Spacing="4">
                                         <TextBlock FontWeight="SemiBold" Text="隐私说明" />
                                         <TextBlock LineHeight="18" TextWrapping="Wrap"
-                                                   Text="PCL Aurora 将设置、收藏与运行日志保存在本机。Microsoft 登录的刷新令牌由系统安全凭据库保存，普通偏好文件只记录账户名称与 UUID。打开登录、下载、更新、社区资源及本页贡献者列表时，应用会连接 Microsoft、Minecraft、GitHub、Modrinth、CurseForge、BMCLAPI 等相应第三方服务；当前不设自营账户服务器，也不收集遥测数据。问题反馈仅在你主动打开 GitHub Issues 后提交。" />
-                                        <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="许可与来源" />
+                                                   Text="PCL Aurora 将启动器设置、社区收藏和运行日志保存在本机。Microsoft 登录刷新令牌由当前系统的安全凭据库保存，普通偏好文件只记录显示账户所需的名称与 UUID。Aurora 不设自营账户服务器，也不收集遥测、设备调查或使用统计数据。" />
+                                        <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="联网与反馈" />
                                         <TextBlock LineHeight="18" TextWrapping="Wrap"
-                                                   Text="PCL Aurora 是基于 Plain Craft Launcher 与 PCL Community Edition 的跨平台迁移项目。迁移内容及第三方依赖分别遵循随项目附带的原始许可证与 NOTICE；Micro-ATP 独立实现的新增内容适用仓库根许可证。" />
-                                        <TextBlock Margin="0,8,0,0" TextWrapping="Wrap"
-                                                   Text="Copyright © 2026 Micro-ATP。非 Minecraft 官方产品，未经 Mojang 或 Microsoft 批准，也不与其关联。" />
+                                                   Text="当你使用正版登录、游戏与社区资源下载、更新检查或查看贡献者时，应用会连接 Microsoft、Minecraft、GitHub、Modrinth、CurseForge、BMCLAPI 等对应第三方服务，并受各服务自身政策约束。PCL Aurora 的 User Agent 仅用于向目标服务标识应用名称与版本；问题信息只会在你主动打开 GitHub Issues 并提交后发送。" />
+                                        <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="其他信息" />
+                                        <TextBlock LineHeight="18" TextWrapping="Wrap"
+                                                   Text="Copyright © 2026 Micro-ATP. All Rights Reserved.&#xA;PCL Aurora 是基于 Plain Craft Launcher 与 PCL Community Edition 的第三方跨平台迁移项目。Micro-ATP 独立实现的新增内容适用仓库根目录的严格专有迁移许可证；PCL、PCL-CE 与第三方来源内容仍按各自许可证处理。&#xA;非 Minecraft 官方产品，未经 Mojang 或 Microsoft 批准，也不与 Mojang 或 Microsoft 关联。" />
                                         <WrapPanel Margin="0,8,0,0" Orientation="Horizontal">
-                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="license" Content="许可文档" />
-                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl" Content="PCL 源代码" />
-                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl-ce" Content="PCL-CE 源代码" />
+                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="source" Content="Aurora 源代码" />
+                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="license" Content="根许可证" />
+                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="notice" Content="NOTICE" />
                                         </WrapPanel>
                                     </StackPanel>
-                                </Grid>
-                            </Border>
+                                </controls:PclCollapsibleCard.Body>
+                            </controls:PclCollapsibleCard>
+
+                            <controls:PclCollapsibleCard Margin="0,0,0,15"
+                                                         Title="上游版权与法律信息"
+                                                         IsExpanded="False">
+                                <controls:PclCollapsibleCard.Body>
+                                    <StackPanel Margin="25,5,23,20" Spacing="4">
+                                        <TextBlock FontWeight="SemiBold" Text="Plain Craft Launcher" />
+                                        <TextBlock LineHeight="18" TextWrapping="Wrap"
+                                                   Text="上游 PCL 的 User Agent 中包含启动器版本号，用于统计各版本的用户数量；除该上游行为外，PCL 声明不会向其开发者上传其他信息。此段仅说明 PCL 的上游实现，不代表 PCL Aurora 进行同类统计。" />
+                                        <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="版权与登记信息" />
+                                        <TextBlock LineHeight="18" TextWrapping="Wrap"
+                                                   Text="Copyright © 龙腾猫跃 2016. All Rights Reserved.&#xA;计算机软件著作权登记号：2020SR0875133&#xA;违法违规行为举报投诉邮箱：hexdragon@vip.qq.com&#xA;非 Minecraft 官方产品，未经 Mojang 或 Microsoft 批准，也不与 Mojang 或 Microsoft 关联。" />
+                                        <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="PCL Community Edition" />
+                                        <TextBlock LineHeight="18" TextWrapping="Wrap"
+                                                   Text="Copyright © 2026 PCL Community &amp; 龙腾猫跃. PCL Aurora 迁移、适配或直接复用的 PCL 与 PCL-CE 代码、界面和资源继续受对应专门许可证约束；Aurora 的根许可证不重新授权这些上游内容。" />
+                                        <WrapPanel Margin="0,8,0,0" Orientation="Horizontal">
+                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl-terms" Content="用户协议与免责声明" />
+                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl" Content="PCL 源代码" />
+                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl-ce" Content="PCL-CE 源代码" />
+                                            <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="pcl-ce-license" Content="PCL-CE 专门许可" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </controls:PclCollapsibleCard.Body>
+                            </controls:PclCollapsibleCard>
+
+                            <controls:PclCollapsibleCard Margin="0,0,0,15"
+                                                         Title="许可与版权声明"
+                                                         IsExpanded="False">
+                                <controls:PclCollapsibleCard.Body>
+                                    <ItemsControl Margin="25,2,23,4" ItemsSource="{Binding LicenseEntries}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:LicenseEntryViewModel">
+                                                <Grid Margin="0,0,0,8"
+                                                      ColumnDefinitions="145,20,*"
+                                                      RowDefinitions="Auto,Auto">
+                                                    <TextBlock Grid.Column="0"
+                                                               FontWeight="SemiBold"
+                                                               Text="{Binding Name}"
+                                                               TextWrapping="Wrap" />
+                                                    <TextBlock Grid.Column="2"
+                                                               LineHeight="18"
+                                                               Text="{Binding Information}"
+                                                               TextWrapping="Wrap" />
+                                                    <WrapPanel Grid.Row="1" Grid.Column="2" Margin="0,7,0,4" Orientation="Horizontal">
+                                                        <Button Classes="about-action"
+                                                                MinWidth="120"
+                                                                Margin="0,0,10,8"
+                                                                IsVisible="{Binding HasWebsite}"
+                                                                Tag="{Binding WebsiteTarget}"
+                                                                Click="ProjectPageLinkClick"
+                                                                Content="查看来源网站" />
+                                                        <Button Classes="about-action"
+                                                                MinWidth="120"
+                                                                Margin="0,0,10,8"
+                                                                IsVisible="{Binding HasLicense}"
+                                                                Tag="{Binding LicenseTarget}"
+                                                                Click="ProjectPageLinkClick"
+                                                                Content="查看许可文档" />
+                                                    </WrapPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </controls:PclCollapsibleCard.Body>
+                            </controls:PclCollapsibleCard>
                         </StackPanel>
 
                         <StackPanel x:Name="SettingsUpdateSection" IsVisible="False">
