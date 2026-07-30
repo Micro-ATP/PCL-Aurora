@@ -216,6 +216,7 @@ PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/server.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/arrow-left.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/chevron-right.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/rotate-ccw.svg
   adapted as Avalonia Paths in src/PCL.Aurora.Desktop/Views/MainWindow.axaml.
   The applicable ISC and MIT license text is provided in LICENSES/Lucide-Icons.txt.
 

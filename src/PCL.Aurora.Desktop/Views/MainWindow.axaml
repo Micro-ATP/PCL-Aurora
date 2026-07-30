@@ -35,6 +35,7 @@
             <GradientStop Offset="1" Color="#106AC5" />
         </LinearGradientBrush>
         <StreamGeometry x:Key="DownloadRefreshIcon">M20 11a8.1 8.1 0 0 0-15.5-2 M4 4v5h5 M4 13a8.1 8.1 0 0 0 15.5 2 M20 20v-5h-5</StreamGeometry>
+        <StreamGeometry x:Key="NavResetIcon">M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8 M3 3v5h5</StreamGeometry>
         <StreamGeometry x:Key="VersionInfoIcon">M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 10v7 M12 7h.01</StreamGeometry>
         <StreamGeometry x:Key="VersionServerIcon">M4 4h16v6H4z M4 14h16v6H4z M8 7h.01 M8 17h.01</StreamGeometry>
         <StreamGeometry x:Key="VersionExpandDownIcon">M7 10l5 5 5-5</StreamGeometry>
@@ -1496,7 +1497,7 @@
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
             <Setter Property="BorderBrush" Value="#96C0F9" />
         </Style>
-        <Style Selector="Button.download-refresh">
+        <Style Selector="Button.nav-row-action">
             <Setter Property="Width" Value="36" />
             <Setter Property="Height" Value="36" />
             <Setter Property="Padding" Value="0" />
@@ -1515,15 +1516,15 @@
                 </ControlTemplate>
             </Setter>
         </Style>
-        <Style Selector="Button.download-refresh:pointerover">
+        <Style Selector="Button.nav-row-action:pointerover">
             <Setter Property="Background" Value="#E4F1FF" />
             <Setter Property="Foreground" Value="#0F63C8" />
         </Style>
-        <Style Selector="Button.download-refresh:pressed">
+        <Style Selector="Button.nav-row-action:pressed">
             <Setter Property="Background" Value="#D6EAFF" />
             <Setter Property="Foreground" Value="#0B55B7" />
         </Style>
-        <Style Selector="Grid.download-navigation-row">
+        <Style Selector="Grid.nav-row">
             <Setter Property="Height" Value="36" />
             <Setter Property="Transitions">
                 <Transitions>
@@ -1531,38 +1532,38 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Grid.download-navigation-row:pointerover">
+        <Style Selector="Grid.nav-row:pointerover">
             <Setter Property="Background" Value="#E4F1FF" />
         </Style>
-        <Style Selector="Grid.download-navigation-row.selected">
+        <Style Selector="Grid.nav-row.selected">
             <Setter Property="Background" Value="#E4F1FF" />
         </Style>
-        <Style Selector="Grid.pcl-shell Grid.download-navigation-row.selected">
+        <Style Selector="Grid.pcl-shell Grid.nav-row.selected">
             <Setter Property="Background" Value="#E4F1FF" />
         </Style>
-        <Style Selector="Grid.pcl-shell Grid.download-navigation-row controls|PclNavigationButton.secondary-navigation.selected">
+        <Style Selector="Grid.pcl-shell Grid.nav-row controls|PclNavigationButton.secondary-navigation.selected">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
-        <Style Selector="Grid.pcl-shell Grid.download-navigation-row:pointerover controls|PclNavigationButton.secondary-navigation">
+        <Style Selector="Grid.pcl-shell Grid.nav-row:pointerover controls|PclNavigationButton.secondary-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
-        <Style Selector="Grid.pcl-shell Grid.download-navigation-row:pointerover controls|PclNavigationButton.secondary-navigation.selected:pointerover">
+        <Style Selector="Grid.pcl-shell Grid.nav-row:pointerover controls|PclNavigationButton.secondary-navigation.selected:pointerover">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
-        <Style Selector="Grid.download-navigation-row controls|PclNavigationButton.selected /template/ Border#SelectionIndicator">
+        <Style Selector="Grid.nav-row controls|PclNavigationButton.selected /template/ Border#SelectionIndicator">
             <Setter Property="IsVisible" Value="True" />
         </Style>
-        <Style Selector="Grid.download-navigation-row Button.download-refresh">
+        <Style Selector="Grid.nav-row Button.nav-row-action">
             <Setter Property="Opacity" Value="0" />
         </Style>
-        <Style Selector="Grid.download-navigation-row:pointerover Button.download-refresh">
+        <Style Selector="Grid.nav-row:pointerover Button.nav-row-action">
             <Setter Property="Opacity" Value="1" />
             <Setter Property="Background" Value="Transparent" />
         </Style>
-        <Style Selector="Grid.download-navigation-row Button.download-refresh:focus-visible">
+        <Style Selector="Grid.nav-row Button.nav-row-action:focus-visible">
             <Setter Property="Opacity" Value="1" />
             <Setter Property="BorderBrush" Value="{StaticResource PclThemePrimaryBrush}" />
             <Setter Property="BorderThickness" Value="1" />
@@ -2152,11 +2153,11 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Column names follow PCL2 PageDownloadLeft.xaml with PCL-CE installer additions. -->
                             <StackPanel x:Name="DownloadNavigationPanel" Spacing="2">
-                                <Grid Classes="download-navigation-row selected" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row selected" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation selected" Click="DownloadNavigationClick"
                                                                   Tag="game" Label="原版游戏"
                                                                   IconData="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.3 7 12 12l8.7-5 M12 22V12" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="game" Click="DownloadSectionRefreshClick"
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="game" Click="DownloadSectionRefreshClick"
                                             ToolTip.Tip="刷新" AutomationProperties.Name="刷新原版游戏">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent"
                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"
@@ -2164,95 +2165,95 @@
                                     </Button>
                                 </Grid>
                                 <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="社区资源" />
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="mod" Label="模组"
                                                                   IconData="M14.7 6.3 17.7 3.3 20.7 6.3 17.7 9.3 M14.7 6.3 4 17v3h3l10.7-10.7" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="mod" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新模组">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="mod" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新模组">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="pack" Label="整合包" IconData="M21 8v13H3V8 M1 3h22v5H1z M10 12h4" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="pack" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新整合包">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="pack" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新整合包">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="datapack" Label="数据包" IconData="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M9 13h6 M9 17h6" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="datapack" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新数据包">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="datapack" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新数据包">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="resourcepack" Label="资源包" IconData="M12 2 2 7l10 5 10-5-10-5z M2 12l10 5 10-5 M2 17l10 5 10-5" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="resourcepack" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新资源包">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="resourcepack" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新资源包">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="shader" Label="光影包" IconData="M12 2v2 M12 20v2 M4.93 4.93l1.42 1.42 M17.66 17.66l1.41 1.41 M2 12h2 M20 12h2 M4.93 19.07l1.42-1.41 M17.66 6.34l1.41-1.41 M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="shader" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新光影包">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="shader" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新光影包">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="world" Label="世界" IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M2 12h20 M12 2a15.3 15.3 0 0 1 0 20 M12 2a15.3 15.3 0 0 0 0 20" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="world" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新世界">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="world" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新世界">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="favorites" Label="收藏夹" IconData="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="favorites" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新收藏夹">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="favorites" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新收藏夹">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
                                 <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="安装包" />
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="optifine" Label="OptiFine" IconData="M12 14l4-4 M3.34 19a10 10 0 1 1 17.32 0" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="optifine" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 OptiFine">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="optifine" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 OptiFine">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="forge" Label="Forge" IconData="M7 10H6a4 4 0 0 1-4-4 1 1 0 0 1 1-1h4 M7 5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1 7 7 0 0 1-7 7H8a1 1 0 0 1-1-1z M9 12v5 M15 12v5 M5 20a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3 1 1 0 0 1-1 1H6a1 1 0 0 1-1-1" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="forge" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Forge">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="forge" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Forge">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="neoforge" Label="NeoForge" IconData="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z M8 14v.5 M16 14v.5 M11.25 16.25h1.5L12 17l-.75-.75Z" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="neoforge" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 NeoForge">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="neoforge" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 NeoForge">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="fabric" Label="Fabric" IconData="M19 17V5a2 2 0 0 0-2-2H4 M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="fabric" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Fabric">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="fabric" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Fabric">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="cleanroom" Label="Cleanroom" IconData="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2 M6.453 15h11.094 M8.5 2h7" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="cleanroom" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Cleanroom">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="cleanroom" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Cleanroom">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="legacy-fabric" Label="Legacy Fabric" IconData="M19 17V5a2 2 0 0 0-2-2H4 M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="legacy-fabric" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Legacy Fabric">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="legacy-fabric" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Legacy Fabric">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="labymod" Label="LabyMod" IconData="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z M3.3 7l8.7 5 8.7-5 M12 22V12" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="labymod" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 LabyMod">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="labymod" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 LabyMod">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <Grid Classes="download-navigation-row" ColumnDefinitions="*,36">
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="liteloader" Label="LiteLoader" IconData="M12 2C8 2 4 8 4 14a8 8 0 0 0 16 0c0-6-4-12-8-12" />
-                                    <Button Grid.Column="1" Classes="download-refresh" Tag="liteloader" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 LiteLoader">
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="liteloader" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 LiteLoader">
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
@@ -3016,18 +3017,50 @@
                             <!-- Category structure follows PCL-CE PageSetupLeft.xaml; visual treatment follows PCL2. -->
                             <StackPanel x:Name="SettingsNavigationPanel" Spacing="2">
                                 <TextBlock Margin="13,0,5,3" FontSize="12" Foreground="#6F7C8B" Text="游戏" />
-                                <controls:PclNavigationButton Classes="secondary-navigation selected" Click="SettingsNavigationClick" Tag="launch" Label="启动"
-                                                              IconData="M5 5a2 2 0 0 1 3-1.73l12 7a2 2 0 0 1 0 3.46l-12 7A2 2 0 0 1 5 19z" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="java" Label="Java"
-                                                              IconData="M10 2v2 M14 2v2 M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1 M6 2v2" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="manage" Label="管理"
-                                                              IconData="M10 2v8l3-3 3 3V2 M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" />
+                                <Grid Classes="nav-row selected" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation selected" Click="SettingsNavigationClick" Tag="launch" Label="启动"
+                                                                  IconData="M5 5a2 2 0 0 1 3-1.73l12 7a2 2 0 0 1 0 3.46l-12 7A2 2 0 0 1 5 19z" />
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="launch" Click="SettingsSectionResetClick"
+                                            ToolTip.Tip="初始化" AutomationProperties.Name="初始化启动设置">
+                                        <Path Width="16" Height="16" Data="{StaticResource NavResetIcon}" Stretch="Uniform" Fill="Transparent"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="java" Label="Java"
+                                                                  IconData="M10 2v2 M14 2v2 M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1 M6 2v2" />
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="java" Click="SettingsSectionRefreshClick"
+                                            ToolTip.Tip="刷新" AutomationProperties.Name="刷新 Java 列表">
+                                        <Path Width="16" Height="16" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="manage" Label="管理"
+                                                                  IconData="M10 2v8l3-3 3 3V2 M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" />
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="manage" Click="SettingsSectionResetClick"
+                                            ToolTip.Tip="初始化" AutomationProperties.Name="初始化管理设置">
+                                        <Path Width="16" Height="16" Data="{StaticResource NavResetIcon}" Stretch="Uniform" Fill="Transparent"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
                                 <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="#6F7C8B" Text="工具" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="link" Label="联机"
                                                               IconData="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                                 <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="#6F7C8B" Text="启动器" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="interface" Label="个性化"
-                                                              IconData="M12 22a10 10 0 1 0 0-20 7 7 0 0 0 0 14h1.5a2.5 2.5 0 0 1 0 5z M7.5 10h.01 M12 7h.01 M16.5 10h.01" />
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="interface" Label="个性化"
+                                                                  IconData="M12 22a10 10 0 1 0 0-20 7 7 0 0 0 0 14h1.5a2.5 2.5 0 0 1 0 5z M7.5 10h.01 M12 7h.01 M16.5 10h.01" />
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="interface" Click="SettingsSectionResetClick"
+                                            ToolTip.Tip="初始化" AutomationProperties.Name="初始化个性化设置">
+                                        <Path Width="16" Height="16" Data="{StaticResource NavResetIcon}" Stretch="Uniform" Fill="Transparent"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="language" Label="语言"
                                                               IconData="M5 8l6 6 M4 14l6-7 2-3 M2 5h12 M12 22l4-9 4 9 M14 18h4" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="misc" Label="杂项"
@@ -3907,8 +3940,16 @@
                     <Border Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <!-- PCL2 PageOtherLeft.xaml structure, plus PCL-CE/Aurora session log access. -->
                         <StackPanel x:Name="MoreNavigationPanel" Spacing="2">
-                            <controls:PclNavigationButton Classes="secondary-navigation selected" Click="MoreNavigationClick" Tag="help" Label="帮助"
-                                                          IconData="M9.1 9a3 3 0 1 1 5.83 1c0 2-3 2-3 4 M12 18h.01 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z" />
+                            <Grid Classes="nav-row selected" ColumnDefinitions="*,36">
+                                <controls:PclNavigationButton Classes="secondary-navigation selected" Click="MoreNavigationClick" Tag="help" Label="帮助"
+                                                              IconData="M9.1 9a3 3 0 1 1 5.83 1c0 2-3 2-3 4 M12 18h.01 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z" />
+                                <Button Grid.Column="1" Classes="nav-row-action" Tag="help" Click="MoreSectionRefreshClick"
+                                        ToolTip.Tip="刷新" AutomationProperties.Name="刷新帮助">
+                                    <Path Width="16" Height="16" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent"
+                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"
+                                          StrokeLineCap="Round" StrokeJoin="Round" />
+                                </Button>
+                            </Grid>
                             <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="about" Label="关于与鸣谢"
                                                           IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
                             <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="toolbox" Label="百宝箱"

@@ -214,9 +214,17 @@ public partial class MainWindow : Window
             return;
         }
 
-        foreach (var navigation in MoreNavigationPanel.Children.OfType<PclNavigationButton>())
+        foreach (var navigation in MoreNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>())
         {
-            navigation.Classes.Set("selected", navigation == selectedNavigation);
+            var isSelected = navigation == selectedNavigation;
+            navigation.Classes.Set("selected", isSelected);
+            var row = navigation.GetVisualAncestors()
+                .OfType<Grid>()
+                .FirstOrDefault(candidate => candidate.Classes.Contains("nav-row"));
+            if (row is not null)
+            {
+                row.Classes.Set("selected", isSelected);
+            }
         }
 
         var sectionChanged = currentMoreSection != section;
@@ -227,6 +235,16 @@ public partial class MainWindow : Window
             MoreContentHost,
             () => ApplyMoreSection(section),
             force: sectionChanged);
+    }
+
+    private void MoreSectionRefreshClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string section } || section != "help")
+        {
+            return;
+        }
+
+        PopulateMorePlaceholder("help");
     }
 
     private void ApplyMoreSection(string section)
@@ -349,7 +367,7 @@ public partial class MainWindow : Window
             navigation.Classes.Set("selected", isSelected);
             var row = navigation.GetVisualAncestors()
                 .OfType<Grid>()
-                .FirstOrDefault(candidate => candidate.Classes.Contains("download-navigation-row"));
+                .FirstOrDefault(candidate => candidate.Classes.Contains("nav-row"));
             if (row is not null)
             {
                 row.Classes.Set("selected", isSelected);
@@ -1345,9 +1363,17 @@ public partial class MainWindow : Window
             return;
         }
 
-        foreach (var navigation in SettingsNavigationPanel.Children.OfType<PclNavigationButton>())
+        foreach (var navigation in SettingsNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>())
         {
-            navigation.Classes.Set("selected", navigation == selectedNavigation);
+            var isSelected = navigation == selectedNavigation;
+            navigation.Classes.Set("selected", isSelected);
+            var row = navigation.GetVisualAncestors()
+                .OfType<Grid>()
+                .FirstOrDefault(candidate => candidate.Classes.Contains("nav-row"));
+            if (row is not null)
+            {
+                row.Classes.Set("selected", isSelected);
+            }
         }
 
         if (section == "about" && DataContext is ViewModels.MainViewModel viewModel)
@@ -1386,6 +1412,52 @@ public partial class MainWindow : Window
                 SettingsLogSection,
             ],
             selectedSection);
+    }
+
+    private async void SettingsSectionRefreshClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string section } || DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        if (section == "java")
+        {
+            await viewModel.RefreshCommand.ExecuteAsync(null);
+        }
+    }
+
+    private async void SettingsSectionResetClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string section } || DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var (title, message) = section switch
+        {
+            "launch" => ("初始化确认", "是否要初始化 游戏-启动 页面的所有设置？该操作不可撤销。"),
+            "manage" => ("初始化确认", "是否要初始化 游戏-管理 页面的所有设置？该操作不可撤销。"),
+            "interface" => ("初始化确认", "是否要初始化 启动器-个性化 页面的所有设置？该操作不可撤销。"),
+            _ => (string.Empty, string.Empty),
+        };
+        if (title.Length == 0 || !await ShowConfirmationAsync(title, message))
+        {
+            return;
+        }
+
+        switch (section)
+        {
+            case "launch":
+                await viewModel.ResetLaunchSettingsAsync();
+                break;
+            case "manage":
+                await viewModel.ResetGameManagementSettingsAsync();
+                break;
+            case "interface":
+                await viewModel.ResetInterfaceSettingsAsync();
+                break;
+        }
     }
 
     private void MemoryAutoClick(object? sender, RoutedEventArgs e)

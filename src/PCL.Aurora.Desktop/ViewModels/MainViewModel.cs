@@ -3706,6 +3706,106 @@ public partial class MainViewModel(
         }
     }
 
+    /// <summary>
+    /// 将“游戏-启动”设置页的全部字段重置为安全默认值并持久化。
+    /// 迁移自 PCL-CE PageSetupLeft.Reset 对 PageSetupLaunch 的初始化语义。
+    /// </summary>
+    public async Task ResetLaunchSettingsAsync()
+    {
+        var defaults = MinecraftLaunchOptions.Default;
+        isLoadingPreferences = true;
+        try
+        {
+            AdditionalJvmArguments = defaults.AdditionalJvmArguments ?? string.Empty;
+            AdditionalGameArguments = defaults.AdditionalGameArguments ?? string.Empty;
+            SelectedInstanceIsolationMode = InstanceIsolationModes.Single(option => option.Mode == defaults.InstanceIsolationMode);
+            WindowTitle = defaults.WindowTitle ?? string.Empty;
+            CustomInfo = defaults.CustomInfo ?? string.Empty;
+            SelectedLauncherVisibility = LauncherVisibilityModes.Single(option => option.Mode == defaults.LauncherVisibility);
+            SelectedGameProcessPriority = GameProcessPriorities.Single(option => option.Priority == defaults.ProcessPriority);
+            SelectedPreferredIpStack = PreferredIpStacks.Single(option => option.Stack == defaults.PreferredIpStack);
+            SelectedRendererMode = RendererModes.Single(option => option.Mode == defaults.Renderer);
+            PreLaunchCommand = defaults.PreLaunchCommand ?? string.Empty;
+            WaitForPreLaunchCommand = defaults.WaitForPreLaunchCommand;
+            DisableJavaLaunchWrapper = defaults.DisableJavaLaunchWrapper;
+            DisableLegacyFix = defaults.DisableLegacyFix;
+            PreferDedicatedGpu = defaults.PreferDedicatedGpu;
+            UseJavaExecutable = defaults.UseJavaExecutable;
+            DisableLwjglUnsafeAgent = defaults.DisableLwjglUnsafeAgent;
+            DisableCrashAnalysis = defaults.DisableCrashAnalysis;
+            LockMemory = defaults.LockMemory;
+            SelectedGameWindowMode = GameWindowModes.Single(option => option.Mode == defaults.WindowMode);
+            CustomGameWindowWidth = defaults.WindowWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            CustomGameWindowHeight = defaults.WindowHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            UsesCustomGameWindowSize = defaults.WindowMode == MinecraftGameWindowMode.Custom;
+            SelectedMemoryAllocationMode = MemoryAllocationModes.Single(option => option.Mode == defaults.MemoryAllocationMode);
+            CustomMemoryMiB = defaults.CustomMemoryMiB.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            CustomMemorySliderValue = MemoryMiBToSliderStep(defaults.CustomMemoryMiB);
+            UsesCustomMemoryAllocation = defaults.MemoryAllocationMode == MinecraftMemoryAllocationMode.Custom;
+            RefreshMemoryDisplay();
+        }
+        finally
+        {
+            isLoadingPreferences = false;
+        }
+
+        await SaveLaunchOptionsAsync();
+    }
+
+    /// <summary>
+    /// 将“游戏-管理”设置页的全部字段重置为安全默认值并持久化。
+    /// 迁移自 PCL-CE PageSetupLeft.Reset 对 PageSetupGameManage 的初始化语义。
+    /// </summary>
+    public async Task ResetGameManagementSettingsAsync()
+    {
+        var defaults = GameManagementOptions.Default;
+        isLoadingPreferences = true;
+        try
+        {
+            SelectedFileSource = FileSourceOptions.Single(option => option.Value == defaults.FileSource);
+            SelectedVersionListSource = VersionListSourceOptions.Single(option => option.Value == defaults.VersionListSource);
+            AutoSelectNewInstance = defaults.AutoSelectNewInstance;
+            FixAuthlib = defaults.FixAuthlib;
+            SelectedCommunitySource = CommunitySourceOptions.Single(option => option.Value == defaults.CommunitySource);
+            SelectedCommunityFileNameFormat = CommunityFileNameFormatOptions.Single(option => option.Value == defaults.CommunityFileNameFormat);
+            SelectedCommunityModNameStyle = CommunityModNameStyleOptions.Single(option => option.Value == defaults.CommunityModNameStyle);
+            SelectedCommunityQuickDownloadBehavior = CommunityQuickDownloadBehaviorOptions.Single(option => option.Value == defaults.QuickDownloadBehavior);
+            IgnoreQuilt = defaults.IgnoreQuilt;
+            AutoInstallDependencies = defaults.AutoInstallDependencies;
+            ReleaseNotifications = defaults.ReleaseNotifications;
+            SnapshotNotifications = defaults.SnapshotNotifications;
+            AutoChangeGameLanguage = defaults.AutoChangeGameLanguage;
+            ReadClipboard = defaults.ReadClipboard;
+        }
+        finally
+        {
+            isLoadingPreferences = false;
+        }
+
+        await SaveGameManagementOptionsAsync(CancellationToken.None);
+    }
+
+    /// <summary>
+    /// 将“启动器-个性化”设置页当前唯一的真实持久化字段（主题模式）重置为默认值。
+    /// 语言、背景、字体等控件目前仍是禁用占位，不在本次重置范围内，避免伪造已生效的设置。
+    /// </summary>
+    public async Task ResetInterfaceSettingsAsync()
+    {
+        var option = ThemeModes.Single(item => item.Mode == LauncherThemeMode.System);
+        isLoadingPreferences = true;
+        try
+        {
+            SelectedThemeMode = option;
+            themeService.Apply(option.Mode);
+        }
+        finally
+        {
+            isLoadingPreferences = false;
+        }
+
+        await SaveThemePreferenceAsync(option);
+    }
+
     private static string GetLaunchOptionsSummary(MinecraftLaunchOptions options)
     {
         var windowDescription = options.WindowMode switch
