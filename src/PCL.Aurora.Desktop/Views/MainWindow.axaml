@@ -1077,6 +1077,8 @@
                             CornerRadius="{TemplateBinding CornerRadius}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="Stretch"
                                           HorizontalContentAlignment="Stretch"
                                           VerticalContentAlignment="Center"
                                           TextElement.Foreground="{TemplateBinding Foreground}" />
@@ -1292,6 +1294,7 @@
                     <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                         <ContentPresenter Content="{TemplateBinding Content}"
                                           ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="Stretch"
                                           HorizontalContentAlignment="Stretch"
                                           VerticalContentAlignment="Center" />
                     </Border>
@@ -1351,6 +1354,7 @@
             <Setter Property="Foreground" Value="#36424F" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Template">
@@ -1359,6 +1363,8 @@
                             CornerRadius="{TemplateBinding CornerRadius}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="Stretch"
                                           HorizontalContentAlignment="Stretch"
                                           VerticalContentAlignment="Center"
                                           TextElement.Foreground="{TemplateBinding Foreground}" />
@@ -1380,6 +1386,7 @@
             <Setter Property="Foreground" Value="#36424F" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Template">
@@ -1387,6 +1394,8 @@
                     <Border Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="Stretch"
                                           HorizontalContentAlignment="Stretch"
                                           VerticalContentAlignment="Center" />
                     </Border>
@@ -1412,6 +1421,8 @@
                 <ControlTemplate TargetType="Button">
                     <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                         <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="Stretch"
                                           HorizontalContentAlignment="Stretch"
                                           VerticalContentAlignment="Center" />
                     </Border>
@@ -1474,6 +1485,7 @@
             <Setter Property="Foreground" Value="#344150" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>

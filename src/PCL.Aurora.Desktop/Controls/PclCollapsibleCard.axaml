@@ -24,13 +24,32 @@
         </Style>
         <Style Selector="Button.collapsible-card-header">
             <Setter Property="Height" Value="40" />
+            <Setter Property="MinWidth" Value="0" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="4,4,0,0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="Stretch"
+                                          VerticalAlignment="Stretch"
+                                          HorizontalContentAlignment="Stretch"
+                                          VerticalContentAlignment="Stretch"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
         </Style>
         <Style Selector="Button.collapsible-card-header:pointerover">
             <Setter Property="Background" Value="#0A4890F5" />
@@ -72,6 +91,7 @@
                     AutomationProperties.Name="{Binding Title, ElementName=Root}"
                     AutomationProperties.HelpText="展开或收起内容">
                 <Grid ColumnDefinitions="*,Auto"
+                      MinWidth="0"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch">
                     <TextBlock Margin="16,0"
