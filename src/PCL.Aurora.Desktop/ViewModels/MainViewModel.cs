@@ -100,6 +100,7 @@ public partial class MainViewModel(
     private CancellationTokenSource? loaderDirectoryCancellation;
     private CancellationTokenSource? launchOptionsSaveCancellation;
     private CancellationTokenSource? gameManagementOptionsSaveCancellation;
+    private CancellationTokenSource? interfaceSettingsSaveCancellation;
     private CommunityResourceVersionFilterSet communityVersionFilters = new([], [], false, false);
     private string? selectedCommunityGameVersionFilter;
     private string? selectedCommunityLoaderFilter;
@@ -357,6 +358,152 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private string themeSummary = "正在读取本地主题偏好…";
+
+    [ObservableProperty]
+    private int interfaceWindowOpacity = InterfaceSettings.Default.WindowOpacity;
+
+    [ObservableProperty]
+    private int lightThemeColorIndex = (int)InterfaceSettings.Default.LightColor;
+
+    [ObservableProperty]
+    private int darkThemeColorIndex = (int)InterfaceSettings.Default.DarkColor;
+
+    [ObservableProperty]
+    private bool showStartupLogo = InterfaceSettings.Default.ShowStartupLogo;
+
+    [ObservableProperty]
+    private bool lockWindowSize = InterfaceSettings.Default.LockWindowSize;
+
+    [ObservableProperty]
+    private bool showLaunchingHint = InterfaceSettings.Default.ShowLaunchingHint;
+
+    [ObservableProperty]
+    private bool enableAdvancedMaterial = InterfaceSettings.Default.EnableAdvancedMaterial;
+
+    [ObservableProperty]
+    private int interfaceBlurRadius = InterfaceSettings.Default.BlurRadius;
+
+    [ObservableProperty]
+    private int interfaceBlurSamplingRate = InterfaceSettings.Default.BlurSamplingRate;
+
+    [ObservableProperty]
+    private int interfaceBlurKernelIndex = (int)InterfaceSettings.Default.BlurKernel;
+
+    [ObservableProperty]
+    private string globalInterfaceFont = InterfaceSettings.Default.GlobalFont;
+
+    [ObservableProperty]
+    private string motdInterfaceFont = InterfaceSettings.Default.MotdFont;
+
+    [ObservableProperty]
+    private int backgroundSuitIndex = (int)InterfaceSettings.Default.BackgroundSuit;
+
+    [ObservableProperty]
+    private int interfaceBackgroundOpacity = InterfaceSettings.Default.BackgroundOpacity;
+
+    [ObservableProperty]
+    private int interfaceBackgroundBlurRadius = InterfaceSettings.Default.BackgroundBlurRadius;
+
+    [ObservableProperty]
+    private bool autoPauseBackgroundVideo = InterfaceSettings.Default.AutoPauseVideo;
+
+    [ObservableProperty]
+    private bool useColorfulBackground = InterfaceSettings.Default.BackgroundColorful;
+
+    [ObservableProperty]
+    private int interfaceMusicVolume = InterfaceSettings.Default.MusicVolume;
+
+    [ObservableProperty]
+    private bool shuffleBackgroundMusic = InterfaceSettings.Default.ShuffleMusic;
+
+    [ObservableProperty]
+    private bool autoPlayBackgroundMusic = InterfaceSettings.Default.AutoPlayMusic;
+
+    [ObservableProperty]
+    private bool startBackgroundMusicInGame = InterfaceSettings.Default.StartMusicInGame;
+
+    [ObservableProperty]
+    private bool stopBackgroundMusicInGame = InterfaceSettings.Default.StopMusicInGame;
+
+    [ObservableProperty]
+    private bool enableSystemMediaControls = InterfaceSettings.Default.EnableSystemMediaControls;
+
+    [ObservableProperty]
+    private int titleContentTypeIndex = (int)InterfaceSettings.Default.TitleType;
+
+    [ObservableProperty]
+    private bool titleLeftAligned = InterfaceSettings.Default.TitleLeftAligned;
+
+    [ObservableProperty]
+    private string customTitleText = InterfaceSettings.Default.CustomTitleText;
+
+    [ObservableProperty]
+    private int homepageTypeIndex = (int)InterfaceSettings.Default.HomepageType;
+
+    [ObservableProperty]
+    private int homepagePresetIndex = InterfaceSettings.Default.HomepagePreset;
+
+    [ObservableProperty]
+    private string homepageUrl = InterfaceSettings.Default.HomepageUrl;
+
+    [ObservableProperty] private bool hidePageDownload;
+    [ObservableProperty] private bool hidePageSettings;
+    [ObservableProperty] private bool hidePageTools;
+    [ObservableProperty] private bool hideSetupLaunch;
+    [ObservableProperty] private bool hideSetupJava;
+    [ObservableProperty] private bool hideSetupManage;
+    [ObservableProperty] private bool hideSetupLink;
+    [ObservableProperty] private bool hideSetupInterface;
+    [ObservableProperty] private bool hideSetupLanguage;
+    [ObservableProperty] private bool hideSetupMisc;
+    [ObservableProperty] private bool hideSetupUpdate;
+    [ObservableProperty] private bool hideSetupAbout;
+    [ObservableProperty] private bool hideSetupFeedback;
+    [ObservableProperty] private bool hideSetupLog;
+    [ObservableProperty] private bool hideToolsLink;
+    [ObservableProperty] private bool hideToolsToolbox;
+    [ObservableProperty] private bool hideInstanceEdit;
+    [ObservableProperty] private bool hideInstanceExport;
+    [ObservableProperty] private bool hideInstanceSave;
+    [ObservableProperty] private bool hideInstanceScreenshot;
+    [ObservableProperty] private bool hideInstanceMod;
+    [ObservableProperty] private bool hideInstanceResourcePack;
+    [ObservableProperty] private bool hideInstanceShader;
+    [ObservableProperty] private bool hideInstanceSchematic;
+    [ObservableProperty] private bool hideInstanceServer;
+    [ObservableProperty] private bool hideFunctionInstanceSelect;
+    [ObservableProperty] private bool hideFunctionModUpdate;
+    [ObservableProperty] private bool hideFunctionSettings;
+
+    public double InterfaceWindowOpacityFraction => InterfaceWindowOpacity / 1000d + 0.4d;
+
+    public bool UsesAdvancedMaterialSettings => EnableAdvancedMaterial;
+
+    public bool UsesCustomTitleText => TitleContentTypeIndex == (int)LauncherTitleContentType.Text;
+
+    public bool UsesCustomTitleImage => TitleContentTypeIndex == (int)LauncherTitleContentType.Image;
+
+    public bool ShowsTitleLeftAlignment => TitleContentTypeIndex == (int)LauncherTitleContentType.None;
+
+    public bool IsTitleNone { get => TitleContentTypeIndex == 0; set { if (value) TitleContentTypeIndex = 0; } }
+    public bool IsTitleDefault { get => TitleContentTypeIndex == 1; set { if (value) TitleContentTypeIndex = 1; } }
+    public bool IsTitleText { get => TitleContentTypeIndex == 2; set { if (value) TitleContentTypeIndex = 2; } }
+    public bool IsTitleImage { get => TitleContentTypeIndex == 3; set { if (value) TitleContentTypeIndex = 3; } }
+
+    public bool UsesLocalHomepage => HomepageTypeIndex == (int)LauncherHomepageType.LocalFile;
+
+    public bool UsesOnlineHomepage => HomepageTypeIndex == (int)LauncherHomepageType.Online;
+
+    public bool UsesPresetHomepage => HomepageTypeIndex == (int)LauncherHomepageType.Preset;
+
+    public bool IsHomepageBlank { get => HomepageTypeIndex == 0; set { if (value) HomepageTypeIndex = 0; } }
+    public bool IsHomepageLocal { get => HomepageTypeIndex == 1; set { if (value) HomepageTypeIndex = 1; } }
+    public bool IsHomepageOnline { get => HomepageTypeIndex == 2; set { if (value) HomepageTypeIndex = 2; } }
+    public bool IsHomepagePreset { get => HomepageTypeIndex == 3; set { if (value) HomepageTypeIndex = 3; } }
+
+    public bool SupportsSystemMediaControls => System.OperatingSystem.IsWindows();
+
+    public bool SupportsAdvancedWindowMaterial => System.OperatingSystem.IsWindows();
 
     [ObservableProperty]
     private string contributorSummary = "正在读取 GitHub 贡献者…";
@@ -1196,6 +1343,7 @@ public partial class MainViewModel(
             SelectedThemeMode = option;
             themeService.Apply(option.Mode);
             ThemeSummary = result.Warning ?? $"当前使用{option.DisplayName}主题；该偏好已保存到本机。";
+            ApplyInterfaceSettings(result.Preferences.EffectiveInterfaceSettings);
             SelectedDownloadConcurrency = result.Preferences.DownloadConcurrency;
             SelectedDownloadSpeedLimitStep = result.Preferences.DownloadSpeedLimitStep;
             var managementOptions = result.Preferences.EffectiveGameManagementOptions;
@@ -3437,6 +3585,254 @@ public partial class MainViewModel(
         }
     }
 
+    private void ApplyInterfaceSettings(InterfaceSettings settings)
+    {
+        InterfaceWindowOpacity = settings.WindowOpacity;
+        LightThemeColorIndex = (int)settings.LightColor;
+        DarkThemeColorIndex = (int)settings.DarkColor;
+        ShowStartupLogo = settings.ShowStartupLogo;
+        LockWindowSize = settings.LockWindowSize;
+        ShowLaunchingHint = settings.ShowLaunchingHint;
+        EnableAdvancedMaterial = settings.EnableAdvancedMaterial;
+        InterfaceBlurRadius = settings.BlurRadius;
+        InterfaceBlurSamplingRate = settings.BlurSamplingRate;
+        InterfaceBlurKernelIndex = (int)settings.BlurKernel;
+        GlobalInterfaceFont = settings.GlobalFont;
+        MotdInterfaceFont = settings.MotdFont;
+        BackgroundSuitIndex = (int)settings.BackgroundSuit;
+        InterfaceBackgroundOpacity = settings.BackgroundOpacity;
+        InterfaceBackgroundBlurRadius = settings.BackgroundBlurRadius;
+        AutoPauseBackgroundVideo = settings.AutoPauseVideo;
+        UseColorfulBackground = settings.BackgroundColorful;
+        InterfaceMusicVolume = settings.MusicVolume;
+        ShuffleBackgroundMusic = settings.ShuffleMusic;
+        AutoPlayBackgroundMusic = settings.AutoPlayMusic;
+        StartBackgroundMusicInGame = settings.StartMusicInGame;
+        StopBackgroundMusicInGame = settings.StopMusicInGame;
+        EnableSystemMediaControls = settings.EnableSystemMediaControls;
+        TitleContentTypeIndex = (int)settings.TitleType;
+        TitleLeftAligned = settings.TitleLeftAligned;
+        CustomTitleText = settings.CustomTitleText;
+        HomepageTypeIndex = (int)settings.HomepageType;
+        HomepagePresetIndex = settings.HomepagePreset;
+        HomepageUrl = settings.HomepageUrl;
+
+        var hidden = settings.EffectiveHidden;
+        HidePageDownload = hidden.PageDownload;
+        HidePageSettings = hidden.PageSettings;
+        HidePageTools = hidden.PageTools;
+        HideSetupLaunch = hidden.SetupLaunch;
+        HideSetupJava = hidden.SetupJava;
+        HideSetupManage = hidden.SetupManage;
+        HideSetupLink = hidden.SetupLink;
+        HideSetupInterface = hidden.SetupInterface;
+        HideSetupLanguage = hidden.SetupLanguage;
+        HideSetupMisc = hidden.SetupMisc;
+        HideSetupUpdate = hidden.SetupUpdate;
+        HideSetupAbout = hidden.SetupAbout;
+        HideSetupFeedback = hidden.SetupFeedback;
+        HideSetupLog = hidden.SetupLog;
+        HideToolsLink = hidden.ToolsLink;
+        HideToolsToolbox = hidden.ToolsToolbox;
+        HideInstanceEdit = hidden.InstanceEdit;
+        HideInstanceExport = hidden.InstanceExport;
+        HideInstanceSave = hidden.InstanceSave;
+        HideInstanceScreenshot = hidden.InstanceScreenshot;
+        HideInstanceMod = hidden.InstanceMod;
+        HideInstanceResourcePack = hidden.InstanceResourcePack;
+        HideInstanceShader = hidden.InstanceShader;
+        HideInstanceSchematic = hidden.InstanceSchematic;
+        HideInstanceServer = hidden.InstanceServer;
+        HideFunctionInstanceSelect = hidden.FunctionInstanceSelect;
+        HideFunctionModUpdate = hidden.FunctionModUpdate;
+        HideFunctionSettings = hidden.FunctionHideSettings;
+    }
+
+    partial void OnInterfaceWindowOpacityChanged(int value)
+    {
+        OnPropertyChanged(nameof(InterfaceWindowOpacityFraction));
+        QueueInterfaceSettingsSave();
+    }
+
+    partial void OnEnableAdvancedMaterialChanged(bool value)
+    {
+        OnPropertyChanged(nameof(UsesAdvancedMaterialSettings));
+        QueueInterfaceSettingsSave();
+    }
+
+    partial void OnTitleContentTypeIndexChanged(int value)
+    {
+        OnPropertyChanged(nameof(UsesCustomTitleText));
+        OnPropertyChanged(nameof(UsesCustomTitleImage));
+        OnPropertyChanged(nameof(ShowsTitleLeftAlignment));
+        OnPropertyChanged(nameof(IsTitleNone));
+        OnPropertyChanged(nameof(IsTitleDefault));
+        OnPropertyChanged(nameof(IsTitleText));
+        OnPropertyChanged(nameof(IsTitleImage));
+        QueueInterfaceSettingsSave();
+    }
+
+    partial void OnHomepageTypeIndexChanged(int value)
+    {
+        OnPropertyChanged(nameof(UsesLocalHomepage));
+        OnPropertyChanged(nameof(UsesOnlineHomepage));
+        OnPropertyChanged(nameof(UsesPresetHomepage));
+        OnPropertyChanged(nameof(IsHomepageBlank));
+        OnPropertyChanged(nameof(IsHomepageLocal));
+        OnPropertyChanged(nameof(IsHomepageOnline));
+        OnPropertyChanged(nameof(IsHomepagePreset));
+        QueueInterfaceSettingsSave();
+    }
+
+    partial void OnStartBackgroundMusicInGameChanged(bool value)
+    {
+        if (value)
+        {
+            StopBackgroundMusicInGame = false;
+        }
+
+        QueueInterfaceSettingsSave();
+    }
+
+    partial void OnStopBackgroundMusicInGameChanged(bool value)
+    {
+        if (value)
+        {
+            StartBackgroundMusicInGame = false;
+        }
+
+        QueueInterfaceSettingsSave();
+    }
+
+    partial void OnLightThemeColorIndexChanged(int value) => QueueInterfaceSettingsSave();
+    partial void OnDarkThemeColorIndexChanged(int value) => QueueInterfaceSettingsSave();
+    partial void OnShowStartupLogoChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnLockWindowSizeChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnShowLaunchingHintChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnInterfaceBlurRadiusChanged(int value) => QueueInterfaceSettingsSave();
+    partial void OnInterfaceBlurSamplingRateChanged(int value) => QueueInterfaceSettingsSave();
+    partial void OnInterfaceBlurKernelIndexChanged(int value) => QueueInterfaceSettingsSave();
+    partial void OnGlobalInterfaceFontChanged(string value) => QueueInterfaceSettingsSave();
+    partial void OnMotdInterfaceFontChanged(string value) => QueueInterfaceSettingsSave();
+    partial void OnBackgroundSuitIndexChanged(int value) => QueueInterfaceSettingsSave();
+    partial void OnInterfaceBackgroundOpacityChanged(int value) => QueueInterfaceSettingsSave();
+    partial void OnInterfaceBackgroundBlurRadiusChanged(int value) => QueueInterfaceSettingsSave();
+    partial void OnAutoPauseBackgroundVideoChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnUseColorfulBackgroundChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnInterfaceMusicVolumeChanged(int value) => QueueInterfaceSettingsSave();
+    partial void OnShuffleBackgroundMusicChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnAutoPlayBackgroundMusicChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnEnableSystemMediaControlsChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnTitleLeftAlignedChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnCustomTitleTextChanged(string value) => QueueInterfaceSettingsSave();
+    partial void OnHomepagePresetIndexChanged(int value) => QueueInterfaceSettingsSave();
+    partial void OnHomepageUrlChanged(string value) => QueueInterfaceSettingsSave();
+
+    partial void OnHidePageDownloadChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHidePageSettingsChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHidePageToolsChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupLaunchChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupJavaChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupManageChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupLinkChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupInterfaceChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupLanguageChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupMiscChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupUpdateChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupAboutChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupFeedbackChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideSetupLogChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideToolsLinkChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideToolsToolboxChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideInstanceEditChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideInstanceExportChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideInstanceSaveChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideInstanceScreenshotChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideInstanceModChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideInstanceResourcePackChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideInstanceShaderChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideInstanceSchematicChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideInstanceServerChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideFunctionInstanceSelectChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideFunctionModUpdateChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideFunctionSettingsChanged(bool value) => QueueInterfaceSettingsSave();
+
+    private void QueueInterfaceSettingsSave()
+    {
+        if (isLoadingPreferences)
+        {
+            return;
+        }
+
+        interfaceSettingsSaveCancellation?.Cancel();
+        interfaceSettingsSaveCancellation?.Dispose();
+        interfaceSettingsSaveCancellation = new CancellationTokenSource();
+        _ = SaveInterfaceSettingsAsync(interfaceSettingsSaveCancellation.Token);
+    }
+
+    private async Task SaveInterfaceSettingsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(250, cancellationToken);
+            var hidden = new InterfaceFeatureVisibility(
+                HidePageDownload, HidePageSettings, HidePageTools,
+                HideSetupLaunch, HideSetupJava, HideSetupManage, HideSetupLink,
+                HideSetupInterface, HideSetupLanguage, HideSetupMisc, HideSetupUpdate,
+                HideSetupAbout, HideSetupFeedback, HideSetupLog,
+                HideToolsLink, HideToolsToolbox,
+                HideInstanceEdit, HideInstanceExport, HideInstanceSave, HideInstanceScreenshot,
+                HideInstanceMod, HideInstanceResourcePack, HideInstanceShader,
+                HideInstanceSchematic, HideInstanceServer,
+                HideFunctionInstanceSelect, HideFunctionModUpdate, HideFunctionSettings);
+            var settings = new InterfaceSettings(
+                InterfaceWindowOpacity,
+                (LauncherColorTheme)LightThemeColorIndex,
+                (LauncherColorTheme)DarkThemeColorIndex,
+                ShowStartupLogo,
+                LockWindowSize,
+                ShowLaunchingHint,
+                EnableAdvancedMaterial,
+                InterfaceBlurRadius,
+                InterfaceBlurSamplingRate,
+                (LauncherBlurKernel)InterfaceBlurKernelIndex,
+                GlobalInterfaceFont,
+                MotdInterfaceFont,
+                (LauncherBackgroundSuitMode)BackgroundSuitIndex,
+                InterfaceBackgroundOpacity,
+                InterfaceBackgroundBlurRadius,
+                AutoPauseBackgroundVideo,
+                UseColorfulBackground,
+                InterfaceMusicVolume,
+                ShuffleBackgroundMusic,
+                AutoPlayBackgroundMusic,
+                StartBackgroundMusicInGame,
+                StopBackgroundMusicInGame,
+                EnableSystemMediaControls,
+                (LauncherTitleContentType)TitleContentTypeIndex,
+                TitleLeftAligned,
+                CustomTitleText,
+                (LauncherHomepageType)HomepageTypeIndex,
+                HomepagePresetIndex,
+                HomepageUrl,
+                hidden);
+            if (!settings.IsValid)
+            {
+                return;
+            }
+
+            await preferencesService.SaveInterfaceSettingsAsync(settings, cancellationToken);
+            currentPreferences = currentPreferences with { InterfaceSettings = settings };
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch
+        {
+            // The next setting change retries the atomic local preference write.
+        }
+    }
+
     partial void OnSelectedDownloadConcurrencyChanged(int value)
     {
         OnPropertyChanged(nameof(DownloadConcurrencyDisplay));
@@ -3786,24 +4182,32 @@ public partial class MainViewModel(
     }
 
     /// <summary>
-    /// 将“启动器-个性化”设置页当前唯一的真实持久化字段（主题模式）重置为默认值。
-    /// 语言、背景、字体等控件目前仍是禁用占位，不在本次重置范围内，避免伪造已生效的设置。
+    /// 将“启动器-个性化”全部字段恢复为 PCL-CE 默认值并持久化。
     /// </summary>
     public async Task ResetInterfaceSettingsAsync()
     {
         var option = ThemeModes.Single(item => item.Mode == LauncherThemeMode.System);
+        var defaults = InterfaceSettings.Default;
         isLoadingPreferences = true;
         try
         {
             SelectedThemeMode = option;
             themeService.Apply(option.Mode);
+            ApplyInterfaceSettings(defaults);
         }
         finally
         {
             isLoadingPreferences = false;
         }
 
-        await SaveThemePreferenceAsync(option);
+        await preferencesService.SaveThemeModeAsync(option.Mode);
+        await preferencesService.SaveInterfaceSettingsAsync(defaults);
+        currentPreferences = currentPreferences with
+        {
+            ThemeMode = option.Mode,
+            InterfaceSettings = defaults,
+        };
+        ThemeSummary = "个性化设置已初始化。";
     }
 
     private static string GetLaunchOptionsSummary(MinecraftLaunchOptions options)
@@ -4507,6 +4911,23 @@ public partial class MainViewModel(
     [RelayCommand]
     private Task OpenApplicationDataDirectoryAsync() =>
         openPathService.OpenFolderAsync(ApplicationDataDirectory);
+
+    public string GetInterfaceContentDirectory(string contentType)
+    {
+        var folderName = contentType switch
+        {
+            "background" => "Pictures",
+            "music" => "Musics",
+            "title" => "Title",
+            _ => throw new ArgumentOutOfRangeException(nameof(contentType), contentType, null),
+        };
+        var directory = Path.Combine(ApplicationDataDirectory, folderName);
+        Directory.CreateDirectory(directory);
+        return directory;
+    }
+
+    public Task OpenInterfaceContentDirectoryAsync(string contentType) =>
+        openPathService.OpenFolderAsync(GetInterfaceContentDirectory(contentType));
 
     private async Task ObserveGameProcessAsync(
         GameProcessSession session,

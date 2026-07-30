@@ -1922,12 +1922,14 @@
     </Window.Styles>
 
     <Grid>
+    <Image x:Name="LauncherBackgroundImage" Stretch="UniformToFill" IsHitTestVisible="False" IsVisible="False" />
     <Border CornerRadius="8" ClipToBounds="True">
     <Grid Classes="pcl-shell" RowDefinitions="48,*">
         <Border x:Name="MainTitleBar" Background="{StaticResource PclTitleBarBrush}" PointerPressed="TitleBarPointerPressed">
             <Grid ColumnDefinitions="*,Auto,*">
-                <StackPanel Margin="18,0,0,0" VerticalAlignment="Center" Spacing="0">
-                    <TextBlock FontSize="17" FontWeight="Normal" Foreground="White" Text="PCL Aurora" />
+                <StackPanel Margin="18,0,0,0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="8">
+                    <Image x:Name="MainTitleImage" Height="24" MaxWidth="150" Stretch="Uniform" IsVisible="False" />
+                    <TextBlock x:Name="MainTitleLabel" FontSize="17" FontWeight="Normal" Foreground="White" Text="PCL Aurora" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Height="27" Margin="13,0" Orientation="Horizontal" VerticalAlignment="Center">
                     <!-- Original PCL2 title-navigation paths adapted from FormMain.xaml. -->
@@ -3086,7 +3088,7 @@
                                 <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="#6F7C8B" Text="启动器" />
                                 <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="interface" Label="个性化"
-                                                                  IconData="M12 22a10 10 0 1 0 0-20 7 7 0 0 0 0 14h1.5a2.5 2.5 0 0 1 0 5z M7.5 10h.01 M12 7h.01 M16.5 10h.01" />
+                                                                  IconData="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z M13.5 6a.5.5 0 1 0 0 1 .5.5 0 1 0 0-1 M17.5 10a.5.5 0 1 0 0 1 .5.5 0 1 0 0-1 M6.5 12a.5.5 0 1 0 0 1 .5.5 0 1 0 0-1 M8.5 7a.5.5 0 1 0 0 1 .5.5 0 1 0 0-1" />
                                     <Button Grid.Column="1" Classes="nav-row-action" Tag="interface" Click="SettingsSectionResetClick"
                                             ToolTip.Tip="初始化" AutomationProperties.Name="初始化个性化设置">
                                         <Path Width="16" Height="16" Data="{StaticResource NavResetIcon}" Stretch="Uniform" Fill="Transparent"
@@ -3095,18 +3097,18 @@
                                     </Button>
                                 </Grid>
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="language" Label="语言"
-                                                              IconData="M5 8l6 6 M4 14l6-7 2-3 M2 5h12 M12 22l4-9 4 9 M14 18h4" />
+                                                              IconData="M21.54 15H17a2 2 0 0 0-2 2v4.54 M7 3.34V5a3 3 0 0 0 3 3 2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17 M11 21.95V18a2 2 0 0 0-2-2 2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="misc" Label="杂项"
-                                                              IconData="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915 M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6" />
+                                                              IconData="M12 17v4 M14.305 7.53l.923-.382 M15.228 4.852l-.923-.383 M16.852 3.228l-.383-.924 M16.852 8.772l-.383.923 M19.148 3.228l.383-.924 M19.53 9.696l-.382-.924 M20.772 4.852l.924-.383 M20.772 7.148l.924.383 M22 13v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7 M8 21h8 M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
                                 <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="#6F7C8B" Text="关于" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="about" Label="软件信息"
                                                               IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="update" Label="软件更新"
-                                                              IconData="M21 12a9 9 0 1 1-3-6.7 M21 3v6h-6" />
+                                                              IconData="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8 M21 3v5h-5 M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16 M8 16H3v5" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="feedback" Label="反馈"
-                                                              IconData="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+                                                              IconData="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719z" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="log" Label="查看日志"
-                                                              IconData="M4 2h16v20H4z M8 7h8 M8 11h8 M8 15h5" />
+                                                              IconData="M15 12h-5 M15 8h-5 M19 17V5a2 2 0 0 0-2-2H4 M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" />
                             </StackPanel>
                         </ScrollViewer>
                     </Border>
@@ -3495,84 +3497,246 @@
                             </Border>
                         </StackPanel>
 
-                        <StackPanel x:Name="SettingsInterfaceSection" IsVisible="False">
-                            <Border Classes="setup-card">
-                                <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="启动器" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9">
-                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
-                                            <TextBlock VerticalAlignment="Center" Text="界面不透明度" />
-                                            <Slider Grid.Column="1" Minimum="40" Maximum="100" Value="100" IsEnabled="False" />
-                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="主题" />
-                                            <ComboBox x:Name="ThemeModeSelector" Grid.Row="1" Grid.Column="1"
+                        <StackPanel x:Name="SettingsInterfaceSection" Classes="setup-launch-section" IsVisible="False">
+                            <controls:PclCollapsibleCard Margin="0,0,0,15" Title="基础" IsExpanded="True">
+                                <controls:PclCollapsibleCard.Body>
+                                    <StackPanel Margin="25,0,25,10" Spacing="7">
+                                        <Grid Height="22" ColumnDefinitions="Auto,*">
+                                            <TextBlock Classes="setup-launch-label" Text="不透明度" />
+                                            <Slider Grid.Column="1" Minimum="0" Maximum="600" TickFrequency="10"
+                                                    Value="{Binding InterfaceWindowOpacity, Mode=TwoWay}" />
+                                        </Grid>
+                                        <Grid Height="28" ColumnDefinitions="Auto,*,92,*,92,*">
+                                            <TextBlock Classes="setup-launch-label" Text="主题" />
+                                            <ComboBox x:Name="ThemeModeSelector" Grid.Column="1" Classes="setup-launch-field"
                                                       AutomationProperties.Name="主题模式"
                                                       ItemsSource="{Binding ThemeModes}"
                                                       SelectedItem="{Binding SelectedThemeMode}">
                                                 <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
                                             </ComboBox>
-                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="亮色主题色" />
-                                            <ComboBox Grid.Row="2" Grid.Column="1" SelectedIndex="1" IsEnabled="False">
-                                                <ComboBoxItem Content="天蓝" /><ComboBoxItem Content="龙猫蓝" /><ComboBoxItem Content="死亡蓝" />
+                                            <TextBlock Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Text="浅色配色" />
+                                            <ComboBox Grid.Column="3" Classes="setup-launch-field" SelectedIndex="{Binding LightThemeColorIndex, Mode=TwoWay}">
+                                                <ComboBoxItem Content="天空蓝" /><ComboBoxItem Content="龙猫蓝" /><ComboBoxItem Content="死机蓝" />
                                             </ComboBox>
-                                            <TextBlock Grid.Row="3" VerticalAlignment="Center" Text="暗色主题色" />
-                                            <ComboBox Grid.Row="3" Grid.Column="1" SelectedIndex="1" IsEnabled="False">
-                                                <ComboBoxItem Content="天蓝" /><ComboBoxItem Content="龙猫蓝" /><ComboBoxItem Content="死亡蓝" />
+                                            <TextBlock Grid.Column="4" HorizontalAlignment="Center" VerticalAlignment="Center" Text="深色配色" />
+                                            <ComboBox Grid.Column="5" Classes="setup-launch-field" SelectedIndex="{Binding DarkThemeColorIndex, Mode=TwoWay}">
+                                                <ComboBoxItem Content="天空蓝" /><ComboBoxItem Content="龙猫蓝" /><ComboBoxItem Content="死机蓝" />
                                             </ComboBox>
                                         </Grid>
-                                        <CheckBox IsChecked="True" IsEnabled="False" Content="显示启动器标志" />
-                                        <CheckBox IsEnabled="False" Content="锁定窗口大小" />
-                                        <CheckBox IsChecked="True" IsEnabled="False" Content="在启动时显示趣味提示" />
-                                        <CheckBox IsEnabled="False" Content="启用高级背景材质" />
-                                        <TextBlock Classes="setup-muted" Text="{Binding ThemeSummary}" />
+                                        <CheckBox Height="22" IsChecked="{Binding ShowStartupLogo, Mode=TwoWay}" Content="打开启动器时显示 PCL Aurora 图标" />
+                                        <CheckBox Height="22" IsChecked="{Binding LockWindowSize, Mode=TwoWay}" Content="锁定启动器大小" />
+                                        <CheckBox Height="22" IsChecked="{Binding ShowLaunchingHint, Mode=TwoWay}" Content="在启动游戏时显示“你知道吗”" />
+                                        <CheckBox Height="22" IsChecked="{Binding EnableAdvancedMaterial, Mode=TwoWay}" Content="高级材质"
+                                                  ToolTip.Tip="在部分透明区域实现模糊效果；可能消耗较多 GPU 算力。" />
+                                        <Grid Margin="0,3,0,0" ColumnDefinitions="Auto,*,92,*" RowDefinitions="22,10,28"
+                                              IsVisible="{Binding UsesAdvancedMaterialSettings}">
+                                            <TextBlock Classes="setup-launch-label" Text="模糊半径" />
+                                            <Slider Grid.Column="1" Grid.ColumnSpan="3" Maximum="40"
+                                                    Value="{Binding InterfaceBlurRadius, Mode=TwoWay}" />
+                                            <TextBlock Grid.Row="2" Classes="setup-launch-label" Text="模糊方法" />
+                                            <ComboBox Grid.Row="2" Grid.Column="1" Classes="setup-launch-field"
+                                                      SelectedIndex="{Binding InterfaceBlurKernelIndex, Mode=TwoWay}">
+                                                <ComboBoxItem Content="高斯模糊" /><ComboBoxItem Content="方框模糊" />
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="2" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Text="采样率" />
+                                            <Slider Grid.Row="2" Grid.Column="3" Maximum="100"
+                                                    Value="{Binding InterfaceBlurSamplingRate, Mode=TwoWay}" />
+                                        </Grid>
                                     </StackPanel>
-                                </Grid>
-                            </Border>
-                            <Border Classes="setup-card">
-                                <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="字体" />
-                                    <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
-                                        <TextBlock VerticalAlignment="Center" Text="全局字体" />
-                                        <ComboBox Grid.Column="1" SelectedIndex="0" IsEnabled="False"><ComboBoxItem Content="默认（HarmonyOS Sans SC）" /></ComboBox>
-                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="MOTD 字体" />
-                                        <ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="0" IsEnabled="False"><ComboBoxItem Content="跟随全局字体" /></ComboBox>
+                                </controls:PclCollapsibleCard.Body>
+                            </controls:PclCollapsibleCard>
+
+                            <controls:PclCollapsibleCard Margin="0,0,0,15" Title="字体" IsExpanded="True">
+                                <controls:PclCollapsibleCard.Body>
+                                    <Grid Margin="25,0,25,15" ColumnDefinitions="Auto,25,*" RowDefinitions="30,10,30">
+                                        <TextBlock VerticalAlignment="Center" Text="全局" />
+                                        <controls:PclFontSelector Grid.Column="2" Classes="setup-launch-field"
+                                                                  SelectedFontTag="{Binding GlobalInterfaceFont, Mode=TwoWay}">
+                                            <controls:PclFontSelector.ItemTemplate>
+                                                <DataTemplate x:DataType="controls:PclFontOption">
+                                                    <TextBlock HorizontalAlignment="Center" Text="{Binding DisplayName}" FontFamily="{Binding Font}" />
+                                                </DataTemplate>
+                                            </controls:PclFontSelector.ItemTemplate>
+                                        </controls:PclFontSelector>
+                                        <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="MOTD" />
+                                        <controls:PclFontSelector Grid.Row="2" Grid.Column="2" Classes="setup-launch-field"
+                                                                  SelectedFontTag="{Binding MotdInterfaceFont, Mode=TwoWay}">
+                                            <controls:PclFontSelector.ItemTemplate>
+                                                <DataTemplate x:DataType="controls:PclFontOption">
+                                                    <TextBlock HorizontalAlignment="Center" Text="{Binding DisplayName}" FontFamily="{Binding Font}" />
+                                                </DataTemplate>
+                                            </controls:PclFontSelector.ItemTemplate>
+                                        </controls:PclFontSelector>
                                     </Grid>
-                                </Grid>
-                            </Border>
-                            <Border Classes="setup-card">
-                                <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="背景" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="9" IsEnabled="False">
-                                        <Grid ColumnDefinitions="155,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
-                                            <TextBlock VerticalAlignment="Center" Text="内容适应" />
-                                            <ComboBox Grid.Column="1" SelectedIndex="0">
-                                                <ComboBoxItem Content="智能适应" /><ComboBoxItem Content="居中" /><ComboBoxItem Content="适应窗口" />
-                                                <ComboBoxItem Content="拉伸" /><ComboBoxItem Content="平铺" />
+                                </controls:PclCollapsibleCard.Body>
+                            </controls:PclCollapsibleCard>
+
+                            <controls:PclCollapsibleCard Margin="0,0,0,15" Title="背景图片/视频" IsExpanded="True">
+                                <controls:PclCollapsibleCard.Body>
+                                    <StackPanel Margin="25,0,25,20" Spacing="8">
+                                        <Grid Height="28" ColumnDefinitions="Auto,*">
+                                            <TextBlock Classes="setup-launch-label" Text="内容自适应方式" />
+                                            <ComboBox Grid.Column="1" Classes="setup-launch-field" SelectedIndex="{Binding BackgroundSuitIndex, Mode=TwoWay}">
+                                                <ComboBoxItem Content="智能" /><ComboBoxItem Content="居中" /><ComboBoxItem Content="适应" />
+                                                <ComboBoxItem Content="拉伸" /><ComboBoxItem Content="平铺" /><ComboBoxItem Content="居于左上" />
+                                                <ComboBoxItem Content="居于右上" /><ComboBoxItem Content="居于左下" /><ComboBoxItem Content="居于右下" />
                                             </ComboBox>
-                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="背景不透明度" />
-                                            <Slider Grid.Row="1" Grid.Column="1" Maximum="100" Value="100" />
-                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="背景模糊" />
-                                            <Slider Grid.Row="2" Grid.Column="1" Maximum="40" Value="0" />
                                         </Grid>
-                                        <CheckBox IsChecked="True" Content="播放视频背景时自动暂停" />
-                                        <CheckBox IsChecked="True" Content="使用主题色覆盖背景" />
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Button Content="打开文件夹" /><Button Content="刷新背景" /><Button Content="清空背景" />
+                                        <Grid Height="22" ColumnDefinitions="Auto,*">
+                                            <TextBlock Classes="setup-launch-label" Text="不透明度" />
+                                            <Slider Grid.Column="1" Maximum="1000" TickFrequency="10"
+                                                    Value="{Binding InterfaceBackgroundOpacity, Mode=TwoWay}" />
+                                        </Grid>
+                                        <Grid Height="22" ColumnDefinitions="Auto,*">
+                                            <TextBlock Classes="setup-launch-label" Text="背景模糊" />
+                                            <Slider Grid.Column="1" Maximum="40" Value="{Binding InterfaceBackgroundBlurRadius, Mode=TwoWay}" />
+                                        </Grid>
+                                        <CheckBox Height="22" IsChecked="{Binding AutoPauseBackgroundVideo, Mode=TwoWay}"
+                                                  Content="游戏启动后暂停视频背景，游戏退出后重新播放" />
+                                        <CheckBox Height="22" IsChecked="{Binding UseColorfulBackground, Mode=TwoWay}" Content="叠加彩色背景" />
+                                        <StackPanel Margin="0,2,0,0" Orientation="Horizontal" Spacing="20">
+                                            <Button Classes="about-action" Click="OpenBackgroundFolderClick" Content="打开文件夹" />
+                                            <Button Classes="about-action" Click="RefreshBackgroundContentClick" Content="刷新背景内容" />
+                                            <Button Classes="about-action" Click="ClearBackgroundContentClick" Content="清空背景内容" />
                                         </StackPanel>
                                     </StackPanel>
-                                </Grid>
-                            </Border>
-                            <Border Classes="setup-card">
-                                <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="背景音乐" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8" IsEnabled="False">
-                                        <Grid ColumnDefinitions="155,*"><TextBlock VerticalAlignment="Center" Text="音量" /><Slider Grid.Column="1" Maximum="100" Value="50" /></Grid>
-                                        <CheckBox IsChecked="True" Content="随机播放" /><CheckBox IsChecked="True" Content="启动器打开时自动播放" />
-                                        <CheckBox Content="进入游戏后继续播放" /><CheckBox Content="进入游戏后停止播放" />
-                                        <CheckBox IsChecked="True" Content="启用系统媒体控制" />
-                                        <StackPanel Orientation="Horizontal" Spacing="10"><Button Content="打开文件夹" /><Button Content="刷新音乐" /></StackPanel>
+                                </controls:PclCollapsibleCard.Body>
+                            </controls:PclCollapsibleCard>
+
+                            <controls:PclCollapsibleCard Margin="0,0,0,15" Title="背景音乐" IsExpanded="True">
+                                <controls:PclCollapsibleCard.Body>
+                                    <StackPanel Margin="25,2,25,20" Spacing="5">
+                                        <Grid Height="22" Margin="0,0,0,5" ColumnDefinitions="Auto,*">
+                                            <TextBlock Classes="setup-launch-label" Text="音量" />
+                                            <Slider Grid.Column="1" Maximum="1000" TickFrequency="10"
+                                                    Value="{Binding InterfaceMusicVolume, Mode=TwoWay}" />
+                                        </Grid>
+                                        <CheckBox Height="22" IsChecked="{Binding ShuffleBackgroundMusic, Mode=TwoWay}" Content="随机播放" />
+                                        <CheckBox Height="22" IsChecked="{Binding AutoPlayBackgroundMusic, Mode=TwoWay}" Content="打开启动器自动开始播放" />
+                                        <CheckBox Height="22" IsChecked="{Binding StartBackgroundMusicInGame, Mode=TwoWay}"
+                                                  Content="游戏启动后自动开始播放，游戏退出后自动暂停播放" />
+                                        <CheckBox Height="22" IsChecked="{Binding StopBackgroundMusicInGame, Mode=TwoWay}"
+                                                  Content="游戏启动后自动暂停播放，游戏退出后自动开始播放" />
+                                        <CheckBox Height="22" IsChecked="{Binding EnableSystemMediaControls, Mode=TwoWay}"
+                                                  IsEnabled="{Binding SupportsSystemMediaControls}"
+                                                  Content="接入系统媒体传输控制 (SMTC) 控件"
+                                                  ToolTip.Tip="SMTC 是 Windows 专属能力；macOS 与 Linux 将使用各自的媒体控制接口。" />
+                                        <StackPanel Margin="0,3,0,0" Orientation="Horizontal" Spacing="20">
+                                            <Button Classes="about-action" Click="OpenMusicFolderClick" Content="打开文件夹" />
+                                            <Button Classes="about-action" Click="RefreshMusicContentClick" Content="刷新背景音乐" />
+                                            <Button Classes="about-action" Click="ClearMusicContentClick" Content="清空背景音乐" />
+                                        </StackPanel>
                                     </StackPanel>
-                                </Grid>
-                            </Border>
+                                </controls:PclCollapsibleCard.Body>
+                            </controls:PclCollapsibleCard>
+
+                            <controls:PclCollapsibleCard Margin="0,0,0,15" Title="标题栏" IsExpanded="True">
+                                <controls:PclCollapsibleCard.Body>
+                                    <StackPanel Margin="25,0,25,15">
+                                        <Grid Margin="-1,0,0,0" ColumnDefinitions="*,*,*,*,0.2*">
+                                            <RadioButton Classes="setup-memory-mode" GroupName="TitleType" IsChecked="{Binding IsTitleNone, Mode=TwoWay}" Content="无" />
+                                            <RadioButton Grid.Column="1" Classes="setup-memory-mode" GroupName="TitleType" IsChecked="{Binding IsTitleDefault, Mode=TwoWay}" Content="默认" />
+                                            <RadioButton Grid.Column="2" Classes="setup-memory-mode" GroupName="TitleType" IsChecked="{Binding IsTitleText, Mode=TwoWay}" Content="文本" />
+                                            <RadioButton Grid.Column="3" Classes="setup-memory-mode" GroupName="TitleType" IsChecked="{Binding IsTitleImage, Mode=TwoWay}" Content="图片" />
+                                        </Grid>
+                                        <CheckBox Margin="-1,8,0,3" Height="22" IsVisible="{Binding ShowsTitleLeftAlignment}"
+                                                  IsChecked="{Binding TitleLeftAligned, Mode=TwoWay}" Content="标题栏居左" />
+                                        <Grid Margin="0,14,0,5" ColumnDefinitions="Auto,*" IsVisible="{Binding UsesCustomTitleText}">
+                                            <TextBlock Classes="setup-launch-label" Text="标题栏文本" />
+                                            <TextBox Grid.Column="1" Classes="setup-launch-field" MaxLength="100"
+                                                     Text="{Binding CustomTitleText, Mode=TwoWay}" />
+                                        </Grid>
+                                        <StackPanel Margin="0,14,0,5" Orientation="Horizontal" Spacing="20" IsVisible="{Binding UsesCustomTitleImage}">
+                                            <Button Classes="about-action" Click="ChangeTitleImageClick" Content="更改图片" />
+                                            <Button Classes="about-action" Click="ClearTitleImageClick" Content="清空图片" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </controls:PclCollapsibleCard.Body>
+                            </controls:PclCollapsibleCard>
+
+                            <controls:PclCollapsibleCard Margin="0,0,0,15" Title="主页" IsExpanded="True">
+                                <controls:PclCollapsibleCard.Body>
+                                    <StackPanel Margin="25,0,25,15">
+                                        <Grid Margin="-1,0,0,0" ColumnDefinitions="*,*,*,*,0.2*">
+                                            <RadioButton Classes="setup-memory-mode" GroupName="HomepageType" IsChecked="{Binding IsHomepageBlank, Mode=TwoWay}" Content="空白" />
+                                            <RadioButton Grid.Column="1" Classes="setup-memory-mode" GroupName="HomepageType" IsChecked="{Binding IsHomepagePreset, Mode=TwoWay}" Content="预设" />
+                                            <RadioButton Grid.Column="2" Classes="setup-memory-mode" GroupName="HomepageType" IsChecked="{Binding IsHomepageLocal, Mode=TwoWay}" Content="读取本地文件" />
+                                            <RadioButton Grid.Column="3" Classes="setup-memory-mode" GroupName="HomepageType" IsChecked="{Binding IsHomepageOnline, Mode=TwoWay}" Content="联网更新" />
+                                        </Grid>
+                                        <StackPanel Margin="0,12,0,5" Orientation="Horizontal" Spacing="20" IsVisible="{Binding UsesLocalHomepage}">
+                                            <Button Classes="about-action" Content="刷新主页" />
+                                            <Button Classes="about-action" Content="查看教程" />
+                                        </StackPanel>
+                                        <Grid Margin="0,10,0,5" ColumnDefinitions="Auto,*" IsVisible="{Binding UsesOnlineHomepage}">
+                                            <TextBlock Classes="setup-launch-label" Text="下载地址" />
+                                            <TextBox Grid.Column="1" Classes="setup-launch-field" MaxLength="2048"
+                                                     Text="{Binding HomepageUrl, Mode=TwoWay}" />
+                                        </Grid>
+                                        <Grid Margin="0,12,10,5" Height="28" ColumnDefinitions="Auto,*" IsVisible="{Binding UsesPresetHomepage}">
+                                            <TextBlock Classes="setup-launch-label" Text="主页预设" />
+                                            <ComboBox Grid.Column="1" Classes="setup-launch-field" SelectedIndex="{Binding HomepagePresetIndex, Mode=TwoWay}">
+                                                <ComboBoxItem Content="你知道吗？" /><ComboBoxItem Content="Minecraft 新闻" />
+                                                <ComboBoxItem Content="每日整合包推荐" /><ComboBoxItem Content="Minecraft 皮肤推荐" />
+                                                <ComboBoxItem Content="OpenBMCLAPI 仪表盘 Lite" /><ComboBoxItem Content="PCL 新功能说明书" />
+                                                <ComboBoxItem Content="杂志主页" /><ComboBoxItem Content="PCL GitHub 仪表盘" />
+                                                <ComboBoxItem Content="Minecraft 更新摘要" /><ComboBoxItem Content="今日新闻热点" />
+                                                <ComboBoxItem Content="Minecraft 芝士站" /><ComboBoxItem Content="整合包推荐引擎" />
+                                                <ComboBoxItem Content="Bangumi 番剧主页" /><ComboBoxItem Content="PCL CE 公告栏" />
+                                                <ComboBoxItem Content="Minecraft 官方信息流" />
+                                            </ComboBox>
+                                        </Grid>
+                                    </StackPanel>
+                                </controls:PclCollapsibleCard.Body>
+                            </controls:PclCollapsibleCard>
+
+                            <controls:PclCollapsibleCard Margin="0,0,0,15" Title="功能隐藏" IsExpanded="True">
+                                <controls:PclCollapsibleCard.Body>
+                                    <StackPanel Margin="25,0,15,15">
+                                        <TextBlock Margin="0,1,0,8" TextWrapping="Wrap"
+                                                   Text="你可以隐藏不需要的页面或关闭特定功能。在任意界面按 F12 可以暂时显示被隐藏的功能。" />
+                                        <Grid ColumnDefinitions="112,80,90,90,90,90,90" RowDefinitions="28,28,28,28,28,28">
+                                            <TextBlock VerticalAlignment="Center" Text="主页面" />
+                                            <CheckBox Grid.Column="1" IsChecked="{Binding HidePageDownload, Mode=TwoWay}" Content="下载" />
+                                            <CheckBox Grid.Column="2" IsChecked="{Binding HidePageSettings, Mode=TwoWay}" Content="设置" />
+                                            <CheckBox Grid.Column="3" IsChecked="{Binding HidePageTools, Mode=TwoWay}" Content="工具" />
+
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="子页面 设置" />
+                                            <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding HideSetupLaunch, Mode=TwoWay}" Content="启动" />
+                                            <CheckBox Grid.Row="1" Grid.Column="2" IsChecked="{Binding HideSetupJava, Mode=TwoWay}" Content="Java" />
+                                            <CheckBox Grid.Row="1" Grid.Column="3" IsChecked="{Binding HideSetupManage, Mode=TwoWay}" Content="管理" />
+                                            <CheckBox Grid.Row="1" Grid.Column="4" IsChecked="{Binding HideSetupLink, Mode=TwoWay}" Content="联机" />
+                                            <CheckBox Grid.Row="1" Grid.Column="5" IsChecked="{Binding HideSetupInterface, Mode=TwoWay}" Content="个性化" />
+                                            <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding HideSetupLanguage, Mode=TwoWay}" Content="语言" />
+                                            <CheckBox Grid.Row="2" Grid.Column="2" IsChecked="{Binding HideSetupMisc, Mode=TwoWay}" Content="杂项" />
+                                            <CheckBox Grid.Row="2" Grid.Column="3" IsChecked="{Binding HideSetupUpdate, Mode=TwoWay}" Content="软件更新" />
+                                            <CheckBox Grid.Row="2" Grid.Column="4" IsChecked="{Binding HideSetupAbout, Mode=TwoWay}" Content="关于" />
+                                            <CheckBox Grid.Row="2" Grid.Column="5" IsChecked="{Binding HideSetupFeedback, Mode=TwoWay}" Content="反馈" />
+                                            <CheckBox Grid.Row="2" Grid.Column="6" IsChecked="{Binding HideSetupLog, Mode=TwoWay}" Content="查看日志" />
+
+                                            <TextBlock Grid.Row="3" VerticalAlignment="Center" Text="子页面 工具" />
+                                            <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding HideToolsLink, Mode=TwoWay}" Content="联机" />
+                                            <CheckBox Grid.Row="3" Grid.Column="2" IsChecked="{Binding HideToolsToolbox, Mode=TwoWay}" Content="百宝箱" />
+
+                                            <TextBlock Grid.Row="4" VerticalAlignment="Center" Text="子页面 实例设置" />
+                                            <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding HideInstanceEdit, Mode=TwoWay}" Content="修改" />
+                                            <CheckBox Grid.Row="4" Grid.Column="2" IsChecked="{Binding HideInstanceExport, Mode=TwoWay}" Content="导出" />
+                                            <CheckBox Grid.Row="4" Grid.Column="3" IsChecked="{Binding HideInstanceSave, Mode=TwoWay}" Content="存档" />
+                                            <CheckBox Grid.Row="4" Grid.Column="4" IsChecked="{Binding HideInstanceScreenshot, Mode=TwoWay}" Content="截图" />
+                                            <CheckBox Grid.Row="4" Grid.Column="5" IsChecked="{Binding HideInstanceMod, Mode=TwoWay}" Content="Mod" />
+                                            <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding HideInstanceResourcePack, Mode=TwoWay}" Content="资源包" />
+                                            <CheckBox Grid.Row="5" Grid.Column="2" IsChecked="{Binding HideInstanceShader, Mode=TwoWay}" Content="光影包" />
+                                            <CheckBox Grid.Row="5" Grid.Column="3" IsChecked="{Binding HideInstanceSchematic, Mode=TwoWay}" Content="投影原理图" />
+                                            <CheckBox Grid.Row="5" Grid.Column="4" IsChecked="{Binding HideInstanceServer, Mode=TwoWay}" Content="服务器" />
+                                        </Grid>
+                                        <Grid Margin="0,6,0,0" ColumnDefinitions="112,80,90,100">
+                                            <TextBlock VerticalAlignment="Center" Text="特定功能" />
+                                            <CheckBox Grid.Column="1" IsChecked="{Binding HideFunctionInstanceSelect, Mode=TwoWay}" Content="实例管理" />
+                                            <CheckBox Grid.Column="2" IsChecked="{Binding HideFunctionModUpdate, Mode=TwoWay}" Content="模组更新" />
+                                            <CheckBox Grid.Column="3" IsChecked="{Binding HideFunctionSettings, Mode=TwoWay}" Content="功能隐藏" />
+                                        </Grid>
+                                    </StackPanel>
+                                </controls:PclCollapsibleCard.Body>
+                            </controls:PclCollapsibleCard>
                         </StackPanel>
 
                         <StackPanel x:Name="SettingsLanguageSection" IsVisible="False">

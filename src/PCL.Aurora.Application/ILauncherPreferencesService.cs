@@ -25,6 +25,10 @@ public interface ILauncherPreferencesService
         GameManagementOptions options,
         CancellationToken cancellationToken = default);
 
+    Task SaveInterfaceSettingsAsync(
+        InterfaceSettings settings,
+        CancellationToken cancellationToken = default);
+
     Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default);
 
     Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default);

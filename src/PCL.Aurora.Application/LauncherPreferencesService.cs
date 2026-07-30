@@ -50,6 +50,14 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
         return UpdateAsync(preferences => preferences with { GameManagementOptions = options }, cancellationToken);
     }
 
+    public Task SaveInterfaceSettingsAsync(
+        InterfaceSettings settings,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        return UpdateAsync(preferences => preferences with { InterfaceSettings = settings }, cancellationToken);
+    }
+
     public Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default) =>
         UpdateAsync(preferences => preferences with { MicrosoftAccount = profile }, cancellationToken);
 

@@ -13,7 +13,8 @@ public sealed record LauncherPreferences(
     int DownloadSpeedLimitStep = LauncherDownloadSettings.UnlimitedSpeedLimitStep,
     MicrosoftAccountProfile? MicrosoftAccount = null,
     MinecraftLaunchOptions? LaunchOptions = null,
-    GameManagementOptions? GameManagementOptions = null)
+    GameManagementOptions? GameManagementOptions = null,
+    InterfaceSettings? InterfaceSettings = null)
 {
     public static LauncherPreferences Default { get; } = new(LauncherThemeMode.System);
 
@@ -25,12 +26,16 @@ public sealed record LauncherPreferences(
         LauncherDownloadSettings.IsValidSpeedLimitStep(DownloadSpeedLimitStep) &&
         (MicrosoftAccount?.IsValid ?? true) &&
         (LaunchOptions?.IsValid ?? true) &&
-        (GameManagementOptions?.IsValid ?? true);
+        (GameManagementOptions?.IsValid ?? true) &&
+        (InterfaceSettings?.IsValid ?? true);
 
     public MinecraftLaunchOptions EffectiveLaunchOptions => LaunchOptions ?? MinecraftLaunchOptions.Default;
 
     public GameManagementOptions EffectiveGameManagementOptions =>
         GameManagementOptions ?? PCL.Aurora.Application.GameManagementOptions.Default;
+
+    public InterfaceSettings EffectiveInterfaceSettings =>
+        InterfaceSettings ?? PCL.Aurora.Application.InterfaceSettings.Default;
 
     public static bool IsValidInstanceName(string? instanceName) =>
         instanceName is null ||

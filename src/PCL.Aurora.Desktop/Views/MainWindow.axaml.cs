@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Avalonia.Media.Imaging;
 using PCL.Aurora.Application;
 using PCL.Aurora.Desktop.Controls;
 using PCL.Aurora.Desktop.Services;
@@ -18,6 +19,9 @@ public partial class MainWindow : Window
     private string currentDownloadSection = "game";
     private string currentMoreSection = "help";
     private ViewModels.MainViewModel? subscribedViewModel;
+    private Bitmap? launcherBackgroundBitmap;
+    private Bitmap? launcherTitleBitmap;
+    private bool isFeatureHidingSuspended;
 
     private static readonly string[] HelpTopics =
     {
@@ -35,6 +39,7 @@ public partial class MainWindow : Window
         PclMotionService.Attach(this);
         PopulateMorePlaceholder("help");
         DataContextChanged += (_, _) => SubscribeToViewModel();
+        KeyDown += MainWindowKeyDown;
         Opened += async (_, _) =>
         {
             SubscribeToViewModel();
@@ -43,7 +48,12 @@ public partial class MainWindow : Window
                 await viewModel.InitializeAsync();
             }
         };
-        Closed += (_, _) => SubscribeToViewModel(null);
+        Closed += (_, _) =>
+        {
+            SubscribeToViewModel(null);
+            launcherBackgroundBitmap?.Dispose();
+            launcherTitleBitmap?.Dispose();
+        };
     }
 
     private void SubscribeToViewModel() => SubscribeToViewModel(DataContext as ViewModels.MainViewModel);
@@ -60,6 +70,7 @@ public partial class MainWindow : Window
             subscribedViewModel.MicrosoftDeviceCodeAvailable -= MicrosoftDeviceCodeAvailable;
             subscribedViewModel.GameProcessStarted -= GameProcessStarted;
             subscribedViewModel.GameProcessExited -= GameProcessExited;
+            subscribedViewModel.PropertyChanged -= ViewModelPropertyChanged;
         }
 
         subscribedViewModel = viewModel;
@@ -68,7 +79,176 @@ public partial class MainWindow : Window
             subscribedViewModel.MicrosoftDeviceCodeAvailable += MicrosoftDeviceCodeAvailable;
             subscribedViewModel.GameProcessStarted += GameProcessStarted;
             subscribedViewModel.GameProcessExited += GameProcessExited;
+            subscribedViewModel.PropertyChanged += ViewModelPropertyChanged;
+            ApplyInterfacePreferences(subscribedViewModel);
         }
+    }
+
+    private void ViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (sender is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        if (e.PropertyName is nameof(ViewModels.MainViewModel.InterfaceWindowOpacityFraction)
+            or nameof(ViewModels.MainViewModel.LockWindowSize)
+            or nameof(ViewModels.MainViewModel.GlobalInterfaceFont)
+            or nameof(ViewModels.MainViewModel.TitleContentTypeIndex)
+            or nameof(ViewModels.MainViewModel.CustomTitleText)
+            or nameof(ViewModels.MainViewModel.InterfaceBackgroundOpacity)
+            or nameof(ViewModels.MainViewModel.InterfaceBackgroundBlurRadius)
+            or nameof(ViewModels.MainViewModel.BackgroundSuitIndex)
+            or nameof(ViewModels.MainViewModel.LightThemeColorIndex)
+            or nameof(ViewModels.MainViewModel.DarkThemeColorIndex)
+            or nameof(ViewModels.MainViewModel.SelectedThemeMode))
+        {
+            Dispatcher.UIThread.Post(() => ApplyInterfacePreferences(viewModel));
+        }
+
+        else if (e.PropertyName?.StartsWith("Hide", StringComparison.Ordinal) == true)
+        {
+            Dispatcher.UIThread.Post(() => ApplyFeatureVisibility(viewModel));
+        }
+    }
+
+    private void ApplyInterfacePreferences(ViewModels.MainViewModel viewModel)
+    {
+        Opacity = viewModel.InterfaceWindowOpacityFraction;
+        CanResize = !viewModel.LockWindowSize;
+        FontFamily = string.IsNullOrWhiteSpace(viewModel.GlobalInterfaceFont)
+            ? Avalonia.Media.FontFamily.Parse("avares://PCL.Aurora.Desktop/Fonts/HarmonyOS_Sans_SC#HarmonyOS Sans SC")
+            : new Avalonia.Media.FontFamily(viewModel.GlobalInterfaceFont.Trim());
+
+        MainTitleLabel.IsVisible = viewModel.TitleContentTypeIndex != (int)LauncherTitleContentType.None &&
+                                   viewModel.TitleContentTypeIndex != (int)LauncherTitleContentType.Image;
+        MainTitleLabel.Text = viewModel.TitleContentTypeIndex == (int)LauncherTitleContentType.Text &&
+                              !string.IsNullOrWhiteSpace(viewModel.CustomTitleText)
+            ? viewModel.CustomTitleText
+            : "PCL Aurora";
+        MainTitleImage.IsVisible = viewModel.TitleContentTypeIndex == (int)LauncherTitleContentType.Image &&
+                                   launcherTitleBitmap is not null;
+        LauncherBackgroundImage.Opacity = viewModel.InterfaceBackgroundOpacity / 1000d;
+        LauncherBackgroundImage.Effect = viewModel.InterfaceBackgroundBlurRadius > 0
+            ? new Avalonia.Media.ImmutableBlurEffect(viewModel.InterfaceBackgroundBlurRadius)
+            : null;
+        LauncherBackgroundImage.Stretch = viewModel.BackgroundSuitIndex switch
+        {
+            (int)LauncherBackgroundSuitMode.Center => Avalonia.Media.Stretch.None,
+            (int)LauncherBackgroundSuitMode.Stretch => Avalonia.Media.Stretch.Fill,
+            (int)LauncherBackgroundSuitMode.Tile => Avalonia.Media.Stretch.None,
+            _ => Avalonia.Media.Stretch.UniformToFill,
+        };
+        ApplyThemeColor(viewModel);
+        ApplyFeatureVisibility(viewModel);
+    }
+
+    private void ApplyThemeColor(ViewModels.MainViewModel viewModel)
+    {
+        var isDark = viewModel.SelectedThemeMode.Mode == LauncherThemeMode.Dark ||
+                     (viewModel.SelectedThemeMode.Mode == LauncherThemeMode.System &&
+                      Avalonia.Application.Current?.ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark);
+        var theme = (LauncherColorTheme)(isDark ? viewModel.DarkThemeColorIndex : viewModel.LightThemeColorIndex);
+        var colors = theme switch
+        {
+            LauncherColorTheme.SkyBlue => (Primary: "#1787D4", Start: "#1069B8", Middle: "#1787D4", End: "#1069B8"),
+            LauncherColorTheme.CrashBlue => (Primary: "#5B59C9", Start: "#4544A8", Middle: "#5B59C9", End: "#4544A8"),
+            _ => (Primary: "#1370F3", Start: "#106AC4", Middle: "#1377DD", End: "#106AC5"),
+        };
+
+        if (Resources["PclThemePrimaryBrush"] is Avalonia.Media.SolidColorBrush primary)
+        {
+            primary.Color = Avalonia.Media.Color.Parse(colors.Primary);
+        }
+
+        if (Resources["PclTitleBarBrush"] is Avalonia.Media.LinearGradientBrush title && title.GradientStops.Count >= 3)
+        {
+            title.GradientStops[0].Color = Avalonia.Media.Color.Parse(colors.Start);
+            title.GradientStops[1].Color = Avalonia.Media.Color.Parse(colors.Middle);
+            title.GradientStops[2].Color = Avalonia.Media.Color.Parse(colors.End);
+        }
+    }
+
+    private void ApplyFeatureVisibility(ViewModels.MainViewModel viewModel)
+    {
+        if (isFeatureHidingSuspended)
+        {
+            DownloadNavigation.IsVisible = true;
+            SettingsNavigation.IsVisible = true;
+            MoreNavigation.IsVisible = true;
+            foreach (var navigation in SettingsNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>())
+            {
+                SetNavigationVisibility(navigation, true);
+            }
+            foreach (var navigation in MoreNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>())
+            {
+                SetNavigationVisibility(navigation, true);
+            }
+            return;
+        }
+
+        DownloadNavigation.IsVisible = !viewModel.HidePageDownload;
+        SettingsNavigation.IsVisible = !viewModel.HidePageSettings;
+        MoreNavigation.IsVisible = !viewModel.HidePageTools;
+
+        foreach (var navigation in SettingsNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>())
+        {
+            var hidden = navigation.Tag switch
+            {
+                "launch" => viewModel.HideSetupLaunch,
+                "java" => viewModel.HideSetupJava,
+                "manage" => viewModel.HideSetupManage,
+                "link" => viewModel.HideSetupLink,
+                "interface" => viewModel.HideSetupInterface,
+                "language" => viewModel.HideSetupLanguage,
+                "misc" => viewModel.HideSetupMisc,
+                "update" => viewModel.HideSetupUpdate,
+                "about" => viewModel.HideSetupAbout,
+                "feedback" => viewModel.HideSetupFeedback,
+                "log" => viewModel.HideSetupLog,
+                _ => false,
+            };
+            SetNavigationVisibility(navigation, !hidden);
+        }
+
+        foreach (var navigation in MoreNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>())
+        {
+            var hidden = navigation.Tag switch
+            {
+                "toolbox" => viewModel.HideToolsToolbox,
+                "feedback" => viewModel.HideSetupFeedback,
+                "logs" => viewModel.HideSetupLog,
+                _ => false,
+            };
+            SetNavigationVisibility(navigation, !hidden);
+        }
+    }
+
+    private static void SetNavigationVisibility(PclNavigationButton navigation, bool isVisible)
+    {
+        var row = navigation.GetVisualAncestors()
+            .OfType<Grid>()
+            .FirstOrDefault(candidate => candidate.Classes.Contains("nav-row"));
+        if (row is not null)
+        {
+            row.IsVisible = isVisible;
+        }
+        else
+        {
+            navigation.IsVisible = isVisible;
+        }
+    }
+
+    private void MainWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.F12 || DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        isFeatureHidingSuspended = !isFeatureHidingSuspended;
+        ApplyFeatureVisibility(viewModel);
+        e.Handled = true;
     }
 
     private void GameProcessStarted(object? sender, MinecraftLauncherVisibility visibility) =>
@@ -1381,6 +1561,12 @@ public partial class MainWindow : Window
             viewModel.LoadContributorsCommand.Execute(null);
         }
 
+        if (section == "interface" && DataContext is ViewModels.MainViewModel interfaceViewModel)
+        {
+            RefreshBackgroundVisual(interfaceViewModel);
+            RefreshTitleVisual(interfaceViewModel);
+        }
+
         var selectedSection = section switch
         {
             "launch" => (Control)SettingsLaunchSection,
@@ -1412,6 +1598,150 @@ public partial class MainWindow : Window
                 SettingsLogSection,
             ],
             selectedSection);
+    }
+
+    private async void OpenBackgroundFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.OpenInterfaceContentDirectoryAsync("background");
+        }
+    }
+
+    private void RefreshBackgroundContentClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            RefreshBackgroundVisual(viewModel);
+        }
+    }
+
+    private async void ClearBackgroundContentClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel ||
+            !await ShowConfirmationAsync("清空背景内容", "即将删除背景内容文件夹中的所有文件。此操作不可撤销，是否确定？"))
+        {
+            return;
+        }
+
+        ClearDirectoryFiles(viewModel.GetInterfaceContentDirectory("background"));
+        RefreshBackgroundVisual(viewModel);
+    }
+
+    private async void OpenMusicFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.OpenInterfaceContentDirectoryAsync("music");
+        }
+    }
+
+    private void RefreshMusicContentClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            Directory.CreateDirectory(viewModel.GetInterfaceContentDirectory("music"));
+        }
+    }
+
+    private async void ClearMusicContentClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel ||
+            !await ShowConfirmationAsync("清空背景音乐", "即将删除背景音乐文件夹中的所有文件。此操作不可撤销，是否确定？"))
+        {
+            return;
+        }
+
+        ClearDirectoryFiles(viewModel.GetInterfaceContentDirectory("music"));
+    }
+
+    private async void ChangeTitleImageClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择标题栏图片",
+            AllowMultiple = false,
+            FileTypeFilter =
+            [
+                new FilePickerFileType("图片") { Patterns = ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp"] },
+            ],
+        });
+        var source = files.SingleOrDefault()?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return;
+        }
+
+        var directory = viewModel.GetInterfaceContentDirectory("title");
+        ClearDirectoryFiles(directory);
+        File.Copy(source, Path.Combine(directory, $"Title{Path.GetExtension(source)}"), overwrite: true);
+        RefreshTitleVisual(viewModel);
+    }
+
+    private void ClearTitleImageClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        ClearDirectoryFiles(viewModel.GetInterfaceContentDirectory("title"));
+        RefreshTitleVisual(viewModel);
+    }
+
+    private void RefreshBackgroundVisual(ViewModels.MainViewModel viewModel)
+    {
+        var path = FindFirstImage(viewModel.GetInterfaceContentDirectory("background"));
+        launcherBackgroundBitmap?.Dispose();
+        launcherBackgroundBitmap = TryLoadBitmap(path);
+        LauncherBackgroundImage.Source = launcherBackgroundBitmap;
+        LauncherBackgroundImage.IsVisible = launcherBackgroundBitmap is not null;
+        ApplyInterfacePreferences(viewModel);
+    }
+
+    private void RefreshTitleVisual(ViewModels.MainViewModel viewModel)
+    {
+        var path = FindFirstImage(viewModel.GetInterfaceContentDirectory("title"));
+        launcherTitleBitmap?.Dispose();
+        launcherTitleBitmap = TryLoadBitmap(path);
+        MainTitleImage.Source = launcherTitleBitmap;
+        ApplyInterfacePreferences(viewModel);
+    }
+
+    private static Bitmap? TryLoadBitmap(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            return new Bitmap(path);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? FindFirstImage(string directory) =>
+        Directory.EnumerateFiles(directory)
+            .Where(path => Path.GetExtension(path).ToLowerInvariant() is ".png" or ".jpg" or ".jpeg" or ".webp" or ".bmp")
+            .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
+
+    private static void ClearDirectoryFiles(string directory)
+    {
+        foreach (var path in Directory.EnumerateFiles(directory))
+        {
+            File.Delete(path);
+        }
     }
 
     private async void SettingsSectionRefreshClick(object? sender, RoutedEventArgs e)

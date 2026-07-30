@@ -212,6 +212,8 @@ PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/refresh-cw.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/link-2.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/palette.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/earth.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/monitor-cog.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/save.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/server.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/arrow-left.svg
