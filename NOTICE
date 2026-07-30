@@ -112,6 +112,8 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Controls/MyLoading.xaml
 - PCL-CE: Plain Craft Launcher 2/Controls/MyLoading.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Controls/MyImage.cs
+- PCL-CE: Plain Craft Launcher 2/Controls/MyHint.xaml
+- PCL-CE: Plain Craft Launcher 2/Controls/MyHint.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLaunch.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupJava.xaml
@@ -120,7 +122,9 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupGameLink.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUI.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLauncherLanguage.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLauncherLanguage.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLauncherMisc.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLauncherMisc.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupAbout.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUpdate.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupFeedback.xaml
@@ -128,6 +132,9 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: PCL.Core/App/Config.cs (setup defaults and default JVM arguments only)
 - PCL-CE: PCL.Core/App/ConfigEnums.cs (setup option ordering only)
 - PCL-CE: PCL.Core/App/Localization/Languages/zh-CN.xaml (setup-page wording)
+- PCL-CE: PCL.Core/IO/Net/NetworkService.cs
+- PCL-CE: PCL.Core/IO/Net/Dns/DnsQuery.cs
+- PCL-CE: PCL.Core/IO/Net/Http/HostConnectionHandler.cs
 
 PCL Aurora also contains the following directly reused upstream resources:
 

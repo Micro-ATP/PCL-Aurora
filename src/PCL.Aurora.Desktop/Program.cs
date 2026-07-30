@@ -1,5 +1,7 @@
 ﻿using Avalonia;
 using System;
+using PCL.Aurora.Infrastructure;
+using PCL.Aurora.Platform.MacOS;
 
 namespace PCL.Aurora.Desktop;
 
@@ -14,11 +16,29 @@ sealed class Program
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
-            .UsePlatformDetect()
+    {
+        var builder = AppBuilder.Configure<App>()
+            .UsePlatformDetect();
+
+        if (OperatingSystem.IsMacOS() && ShouldDisableHardwareAcceleration())
+        {
+            builder = builder.With(new AvaloniaNativePlatformOptions
+            {
+                RenderingMode = [AvaloniaNativeRenderingMode.Software],
+            });
+        }
+
 #if DEBUG
-            .WithDeveloperTools()
+        builder = builder.WithDeveloperTools();
 #endif
-            .WithInterFont()
+        return builder.WithInterFont()
             .LogToTrace();
+    }
+
+    private static bool ShouldDisableHardwareAcceleration()
+    {
+        var store = new JsonLauncherPreferencesStore(new MacOSPlatformPaths());
+        return store.LoadAsync().GetAwaiter().GetResult()
+            .Preferences.EffectiveMiscSettings.DisableHardwareAcceleration;
+    }
 }

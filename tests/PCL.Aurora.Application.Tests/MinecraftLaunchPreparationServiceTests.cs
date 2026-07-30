@@ -221,6 +221,22 @@ public sealed class MinecraftLaunchPreparationServiceTests
             GameManagementOptions options,
             CancellationToken cancellationToken = default) => Task.CompletedTask;
 
+        public Task SaveInterfaceSettingsAsync(
+            InterfaceSettings settings,
+            CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task SaveLocalizationSettingsAsync(
+            LauncherLocalizationSettings settings,
+            CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task SaveMiscSettingsAsync(
+            LauncherMiscSettings settings,
+            CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task ReplaceAsync(
+            LauncherPreferences replacement,
+            CancellationToken cancellationToken = default) => Task.CompletedTask;
+
         public Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         public Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default) => Task.CompletedTask;

@@ -17,8 +17,80 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
         var result = await store.LoadAsync();
 
         Assert.Equal(LauncherThemeMode.System, result.Preferences.ThemeMode);
+        Assert.Equal(LauncherLocalizationSettings.Default, result.Preferences.EffectiveLocalizationSettings);
+        Assert.Equal(LauncherMiscSettings.Default, result.Preferences.EffectiveMiscSettings);
         Assert.Null(result.Warning);
         Assert.False(File.Exists(GetPreferencesPath()));
+    }
+
+    [Fact]
+    public async Task SaveAsync_RoundTripsLocalizationAndMiscSettingsWithoutProxyPassword()
+    {
+        var store = CreateStore();
+        var localization = new LauncherLocalizationSettings("en-US", "ui-language");
+        var misc = LauncherMiscSettings.Default with
+        {
+            EnableDoh = false,
+            ProxyMode = LauncherProxyMode.Custom,
+            CustomProxyAddress = "http://127.0.0.1:7890/",
+            CustomProxyUsername = "Aurora",
+        };
+
+        await store.SaveAsync(new LauncherPreferences(
+            LauncherThemeMode.System,
+            LocalizationSettings: localization,
+            MiscSettings: misc));
+        var result = await store.LoadAsync();
+
+        Assert.Equal(localization, result.Preferences.EffectiveLocalizationSettings);
+        Assert.Equal(misc, result.Preferences.EffectiveMiscSettings);
+        var storedJson = await File.ReadAllTextAsync(GetPreferencesPath());
+        Assert.DoesNotContain("proxyPassword", storedJson, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RejectsInvalidLocalizationOrProxySettings()
+    {
+        var store = CreateStore();
+        var invalidLocalization = new LauncherLocalizationSettings("zh-CN", string.Empty);
+        var invalidMisc = LauncherMiscSettings.Default with
+        {
+            CustomProxyAddress = new string('x', LauncherMiscSettings.MaximumProxyAddressLength + 1),
+        };
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => store.SaveAsync(
+            new LauncherPreferences(LauncherThemeMode.System, LocalizationSettings: invalidLocalization)));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => store.SaveAsync(
+            new LauncherPreferences(LauncherThemeMode.System, MiscSettings: invalidMisc)));
+        Assert.False(File.Exists(GetPreferencesPath()));
+    }
+
+    [Fact]
+    public async Task LoadAsync_RecoversFromNullProxyFieldsWithoutOverwritingFile()
+    {
+        Directory.CreateDirectory(applicationDataDirectory);
+        await File.WriteAllTextAsync(
+            GetPreferencesPath(),
+            """{"themeMode":"System","miscSettings":{"customProxyAddress":null,"customProxyUsername":null}}""");
+        var store = CreateStore();
+
+        var result = await store.LoadAsync();
+
+        Assert.Equal(LauncherMiscSettings.Default, result.Preferences.EffectiveMiscSettings);
+        Assert.NotNull(result.Warning);
+        Assert.True(File.Exists(GetPreferencesPath()));
+    }
+
+    [Theory]
+    [InlineData(0, 50)]
+    [InlineData(13, 500)]
+    [InlineData(28, 2000)]
+    [InlineData(29, int.MaxValue)]
+    public void MaximumGameLogLines_FollowsPclCeStepMapping(int step, int expected)
+    {
+        var settings = LauncherMiscSettings.Default with { MaximumGameLogLinesStep = step };
+
+        Assert.Equal(expected, settings.MaximumGameLogLines);
     }
 
     [Fact]

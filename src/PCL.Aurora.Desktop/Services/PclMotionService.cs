@@ -114,7 +114,11 @@ internal static class PclMotionService
             applyTargetState?.Invoke();
             target.IsVisible = true;
             var enteringControls = PrepareSectionEnter(state, target);
-            await Task.Delay(PageSwapDelay, cancellationToken);
+            var swapDelay = PclMotionSettings.Scale(PageSwapDelay);
+            if (swapDelay > TimeSpan.Zero)
+            {
+                await Task.Delay(swapDelay, cancellationToken);
+            }
             await AnimateSectionEnterAsync(enteringControls, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -236,6 +240,14 @@ internal static class PclMotionService
         Easing easing,
         CancellationToken cancellationToken)
     {
+        duration = PclMotionSettings.Scale(duration);
+        delay = PclMotionSettings.Scale(delay);
+        if (duration <= TimeSpan.Zero)
+        {
+            target.SetValue(property, to);
+            return Task.CompletedTask;
+        }
+
         var animation = new Animation
         {
             Duration = duration,
@@ -269,7 +281,14 @@ internal static class PclMotionService
         Easing easing,
         CancellationToken cancellationToken)
     {
+        duration = PclMotionSettings.Scale(duration);
+        delay = PclMotionSettings.Scale(delay);
         transform.Transitions = null;
+        if (duration <= TimeSpan.Zero)
+        {
+            transform.SetValue(property, to);
+            return;
+        }
         if (delay > TimeSpan.Zero)
         {
             await Task.Delay(delay, cancellationToken);
@@ -405,7 +424,7 @@ internal static class PclMotionService
 
         state.PressedControl = control;
         var scale = EnsureScale(control);
-        scale.Transitions = CreateScaleTransitions(PressDuration, new CubicEaseOut());
+        scale.Transitions = CreateScaleTransitions(PclMotionSettings.Scale(PressDuration), new CubicEaseOut());
         var pressedScale = control is ListBoxItem || control.Bounds.Width >= 240 ? 0.98 : 0.955;
         scale.ScaleX = pressedScale;
         scale.ScaleY = pressedScale;
@@ -424,7 +443,7 @@ internal static class PclMotionService
             return;
         }
 
-        scale.Transitions = CreateScaleTransitions(ReleaseDuration, new QuadraticEaseOut());
+        scale.Transitions = CreateScaleTransitions(PclMotionSettings.Scale(ReleaseDuration), new QuadraticEaseOut());
         scale.ScaleX = 1;
         scale.ScaleY = 1;
     }

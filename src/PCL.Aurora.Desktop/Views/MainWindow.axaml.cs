@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private Bitmap? launcherBackgroundBitmap;
     private Bitmap? launcherTitleBitmap;
     private bool isFeatureHidingSuspended;
+    private bool isRevertingAnnouncementSelection;
 
     private static readonly string[] HelpTopics =
     {
@@ -1744,6 +1745,122 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void AnnouncementModeSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (isRevertingAnnouncementSelection || sender is not ComboBox { SelectedIndex: 2 } comboBox)
+        {
+            return;
+        }
+
+        var confirmed = await ShowConfirmationAsync(
+            "关闭启动器公告？",
+            "关闭后，即使将来出现严重问题，你也无法收到相关通知。通常选择“仅在有重要通知时显示公告”即可尽量不受打扰。是否仍要关闭所有公告？");
+        if (confirmed)
+        {
+            return;
+        }
+
+        isRevertingAnnouncementSelection = true;
+        comboBox.SelectedItem = e.RemovedItems.Count > 0 ? e.RemovedItems[0] : comboBox.Items[0];
+        isRevertingAnnouncementSelection = false;
+    }
+
+    private async void ApplyProxySettingsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.ApplyProxySettingsAsync();
+        }
+    }
+
+    private async void ExportLauncherSettingsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var jsonType = new FilePickerFileType("PCL Aurora 配置文件")
+        {
+            Patterns = ["*.json"],
+            MimeTypes = ["application/json"],
+            AppleUniformTypeIdentifiers = ["public.json"],
+        };
+        var destination = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "选择保存位置",
+            SuggestedFileName = "PCL Aurora 全局配置.json",
+            DefaultExtension = "json",
+            FileTypeChoices = [jsonType],
+            SuggestedFileType = jsonType,
+            ShowOverwritePrompt = true,
+        });
+        if (destination is null)
+        {
+            return;
+        }
+
+        await using var stream = await destination.OpenWriteAsync();
+        stream.SetLength(0);
+        await viewModel.ExportSettingsAsync(stream);
+    }
+
+    private async void ImportLauncherSettingsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择配置文件",
+            AllowMultiple = false,
+            FileTypeFilter =
+            [
+                new FilePickerFileType("PCL Aurora 配置文件")
+                {
+                    Patterns = ["*.json"],
+                    MimeTypes = ["application/json"],
+                    AppleUniformTypeIdentifiers = ["public.json"],
+                },
+            ],
+        });
+        var source = files.SingleOrDefault();
+        if (source is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var stream = await source.OpenReadAsync();
+            await viewModel.ImportSettingsAsync(stream);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidDataException)
+        {
+            await ShowConfirmationAsync("导入失败", exception.Message);
+        }
+    }
+
+    private async void StopUsingAuroraClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel ||
+            !await ShowConfirmationAsync(
+                "停止使用 PCL Aurora？",
+                "即将清除 PCL Aurora 保存的启动器设置、代理密码和 Microsoft 登录凭据。Minecraft 实例、模组、存档与游戏文件不会被删除。此操作无法撤销，是否继续？") ||
+            !await ShowConfirmationAsync("最后确认", "确定清除 PCL Aurora 的本地设置并关闭软件吗？"))
+        {
+            return;
+        }
+
+        await viewModel.StopUsingAuroraAsync();
+        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
+    }
+
     private async void SettingsSectionRefreshClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string section } || DataContext is not ViewModels.MainViewModel viewModel)
@@ -1769,6 +1886,8 @@ public partial class MainWindow : Window
             "launch" => ("初始化确认", "是否要初始化 游戏-启动 页面的所有设置？该操作不可撤销。"),
             "manage" => ("初始化确认", "是否要初始化 游戏-管理 页面的所有设置？该操作不可撤销。"),
             "interface" => ("初始化确认", "是否要初始化 启动器-个性化 页面的所有设置？该操作不可撤销。"),
+            "language" => ("初始化确认", "是否要初始化 启动器-语言 页面的所有设置？该操作不可撤销。"),
+            "misc" => ("初始化确认", "是否要初始化 启动器-杂项 页面的所有设置？该操作不可撤销。"),
             _ => (string.Empty, string.Empty),
         };
         if (title.Length == 0 || !await ShowConfirmationAsync(title, message))
@@ -1786,6 +1905,12 @@ public partial class MainWindow : Window
                 break;
             case "interface":
                 await viewModel.ResetInterfaceSettingsAsync();
+                break;
+            case "language":
+                await viewModel.ResetLocalizationSettingsAsync();
+                break;
+            case "misc":
+                await viewModel.ResetMiscSettingsAsync();
                 break;
         }
     }

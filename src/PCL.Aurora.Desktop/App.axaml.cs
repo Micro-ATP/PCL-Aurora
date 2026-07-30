@@ -54,7 +54,11 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IMinecraftLaunchPreparationService, MinecraftLaunchPreparationService>();
         services.AddSingleton<IMinecraftAssetIndexReader, MacOSMinecraftAssetIndexReader>();
         services.AddSingleton<IAssetMapper, MinecraftAssetMapper>();
-        services.AddSingleton<HttpClient>();
+        services.AddSingleton<LauncherNetworkSettingsService>();
+        services.AddSingleton<ILauncherNetworkSettingsService>(provider =>
+            provider.GetRequiredService<LauncherNetworkSettingsService>());
+        services.AddSingleton(provider =>
+            provider.GetRequiredService<LauncherNetworkSettingsService>().CreateHttpClient());
         services.AddSingleton(MicrosoftAuthenticationConfiguration.FromEnvironmentOrAssembly(typeof(App).Assembly));
         services.AddSingleton<IMicrosoftAccountAuthenticationService, MicrosoftAccountAuthenticationService>();
         services.AddSingleton<ISecureSecretStore, MacOSKeychainSecretStore>();

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Avalonia.Controls;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PCL.Aurora.Application;
@@ -42,13 +43,16 @@ public partial class MainViewModel(
     IGitHubContributorService gitHubContributorService,
     IOpenPathService openPathService,
     IThemeService themeService,
-    ISystemMemoryInfo systemMemoryInfo) : ViewModelBase
+    ISystemMemoryInfo systemMemoryInfo,
+    ISecureSecretStore secretStore,
+    ILauncherNetworkSettingsService networkSettingsService) : ViewModelBase
 {
     public event EventHandler<string>? MicrosoftDeviceCodeAvailable;
     public event EventHandler<MinecraftLauncherVisibility>? GameProcessStarted;
     public event EventHandler<MinecraftLauncherVisibility>? GameProcessExited;
 
-    private const int MaximumGameLogLines = 500;
+    private const string ProxySecretService = "PCL.Aurora.Network.Proxy";
+    private const string ProxySecretAccount = "default";
     private static readonly Uri AuroraRepositoryUri = new("https://github.com/Micro-ATP/PCL-Aurora");
     private static readonly Uri AuroraReleasesUri = new("https://github.com/Micro-ATP/PCL-Aurora/releases");
     private static readonly Uri AuroraIssuesUri = new("https://github.com/Micro-ATP/PCL-Aurora/issues");
@@ -58,6 +62,12 @@ public partial class MainViewModel(
     private static readonly JsonSerializerOptions FavoriteTransferSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter() },
+    };
+    private static readonly JsonSerializerOptions PreferencesTransferSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
         Converters = { new JsonStringEnumConverter() },
     };
     private static readonly IReadOnlyList<CommunityResourceLoaderOption> ModLoaderOptions =
@@ -76,6 +86,8 @@ public partial class MainViewModel(
         new(CommunityResourceLoader.OptiFine, "OptiFine"),
     ];
     private static readonly CommunityResourceCategoryOption AllCommunityResourceCategories = new(null, "全部");
+    private static readonly CultureInfo SystemUiCulture = CultureInfo.CurrentUICulture;
+    private static readonly CultureInfo SystemFormatCulture = CultureInfo.CurrentCulture;
 
     private readonly List<MinecraftVersionCatalogEntry> allCatalogVersions = [];
     private MinecraftAccount? selectedAccount;
@@ -101,6 +113,8 @@ public partial class MainViewModel(
     private CancellationTokenSource? launchOptionsSaveCancellation;
     private CancellationTokenSource? gameManagementOptionsSaveCancellation;
     private CancellationTokenSource? interfaceSettingsSaveCancellation;
+    private CancellationTokenSource? localizationSettingsSaveCancellation;
+    private CancellationTokenSource? miscSettingsSaveCancellation;
     private CommunityResourceVersionFilterSet communityVersionFilters = new([], [], false, false);
     private string? selectedCommunityGameVersionFilter;
     private string? selectedCommunityLoaderFilter;
@@ -504,6 +518,79 @@ public partial class MainViewModel(
     public bool SupportsSystemMediaControls => System.OperatingSystem.IsWindows();
 
     public bool SupportsAdvancedWindowMaterial => System.OperatingSystem.IsWindows();
+
+    public IReadOnlyList<LauncherLanguageOption> LauncherLanguages { get; } = CreateLanguageOptions();
+
+    public IReadOnlyList<LauncherFormatCultureOption> LauncherFormatCultures { get; } = CreateFormatCultureOptions();
+
+    [ObservableProperty]
+    private LauncherLanguageOption selectedLauncherLanguage = CreateLanguageOptions()[0];
+
+    [ObservableProperty]
+    private LauncherFormatCultureOption selectedLauncherFormatCulture = CreateFormatCultureOptions()[0];
+
+    [ObservableProperty]
+    private int announcementModeIndex = (int)LauncherMiscSettings.Default.AnnouncementMode;
+
+    [ObservableProperty]
+    private int animationFpsLimitStep = LauncherMiscSettings.Default.AnimationFpsLimitStep;
+
+    [ObservableProperty]
+    private int maximumGameLogLinesStep = LauncherMiscSettings.Default.MaximumGameLogLinesStep;
+
+    [ObservableProperty]
+    private bool disableHardwareAcceleration = LauncherMiscSettings.Default.DisableHardwareAcceleration;
+
+    [ObservableProperty]
+    private bool telemetryEnabled = LauncherMiscSettings.Default.Telemetry;
+
+    [ObservableProperty]
+    private bool enableDoh = LauncherMiscSettings.Default.EnableDoh;
+
+    [ObservableProperty]
+    private int proxyModeIndex = (int)LauncherMiscSettings.Default.ProxyMode;
+
+    [ObservableProperty]
+    private string customProxyAddress = LauncherMiscSettings.Default.CustomProxyAddress;
+
+    [ObservableProperty]
+    private string customProxyUsername = LauncherMiscSettings.Default.CustomProxyUsername;
+
+    [ObservableProperty]
+    private string customProxyPassword = string.Empty;
+
+    [ObservableProperty]
+    private int debugAnimationSpeedStep = LauncherMiscSettings.Default.DebugAnimationSpeedStep;
+
+    [ObservableProperty]
+    private bool debugSkipCopy = LauncherMiscSettings.Default.DebugSkipCopy;
+
+    [ObservableProperty]
+    private bool debugMode = LauncherMiscSettings.Default.DebugMode;
+
+    [ObservableProperty]
+    private bool debugDelay = LauncherMiscSettings.Default.DebugDelay;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasMiscSettingsStatus))]
+    private string miscSettingsStatus = string.Empty;
+
+    public string AnimationFpsLimitDisplay => $"{AnimationFpsLimitStep + 1} FPS";
+
+    public string MaximumGameLogLinesDisplay => MaximumGameLogLinesStep > 28
+        ? "无限制"
+        : CreateMiscSettings().MaximumGameLogLines.ToString("N0", CultureInfo.CurrentCulture);
+
+    public string DebugAnimationSpeedDisplay => DebugAnimationSpeedStep > 29
+        ? "关闭"
+        : $"{DebugAnimationSpeedStep / 10d + 0.1d:N1}x";
+
+    public bool UsesCustomProxy => ProxyModeIndex == (int)LauncherProxyMode.Custom;
+
+    public bool IsProxyDisabled { get => ProxyModeIndex == 0; set { if (value) ProxyModeIndex = 0; } }
+    public bool IsProxySystem { get => ProxyModeIndex == 1; set { if (value) ProxyModeIndex = 1; } }
+    public bool IsProxyCustom { get => ProxyModeIndex == 2; set { if (value) ProxyModeIndex = 2; } }
+    public bool HasMiscSettingsStatus => !string.IsNullOrWhiteSpace(MiscSettingsStatus);
 
     [ObservableProperty]
     private string contributorSummary = "正在读取 GitHub 贡献者…";
@@ -1344,6 +1431,8 @@ public partial class MainViewModel(
             themeService.Apply(option.Mode);
             ThemeSummary = result.Warning ?? $"当前使用{option.DisplayName}主题；该偏好已保存到本机。";
             ApplyInterfaceSettings(result.Preferences.EffectiveInterfaceSettings);
+            ApplyLocalizationSettings(result.Preferences.EffectiveLocalizationSettings);
+            await ApplyMiscSettingsAsync(result.Preferences.EffectiveMiscSettings);
             SelectedDownloadConcurrency = result.Preferences.DownloadConcurrency;
             SelectedDownloadSpeedLimitStep = result.Preferences.DownloadSpeedLimitStep;
             var managementOptions = result.Preferences.EffectiveGameManagementOptions;
@@ -3833,6 +3922,350 @@ public partial class MainViewModel(
         }
     }
 
+    private void ApplyLocalizationSettings(LauncherLocalizationSettings settings)
+    {
+        SelectedLauncherLanguage = LauncherLanguages.First(option =>
+            string.Equals(option.Code, settings.Language, StringComparison.OrdinalIgnoreCase));
+        SelectedLauncherFormatCulture = LauncherFormatCultures.FirstOrDefault(option =>
+            string.Equals(option.Code, settings.FormatCulture, StringComparison.OrdinalIgnoreCase))
+            ?? LauncherFormatCultures[0];
+        ApplyCultures(settings);
+    }
+
+    private async Task ApplyMiscSettingsAsync(LauncherMiscSettings settings)
+    {
+        AnnouncementModeIndex = (int)settings.AnnouncementMode;
+        AnimationFpsLimitStep = settings.AnimationFpsLimitStep;
+        MaximumGameLogLinesStep = settings.MaximumGameLogLinesStep;
+        DisableHardwareAcceleration = settings.DisableHardwareAcceleration;
+        TelemetryEnabled = settings.Telemetry;
+        EnableDoh = settings.EnableDoh;
+        ProxyModeIndex = (int)settings.ProxyMode;
+        CustomProxyAddress = settings.CustomProxyAddress;
+        CustomProxyUsername = settings.CustomProxyUsername;
+        DebugAnimationSpeedStep = settings.DebugAnimationSpeedStep;
+        DebugSkipCopy = settings.DebugSkipCopy;
+        DebugMode = settings.DebugMode;
+        DebugDelay = settings.DebugDelay;
+        CustomProxyPassword = await secretStore.GetAsync(ProxySecretService, ProxySecretAccount) ?? string.Empty;
+        networkSettingsService.Apply(settings, CustomProxyPassword);
+        PclMotionSettings.Configure(settings.AnimationFramesPerSecond, settings.AnimationSpeedMultiplier);
+        TrimGameLogs(settings.MaximumGameLogLines);
+    }
+
+    partial void OnSelectedLauncherLanguageChanged(LauncherLanguageOption value)
+    {
+        if (isLoadingPreferences)
+        {
+            return;
+        }
+
+        ApplyCultures(CreateLocalizationSettings());
+        QueueLocalizationSettingsSave();
+    }
+
+    partial void OnSelectedLauncherFormatCultureChanged(LauncherFormatCultureOption value)
+    {
+        if (isLoadingPreferences)
+        {
+            return;
+        }
+
+        ApplyCultures(CreateLocalizationSettings());
+        QueueLocalizationSettingsSave();
+    }
+
+    partial void OnAnnouncementModeIndexChanged(int value) => QueueMiscSettingsSave();
+
+    partial void OnAnimationFpsLimitStepChanged(int value)
+    {
+        OnPropertyChanged(nameof(AnimationFpsLimitDisplay));
+        PclMotionSettings.Configure(value + 1, CreateMiscSettings().AnimationSpeedMultiplier);
+        QueueMiscSettingsSave();
+    }
+
+    partial void OnMaximumGameLogLinesStepChanged(int value)
+    {
+        OnPropertyChanged(nameof(MaximumGameLogLinesDisplay));
+        TrimGameLogs(CreateMiscSettings().MaximumGameLogLines);
+        QueueMiscSettingsSave();
+    }
+
+    partial void OnDisableHardwareAccelerationChanged(bool value)
+    {
+        MiscSettingsStatus = "硬件加速设置将在下次启动 PCL Aurora 时生效。";
+        QueueMiscSettingsSave();
+    }
+
+    partial void OnTelemetryEnabledChanged(bool value) => QueueMiscSettingsSave();
+
+    partial void OnEnableDohChanged(bool value)
+    {
+        ApplyNetworkSettings();
+        QueueMiscSettingsSave();
+    }
+
+    partial void OnProxyModeIndexChanged(int value)
+    {
+        OnPropertyChanged(nameof(UsesCustomProxy));
+        OnPropertyChanged(nameof(IsProxyDisabled));
+        OnPropertyChanged(nameof(IsProxySystem));
+        OnPropertyChanged(nameof(IsProxyCustom));
+        ApplyNetworkSettings();
+        QueueMiscSettingsSave();
+    }
+
+    partial void OnDebugAnimationSpeedStepChanged(int value)
+    {
+        OnPropertyChanged(nameof(DebugAnimationSpeedDisplay));
+        PclMotionSettings.Configure(CreateMiscSettings().AnimationFramesPerSecond,
+            value > 29 ? 0 : value / 10d + 0.1d);
+        QueueMiscSettingsSave();
+    }
+
+    partial void OnDebugSkipCopyChanged(bool value) => QueueMiscSettingsSave();
+    partial void OnDebugModeChanged(bool value) => QueueMiscSettingsSave();
+    partial void OnDebugDelayChanged(bool value) => QueueMiscSettingsSave();
+
+    private LauncherLocalizationSettings CreateLocalizationSettings() =>
+        new(SelectedLauncherLanguage.Code, SelectedLauncherFormatCulture.Code);
+
+    private LauncherMiscSettings CreateMiscSettings() => new(
+        (LauncherAnnouncementMode)AnnouncementModeIndex,
+        AnimationFpsLimitStep,
+        MaximumGameLogLinesStep,
+        DisableHardwareAcceleration,
+        TelemetryEnabled,
+        EnableDoh,
+        (LauncherProxyMode)ProxyModeIndex,
+        CustomProxyAddress.Trim(),
+        CustomProxyUsername.Trim(),
+        DebugAnimationSpeedStep,
+        DebugSkipCopy,
+        DebugMode,
+        DebugDelay);
+
+    private void QueueLocalizationSettingsSave()
+    {
+        if (isLoadingPreferences)
+        {
+            return;
+        }
+
+        localizationSettingsSaveCancellation?.Cancel();
+        localizationSettingsSaveCancellation?.Dispose();
+        localizationSettingsSaveCancellation = new CancellationTokenSource();
+        _ = SaveLocalizationSettingsAsync(localizationSettingsSaveCancellation.Token);
+    }
+
+    private async Task SaveLocalizationSettingsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(250, cancellationToken);
+            await preferencesService.SaveLocalizationSettingsAsync(CreateLocalizationSettings(), cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+    }
+
+    private void QueueMiscSettingsSave()
+    {
+        if (isLoadingPreferences)
+        {
+            return;
+        }
+
+        miscSettingsSaveCancellation?.Cancel();
+        miscSettingsSaveCancellation?.Dispose();
+        miscSettingsSaveCancellation = new CancellationTokenSource();
+        _ = SaveMiscSettingsAsync(miscSettingsSaveCancellation.Token);
+    }
+
+    private async Task SaveMiscSettingsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(250, cancellationToken);
+            await preferencesService.SaveMiscSettingsAsync(CreateMiscSettings(), cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            MiscSettingsStatus = $"保存杂项设置失败：{exception.Message}";
+        }
+    }
+
+    private void ApplyCultures(LauncherLocalizationSettings settings)
+    {
+        var uiCulture = ResolveUiCulture(settings.Language);
+        var formatCulture = settings.FormatCulture switch
+        {
+            LauncherLocalizationSettings.Auto => SystemFormatCulture,
+            LauncherLocalizationSettings.FollowInterfaceLanguage => uiCulture,
+            _ => CultureInfo.GetCultureInfo(settings.FormatCulture),
+        };
+        CultureInfo.DefaultThreadCurrentUICulture = uiCulture;
+        CultureInfo.DefaultThreadCurrentCulture = formatCulture;
+        CultureInfo.CurrentUICulture = uiCulture;
+        CultureInfo.CurrentCulture = formatCulture;
+    }
+
+    private static CultureInfo ResolveUiCulture(string code)
+    {
+        if (!string.Equals(code, LauncherLocalizationSettings.Auto, StringComparison.OrdinalIgnoreCase))
+        {
+            return CultureInfo.GetCultureInfo(code);
+        }
+
+        var current = SystemUiCulture;
+        var exact = LauncherLocalizationSettings.SupportedLanguageCodes.FirstOrDefault(candidate =>
+            string.Equals(candidate, current.Name, StringComparison.OrdinalIgnoreCase));
+        var neutral = exact ?? LauncherLocalizationSettings.SupportedLanguageCodes.FirstOrDefault(candidate =>
+            candidate.StartsWith(current.TwoLetterISOLanguageName + "-", StringComparison.OrdinalIgnoreCase));
+        return CultureInfo.GetCultureInfo(neutral ?? LauncherLocalizationSettings.DefaultLanguageCode);
+    }
+
+    private void ApplyNetworkSettings() =>
+        networkSettingsService.Apply(CreateMiscSettings(), CustomProxyPassword);
+
+    public async Task ApplyProxySettingsAsync()
+    {
+        var settings = CreateMiscSettings();
+        if (settings.ProxyMode == LauncherProxyMode.Custom &&
+            (!Uri.TryCreate(settings.CustomProxyAddress, UriKind.Absolute, out var proxy) ||
+             proxy.Scheme is not ("http" or "https")))
+        {
+            MiscSettingsStatus = "代理地址无效，请填写完整的 http:// 或 https:// 地址。";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(CustomProxyPassword))
+        {
+            await secretStore.DeleteAsync(ProxySecretService, ProxySecretAccount);
+        }
+        else
+        {
+            await secretStore.SetAsync(ProxySecretService, ProxySecretAccount, CustomProxyPassword);
+        }
+
+        await preferencesService.SaveMiscSettingsAsync(settings);
+        networkSettingsService.Apply(settings, CustomProxyPassword);
+        MiscSettingsStatus = "代理设置已应用。";
+    }
+
+    public async Task ExportSettingsAsync(Stream destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        var snapshot = preferencesService.Current with
+        {
+            LocalizationSettings = CreateLocalizationSettings(),
+            MiscSettings = CreateMiscSettings(),
+        };
+        await JsonSerializer.SerializeAsync(destination, snapshot,
+            PreferencesTransferSerializerOptions);
+        MiscSettingsStatus = "配置导出成功。代理密码等安全凭据未包含在导出文件中。";
+    }
+
+    public async Task ImportSettingsAsync(Stream source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        CancelEnvironmentSettingsSaves();
+        var imported = await JsonSerializer.DeserializeAsync<LauncherPreferences>(source,
+            PreferencesTransferSerializerOptions)
+            ?? throw new InvalidDataException("配置文件为空。 ");
+        if (!imported.IsValid)
+        {
+            throw new InvalidDataException("配置文件包含无效或不支持的设置。 ");
+        }
+
+        await preferencesService.ReplaceAsync(imported);
+        await LoadPreferencesAsync();
+        MiscSettingsStatus = "配置导入成功；硬件加速设置将在重启后生效。";
+    }
+
+    public async Task ResetLocalizationSettingsAsync()
+    {
+        CancelLocalizationSettingsSave();
+        isLoadingPreferences = true;
+        try
+        {
+            ApplyLocalizationSettings(LauncherLocalizationSettings.Default);
+            await preferencesService.SaveLocalizationSettingsAsync(LauncherLocalizationSettings.Default);
+        }
+        finally
+        {
+            isLoadingPreferences = false;
+        }
+    }
+
+    public async Task ResetMiscSettingsAsync()
+    {
+        CancelMiscSettingsSave();
+        isLoadingPreferences = true;
+        try
+        {
+            await secretStore.DeleteAsync(ProxySecretService, ProxySecretAccount);
+            await ApplyMiscSettingsAsync(LauncherMiscSettings.Default);
+            await preferencesService.SaveMiscSettingsAsync(LauncherMiscSettings.Default);
+            MiscSettingsStatus = "已初始化杂项页设置。";
+        }
+        finally
+        {
+            isLoadingPreferences = false;
+        }
+    }
+
+    public async Task StopUsingAuroraAsync()
+    {
+        CancelEnvironmentSettingsSaves();
+        if (preferencesService.Current.MicrosoftAccount is { } profile)
+        {
+            await microsoftAccountSessionService.RemoveAsync(profile);
+        }
+
+        await secretStore.DeleteAsync(ProxySecretService, ProxySecretAccount);
+        await preferencesService.ReplaceAsync(LauncherPreferences.Default);
+        currentPreferences = LauncherPreferences.Default;
+        networkSettingsService.Apply(LauncherMiscSettings.Default, null);
+    }
+
+    private void CancelEnvironmentSettingsSaves()
+    {
+        CancelLocalizationSettingsSave();
+        CancelMiscSettingsSave();
+    }
+
+    private void CancelLocalizationSettingsSave()
+    {
+        localizationSettingsSaveCancellation?.Cancel();
+        localizationSettingsSaveCancellation?.Dispose();
+        localizationSettingsSaveCancellation = null;
+    }
+
+    private void CancelMiscSettingsSave()
+    {
+        miscSettingsSaveCancellation?.Cancel();
+        miscSettingsSaveCancellation?.Dispose();
+        miscSettingsSaveCancellation = null;
+    }
+
+    private void TrimGameLogs(int maximumLines)
+    {
+        if (maximumLines == int.MaxValue)
+        {
+            return;
+        }
+
+        while (GameLogLines.Count > maximumLines)
+        {
+            GameLogLines.RemoveAt(0);
+        }
+    }
+
     partial void OnSelectedDownloadConcurrencyChanged(int value)
     {
         OnPropertyChanged(nameof(DownloadConcurrencyDisplay));
@@ -4937,7 +5370,8 @@ public partial class MainViewModel(
         await foreach (var output in session.Output.ReadAllAsync())
         {
             outputCount++;
-            if (GameLogLines.Count == MaximumGameLogLines)
+            var maximumLines = CreateMiscSettings().MaximumGameLogLines;
+            if (maximumLines != int.MaxValue && GameLogLines.Count >= maximumLines)
             {
                 GameLogLines.RemoveAt(0);
             }
@@ -4968,6 +5402,52 @@ public partial class MainViewModel(
             ? "启动前检查已通过。进程启动条件将继续检查类路径与版本参数。"
             : string.Join(Environment.NewLine, readiness.BlockingReasons);
     }
+
+    private static IReadOnlyList<LauncherLanguageOption> CreateLanguageOptions()
+    {
+        var autoCulture = ResolveUiCulture(LauncherLocalizationSettings.Auto);
+        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["zh-CN"] = "简体中文（中国大陆）",
+            ["zh-TW"] = "繁體中文（台灣）",
+            ["en-US"] = "English (US)",
+            ["en-GB"] = "English (United Kingdom)",
+            ["ja-JP"] = "日本語（日本）",
+            ["fr-FR"] = "Français (France)",
+            ["es-ES"] = "Español (España)",
+        };
+        var fonts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["zh-CN"] = "PingFang SC, Microsoft YaHei UI, sans-serif",
+            ["zh-TW"] = "PingFang TC, Microsoft JhengHei UI, sans-serif",
+            ["en-US"] = "Segoe UI, Arial, sans-serif",
+            ["en-GB"] = "Segoe UI, Arial, sans-serif",
+            ["ja-JP"] = "Hiragino Sans, Yu Gothic UI, sans-serif",
+            ["fr-FR"] = "Segoe UI, Arial, sans-serif",
+            ["es-ES"] = "Segoe UI, Arial, sans-serif",
+        };
+
+        var result = new List<LauncherLanguageOption>
+        {
+            new(LauncherLocalizationSettings.Auto, $"跟随系统（{names[autoCulture.Name]}）",
+                autoCulture.Name, fonts[autoCulture.Name]),
+        };
+        result.AddRange(LauncherLocalizationSettings.SupportedLanguageCodes.Select(code =>
+            new LauncherLanguageOption(code, names[code], code, fonts[code])));
+        return result;
+    }
+
+    private static IReadOnlyList<LauncherFormatCultureOption> CreateFormatCultureOptions()
+    {
+        var result = new List<LauncherFormatCultureOption>
+        {
+            new(LauncherLocalizationSettings.Auto, "跟随系统区域格式"),
+            new(LauncherLocalizationSettings.FollowInterfaceLanguage, "同步界面语言"),
+        };
+        result.AddRange(LauncherLocalizationSettings.SupportedLanguageCodes.Select(code =>
+            new LauncherFormatCultureOption(code, CultureInfo.GetCultureInfo(code).NativeName)));
+        return result;
+    }
 }
 
 public sealed record MinecraftGameWindowModeOption(MinecraftGameWindowMode Mode, string DisplayName);
@@ -4983,6 +5463,10 @@ public sealed record MinecraftGameProcessPriorityOption(MinecraftGameProcessPrio
 public sealed record MinecraftPreferredIpStackOption(MinecraftPreferredIpStack Stack, string DisplayName);
 
 public sealed record MinecraftRendererModeOption(MinecraftRendererMode Mode, string DisplayName);
+
+public sealed record LauncherLanguageOption(string Code, string DisplayName, string CultureName, string FontFamily);
+
+public sealed record LauncherFormatCultureOption(string Code, string DisplayName);
 
 public sealed record CommunityResourceSortOption(CommunityResourceSort Sort, string DisplayName);
 

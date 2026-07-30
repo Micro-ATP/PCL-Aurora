@@ -58,6 +58,28 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
         return UpdateAsync(preferences => preferences with { InterfaceSettings = settings }, cancellationToken);
     }
 
+    public Task SaveLocalizationSettingsAsync(
+        LauncherLocalizationSettings settings,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        return UpdateAsync(preferences => preferences with { LocalizationSettings = settings }, cancellationToken);
+    }
+
+    public Task SaveMiscSettingsAsync(
+        LauncherMiscSettings settings,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        return UpdateAsync(preferences => preferences with { MiscSettings = settings }, cancellationToken);
+    }
+
+    public Task ReplaceAsync(LauncherPreferences preferences, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(preferences);
+        return UpdateAsync(_ => preferences, cancellationToken);
+    }
+
     public Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default) =>
         UpdateAsync(preferences => preferences with { MicrosoftAccount = profile }, cancellationToken);
 

@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using PCL.Aurora.Desktop.Services;
 
 namespace PCL.Aurora.Desktop.Controls;
 
@@ -64,6 +65,16 @@ public partial class PclLoadingIndicator : UserControl
             return;
         }
 
+        if (!PclMotionSettings.IsEnabled)
+        {
+            if (PickaxePath.RenderTransform is RotateTransform transform)
+            {
+                transform.Angle = AnimationKeyFrames[0].Angle;
+            }
+            return;
+        }
+
+        animationTimer.Interval = PclMotionSettings.FrameInterval;
         animationStopwatch.Restart();
         animationTimer.Start();
         UpdateAnimationFrame();
@@ -87,7 +98,8 @@ public partial class PclLoadingIndicator : UserControl
             return;
         }
 
-        var progress = animationStopwatch.Elapsed.TotalMilliseconds % AnimationDurationMilliseconds
+        animationTimer.Interval = PclMotionSettings.FrameInterval;
+        var progress = (animationStopwatch.Elapsed.TotalMilliseconds * PclMotionSettings.SpeedMultiplier) % AnimationDurationMilliseconds
             / AnimationDurationMilliseconds;
 
         for (var index = 1; index < AnimationKeyFrames.Length; index++)

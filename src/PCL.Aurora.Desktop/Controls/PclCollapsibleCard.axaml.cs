@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using PCL.Aurora.Desktop.Services;
 
 namespace PCL.Aurora.Desktop.Controls;
 
@@ -103,6 +104,13 @@ public partial class PclCollapsibleCard : UserControl
             return;
         }
 
+        if (!PclMotionSettings.IsEnabled)
+        {
+            ApplyStateImmediately();
+            return;
+        }
+
+        animationTimer.Interval = PclMotionSettings.FrameInterval;
         var currentHeight = Math.Max(CollapsedHeight, Bounds.Height);
         var currentAngle = ArrowTransform.Angle;
         StopAnimation();
@@ -130,7 +138,8 @@ public partial class PclCollapsibleCard : UserControl
 
     private void UpdateAnimationFrame()
     {
-        var elapsed = animationStopwatch.Elapsed.TotalMilliseconds;
+        animationTimer.Interval = PclMotionSettings.FrameInterval;
+        var elapsed = animationStopwatch.Elapsed.TotalMilliseconds * PclMotionSettings.SpeedMultiplier;
         Height = startHeight + heightProfile.GetDistance(elapsed);
 
         var arrowProgress = Math.Clamp(elapsed / ArrowDurationMilliseconds, 0, 1);

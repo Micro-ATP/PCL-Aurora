@@ -14,7 +14,9 @@ public sealed record LauncherPreferences(
     MicrosoftAccountProfile? MicrosoftAccount = null,
     MinecraftLaunchOptions? LaunchOptions = null,
     GameManagementOptions? GameManagementOptions = null,
-    InterfaceSettings? InterfaceSettings = null)
+    InterfaceSettings? InterfaceSettings = null,
+    LauncherLocalizationSettings? LocalizationSettings = null,
+    LauncherMiscSettings? MiscSettings = null)
 {
     public static LauncherPreferences Default { get; } = new(LauncherThemeMode.System);
 
@@ -27,7 +29,9 @@ public sealed record LauncherPreferences(
         (MicrosoftAccount?.IsValid ?? true) &&
         (LaunchOptions?.IsValid ?? true) &&
         (GameManagementOptions?.IsValid ?? true) &&
-        (InterfaceSettings?.IsValid ?? true);
+        (InterfaceSettings?.IsValid ?? true) &&
+        (LocalizationSettings?.IsValid ?? true) &&
+        (MiscSettings?.IsValid ?? true);
 
     public MinecraftLaunchOptions EffectiveLaunchOptions => LaunchOptions ?? MinecraftLaunchOptions.Default;
 
@@ -36,6 +40,12 @@ public sealed record LauncherPreferences(
 
     public InterfaceSettings EffectiveInterfaceSettings =>
         InterfaceSettings ?? PCL.Aurora.Application.InterfaceSettings.Default;
+
+    public LauncherLocalizationSettings EffectiveLocalizationSettings =>
+        LocalizationSettings ?? LauncherLocalizationSettings.Default;
+
+    public LauncherMiscSettings EffectiveMiscSettings =>
+        MiscSettings ?? LauncherMiscSettings.Default;
 
     public static bool IsValidInstanceName(string? instanceName) =>
         instanceName is null ||
