@@ -1499,6 +1499,19 @@ public partial class MainWindow : Window
                 SettingsLogSection,
             ],
             selectedSection);
+
+        if (section == "update" && DataContext is ViewModels.MainViewModel updateViewModel)
+        {
+            await updateViewModel.CheckForUpdatesCommand.ExecuteAsync(null);
+        }
+    }
+
+    private async void UpdateChangelogClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await ShowMessageAsync("更新日志", viewModel.UpdateChangelog);
+        }
     }
 
     private async void OpenBackgroundFolderClick(object? sender, RoutedEventArgs e)

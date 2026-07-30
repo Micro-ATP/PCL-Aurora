@@ -19,6 +19,7 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
         Assert.Equal(LauncherThemeMode.System, result.Preferences.ThemeMode);
         Assert.Equal(LauncherLocalizationSettings.Default, result.Preferences.EffectiveLocalizationSettings);
         Assert.Equal(LauncherMiscSettings.Default, result.Preferences.EffectiveMiscSettings);
+        Assert.Equal(LauncherUpdateSettings.Default, result.Preferences.EffectiveUpdateSettings);
         Assert.Null(result.Warning);
         Assert.False(File.Exists(GetPreferencesPath()));
     }
@@ -118,6 +119,36 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
 
         Assert.Equal(8, result.Preferences.DownloadConcurrency);
         Assert.Equal(31, result.Preferences.DownloadSpeedLimitStep);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RoundTripsValidatedUpdateSettings()
+    {
+        var store = CreateStore();
+        var settings = new LauncherUpdateSettings(
+            LauncherUpdateChannel.Beta,
+            LauncherAutoUpdateBehavior.NotifyOnly);
+
+        await store.SaveAsync(new LauncherPreferences(
+            LauncherThemeMode.System,
+            UpdateSettings: settings));
+        var result = await store.LoadAsync();
+
+        Assert.Equal(settings, result.Preferences.EffectiveUpdateSettings);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RejectsInvalidUpdateSettings()
+    {
+        var store = CreateStore();
+        var settings = new LauncherUpdateSettings(
+            (LauncherUpdateChannel)99,
+            LauncherAutoUpdateBehavior.DownloadAndNotify);
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            store.SaveAsync(new LauncherPreferences(
+                LauncherThemeMode.System,
+                UpdateSettings: settings)));
     }
 
     [Fact]

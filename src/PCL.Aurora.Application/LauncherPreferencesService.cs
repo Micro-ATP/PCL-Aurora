@@ -74,6 +74,19 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
         return UpdateAsync(preferences => preferences with { MiscSettings = settings }, cancellationToken);
     }
 
+    public Task SaveUpdateSettingsAsync(
+        LauncherUpdateSettings settings,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        if (!settings.IsValid)
+        {
+            throw new ArgumentOutOfRangeException(nameof(settings));
+        }
+
+        return UpdateAsync(preferences => preferences with { UpdateSettings = settings }, cancellationToken);
+    }
+
     public Task ReplaceAsync(LauncherPreferences preferences, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(preferences);

@@ -92,6 +92,26 @@ public sealed class LauncherPreferencesServiceTests
         Assert.Equal("Aurora_01", store.SavedPreferences?.OfflinePlayerName);
     }
 
+    [Fact]
+    public async Task SaveUpdateSettingsAsync_PreservesPreviouslyLoadedPreferences()
+    {
+        var store = new RecordingPreferencesStore(
+            new LauncherPreferencesLoadResult(
+                new LauncherPreferences(LauncherThemeMode.Light, "1.21.4", "Aurora_01"),
+                null));
+        var service = new LauncherPreferencesService(store);
+        var settings = new LauncherUpdateSettings(
+            LauncherUpdateChannel.Beta,
+            LauncherAutoUpdateBehavior.NotifyOnly);
+        await service.LoadAsync();
+
+        await service.SaveUpdateSettingsAsync(settings);
+
+        Assert.Equal(settings, store.SavedPreferences?.EffectiveUpdateSettings);
+        Assert.Equal("1.21.4", store.SavedPreferences?.SelectedInstanceName);
+        Assert.Equal("Aurora_01", store.SavedPreferences?.OfflinePlayerName);
+    }
+
     private sealed class RecordingPreferencesStore(LauncherPreferencesLoadResult loadResult) : ILauncherPreferencesStore
     {
         public LauncherPreferences? SavedPreferences { get; private set; }

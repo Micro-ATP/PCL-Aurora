@@ -41,6 +41,7 @@ public partial class MainViewModel(
     IMicrosoftAccountAuthenticationService microsoftAuthenticationService,
     IMicrosoftAccountSessionService microsoftAccountSessionService,
     IGitHubContributorService gitHubContributorService,
+    ILauncherUpdateService launcherUpdateService,
     IOpenPathService openPathService,
     IThemeService themeService,
     ISystemMemoryInfo systemMemoryInfo,
@@ -115,6 +116,7 @@ public partial class MainViewModel(
     private CancellationTokenSource? interfaceSettingsSaveCancellation;
     private CancellationTokenSource? localizationSettingsSaveCancellation;
     private CancellationTokenSource? miscSettingsSaveCancellation;
+    private CancellationTokenSource? updateSettingsSaveCancellation;
     private CommunityResourceVersionFilterSet communityVersionFilters = new([], [], false, false);
     private string? selectedCommunityGameVersionFilter;
     private string? selectedCommunityLoaderFilter;
@@ -234,6 +236,9 @@ public partial class MainViewModel(
 
     public string MinecraftRootDirectory { get; } = minecraftDirectoryService.GetRootDirectory();
 
+    private string LauncherVersionName { get; } =
+        typeof(MainViewModel).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
+
     public string LauncherVersionDisplay { get; } =
         $"PCL Aurora {typeof(MainViewModel).Assembly.GetName().Version?.ToString(3) ?? "开发版本"}";
 
@@ -242,6 +247,20 @@ public partial class MainViewModel(
         new(LauncherThemeMode.System, "跟随系统"),
         new(LauncherThemeMode.Light, "浅色"),
         new(LauncherThemeMode.Dark, "深色"),
+    ];
+
+    public IReadOnlyList<GameManagementOption<LauncherUpdateChannel>> UpdateChannels { get; } =
+    [
+        new(LauncherUpdateChannel.Release, "正式版 / Release"),
+        new(LauncherUpdateChannel.Beta, "测试版 / Beta"),
+    ];
+
+    public IReadOnlyList<GameManagementOption<LauncherAutoUpdateBehavior>> AutoUpdateBehaviors { get; } =
+    [
+        new(LauncherAutoUpdateBehavior.DownloadAndInstall, "自动下载并安装更新"),
+        new(LauncherAutoUpdateBehavior.DownloadAndNotify, "自动下载并提示更新"),
+        new(LauncherAutoUpdateBehavior.NotifyOnly, "提示更新"),
+        new(LauncherAutoUpdateBehavior.Disabled, "不自动检查更新（不推荐）"),
     ];
 
     public IReadOnlyList<GameManagementOption<DownloadSourcePreference>> FileSourceOptions { get; } =
@@ -591,6 +610,37 @@ public partial class MainViewModel(
     public bool IsProxySystem { get => ProxyModeIndex == 1; set { if (value) ProxyModeIndex = 1; } }
     public bool IsProxyCustom { get => ProxyModeIndex == 2; set { if (value) ProxyModeIndex = 2; } }
     public bool HasMiscSettingsStatus => !string.IsNullOrWhiteSpace(MiscSettingsStatus);
+
+    [ObservableProperty]
+    private GameManagementOption<LauncherUpdateChannel> selectedUpdateChannel =
+        new(LauncherUpdateChannel.Release, "正式版 / Release");
+
+    [ObservableProperty]
+    private GameManagementOption<LauncherAutoUpdateBehavior> selectedAutoUpdateBehavior =
+        new(LauncherAutoUpdateBehavior.DownloadAndNotify, "自动下载并提示更新");
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanCheckForUpdates))]
+    private bool isCheckingForUpdates;
+
+    [ObservableProperty]
+    private bool hasAvailableUpdate;
+
+    [ObservableProperty]
+    private string updateStatusText = "尚未检查更新";
+
+    [ObservableProperty]
+    private string availableUpdateVersionDisplay = "PCL Aurora";
+
+    [ObservableProperty]
+    private string availableUpdateSummary = "正在获取更新日志…";
+
+    [ObservableProperty]
+    private string updateChangelog = "暂无可用的更新日志。";
+
+    private Uri? latestUpdateReleaseUri;
+
+    public bool CanCheckForUpdates => !IsCheckingForUpdates;
 
     [ObservableProperty]
     private string contributorSummary = "正在读取 GitHub 贡献者…";
@@ -1433,6 +1483,9 @@ public partial class MainViewModel(
             ApplyInterfaceSettings(result.Preferences.EffectiveInterfaceSettings);
             ApplyLocalizationSettings(result.Preferences.EffectiveLocalizationSettings);
             await ApplyMiscSettingsAsync(result.Preferences.EffectiveMiscSettings);
+            var updateSettings = result.Preferences.EffectiveUpdateSettings;
+            SelectedUpdateChannel = UpdateChannels.Single(option => option.Value == updateSettings.Channel);
+            SelectedAutoUpdateBehavior = AutoUpdateBehaviors.Single(option => option.Value == updateSettings.AutoUpdateBehavior);
             SelectedDownloadConcurrency = result.Preferences.DownloadConcurrency;
             SelectedDownloadSpeedLimitStep = result.Preferences.DownloadSpeedLimitStep;
             var managementOptions = result.Preferences.EffectiveGameManagementOptions;
@@ -4027,6 +4080,20 @@ public partial class MainViewModel(
     partial void OnDebugModeChanged(bool value) => QueueMiscSettingsSave();
     partial void OnDebugDelayChanged(bool value) => QueueMiscSettingsSave();
 
+    partial void OnSelectedUpdateChannelChanged(GameManagementOption<LauncherUpdateChannel> value)
+    {
+        if (isLoadingPreferences)
+        {
+            return;
+        }
+
+        QueueUpdateSettingsSave();
+        _ = CheckForUpdatesAsync();
+    }
+
+    partial void OnSelectedAutoUpdateBehaviorChanged(GameManagementOption<LauncherAutoUpdateBehavior> value) =>
+        QueueUpdateSettingsSave();
+
     private LauncherLocalizationSettings CreateLocalizationSettings() =>
         new(SelectedLauncherLanguage.Code, SelectedLauncherFormatCulture.Code);
 
@@ -4044,6 +4111,9 @@ public partial class MainViewModel(
         DebugSkipCopy,
         DebugMode,
         DebugDelay);
+
+    private LauncherUpdateSettings CreateUpdateSettings() =>
+        new(SelectedUpdateChannel.Value, SelectedAutoUpdateBehavior.Value);
 
     private void QueueLocalizationSettingsSave()
     {
@@ -4096,6 +4166,33 @@ public partial class MainViewModel(
         catch (Exception exception)
         {
             MiscSettingsStatus = $"保存杂项设置失败：{exception.Message}";
+        }
+    }
+
+    private void QueueUpdateSettingsSave()
+    {
+        if (isLoadingPreferences)
+        {
+            return;
+        }
+
+        updateSettingsSaveCancellation?.Cancel();
+        updateSettingsSaveCancellation?.Dispose();
+        updateSettingsSaveCancellation = new CancellationTokenSource();
+        _ = SaveUpdateSettingsAsync(updateSettingsSaveCancellation.Token);
+    }
+
+    private async Task SaveUpdateSettingsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(250, cancellationToken);
+            var settings = CreateUpdateSettings();
+            await preferencesService.SaveUpdateSettingsAsync(settings, cancellationToken);
+            currentPreferences = currentPreferences with { UpdateSettings = settings };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
         }
     }
 
@@ -4164,6 +4261,7 @@ public partial class MainViewModel(
         {
             LocalizationSettings = CreateLocalizationSettings(),
             MiscSettings = CreateMiscSettings(),
+            UpdateSettings = CreateUpdateSettings(),
         };
         await JsonSerializer.SerializeAsync(destination, snapshot,
             PreferencesTransferSerializerOptions);
@@ -4237,6 +4335,7 @@ public partial class MainViewModel(
     {
         CancelLocalizationSettingsSave();
         CancelMiscSettingsSave();
+        CancelUpdateSettingsSave();
     }
 
     private void CancelLocalizationSettingsSave()
@@ -4251,6 +4350,13 @@ public partial class MainViewModel(
         miscSettingsSaveCancellation?.Cancel();
         miscSettingsSaveCancellation?.Dispose();
         miscSettingsSaveCancellation = null;
+    }
+
+    private void CancelUpdateSettingsSave()
+    {
+        updateSettingsSaveCancellation?.Cancel();
+        updateSettingsSaveCancellation?.Dispose();
+        updateSettingsSaveCancellation = null;
     }
 
     private void TrimGameLogs(int maximumLines)
@@ -5245,6 +5351,43 @@ public partial class MainViewModel(
         {
             AuroraReleaseSummary = $"无法打开 PCL Aurora 的发行页：{exception.Message}";
         }
+    }
+
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            IsCheckingForUpdates = true;
+            HasAvailableUpdate = false;
+            UpdateStatusText = "正在检查更新";
+            var result = await launcherUpdateService.CheckAsync(
+                LauncherVersionName,
+                SelectedUpdateChannel.Value);
+            latestUpdateReleaseUri = result.LatestRelease.ReleaseUri;
+            UpdateChangelog = result.LatestRelease.Changelog;
+            AvailableUpdateVersionDisplay = result.LatestRelease.DisplayName;
+            AvailableUpdateSummary = result.LatestRelease.Summary;
+            HasAvailableUpdate = result.IsUpdateAvailable;
+            UpdateStatusText = result.IsUpdateAvailable ? "发现新版本" : "已是最新版本";
+        }
+        catch (Exception exception)
+        {
+            HasAvailableUpdate = false;
+            latestUpdateReleaseUri = null;
+            UpdateStatusText = "检查更新失败";
+            UpdateChangelog = $"暂时无法获取更新日志。\n\n{exception.Message}";
+        }
+        finally
+        {
+            IsCheckingForUpdates = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task InstallAvailableUpdateAsync()
+    {
+        await openPathService.OpenUriAsync(latestUpdateReleaseUri ?? AuroraReleasesUri);
     }
 
     [RelayCommand(AllowConcurrentExecutions = false)]

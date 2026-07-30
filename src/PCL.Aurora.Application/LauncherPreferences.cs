@@ -16,7 +16,8 @@ public sealed record LauncherPreferences(
     GameManagementOptions? GameManagementOptions = null,
     InterfaceSettings? InterfaceSettings = null,
     LauncherLocalizationSettings? LocalizationSettings = null,
-    LauncherMiscSettings? MiscSettings = null)
+    LauncherMiscSettings? MiscSettings = null,
+    LauncherUpdateSettings? UpdateSettings = null)
 {
     public static LauncherPreferences Default { get; } = new(LauncherThemeMode.System);
 
@@ -31,7 +32,8 @@ public sealed record LauncherPreferences(
         (GameManagementOptions?.IsValid ?? true) &&
         (InterfaceSettings?.IsValid ?? true) &&
         (LocalizationSettings?.IsValid ?? true) &&
-        (MiscSettings?.IsValid ?? true);
+        (MiscSettings?.IsValid ?? true) &&
+        (UpdateSettings?.IsValid ?? true);
 
     public MinecraftLaunchOptions EffectiveLaunchOptions => LaunchOptions ?? MinecraftLaunchOptions.Default;
 
@@ -46,6 +48,9 @@ public sealed record LauncherPreferences(
 
     public LauncherMiscSettings EffectiveMiscSettings =>
         MiscSettings ?? LauncherMiscSettings.Default;
+
+    public LauncherUpdateSettings EffectiveUpdateSettings =>
+        UpdateSettings ?? LauncherUpdateSettings.Default;
 
     public static bool IsValidInstanceName(string? instanceName) =>
         instanceName is null ||

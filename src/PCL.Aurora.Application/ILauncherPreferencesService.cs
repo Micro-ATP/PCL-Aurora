@@ -37,6 +37,10 @@ public interface ILauncherPreferencesService
         LauncherMiscSettings settings,
         CancellationToken cancellationToken = default);
 
+    Task SaveUpdateSettingsAsync(
+        LauncherUpdateSettings settings,
+        CancellationToken cancellationToken = default);
+
     Task ReplaceAsync(LauncherPreferences preferences, CancellationToken cancellationToken = default);
 
     Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default);

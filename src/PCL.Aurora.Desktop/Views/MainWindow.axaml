@@ -1204,6 +1204,26 @@
             <Setter Property="Foreground" Value="#0B55B7" />
             <Setter Property="BorderBrush" Value="#0B55B7" />
         </Style>
+        <Style Selector="Grid.pcl-shell Button.update-text">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="#4B5968" />
+            <Setter Property="FontWeight" Value="Light" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.update-text:pointerover">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Button.update-text:pressed">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="#0B5BCB" />
+        </Style>
         <Style Selector="Grid.pcl-shell Button.launch-action">
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
@@ -4161,24 +4181,81 @@
                             </controls:PclCollapsibleCard>
                         </StackPanel>
 
-                        <StackPanel x:Name="SettingsUpdateSection" IsVisible="False">
-                            <Border Classes="setup-card">
-                                <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="更新设置" />
-                                    <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="155,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8" IsEnabled="False">
-                                        <TextBlock VerticalAlignment="Center" Text="更新通道" /><ComboBox Grid.Column="1" SelectedIndex="0"><ComboBoxItem Content="正式版 / Release" /><ComboBoxItem Content="测试版 / Beta" /><ComboBoxItem Content="开发版 / Dev" /></ComboBox>
-                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="自动更新设置" /><ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="1"><ComboBoxItem Content="自动下载并安装更新" /><ComboBoxItem Content="自动下载并提示更新" /><ComboBoxItem Content="提示更新" /><ComboBoxItem Content="不自动检查更新（不推荐）" /></ComboBox>
-                                    </Grid>
+                        <StackPanel x:Name="SettingsUpdateSection" Classes="setup-launch-section" IsVisible="False" Spacing="15">
+                            <Border Classes="setup-card" Margin="0">
+                                <Grid Margin="20,15"
+                                      ColumnDefinitions="Auto,*,8,75"
+                                      RowDefinitions="28,7,28">
+                                    <TextBlock Margin="0,0,25,0" VerticalAlignment="Center" Text="更新通道" />
+                                    <ComboBox Grid.Column="1" Grid.ColumnSpan="3" Classes="setup-launch-field"
+                                              ItemsSource="{Binding UpdateChannels}"
+                                              SelectedItem="{Binding SelectedUpdateChannel}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+
+                                    <TextBlock Grid.Row="2" Margin="0,0,25,0" VerticalAlignment="Center" Text="自动更新设置" />
+                                    <ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Classes="setup-launch-field"
+                                              ItemsSource="{Binding AutoUpdateBehaviors}"
+                                              SelectedItem="{Binding SelectedAutoUpdateBehavior}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
                                 </Grid>
                             </Border>
-                            <Border Classes="setup-card">
-                                <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="当前版本" />
-                                    <Grid Grid.Row="1" Margin="18,0,18,16" ColumnDefinitions="64,*,Auto">
-                                        <Image Width="50" Height="50" Source="/Assets/Icons/AppIcon-2048.png" />
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3"><TextBlock FontSize="20" FontWeight="SemiBold" Text="{Binding LauncherVersionDisplay}" /><TextBlock Classes="setup-muted" Text="{Binding AuroraReleaseSummary}" /></StackPanel>
-                                        <Button Grid.Column="2" VerticalAlignment="Center" Command="{Binding OpenAuroraReleasesCommand}" Content="检查更新" />
-                                    </Grid>
+
+                            <Border Classes="setup-card" Margin="0" IsVisible="{Binding !HasAvailableUpdate}">
+                                <Grid Margin="20"
+                                      ColumnDefinitions="50,10,*,80,10,100"
+                                      RowDefinitions="29,1,20">
+                                    <Image Grid.RowSpan="3" Width="50" Height="50"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center"
+                                           Source="/Assets/Icons/AppIcon-2048.png" />
+                                    <TextBlock Grid.Column="2" FontSize="20" FontWeight="Bold"
+                                               HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                               Text="{Binding LauncherVersionDisplay}" />
+                                    <TextBlock Grid.Row="2" Grid.Column="2" FontSize="14"
+                                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                                               Text="{Binding UpdateStatusText}" />
+                                    <Button Grid.Column="3" Grid.RowSpan="2" Classes="launch-download-button"
+                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                            Command="{Binding CheckForUpdatesCommand}"
+                                            IsEnabled="{Binding CanCheckForUpdates}"
+                                            Content="再次检查" />
+                                    <Button Grid.Column="5" Grid.RowSpan="2"
+                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                            Click="UpdateChangelogClick"
+                                            Content="查看更新日志" />
+                                </Grid>
+                            </Border>
+
+                            <Border Classes="setup-card" Margin="0" IsVisible="{Binding HasAvailableUpdate}">
+                                <Grid Margin="20"
+                                      ColumnDefinitions="50,10,*,85"
+                                      RowDefinitions="29,1,20,8,Auto,10,Auto">
+                                    <Image Grid.RowSpan="3" Width="50" Height="50"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center"
+                                           Source="/Assets/Icons/AppIcon-2048.png" />
+                                    <TextBlock Grid.Column="2" FontSize="20" FontWeight="Bold"
+                                               HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                               Text="{Binding AvailableUpdateVersionDisplay}" />
+                                    <TextBlock Grid.Row="2" Grid.Column="2" FontSize="14"
+                                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                                               Text="by Micro-ATP" />
+                                    <Button Grid.Column="3" Grid.RowSpan="2" Width="85" Height="30"
+                                            Classes="launch-download-button"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Command="{Binding InstallAvailableUpdateCommand}"
+                                            Content="安装" />
+                                    <TextBlock Grid.Row="4" Grid.ColumnSpan="4"
+                                               Text="{Binding AvailableUpdateSummary}"
+                                               TextWrapping="Wrap" />
+                                    <Button Grid.Row="6" Grid.ColumnSpan="4" Classes="update-text"
+                                            HorizontalAlignment="Left" VerticalAlignment="Center"
+                                            Click="UpdateChangelogClick"
+                                            Content="查看详细更新日志" />
                                 </Grid>
                             </Border>
                         </StackPanel>

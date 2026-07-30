@@ -233,6 +233,10 @@ public sealed class MinecraftLaunchPreparationServiceTests
             LauncherMiscSettings settings,
             CancellationToken cancellationToken = default) => Task.CompletedTask;
 
+        public Task SaveUpdateSettingsAsync(
+            LauncherUpdateSettings settings,
+            CancellationToken cancellationToken = default) => Task.CompletedTask;
+
         public Task ReplaceAsync(
             LauncherPreferences replacement,
             CancellationToken cancellationToken = default) => Task.CompletedTask;
