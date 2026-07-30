@@ -242,6 +242,12 @@ public partial class MainWindow : Window
 
     private void MainWindowKeyDown(object? sender, KeyEventArgs e)
     {
+        if (MessageDialogHost.IsDialogOpen)
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key != Key.F12 || DataContext is not ViewModels.MainViewModel viewModel)
         {
             return;
@@ -1014,81 +1020,23 @@ public partial class MainWindow : Window
             });
         }
 
-        var dialog = new Window
+        var result = await MessageDialogHost.ShowAsync(new PclMessageDialogOptions(
+            Title: "选择依赖",
+            Message: "必要依赖将与模组本体一起下载，可选依赖由你决定。",
+            PrimaryButtonText: "继续下载",
+            SecondaryButtonText: "取消",
+            Content: dependencyItems));
+        if (result != 1)
         {
-            Title = "选择依赖",
-            Width = 480,
-            Height = Math.Clamp(220 + dependencyItems.Children.Count * 38, 280, 520),
-            CanResize = false,
-            ShowInTaskbar = false,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-        };
-        var cancel = new Button
-        {
-            Content = "取消",
-            MinWidth = 76,
-            Height = 34,
-            Background = Avalonia.Media.Brush.Parse("#F9FCFF"),
-            Foreground = Avalonia.Media.Brush.Parse("#405364"),
-            BorderBrush = Avalonia.Media.Brush.Parse("#B8D2EA"),
-            BorderThickness = new Avalonia.Thickness(1),
-            CornerRadius = new Avalonia.CornerRadius(3),
-        };
-        var confirm = new Button
-        {
-            Content = "继续下载",
-            MinWidth = 92,
-            Height = 34,
-            Background = Avalonia.Media.Brush.Parse("#DCEEFF"),
-            Foreground = Avalonia.Media.Brush.Parse("#245F98"),
-            BorderBrush = Avalonia.Media.Brush.Parse("#86BAEF"),
-            BorderThickness = new Avalonia.Thickness(1),
-            CornerRadius = new Avalonia.CornerRadius(3),
-        };
-        cancel.Click += (_, _) => dialog.Close(null);
-        confirm.Click += (_, _) =>
-        {
-            var selected = preparation.RequiredVersions
-                .Concat(optionalChecks
-                    .Where(item => item.CheckBox.IsChecked == true)
-                    .SelectMany(item => item.Dependency.Versions))
-                .DistinctBy(version => version.Id, StringComparer.OrdinalIgnoreCase)
-                .ToArray();
-            dialog.Close(selected);
-        };
-        dialog.Content = new Border
-        {
-            Padding = new Avalonia.Thickness(20),
-            Child = new Grid
-            {
-                RowDefinitions = new RowDefinitions("Auto,*,Auto"),
-                RowSpacing = 12,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = "必要依赖将与模组本体一起下载，可选依赖由你决定。",
-                        TextWrapping = Avalonia.Media.TextWrapping.Wrap,
-                    },
-                    new ScrollViewer
-                    {
-                        [Grid.RowProperty] = 1,
-                        VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                        Content = dependencyItems,
-                    },
-                    new StackPanel
-                    {
-                        [Grid.RowProperty] = 2,
-                        Orientation = Avalonia.Layout.Orientation.Horizontal,
-                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-                        Spacing = 8,
-                        Children = { cancel, confirm },
-                    },
-                },
-            },
-        };
-        dialog.Opened += (_, _) => cancel.Focus();
-        return await dialog.ShowDialog<IReadOnlyList<CommunityResourceVersion>?>(this);
+            return null;
+        }
+
+        return preparation.RequiredVersions
+            .Concat(optionalChecks
+                .Where(item => item.CheckBox.IsChecked == true)
+                .SelectMany(item => item.Dependency.Versions))
+            .DistinctBy(version => version.Id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     private void CommunityResourceFavoriteClick(object? sender, RoutedEventArgs e)
@@ -1296,78 +1244,30 @@ public partial class MainWindow : Window
             Height = multiline ? 92 : 36,
             VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center,
         };
-        var dialog = new Window
-        {
-            Title = title,
-            Width = 440,
-            Height = multiline ? 250 : 190,
-            CanResize = false,
-            ShowInTaskbar = false,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-        };
-        var cancel = new Button { Content = "取消", MinWidth = 76 };
-        var confirm = new Button { Content = "确定", MinWidth = 76 };
-        cancel.Click += (_, _) => dialog.Close(null);
-        confirm.Click += (_, _) => dialog.Close(input.Text);
-        dialog.Content = new Border
-        {
-            Padding = new Avalonia.Thickness(20),
-            Child = new StackPanel
-            {
-                Spacing = 12,
-                Children =
-                {
-                    new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
-                    input,
-                    new StackPanel
-                    {
-                        Orientation = Avalonia.Layout.Orientation.Horizontal,
-                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-                        Spacing = 8,
-                        Children = { cancel, confirm },
-                    },
-                },
-            },
-        };
-        dialog.Opened += (_, _) => input.Focus();
-        return await dialog.ShowDialog<string?>(this);
+        var result = await MessageDialogHost.ShowAsync(new PclMessageDialogOptions(
+            Title: title,
+            Message: message,
+            Content: input,
+            InitialFocus: input,
+            EnterConfirms: !multiline));
+        return result == 1 ? input.Text : null;
     }
 
-    private async Task<bool> ShowConfirmationAsync(string title, string message)
+    private async Task<bool> ShowConfirmationAsync(string title, string message, bool isWarning = true)
     {
-        var dialog = new Window
-        {
-            Title = title,
-            Width = 420,
-            Height = 165,
-            CanResize = false,
-            ShowInTaskbar = false,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-        };
-        var cancel = new Button { Content = "取消", MinWidth = 76 };
-        var confirm = new Button { Content = "确定", MinWidth = 76 };
-        cancel.Click += (_, _) => dialog.Close(false);
-        confirm.Click += (_, _) => dialog.Close(true);
-        dialog.Content = new Border
-        {
-            Padding = new Avalonia.Thickness(20),
-            Child = new StackPanel
-            {
-                Spacing = 16,
-                Children =
-                {
-                    new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
-                    new StackPanel
-                    {
-                        Orientation = Avalonia.Layout.Orientation.Horizontal,
-                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-                        Spacing = 8,
-                        Children = { cancel, confirm },
-                    },
-                },
-            },
-        };
-        return await dialog.ShowDialog<bool>(this);
+        return await MessageDialogHost.ShowAsync(new PclMessageDialogOptions(
+            Title: title,
+            Message: message,
+            IsWarning: isWarning)) == 1;
+    }
+
+    private async Task ShowMessageAsync(string title, string message, bool isWarning = false)
+    {
+        await MessageDialogHost.ShowAsync(new PclMessageDialogOptions(
+            Title: title,
+            Message: message,
+            SecondaryButtonText: null,
+            IsWarning: isWarning));
     }
 
     private void VersionCategoryToggleClick(object? sender, RoutedEventArgs e)
@@ -1839,7 +1739,7 @@ public partial class MainWindow : Window
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidDataException)
         {
-            await ShowConfirmationAsync("导入失败", exception.Message);
+            await ShowMessageAsync("导入失败", exception.Message, isWarning: true);
         }
     }
 

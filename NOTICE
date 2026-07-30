@@ -11,6 +11,13 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/McInstance.cs (instance isolation policy only)
 - PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/MyMsgLogin.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/MyMsgLogin.xaml
+- PCL-CE: Plain Craft Launcher 2/Controls/MyMsg/MyMsgText.xaml
+- PCL-CE: Plain Craft Launcher 2/Controls/MyMsg/MyMsgText.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Controls/MyMsg/MyMsgInput.xaml
+- PCL-CE: Plain Craft Launcher 2/Controls/MyMsg/MyMsgInput.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Modules/ModMain.cs (message queue and keyboard behavior only)
+- PCL-CE: Plain Craft Launcher 2/FormMain.xaml (in-window message host only)
+- PCL-CE: Plain Craft Launcher 2/FormMain.xaml.cs (message keyboard routing only)
 - PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchRight.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLaunch.xaml.cs
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModMinecraft.vb

@@ -4383,7 +4383,7 @@
         <!-- Direct Avalonia adaptation of PCL/PCL-CE MyMsgLogin.xaml. -->
         <Grid Grid.RowSpan="2"
               ZIndex="100"
-              Background="#730D2438"
+              Background="#5A000000"
               IsVisible="{Binding IsMicrosoftLoginRunning}">
             <Border Width="520"
                     MinHeight="248"
@@ -4392,11 +4392,10 @@
                     Padding="22,20,22,22"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Background="#FBFCFE"
-                    BorderBrush="#BFD2E4"
-                    BorderThickness="1"
+                    Background="#FBFBFB"
+                    BorderThickness="0"
                     CornerRadius="7"
-                    BoxShadow="0 8 24 2 #590B2338">
+                    BoxShadow="0 4 20 2 #CC3C3C3C">
                 <Grid RowDefinitions="Auto,2,16,*,Auto">
                     <TextBlock Grid.Row="0"
                                Margin="7,0,70,9"
@@ -4464,6 +4463,10 @@
                 </Grid>
             </Border>
         </Grid>
+
+        <controls:PclMessageDialog x:Name="MessageDialogHost"
+                                   Grid.RowSpan="2"
+                                   ZIndex="200" />
     </Grid>
     </Border>
 
