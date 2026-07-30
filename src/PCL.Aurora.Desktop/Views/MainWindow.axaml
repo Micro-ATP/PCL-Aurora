@@ -211,12 +211,12 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Border.setup-card">
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Background" Value="#F8FAFD" />
-            <Setter Property="BorderBrush" Value="#A9CDF2" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Background" Value="#D2FBFBFB" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Margin" Value="0,0,0,15" />
-            <Setter Property="BoxShadow" Value="0 1 3 0 #12343D4A" />
+            <Setter Property="BoxShadow" Value="0 1 4 0 #12343D4A" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.3" />
@@ -225,13 +225,13 @@
             </Setter>
         </Style>
         <Style Selector="Border.setup-card:pointerover">
+            <Setter Property="Background" Value="#EAF2FE" />
             <Setter Property="BoxShadow" Value="0 1 3 0 #664890F5" />
         </Style>
         <Style Selector="TextBlock.setup-card-title">
-            <Setter Property="Height" Value="40" />
-            <Setter Property="Margin" Value="15,0" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Margin" Value="15,12,0,0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="#343D4A" />
             <Setter Property="IsHitTestVisible" Value="False" />
@@ -248,6 +248,154 @@
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="#6F7C8B" />
             <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground" Value="#343D4A" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section TextBlock.setup-card-title">
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section TextBox">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="CaretBrush" Value="#404040" />
+            <Setter Property="SelectionBrush" Value="#801370F3" />
+            <Setter Property="PlaceholderForeground" Value="#A6A6A6" />
+            <Setter Property="Background" Value="#55FFFFFF" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Padding" Value="7,0,5,0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.1" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.1" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section TextBox.setup-launch-field /template/ Border#PART_BorderElement, StackPanel.setup-launch-section TextBox.setup-launch-editor /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#55FFFFFF" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section TextBox:pointerover">
+            <Setter Property="Background" Value="#E0EAFD" />
+            <Setter Property="BorderBrush" Value="#4890F5" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section TextBox.setup-launch-field:pointerover /template/ Border#PART_BorderElement, StackPanel.setup-launch-section TextBox.setup-launch-editor:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#E0EAFD" />
+            <Setter Property="BorderBrush" Value="#4890F5" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section TextBox:focus">
+            <Setter Property="Background" Value="#E0EAFD" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section TextBox.setup-launch-field:focus /template/ Border#PART_BorderElement, StackPanel.setup-launch-section TextBox.setup-launch-editor:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#E0EAFD" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section TextBox:disabled">
+            <Setter Property="Background" Value="#EBEBEB" />
+            <Setter Property="BorderBrush" Value="#CCCCCC" />
+            <Setter Property="Foreground" Value="#A6A6A6" />
+            <Setter Property="PlaceholderForeground" Value="#A6A6A6" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section TextBox.setup-launch-field:disabled /template/ Border#PART_BorderElement, StackPanel.setup-launch-section TextBox.setup-launch-editor:disabled /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#EBEBEB" />
+            <Setter Property="BorderBrush" Value="#CCCCCC" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="PlaceholderForeground" Value="#A6A6A6" />
+            <Setter Property="Background" Value="#55FFFFFF" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Padding" Value="8,0,22,0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.1" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.1" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox /template/ Border#Background">
+            <Setter Property="Background" Value="#55FFFFFF" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox /template/ Border#HighlightBackground">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox /template/ ContentControl#ContentPresenter">
+            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox /template/ TextBox#PART_EditableTextBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Padding" Value="7,0,0,0" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox /template/ TextBox#PART_EditableTextBox /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox /template/ PathIcon#DropDownGlyph">
+            <Setter Property="Foreground" Value="#96C0F9" />
+            <Setter Property="Width" Value="11" />
+            <Setter Property="Height" Value="7" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox /template/ Border#PopupBorder">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="BoxShadow" Value="0 2 5 0 #26000000" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox:pointerover">
+            <Setter Property="Background" Value="#E0EAFD" />
+            <Setter Property="BorderBrush" Value="#4890F5" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox:pointerover /template/ Border#Background">
+            <Setter Property="Background" Value="#E0EAFD" />
+            <Setter Property="BorderBrush" Value="#4890F5" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox:pointerover /template/ PathIcon#DropDownGlyph">
+            <Setter Property="Foreground" Value="#4890F5" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox:pressed, StackPanel.setup-launch-section ComboBox:focus">
+            <Setter Property="Background" Value="#E0EAFD" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox:pressed /template/ Border#Background, StackPanel.setup-launch-section ComboBox:focus /template/ Border#Background">
+            <Setter Property="Background" Value="#E0EAFD" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox:disabled">
+            <Setter Property="Background" Value="#EBEBEB" />
+            <Setter Property="BorderBrush" Value="#CCCCCC" />
+            <Setter Property="Foreground" Value="#A6A6A6" />
+            <Setter Property="PlaceholderForeground" Value="#A6A6A6" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox:disabled /template/ Border#Background">
+            <Setter Property="Background" Value="#EBEBEB" />
+            <Setter Property="BorderBrush" Value="#CCCCCC" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section ComboBox:disabled /template/ ContentControl#ContentPresenter, StackPanel.setup-launch-section ComboBox:disabled /template/ PathIcon#DropDownGlyph">
+            <Setter Property="Foreground" Value="#A6A6A6" />
         </Style>
         <Style Selector="ComboBox.setup-launch-field">
             <Setter Property="Height" Value="28" />
@@ -272,7 +420,223 @@
         </Style>
         <Style Selector="RadioButton.setup-memory-mode">
             <Setter Property="Height" Value="28" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Normal" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid ColumnDefinitions="20,*" Background="Transparent">
+                        <Ellipse x:Name="RadioBorder" Width="18" Height="18" Margin="1,0,0,0"
+                                 HorizontalAlignment="Left" VerticalAlignment="Center"
+                                 Fill="#55FFFFFF" Stroke="#343D4A" StrokeThickness="1.1">
+                            <Ellipse.Transitions>
+                                <Transitions>
+                                    <BrushTransition Property="Fill" Duration="0:0:0.1" />
+                                    <BrushTransition Property="Stroke" Duration="0:0:0.1" />
+                                </Transitions>
+                            </Ellipse.Transitions>
+                        </Ellipse>
+                        <Ellipse x:Name="RadioDot" Width="8" Height="8" Margin="6,0,0,0"
+                                 HorizontalAlignment="Left" VerticalAlignment="Center"
+                                 Fill="#0B5BCB" Opacity="0">
+                            <Ellipse.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                                </Transitions>
+                            </Ellipse.Transitions>
+                        </Ellipse>
+                        <ContentPresenter Grid.Column="1" Margin="6,0,0,0"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="Left"
+                                          VerticalContentAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="RadioButton.setup-memory-mode:checked /template/ Ellipse#RadioBorder">
+            <Setter Property="Stroke" Value="#0B5BCB" />
+        </Style>
+        <Style Selector="RadioButton.setup-memory-mode:checked /template/ Ellipse#RadioDot">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="RadioButton.setup-memory-mode:pointerover">
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="RadioButton.setup-memory-mode:pointerover /template/ Ellipse#RadioBorder">
+            <Setter Property="Fill" Value="#BEE0EAFD" />
+            <Setter Property="Stroke" Value="#1370F3" />
+        </Style>
+        <Style Selector="RadioButton.setup-memory-mode:disabled">
+            <Setter Property="Foreground" Value="#A6A6A6" />
+        </Style>
+        <Style Selector="RadioButton.setup-memory-mode:disabled /template/ Ellipse#RadioBorder">
+            <Setter Property="Fill" Value="#EBEBEB" />
+            <Setter Property="Stroke" Value="#A6A6A6" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section CheckBox">
+            <Setter Property="MinHeight" Value="20" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid ColumnDefinitions="20,*" Background="Transparent">
+                        <Border x:Name="CheckBorder" Width="18" Height="18" Margin="1,0,0,0"
+                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="#55FFFFFF" BorderBrush="#343D4A"
+                                BorderThickness="1.1" CornerRadius="3">
+                            <Border.Transitions>
+                                <Transitions>
+                                    <BrushTransition Property="Background" Duration="0:0:0.1" />
+                                    <BrushTransition Property="BorderBrush" Duration="0:0:0.1" />
+                                </Transitions>
+                            </Border.Transitions>
+                        </Border>
+                        <Path x:Name="CheckMark" Width="12" Height="12" Margin="4,0,0,0"
+                              HorizontalAlignment="Left" VerticalAlignment="Center"
+                              Data="M0,6L1.5,4.5 4.5,7.5 10.5,1.5 12,3 4.5,10.5 0,6z"
+                              Fill="#0B5BCB" Opacity="0">
+                            <Path.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                                </Transitions>
+                            </Path.Transitions>
+                        </Path>
+                        <ContentPresenter Grid.Column="1" Margin="6,0,0,0"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="Left"
+                                          VerticalContentAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section CheckBox:checked /template/ Border#CheckBorder">
+            <Setter Property="BorderBrush" Value="#0B5BCB" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section CheckBox:checked /template/ Path#CheckMark">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section CheckBox:pointerover">
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section CheckBox:pointerover /template/ Border#CheckBorder">
+            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section CheckBox:disabled">
+            <Setter Property="Foreground" Value="#A6A6A6" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section CheckBox:disabled /template/ Border#CheckBorder">
+            <Setter Property="Background" Value="#EBEBEB" />
+            <Setter Property="BorderBrush" Value="#A6A6A6" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section CheckBox:disabled /template/ Path#CheckMark">
+            <Setter Property="Fill" Value="#A6A6A6" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section Slider">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="Foreground" Value="#96C0F9" />
+            <Setter Property="Background" Value="#4D96C0F9" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Slider">
+                    <Grid Height="16" VerticalAlignment="Center">
+                        <Border x:Name="SliderTrackBackground" Height="1" Margin="1,0"
+                                VerticalAlignment="Center" Background="#8096C0F9" />
+                        <Track x:Name="PART_Track"
+                               Minimum="{TemplateBinding Minimum}"
+                               Maximum="{TemplateBinding Maximum}"
+                               Value="{TemplateBinding Value, Mode=TwoWay}"
+                               Orientation="Horizontal">
+                            <Track.DecreaseButton>
+                                <RepeatButton Background="Transparent" BorderThickness="0" Focusable="False">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border Background="Transparent" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.DecreaseButton>
+                            <Track.IncreaseButton>
+                                <RepeatButton Background="Transparent" BorderThickness="0" Focusable="False">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border Background="Transparent" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.IncreaseButton>
+                            <Track.Thumb>
+                                <Thumb x:Name="SliderThumb" Width="10" Height="10">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Border x:Name="SliderThumbVisual" Width="10" Height="10"
+                                                    Background="#96C0F9" BorderBrush="#96C0F9"
+                                                    BorderThickness="1.2" CornerRadius="5">
+                                                <Border.Transitions>
+                                                    <Transitions>
+                                                        <BrushTransition Property="Background" Duration="0:0:0.1" />
+                                                        <BrushTransition Property="BorderBrush" Duration="0:0:0.1" />
+                                                    </Transitions>
+                                                </Border.Transitions>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.1" />
+                    <BrushTransition Property="Background" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section Slider:pointerover">
+            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="Background" Value="#4D1370F3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section Slider:pointerover /template/ Border#SliderTrackBackground">
+            <Setter Property="Background" Value="#801370F3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section Slider:pointerover /template/ Thumb#SliderThumb /template/ Border#SliderThumbVisual">
+            <Setter Property="Background" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section Slider:disabled">
+            <Setter Property="Foreground" Value="#CCCCCC" />
+            <Setter Property="Background" Value="#80CCCCCC" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section Slider:disabled /template/ Border#SliderTrackBackground">
+            <Setter Property="Background" Value="#CCCCCC" />
+        </Style>
+        <Style Selector="StackPanel.setup-launch-section Slider:disabled /template/ Thumb#SliderThumb /template/ Border#SliderThumbVisual">
+            <Setter Property="Background" Value="#CCCCCC" />
+            <Setter Property="BorderBrush" Value="#CCCCCC" />
         </Style>
         <Style Selector="Border.about-avatar">
             <Setter Property="Width" Value="36" />
@@ -2683,7 +3047,7 @@
                     <ScrollViewer Grid.Column="1" Classes="pcl-page-right" Background="#D9EAF9">
                     <StackPanel Margin="25,25,25,10" Spacing="15">
 
-                        <StackPanel x:Name="SettingsLaunchSection" Spacing="15">
+                        <StackPanel x:Name="SettingsLaunchSection" Classes="setup-launch-section" Spacing="15">
                             <Border Classes="setup-card">
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="启动选项" />
@@ -2825,7 +3189,8 @@
                                                       StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" />
                                             </Button>
                                         </StackPanel>
-                                        <TextBox Grid.Row="2" Grid.Column="1" Height="100" MaxLength="4000"
+                                        <TextBox Grid.Row="2" Grid.Column="1" Classes="setup-launch-editor"
+                                                 Height="100" MaxLength="4000"
                                                  AcceptsReturn="True" TextWrapping="Wrap"
                                                  VerticalContentAlignment="Top" Padding="8,6"
                                                  ScrollViewer.VerticalScrollBarVisibility="Auto"

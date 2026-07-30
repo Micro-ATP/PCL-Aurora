@@ -7,11 +7,11 @@
              Classes="setup-card">
     <UserControl.Styles>
         <Style Selector="Border.collapsible-card-surface">
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Background" Value="#F8FAFD" />
-            <Setter Property="BorderBrush" Value="#A9CDF2" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BoxShadow" Value="0 1 3 0 #12343D4A" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Background" Value="#D2FBFBFB" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="BoxShadow" Value="0 1 4 0 #12343D4A" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.3" />
@@ -20,6 +20,7 @@
             </Setter>
         </Style>
         <Style Selector="Border.collapsible-card-surface:pointerover">
+            <Setter Property="Background" Value="#EAF2FE" />
             <Setter Property="BoxShadow" Value="0 1 3 0 #664890F5" />
         </Style>
         <Style Selector="Button.collapsible-card-header">
@@ -28,16 +29,16 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="4,4,0,0" />
+            <Setter Property="CornerRadius" Value="5,5,0,0" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
+                    <Border Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
                             CornerRadius="{TemplateBinding CornerRadius}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter Content="{TemplateBinding Content}"
@@ -52,13 +53,13 @@
             </Setter>
         </Style>
         <Style Selector="Button.collapsible-card-header:pointerover">
-            <Setter Property="Background" Value="#0A4890F5" />
+            <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="Button.collapsible-card-header:pressed">
-            <Setter Property="Background" Value="#144890F5" />
+            <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="TextBlock.collapsible-card-title">
-            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="#343D4A" />
             <Setter Property="Transitions">
@@ -94,8 +95,8 @@
                       MinWidth="0"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch">
-                    <TextBlock Margin="16,0"
-                               VerticalAlignment="Center"
+                    <TextBlock Margin="16,12,0,0"
+                               VerticalAlignment="Top"
                                Classes="collapsible-card-title"
                                Text="{Binding Title, ElementName=Root}"
                                IsHitTestVisible="False" />

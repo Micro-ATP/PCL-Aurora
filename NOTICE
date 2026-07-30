@@ -53,6 +53,12 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadClient.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml
 - PCL-CE: Plain Craft Launcher 2/Controls/MyCard.cs
+- PCL-CE: Plain Craft Launcher 2/Controls/MyTextBox.cs (launch-settings visual states only)
+- PCL-CE: Plain Craft Launcher 2/Controls/MyComboBox.cs (launch-settings visual states only)
+- PCL-CE: Plain Craft Launcher 2/Controls/MyComboBoxItem.cs (launch-settings visual states only)
+- PCL-CE: Plain Craft Launcher 2/Controls/MyRadioBox.xaml and MyRadioBox.xaml.cs (launch-settings visual template and states only)
+- PCL-CE: Plain Craft Launcher 2/Controls/MyCheckBox.xaml and MyCheckBox.xaml.cs (launch-settings visual template and states only)
+- PCL-CE: Plain Craft Launcher 2/Controls/MySlider.xaml and MySlider.xaml.cs (launch-settings visual template and states only)
 - PCL-CE: Plain Craft Launcher 2/Controls/AnimatedBackgroundGrid.cs
 - PCL-CE: Plain Craft Launcher 2/Controls/MyListItem.xaml
 - PCL-CE: Plain Craft Launcher 2/Controls/MyListItem.xaml.cs
