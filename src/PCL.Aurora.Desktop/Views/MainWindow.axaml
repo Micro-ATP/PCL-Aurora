@@ -770,13 +770,19 @@
         <Style Selector="controls|PclNavigationButton.secondary-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="CornerRadius" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Padding" Value="6,0,4,0" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Height" Value="36" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
             <Setter Property="Template">
                 <ControlTemplate TargetType="controls:PclNavigationButton">
                     <Grid>
@@ -785,8 +791,8 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{TemplateBinding CornerRadius}"
                                 Padding="{TemplateBinding Padding}">
-                            <Grid ColumnDefinitions="20,*" ColumnSpacing="8">
-                                <Path Width="16" Height="16" VerticalAlignment="Center"
+                            <Grid ColumnDefinitions="34,*">
+                                <Path Width="18" Height="18" Margin="6,0,4,0" VerticalAlignment="Center"
                                       Data="{TemplateBinding IconData}"
                                       Stretch="Uniform"
                                       Fill="Transparent"
@@ -794,32 +800,37 @@
                                       StrokeThickness="2"
                                       StrokeLineCap="Round"
                                       StrokeJoin="Round" />
-                                <TextBlock Grid.Column="1"
+                                <TextBlock x:Name="NavigationLabel"
+                                           Grid.Column="1"
+                                           Margin="4,0,0,0"
                                            VerticalAlignment="Center"
                                            FontSize="{TemplateBinding FontSize}"
                                            Foreground="{TemplateBinding Foreground}"
                                            Text="{TemplateBinding Label}" />
                             </Grid>
                         </Border>
-                        <Border x:Name="SelectionIndicator" Width="3" Height="24"
+                        <Border x:Name="SelectionIndicator" Width="5" Height="20" Margin="-1,0,0,0"
                                 HorizontalAlignment="Left" VerticalAlignment="Center"
-                                Background="{StaticResource PclThemePrimaryBrush}" CornerRadius="0,2,2,0"
+                                Background="{StaticResource PclThemePrimaryBrush}" CornerRadius="2"
                                 IsVisible="False" />
                     </Grid>
                 </ControlTemplate>
             </Setter>
         </Style>
         <Style Selector="controls|PclNavigationButton.secondary-navigation:pointerover">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="#BEE0EAFD" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="controls|PclNavigationButton.secondary-navigation.selected">
-            <Setter Property="Background" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="controls|PclNavigationButton.secondary-navigation.selected:pointerover">
-            <Setter Property="Background" Value="#2B86ED" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
+        </Style>
+        <Style Selector="controls|PclNavigationButton.secondary-navigation.selected /template/ Border#SelectionIndicator">
+            <Setter Property="IsVisible" Value="True" />
         </Style>
         <Style Selector="controls|PclNavigationButton.secondary-navigation:focus-visible">
             <Setter Property="BorderBrush" Value="{StaticResource PclThemePrimaryBrush}" />
@@ -1197,16 +1208,28 @@
             <Setter Property="Foreground" Value="#36424F" />
         </Style>
         <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation:pointerover">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="#BEE0EAFD" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation.selected">
-            <Setter Property="Background" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation.selected:pointerover">
-            <Setter Property="Background" Value="#2B86ED" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
+        </Style>
+        <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation /template/ TextBlock#NavigationLabel">
+            <Setter Property="Foreground" Value="#343D4A" />
+        </Style>
+        <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation:pointerover /template/ TextBlock#NavigationLabel">
+            <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
+        </Style>
+        <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation.selected /template/ TextBlock#NavigationLabel">
+            <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
+        </Style>
+        <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation.selected:pointerover /template/ TextBlock#NavigationLabel">
+            <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.window-control">
             <Setter Property="Background" Value="Transparent" />
@@ -1505,6 +1528,12 @@
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.084" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
             <Setter Property="Template">
                 <ControlTemplate TargetType="Button">
                     <Border Background="{TemplateBinding Background}">
@@ -1517,12 +1546,13 @@
             </Setter>
         </Style>
         <Style Selector="Button.nav-row-action:pointerover">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#0F63C8" />
         </Style>
         <Style Selector="Button.nav-row-action:pressed">
-            <Setter Property="Background" Value="#D6EAFF" />
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#0B55B7" />
+            <Setter Property="Opacity" Value="0.72" />
         </Style>
         <Style Selector="Grid.nav-row">
             <Setter Property="Height" Value="36" />
@@ -1533,13 +1563,16 @@
             </Setter>
         </Style>
         <Style Selector="Grid.nav-row:pointerover">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="#BEE0EAFD" />
         </Style>
         <Style Selector="Grid.nav-row.selected">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="Grid.pcl-shell Grid.nav-row.selected">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Grid.pcl-shell Grid.nav-row.selected:pointerover">
+            <Setter Property="Background" Value="#BEE0EAFD" />
         </Style>
         <Style Selector="Grid.pcl-shell Grid.nav-row controls|PclNavigationButton.secondary-navigation.selected">
             <Setter Property="Background" Value="Transparent" />
@@ -2152,7 +2185,7 @@
                             BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Column names follow PCL2 PageDownloadLeft.xaml with PCL-CE installer additions. -->
-                            <StackPanel x:Name="DownloadNavigationPanel" Spacing="2">
+                            <StackPanel x:Name="DownloadNavigationPanel" Spacing="0">
                                 <Grid Classes="nav-row selected" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation selected" Click="DownloadNavigationClick"
                                                                   Tag="game" Label="原版游戏"
@@ -3015,7 +3048,7 @@
                     <Border Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Category structure follows PCL-CE PageSetupLeft.xaml; visual treatment follows PCL2. -->
-                            <StackPanel x:Name="SettingsNavigationPanel" Spacing="2">
+                            <StackPanel x:Name="SettingsNavigationPanel" Spacing="0">
                                 <TextBlock Margin="13,0,5,3" FontSize="12" Foreground="#6F7C8B" Text="游戏" />
                                 <Grid Classes="nav-row selected" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation selected" Click="SettingsNavigationClick" Tag="launch" Label="启动"
@@ -3939,7 +3972,7 @@
                 <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
                     <Border Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <!-- PCL2 PageOtherLeft.xaml structure, plus PCL-CE/Aurora session log access. -->
-                        <StackPanel x:Name="MoreNavigationPanel" Spacing="2">
+                        <StackPanel x:Name="MoreNavigationPanel" Spacing="0">
                             <Grid Classes="nav-row selected" ColumnDefinitions="*,36">
                                 <controls:PclNavigationButton Classes="secondary-navigation selected" Click="MoreNavigationClick" Tag="help" Label="帮助"
                                                               IconData="M9.1 9a3 3 0 1 1 5.83 1c0 2-3 2-3 4 M12 18h.01 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z" />
