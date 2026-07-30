@@ -49,6 +49,42 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task LoadAsync_MigratesLegacyDefaultConcurrencyWhenManagementOptionsAreMissing()
+    {
+        Directory.CreateDirectory(applicationDataDirectory);
+        await File.WriteAllTextAsync(
+            GetPreferencesPath(),
+            """{"themeMode":"System","downloadConcurrency":4,"downloadSpeedLimitStep":42}""");
+        var store = CreateStore();
+
+        var result = await store.LoadAsync();
+
+        Assert.Equal(LauncherDownloadSettings.DefaultConcurrency, result.Preferences.DownloadConcurrency);
+        Assert.Equal(GameManagementOptions.Default, result.Preferences.EffectiveGameManagementOptions);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RoundTripsGameManagementOptions()
+    {
+        var store = CreateStore();
+        var options = GameManagementOptions.Default with
+        {
+            CommunitySource = DownloadSourcePreference.Mirror,
+            IgnoreQuilt = false,
+            AutoInstallDependencies = false,
+        };
+
+        await store.SaveAsync(new LauncherPreferences(
+            LauncherThemeMode.System,
+            DownloadConcurrency: 4,
+            GameManagementOptions: options));
+        var result = await store.LoadAsync();
+
+        Assert.Equal(4, result.Preferences.DownloadConcurrency);
+        Assert.Equal(options, result.Preferences.EffectiveGameManagementOptions);
+    }
+
+    [Fact]
     public async Task SaveAsync_RoundTripsValidatedLaunchOptionsWithoutAnyToken()
     {
         var store = CreateStore();

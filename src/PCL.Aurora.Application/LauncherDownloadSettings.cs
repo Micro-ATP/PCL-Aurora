@@ -10,8 +10,8 @@ namespace PCL.Aurora.Application;
 public static class LauncherDownloadSettings
 {
     public const int MinimumConcurrency = 1;
-    public const int DefaultConcurrency = 4;
-    public const int MaximumConcurrency = 16;
+    public const int DefaultConcurrency = 64;
+    public const int MaximumConcurrency = 256;
 
     public const int MinimumSpeedLimitStep = 0;
     public const int UnlimitedSpeedLimitStep = 42;

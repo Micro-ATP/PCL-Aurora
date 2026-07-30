@@ -42,6 +42,14 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
     public Task SaveDownloadSpeedLimitStepAsync(int speedLimitStep, CancellationToken cancellationToken = default) =>
         UpdateAsync(preferences => preferences with { DownloadSpeedLimitStep = speedLimitStep }, cancellationToken);
 
+    public Task SaveGameManagementOptionsAsync(
+        GameManagementOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        return UpdateAsync(preferences => preferences with { GameManagementOptions = options }, cancellationToken);
+    }
+
     public Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default) =>
         UpdateAsync(preferences => preferences with { MicrosoftAccount = profile }, cancellationToken);
 

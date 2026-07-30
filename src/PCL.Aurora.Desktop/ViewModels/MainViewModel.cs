@@ -99,6 +99,7 @@ public partial class MainViewModel(
     private CancellationTokenSource? communityDescriptionTranslationCancellation;
     private CancellationTokenSource? loaderDirectoryCancellation;
     private CancellationTokenSource? launchOptionsSaveCancellation;
+    private CancellationTokenSource? gameManagementOptionsSaveCancellation;
     private CommunityResourceVersionFilterSet communityVersionFilters = new([], [], false, false);
     private string? selectedCommunityGameVersionFilter;
     private string? selectedCommunityLoaderFilter;
@@ -228,13 +229,49 @@ public partial class MainViewModel(
         new(LauncherThemeMode.Dark, "深色"),
     ];
 
-    public IReadOnlyList<int> DownloadConcurrencyOptions { get; } =
-        Enumerable.Range(
-            LauncherDownloadSettings.MinimumConcurrency,
-            LauncherDownloadSettings.MaximumConcurrency - LauncherDownloadSettings.MinimumConcurrency + 1)
-        .ToArray();
+    public IReadOnlyList<GameManagementOption<DownloadSourcePreference>> FileSourceOptions { get; } =
+    [
+        new(DownloadSourcePreference.Mirror, "尽量使用镜像源"),
+        new(DownloadSourcePreference.PreferOfficialWithFallback, "优先使用官方源，在加载缓慢时换用镜像源"),
+        new(DownloadSourcePreference.Official, "尽量使用官方源"),
+    ];
 
-    public IReadOnlyList<DownloadSpeedOption> DownloadSpeedOptions { get; } = DownloadSpeedOption.CreateAll();
+    public IReadOnlyList<GameManagementOption<DownloadSourcePreference>> VersionListSourceOptions { get; } =
+    [
+        new(DownloadSourcePreference.Mirror, "尽量使用镜像源（可能缺少刚更新的版本）"),
+        new(DownloadSourcePreference.PreferOfficialWithFallback, "优先使用官方源，在加载缓慢时换用镜像源"),
+        new(DownloadSourcePreference.Official, "尽量使用官方源"),
+    ];
+
+    public IReadOnlyList<GameManagementOption<DownloadSourcePreference>> CommunitySourceOptions { get; } =
+    [
+        new(DownloadSourcePreference.Mirror, "尽量使用镜像源"),
+        new(DownloadSourcePreference.PreferOfficialWithFallback, "优先使用官方源，失败时换用镜像源"),
+        new(DownloadSourcePreference.Official, "尽量使用官方源"),
+    ];
+
+    public IReadOnlyList<GameManagementOption<CommunityFileNameFormat>> CommunityFileNameFormatOptions { get; } =
+    [
+        new(CommunityFileNameFormat.ChineseBrackets, "【机械动力】create-1.21.1-6.0.4"),
+        new(CommunityFileNameFormat.SquareBrackets, "[机械动力] create-1.21.1-6.0.4"),
+        new(CommunityFileNameFormat.TranslatedNameFirst, "机械动力-create-1.21.1-6.0.4"),
+        new(CommunityFileNameFormat.OriginalNameFirst, "create-1.21.1-6.0.4-机械动力"),
+        new(CommunityFileNameFormat.OriginalNameOnly, "create-1.21.1-6.0.4"),
+    ];
+
+    public IReadOnlyList<GameManagementOption<CommunityModNameStyle>> CommunityModNameStyleOptions { get; } =
+    [
+        new(CommunityModNameStyle.TranslationTitle, "标题显示译名，详情显示文件名"),
+        new(CommunityModNameStyle.FileNameTitle, "标题显示文件名，详情显示译名"),
+    ];
+
+    public IReadOnlyList<GameManagementOption<CommunityQuickDownloadBehavior>> CommunityQuickDownloadBehaviorOptions { get; } =
+    [
+        new(CommunityQuickDownloadBehavior.AlwaysAsk, "总是询问"),
+        new(CommunityQuickDownloadBehavior.CurrentInstance, "下载到当前选中实例"),
+        new(CommunityQuickDownloadBehavior.AskInstance, "询问并下载到选择的实例"),
+        new(CommunityQuickDownloadBehavior.AskPath, "询问并下载到一个路径"),
+    ];
 
     public IReadOnlyList<MinecraftGameWindowModeOption> GameWindowModes { get; } =
     [
@@ -334,12 +371,60 @@ public partial class MainViewModel(
     private int selectedDownloadConcurrency = LauncherDownloadSettings.DefaultConcurrency;
 
     [ObservableProperty]
-    private DownloadSpeedOption selectedDownloadSpeedLimit = new(
-        LauncherDownloadSettings.UnlimitedSpeedLimitStep,
-        LauncherDownloadSettings.GetSpeedLimitDisplayName(LauncherDownloadSettings.UnlimitedSpeedLimitStep));
+    private int selectedDownloadSpeedLimitStep = LauncherDownloadSettings.UnlimitedSpeedLimitStep;
+
+    public string DownloadConcurrencyDisplay => SelectedDownloadConcurrency.ToString();
+
+    public string DownloadSpeedLimitDisplay =>
+        LauncherDownloadSettings.GetSpeedLimitDisplayName(SelectedDownloadSpeedLimitStep);
 
     [ObservableProperty]
-    private string downloadSettingsSummary = "正在读取本地下载设置…";
+    private GameManagementOption<DownloadSourcePreference> selectedFileSource =
+        new(DownloadSourcePreference.PreferOfficialWithFallback, "优先使用官方源，在加载缓慢时换用镜像源");
+
+    [ObservableProperty]
+    private GameManagementOption<DownloadSourcePreference> selectedVersionListSource =
+        new(DownloadSourcePreference.PreferOfficialWithFallback, "优先使用官方源，在加载缓慢时换用镜像源");
+
+    [ObservableProperty]
+    private bool autoSelectNewInstance = true;
+
+    [ObservableProperty]
+    private bool fixAuthlib = true;
+
+    [ObservableProperty]
+    private GameManagementOption<DownloadSourcePreference> selectedCommunitySource =
+        new(DownloadSourcePreference.PreferOfficialWithFallback, "优先使用官方源，失败时换用镜像源");
+
+    [ObservableProperty]
+    private GameManagementOption<CommunityFileNameFormat> selectedCommunityFileNameFormat =
+        new(CommunityFileNameFormat.SquareBrackets, "[机械动力] create-1.21.1-6.0.4");
+
+    [ObservableProperty]
+    private GameManagementOption<CommunityModNameStyle> selectedCommunityModNameStyle =
+        new(CommunityModNameStyle.TranslationTitle, "标题显示译名，详情显示文件名");
+
+    [ObservableProperty]
+    private GameManagementOption<CommunityQuickDownloadBehavior> selectedCommunityQuickDownloadBehavior =
+        new(CommunityQuickDownloadBehavior.AlwaysAsk, "总是询问");
+
+    [ObservableProperty]
+    private bool ignoreQuilt = true;
+
+    [ObservableProperty]
+    private bool autoInstallDependencies = true;
+
+    [ObservableProperty]
+    private bool releaseNotifications;
+
+    [ObservableProperty]
+    private bool snapshotNotifications;
+
+    [ObservableProperty]
+    private bool autoChangeGameLanguage = true;
+
+    [ObservableProperty]
+    private bool readClipboard;
 
     [ObservableProperty]
     private string additionalJvmArguments = string.Empty;
@@ -1112,8 +1197,22 @@ public partial class MainViewModel(
             themeService.Apply(option.Mode);
             ThemeSummary = result.Warning ?? $"当前使用{option.DisplayName}主题；该偏好已保存到本机。";
             SelectedDownloadConcurrency = result.Preferences.DownloadConcurrency;
-            SelectedDownloadSpeedLimit = DownloadSpeedOptions.Single(option => option.Step == result.Preferences.DownloadSpeedLimitStep);
-            DownloadSettingsSummary = result.Warning ?? GetDownloadSettingsSummary(result.Preferences);
+            SelectedDownloadSpeedLimitStep = result.Preferences.DownloadSpeedLimitStep;
+            var managementOptions = result.Preferences.EffectiveGameManagementOptions;
+            SelectedFileSource = FileSourceOptions.Single(option => option.Value == managementOptions.FileSource);
+            SelectedVersionListSource = VersionListSourceOptions.Single(option => option.Value == managementOptions.VersionListSource);
+            AutoSelectNewInstance = managementOptions.AutoSelectNewInstance;
+            FixAuthlib = managementOptions.FixAuthlib;
+            SelectedCommunitySource = CommunitySourceOptions.Single(option => option.Value == managementOptions.CommunitySource);
+            SelectedCommunityFileNameFormat = CommunityFileNameFormatOptions.Single(option => option.Value == managementOptions.CommunityFileNameFormat);
+            SelectedCommunityModNameStyle = CommunityModNameStyleOptions.Single(option => option.Value == managementOptions.CommunityModNameStyle);
+            SelectedCommunityQuickDownloadBehavior = CommunityQuickDownloadBehaviorOptions.Single(option => option.Value == managementOptions.QuickDownloadBehavior);
+            IgnoreQuilt = managementOptions.IgnoreQuilt;
+            AutoInstallDependencies = managementOptions.AutoInstallDependencies;
+            ReleaseNotifications = managementOptions.ReleaseNotifications;
+            SnapshotNotifications = managementOptions.SnapshotNotifications;
+            AutoChangeGameLanguage = managementOptions.AutoChangeGameLanguage;
+            ReadClipboard = managementOptions.ReadClipboard;
             var launchOptions = result.Preferences.EffectiveLaunchOptions;
             AdditionalJvmArguments = launchOptions.AdditionalJvmArguments ?? string.Empty;
             AdditionalGameArguments = launchOptions.AdditionalGameArguments ?? string.Empty;
@@ -1149,7 +1248,6 @@ public partial class MainViewModel(
         catch (Exception exception)
         {
             ThemeSummary = $"无法读取本地主题偏好：{exception.Message}；当前跟随系统主题。";
-            DownloadSettingsSummary = "无法读取本地下载设置；已使用安全默认值。";
             LaunchOptionsSummary = "无法读取本地启动选项；已使用安全默认值。";
             JavaRequirementSummary = "无法读取版本元数据中的 Java 版本要求。";
             MemoryAllocationSummary = "无法读取内存分配设置。";
@@ -2083,7 +2181,7 @@ public partial class MainViewModel(
         SelectedCommunityResourceCategory = CommunityResourceCategoryOptions[0];
         CommunityResourceLoaderOptions = communityResourceType == CommunityResourceType.Shader
             ? ShaderLoaderOptions
-            : ModLoaderOptions;
+            : GetVisibleModLoaderOptions();
         SelectedCommunityResourceLoader = CommunityResourceLoaderOptions[0];
         SelectedCommunityResourceSort = CommunityResourceSortOptions[0];
         IsCommunityLoaderFilterVisible = communityResourceType is
@@ -2779,7 +2877,8 @@ public partial class MainViewModel(
             PclCeCommunityResourceVersionOrganizer.AllFilter,
             PclCeCommunityResourceVersionOrganizer.AllFilter,
             preferredLoader is null));
-        foreach (var loader in communityVersionFilters.Loaders)
+        foreach (var loader in communityVersionFilters.Loaders.Where(loader =>
+                     !IgnoreQuilt || !loader.Equals("Quilt", StringComparison.OrdinalIgnoreCase)))
         {
             CommunityLoaderVersionFilters.Add(new(
                 loader,
@@ -2798,7 +2897,7 @@ public partial class MainViewModel(
             CommunityResourceLoader.Forge => "Forge",
             CommunityResourceLoader.NeoForge => "NeoForge",
             CommunityResourceLoader.Fabric => "Fabric",
-            CommunityResourceLoader.Quilt => "Quilt",
+            CommunityResourceLoader.Quilt when !IgnoreQuilt => "Quilt",
             _ => null,
         };
     }
@@ -2829,6 +2928,11 @@ public partial class MainViewModel(
             option.IsSelected = ReferenceEquals(option, selected);
         }
     }
+
+    private IReadOnlyList<CommunityResourceLoaderOption> GetVisibleModLoaderOptions() =>
+        IgnoreQuilt
+            ? ModLoaderOptions.Where(option => option.Loader != CommunityResourceLoader.Quilt).ToArray()
+            : ModLoaderOptions;
 
     private CommunityResourceLoader GetCommunityResourceLoaderForSelectedInstance() =>
         SelectedInstance?.InstalledLoader?.Kind switch
@@ -2862,7 +2966,7 @@ public partial class MainViewModel(
             loader.Equals("forge", StringComparison.OrdinalIgnoreCase) ||
             loader.Equals("neoforge", StringComparison.OrdinalIgnoreCase) ||
             loader.Equals("fabric", StringComparison.OrdinalIgnoreCase) ||
-            loader.Equals("quilt", StringComparison.OrdinalIgnoreCase));
+            (!IgnoreQuilt && loader.Equals("quilt", StringComparison.OrdinalIgnoreCase)));
         return value?.ToLowerInvariant() switch
         {
             "forge" => CommunityResourceLoader.Forge,
@@ -3335,17 +3439,19 @@ public partial class MainViewModel(
 
     partial void OnSelectedDownloadConcurrencyChanged(int value)
     {
+        OnPropertyChanged(nameof(DownloadConcurrencyDisplay));
         if (!isLoadingPreferences)
         {
             _ = SaveDownloadConcurrencyPreferenceAsync(value);
         }
     }
 
-    partial void OnSelectedDownloadSpeedLimitChanged(DownloadSpeedOption value)
+    partial void OnSelectedDownloadSpeedLimitStepChanged(int value)
     {
+        OnPropertyChanged(nameof(DownloadSpeedLimitDisplay));
         if (!isLoadingPreferences)
         {
-            _ = SaveDownloadSpeedLimitPreferenceAsync(value.Step);
+            _ = SaveDownloadSpeedLimitPreferenceAsync(value);
         }
     }
 
@@ -3353,14 +3459,12 @@ public partial class MainViewModel(
     {
         try
         {
-            DownloadSettingsSummary = "正在保存下载并发设置…";
             await preferencesService.SaveDownloadConcurrencyAsync(value);
             currentPreferences = currentPreferences with { DownloadConcurrency = value };
-            DownloadSettingsSummary = GetDownloadSettingsSummary(currentPreferences);
         }
-        catch (Exception exception)
+        catch
         {
-            DownloadSettingsSummary = $"下载并发设置保存失败：{exception.Message}";
+            SelectedDownloadConcurrency = currentPreferences.DownloadConcurrency;
         }
     }
 
@@ -3368,19 +3472,93 @@ public partial class MainViewModel(
     {
         try
         {
-            DownloadSettingsSummary = "正在保存下载限速设置…";
             await preferencesService.SaveDownloadSpeedLimitStepAsync(value);
             currentPreferences = currentPreferences with { DownloadSpeedLimitStep = value };
-            DownloadSettingsSummary = GetDownloadSettingsSummary(currentPreferences);
         }
-        catch (Exception exception)
+        catch
         {
-            DownloadSettingsSummary = $"下载限速设置保存失败：{exception.Message}";
+            SelectedDownloadSpeedLimitStep = currentPreferences.DownloadSpeedLimitStep;
         }
     }
 
-    private static string GetDownloadSettingsSummary(LauncherPreferences preferences) =>
-        $"最多 {preferences.DownloadConcurrency} 个总下载连接；速度上限：{LauncherDownloadSettings.GetSpeedLimitDisplayName(preferences.DownloadSpeedLimitStep)}。设置将在下一次安装任务开始时生效。";
+    partial void OnSelectedFileSourceChanged(GameManagementOption<DownloadSourcePreference> value) => QueueGameManagementOptionsSave();
+    partial void OnSelectedVersionListSourceChanged(GameManagementOption<DownloadSourcePreference> value) => QueueGameManagementOptionsSave();
+    partial void OnAutoSelectNewInstanceChanged(bool value) => QueueGameManagementOptionsSave();
+    partial void OnFixAuthlibChanged(bool value) => QueueGameManagementOptionsSave();
+    partial void OnSelectedCommunitySourceChanged(GameManagementOption<DownloadSourcePreference> value) => QueueGameManagementOptionsSave();
+    partial void OnSelectedCommunityFileNameFormatChanged(GameManagementOption<CommunityFileNameFormat> value) => QueueGameManagementOptionsSave();
+    partial void OnSelectedCommunityModNameStyleChanged(GameManagementOption<CommunityModNameStyle> value) => QueueGameManagementOptionsSave();
+    partial void OnSelectedCommunityQuickDownloadBehaviorChanged(GameManagementOption<CommunityQuickDownloadBehavior> value) => QueueGameManagementOptionsSave();
+    partial void OnIgnoreQuiltChanged(bool value)
+    {
+        if (communityResourceType is not null && communityResourceType != CommunityResourceType.Shader)
+        {
+            var selectedLoader = SelectedCommunityResourceLoader.Loader;
+            CommunityResourceLoaderOptions = GetVisibleModLoaderOptions();
+            SelectedCommunityResourceLoader = CommunityResourceLoaderOptions.FirstOrDefault(option =>
+                                                  option.Loader == selectedLoader)
+                                              ?? CommunityResourceLoaderOptions[0];
+        }
+
+        if (SelectedCommunityResource?.Project.Type is { } selectedType && CommunityResourceVersions.Count > 0)
+        {
+            InitializeCommunityVersionFilters(selectedType);
+            RebuildCommunityResourceVersionGroups();
+        }
+
+        QueueGameManagementOptionsSave();
+    }
+
+    partial void OnAutoInstallDependenciesChanged(bool value) => QueueGameManagementOptionsSave();
+    partial void OnReleaseNotificationsChanged(bool value) => QueueGameManagementOptionsSave();
+    partial void OnSnapshotNotificationsChanged(bool value) => QueueGameManagementOptionsSave();
+    partial void OnAutoChangeGameLanguageChanged(bool value) => QueueGameManagementOptionsSave();
+    partial void OnReadClipboardChanged(bool value) => QueueGameManagementOptionsSave();
+
+    private void QueueGameManagementOptionsSave()
+    {
+        if (isLoadingPreferences)
+        {
+            return;
+        }
+
+        gameManagementOptionsSaveCancellation?.Cancel();
+        gameManagementOptionsSaveCancellation?.Dispose();
+        gameManagementOptionsSaveCancellation = new CancellationTokenSource();
+        _ = SaveGameManagementOptionsAsync(gameManagementOptionsSaveCancellation.Token);
+    }
+
+    private async Task SaveGameManagementOptionsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(250, cancellationToken);
+            var options = new GameManagementOptions(
+                SelectedFileSource.Value,
+                SelectedVersionListSource.Value,
+                AutoSelectNewInstance,
+                FixAuthlib,
+                SelectedCommunitySource.Value,
+                SelectedCommunityFileNameFormat.Value,
+                SelectedCommunityModNameStyle.Value,
+                SelectedCommunityQuickDownloadBehavior.Value,
+                IgnoreQuilt,
+                AutoInstallDependencies,
+                ReleaseNotifications,
+                SnapshotNotifications,
+                AutoChangeGameLanguage,
+                ReadClipboard);
+            await preferencesService.SaveGameManagementOptionsAsync(options, cancellationToken);
+            currentPreferences = currentPreferences with { GameManagementOptions = options };
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch
+        {
+            // Keep the current UI responsive; the next setting change retries the atomic preference write.
+        }
+    }
 
     partial void OnSelectedGameWindowModeChanged(MinecraftGameWindowModeOption value)
     {

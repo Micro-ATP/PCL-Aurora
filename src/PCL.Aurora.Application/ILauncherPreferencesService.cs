@@ -21,6 +21,10 @@ public interface ILauncherPreferencesService
 
     Task SaveDownloadSpeedLimitStepAsync(int speedLimitStep, CancellationToken cancellationToken = default);
 
+    Task SaveGameManagementOptionsAsync(
+        GameManagementOptions options,
+        CancellationToken cancellationToken = default);
+
     Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default);
 
     Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default);

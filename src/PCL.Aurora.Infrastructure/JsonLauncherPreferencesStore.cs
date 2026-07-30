@@ -35,6 +35,14 @@ public sealed class JsonLauncherPreferencesStore(IPlatformPaths platformPaths) :
                 return InvalidResult();
             }
 
+            if (preferences.GameManagementOptions is null && preferences.DownloadConcurrency == 4)
+            {
+                preferences = preferences with
+                {
+                    DownloadConcurrency = LauncherDownloadSettings.DefaultConcurrency,
+                };
+            }
+
             return new LauncherPreferencesLoadResult(preferences, null);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or NotSupportedException)

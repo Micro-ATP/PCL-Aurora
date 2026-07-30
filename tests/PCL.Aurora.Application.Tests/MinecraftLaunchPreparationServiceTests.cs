@@ -217,6 +217,10 @@ public sealed class MinecraftLaunchPreparationServiceTests
 
         public Task SaveDownloadSpeedLimitStepAsync(int speedLimitStep, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
+        public Task SaveGameManagementOptionsAsync(
+            GameManagementOptions options,
+            CancellationToken cancellationToken = default) => Task.CompletedTask;
+
         public Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         public Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default) => Task.CompletedTask;

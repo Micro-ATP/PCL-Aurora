@@ -670,7 +670,7 @@ public partial class MainWindow : Window
             }
 
             IReadOnlyList<CommunityResourceVersion> dependencies = [];
-            if (project.Type == CommunityResourceType.Mod)
+            if (project.Type == CommunityResourceType.Mod && viewModel.AutoInstallDependencies)
             {
                 var preparation = await viewModel.PrepareCommunityResourceDependenciesAsync(version);
                 if (preparation is null)

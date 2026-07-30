@@ -116,6 +116,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLaunch.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupJava.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupGameManage.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupGameManage.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupGameLink.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUI.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLauncherLanguage.xaml
@@ -203,6 +204,7 @@ PCL Aurora also adapts the following PCL-CE Lucide icon paths:
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/trash-2.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/scroll-text.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/coffee.svg
+- PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/book-marked.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/tool-case.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/message-circle.svg
 - PCL-CE: PCL.Core/UI/Assets/IconPacks/lucide/circle-help.svg
