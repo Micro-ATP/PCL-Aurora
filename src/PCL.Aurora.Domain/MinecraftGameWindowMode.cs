@@ -8,4 +8,6 @@ public enum MinecraftGameWindowMode
     Default,
     Fullscreen,
     Custom,
+    Launcher,
+    Maximized,
 }

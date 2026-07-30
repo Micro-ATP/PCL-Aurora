@@ -8,8 +8,8 @@
     <UserControl.Styles>
         <Style Selector="Border.collapsible-card-surface">
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Background" Value="#D2FBFBFB" />
-            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Background" Value="#F8FAFD" />
+            <Setter Property="BorderBrush" Value="#A9CDF2" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="BoxShadow" Value="0 1 3 0 #12343D4A" />
             <Setter Property="Transitions">

@@ -5,7 +5,8 @@ public static class MinecraftGameLaunchRequestBuilder
     public static MinecraftGameLaunchRequestPreparation Prepare(
         MinecraftInstance? instance,
         JavaInstallation? java,
-        MinecraftLaunchArgumentPreparation argumentPreparation)
+        MinecraftLaunchArgumentPreparation argumentPreparation,
+        MinecraftLaunchOptions? launchOptions = null)
     {
         ArgumentNullException.ThrowIfNull(argumentPreparation);
         var blockingReasons = new List<string>();
@@ -36,19 +37,45 @@ public static class MinecraftGameLaunchRequestBuilder
             return new(null, blockingReasons.Distinct(StringComparer.Ordinal).ToList());
         }
 
+        launchOptions ??= MinecraftLaunchOptions.Default;
+        var gameDirectory = MinecraftInstanceIsolationResolver.ResolveGameDirectory(
+            instance,
+            minecraftRootDirectory,
+            launchOptions.InstanceIsolationMode);
         var argumentList = new List<string>(argumentPreparation.Arguments.JvmArguments.Count + argumentPreparation.Arguments.GameArguments.Count + 1);
         argumentList.AddRange(argumentPreparation.Arguments.JvmArguments);
         argumentList.Add(argumentPreparation.Arguments.MainClass);
         argumentList.AddRange(argumentPreparation.Arguments.GameArguments);
+        var environmentVariables = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["PCL_AURORA_MINECRAFT_DIRECTORY"] = minecraftRootDirectory,
+        };
+        if (OperatingSystem.IsLinux())
+        {
+            switch (launchOptions.Renderer)
+            {
+                case MinecraftRendererMode.Software:
+                    environmentVariables["LIBGL_ALWAYS_SOFTWARE"] = "1";
+                    environmentVariables["GALLIUM_DRIVER"] = "llvmpipe";
+                    break;
+                case MinecraftRendererMode.DirectX12:
+                    environmentVariables["MESA_LOADER_DRIVER_OVERRIDE"] = "d3d12";
+                    break;
+                case MinecraftRendererMode.Vulkan:
+                    environmentVariables["MESA_LOADER_DRIVER_OVERRIDE"] = "zink";
+                    break;
+            }
+        }
+
         return new(
             new MinecraftGameLaunchRequest(
                 java.ExecutablePath,
-                minecraftRootDirectory,
+                gameDirectory,
                 argumentList,
-                new Dictionary<string, string>(StringComparer.Ordinal)
-                {
-                    ["PCL_AURORA_MINECRAFT_DIRECTORY"] = minecraftRootDirectory,
-                }),
+                environmentVariables,
+                launchOptions.PreLaunchCommand,
+                launchOptions.WaitForPreLaunchCommand,
+                launchOptions.ProcessPriority),
             []);
     }
 }

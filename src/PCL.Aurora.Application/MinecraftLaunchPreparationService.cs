@@ -32,6 +32,12 @@ public sealed class MinecraftLaunchPreparationService(
             ? null
             : Directory.GetParent(versionsDirectory)?.FullName;
         var launchOptions = preferencesService?.Current.EffectiveLaunchOptions ?? MinecraftLaunchOptions.Default;
+        var gameDirectory = minecraftRootDirectory is null
+            ? null
+            : MinecraftInstanceIsolationResolver.ResolveGameDirectory(
+                instance,
+                minecraftRootDirectory,
+                launchOptions.InstanceIsolationMode);
         var javaRequirement = Pcl2MinecraftJavaRequirementEvaluator.Evaluate(metadata, instance);
         var memoryAllocation = PrepareMemoryAllocation(
             launchOptions,
@@ -42,10 +48,12 @@ public sealed class MinecraftLaunchPreparationService(
         var context = MinecraftLaunchContext.CreateDefault(metadata.Id) with
         {
             NativesDirectory = Path.Combine(instance.DirectoryPath, "natives"),
-            GameDirectory = minecraftRootDirectory,
+            GameDirectory = gameDirectory,
             AssetsRoot = minecraftRootDirectory is null ? null : Path.Combine(minecraftRootDirectory, "assets"),
             AssetsIndexName = metadata.AssetIndex?.Id,
-            VersionType = metadata.Type,
+            VersionType = string.IsNullOrWhiteSpace(launchOptions.CustomInfo)
+                ? metadata.Type
+                : launchOptions.CustomInfo,
             Account = account,
             RuleEnvironment = versionPreparation.RuleEnvironment,
             ResolutionWidth = launchOptions.WindowMode == MinecraftGameWindowMode.Custom
@@ -94,7 +102,13 @@ public sealed class MinecraftLaunchPreparationService(
             return new(null, []);
         }
 
-        var modCount = CountModFiles(minecraftRootDirectory);
+        var gameDirectory = string.IsNullOrWhiteSpace(minecraftRootDirectory)
+            ? null
+            : MinecraftInstanceIsolationResolver.ResolveGameDirectory(
+                instance,
+                minecraftRootDirectory,
+                launchOptions.InstanceIsolationMode);
+        var modCount = CountModFiles(gameDirectory);
         return PclCeMinecraftMemoryAllocator.Prepare(
             launchOptions,
             totalBytes,

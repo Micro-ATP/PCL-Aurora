@@ -66,6 +66,7 @@ public static partial class MinecraftLaunchArgumentBuilder
             launchOptions.AdditionalGameArguments,
             "额外游戏参数",
             blockingReasons);
+        jvmTemplates = AppendPreferredIpStack(jvmTemplates, launchOptions.PreferredIpStack);
         if (launchOptions.WindowMode == MinecraftGameWindowMode.Fullscreen)
         {
             gameTemplates = gameTemplates.Concat(["--fullscreen"]).ToArray();
@@ -76,6 +77,13 @@ public static partial class MinecraftLaunchArgumentBuilder
             !jvmTemplates.Any(argument => argument.StartsWith("-Xmx", StringComparison.OrdinalIgnoreCase)))
         {
             jvmTemplates = jvmTemplates.Concat([$"-Xmx{maximumMemoryMiB}M"]).ToArray();
+        }
+        if (launchOptions.LockMemory &&
+            context.MaximumMemoryMiB is { } lockedMemoryMiB &&
+            lockedMemoryMiB > 0 &&
+            !jvmTemplates.Any(argument => argument.StartsWith("-Xms", StringComparison.OrdinalIgnoreCase)))
+        {
+            jvmTemplates = jvmTemplates.Concat([$"-Xms{lockedMemoryMiB}M"]).ToArray();
         }
 
         var jvmArguments = Pcl2MinecraftLaunchArgumentDeduplicator.Deduplicate(
@@ -98,6 +106,21 @@ public static partial class MinecraftLaunchArgumentBuilder
         "-cp",
         "${classpath}",
     ];
+
+    private static IReadOnlyList<string> AppendPreferredIpStack(
+        IReadOnlyList<string> arguments,
+        MinecraftPreferredIpStack preferredIpStack) => preferredIpStack switch
+    {
+        MinecraftPreferredIpStack.PreferIpv4 => arguments.Concat([
+            "-Djava.net.preferIPv4Stack=true",
+            "-Djava.net.preferIPv4Addresses=true",
+        ]).ToArray(),
+        MinecraftPreferredIpStack.PreferIpv6 => arguments.Concat([
+            "-Djava.net.preferIPv6Stack=true",
+            "-Djava.net.preferIPv6Addresses=true",
+        ]).ToArray(),
+        _ => arguments,
+    };
 
     private static IReadOnlyList<string> AppendLegacyGameArguments(
         IReadOnlyList<string> modernArguments,

@@ -8,7 +8,8 @@ public sealed class MinecraftGameLaunchService(
     IMinecraftAssetPreparationService assetPreparationService,
     IAssetMapper assetMapper,
     INativeLibraryPreparer nativeLibraryPreparer,
-    IGameProcessRunner processRunner) : IMinecraftGameLaunchService
+    IGameProcessRunner processRunner,
+    ILauncherPreferencesService? preferencesService = null) : IMinecraftGameLaunchService
 {
     public async Task<MinecraftGameLaunchPreparation> PrepareAsync(
         MinecraftInstance? instance,
@@ -50,7 +51,11 @@ public sealed class MinecraftGameLaunchService(
             Path.Combine(instance.DirectoryPath, "natives"),
             java?.Architecture ?? JavaArchitecture.Unknown,
             launchPreparation.VersionPreparation.RuleEnvironment);
-        var requestPreparation = MinecraftGameLaunchRequestBuilder.Prepare(instance, java, launchPreparation.ArgumentPreparation);
+        var requestPreparation = MinecraftGameLaunchRequestBuilder.Prepare(
+            instance,
+            java,
+            launchPreparation.ArgumentPreparation,
+            preferencesService?.Current.EffectiveLaunchOptions);
         var blockingReasons = readiness.BlockingReasons
             .Concat(guidanceBlockingReasons)
             .Concat(launchPreparation.ClasspathInspection.BlockingReasons)

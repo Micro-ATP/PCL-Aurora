@@ -7,12 +7,13 @@ namespace PCL.Aurora.Infrastructure;
 
 public sealed class MinecraftGameProcessRunner : IGameProcessRunner
 {
-    public Task<GameProcessSession> StartAsync(
+    public async Task<GameProcessSession> StartAsync(
         MinecraftGameLaunchRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
+        await RunPreLaunchCommandAsync(request, cancellationToken).ConfigureAwait(false);
         var startInfo = new ProcessStartInfo(request.JavaExecutablePath)
         {
             WorkingDirectory = request.WorkingDirectory,
@@ -37,12 +38,67 @@ public sealed class MinecraftGameProcessRunner : IGameProcessRunner
             process.Dispose();
             throw new InvalidOperationException("无法启动游戏进程。");
         }
+        TryApplyPriority(process, request.ProcessPriority);
 
         var output = Channel.CreateUnbounded<GameProcessOutput>();
-        return Task.FromResult(new GameProcessSession(
+        return new GameProcessSession(
             process.Id,
             output.Reader,
-            CompleteAsync(process, output.Writer)));
+            CompleteAsync(process, output.Writer));
+    }
+
+    private static async Task RunPreLaunchCommandAsync(
+        MinecraftGameLaunchRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.PreLaunchCommand))
+        {
+            return;
+        }
+
+        var shell = OperatingSystem.IsWindows() ? "cmd.exe" : "/bin/sh";
+        var startInfo = new ProcessStartInfo(shell)
+        {
+            WorkingDirectory = request.WorkingDirectory,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+        startInfo.ArgumentList.Add(OperatingSystem.IsWindows() ? "/c" : "-c");
+        startInfo.ArgumentList.Add(request.PreLaunchCommand);
+        var process = Process.Start(startInfo) ?? throw new InvalidOperationException("无法执行启动前命令。");
+        if (!request.WaitForPreLaunchCommand)
+        {
+            process.Dispose();
+            return;
+        }
+
+        using (process)
+        {
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"启动前命令退出，代码 {process.ExitCode}。");
+            }
+        }
+    }
+
+    private static void TryApplyPriority(Process process, MinecraftGameProcessPriority priority)
+    {
+        try
+        {
+            process.PriorityClass = priority switch
+            {
+                MinecraftGameProcessPriority.RealTime => ProcessPriorityClass.RealTime,
+                MinecraftGameProcessPriority.High => ProcessPriorityClass.High,
+                MinecraftGameProcessPriority.AboveNormal => ProcessPriorityClass.AboveNormal,
+                MinecraftGameProcessPriority.BelowNormal => ProcessPriorityClass.BelowNormal,
+                _ => ProcessPriorityClass.Normal,
+            };
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or PlatformNotSupportedException or System.ComponentModel.Win32Exception)
+        {
+            // Some Unix hosts do not allow changing priority without elevated privileges.
+        }
     }
 
     private static async Task<int> CompleteAsync(Process process, ChannelWriter<GameProcessOutput> output)

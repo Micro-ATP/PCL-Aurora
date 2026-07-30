@@ -4,4 +4,7 @@ public sealed record MinecraftGameLaunchRequest(
     string JavaExecutablePath,
     string WorkingDirectory,
     IReadOnlyList<string> ArgumentList,
-    IReadOnlyDictionary<string, string> EnvironmentVariables);
+    IReadOnlyDictionary<string, string> EnvironmentVariables,
+    string? PreLaunchCommand = null,
+    bool WaitForPreLaunchCommand = true,
+    MinecraftGameProcessPriority ProcessPriority = MinecraftGameProcessPriority.Normal);

@@ -58,14 +58,55 @@ public partial class MainWindow : Window
         if (subscribedViewModel is not null)
         {
             subscribedViewModel.MicrosoftDeviceCodeAvailable -= MicrosoftDeviceCodeAvailable;
+            subscribedViewModel.GameProcessStarted -= GameProcessStarted;
+            subscribedViewModel.GameProcessExited -= GameProcessExited;
         }
 
         subscribedViewModel = viewModel;
         if (subscribedViewModel is not null)
         {
             subscribedViewModel.MicrosoftDeviceCodeAvailable += MicrosoftDeviceCodeAvailable;
+            subscribedViewModel.GameProcessStarted += GameProcessStarted;
+            subscribedViewModel.GameProcessExited += GameProcessExited;
         }
     }
+
+    private void GameProcessStarted(object? sender, MinecraftLauncherVisibility visibility) =>
+        Dispatcher.UIThread.Post(() =>
+        {
+            switch (visibility)
+            {
+                case MinecraftLauncherVisibility.ExitImmediately:
+                    Close();
+                    break;
+                case MinecraftLauncherVisibility.HideAndExit:
+                case MinecraftLauncherVisibility.HideAndReopen:
+                    Hide();
+                    break;
+                case MinecraftLauncherVisibility.MinimizeAndReopen:
+                    WindowState = WindowState.Minimized;
+                    break;
+            }
+        });
+
+    private void GameProcessExited(object? sender, MinecraftLauncherVisibility visibility) =>
+        Dispatcher.UIThread.Post(() =>
+        {
+            switch (visibility)
+            {
+                case MinecraftLauncherVisibility.HideAndExit:
+                    Close();
+                    break;
+                case MinecraftLauncherVisibility.HideAndReopen:
+                    Show();
+                    Activate();
+                    break;
+                case MinecraftLauncherVisibility.MinimizeAndReopen:
+                    WindowState = WindowState.Normal;
+                    Activate();
+                    break;
+            }
+        });
 
     private async void MicrosoftDeviceCodeAvailable(object? sender, string code)
     {
@@ -1345,6 +1386,22 @@ public partial class MainWindow : Window
                 SettingsLogSection,
             ],
             selectedSection);
+    }
+
+    private void MemoryAutoClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.SetMemoryAllocationMode(MinecraftMemoryAllocationMode.Automatic);
+        }
+    }
+
+    private void MemoryCustomClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.SetMemoryAllocationMode(MinecraftMemoryAllocationMode.Custom);
+        }
     }
 
     private async void ContributorClick(object? sender, RoutedEventArgs e)

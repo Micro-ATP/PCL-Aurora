@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Avalonia.Controls;
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -40,9 +41,12 @@ public partial class MainViewModel(
     IMicrosoftAccountSessionService microsoftAccountSessionService,
     IGitHubContributorService gitHubContributorService,
     IOpenPathService openPathService,
-    IThemeService themeService) : ViewModelBase
+    IThemeService themeService,
+    ISystemMemoryInfo systemMemoryInfo) : ViewModelBase
 {
     public event EventHandler<string>? MicrosoftDeviceCodeAvailable;
+    public event EventHandler<MinecraftLauncherVisibility>? GameProcessStarted;
+    public event EventHandler<MinecraftLauncherVisibility>? GameProcessExited;
 
     private const int MaximumGameLogLines = 500;
     private static readonly Uri AuroraRepositoryUri = new("https://github.com/Micro-ATP/PCL-Aurora");
@@ -94,6 +98,7 @@ public partial class MainViewModel(
     private CancellationTokenSource? communityDownloadCancellation;
     private CancellationTokenSource? communityDescriptionTranslationCancellation;
     private CancellationTokenSource? loaderDirectoryCancellation;
+    private CancellationTokenSource? launchOptionsSaveCancellation;
     private CommunityResourceVersionFilterSet communityVersionFilters = new([], [], false, false);
     private string? selectedCommunityGameVersionFilter;
     private string? selectedCommunityLoaderFilter;
@@ -233,9 +238,11 @@ public partial class MainViewModel(
 
     public IReadOnlyList<MinecraftGameWindowModeOption> GameWindowModes { get; } =
     [
-        new(MinecraftGameWindowMode.Default, "默认窗口（854 × 480）"),
         new(MinecraftGameWindowMode.Fullscreen, "全屏"),
-        new(MinecraftGameWindowMode.Custom, "自定义尺寸"),
+        new(MinecraftGameWindowMode.Default, "默认"),
+        new(MinecraftGameWindowMode.Launcher, "与启动器尺寸一致"),
+        new(MinecraftGameWindowMode.Custom, "自定义"),
+        new(MinecraftGameWindowMode.Maximized, "最大化"),
     ];
 
     public IReadOnlyList<MinecraftMemoryAllocationModeOption> MemoryAllocationModes { get; } =
@@ -243,6 +250,54 @@ public partial class MainViewModel(
         new(MinecraftMemoryAllocationMode.Automatic, "自动分配"),
         new(MinecraftMemoryAllocationMode.Custom, "自定义 MiB"),
     ];
+
+    public IReadOnlyList<MinecraftInstanceIsolationModeOption> InstanceIsolationModes { get; } =
+    [
+        new(MinecraftInstanceIsolationMode.Disabled, "关闭"),
+        new(MinecraftInstanceIsolationMode.ModdedOnly, "隔离可安装模组的实例"),
+        new(MinecraftInstanceIsolationMode.NonReleaseOnly, "隔离非正式版"),
+        new(MinecraftInstanceIsolationMode.ModdedAndNonRelease, "隔离可安装模组的实例与非正式版"),
+        new(MinecraftInstanceIsolationMode.All, "隔离所有实例"),
+    ];
+
+    public IReadOnlyList<MinecraftLauncherVisibilityOption> LauncherVisibilityModes { get; } =
+    [
+        new(MinecraftLauncherVisibility.ExitImmediately, "游戏启动后立即关闭"),
+        new(MinecraftLauncherVisibility.HideAndExit, "游戏启动后隐藏，游戏退出后自动关闭"),
+        new(MinecraftLauncherVisibility.HideAndReopen, "游戏启动后隐藏，游戏退出后重新打开"),
+        new(MinecraftLauncherVisibility.MinimizeAndReopen, "游戏启动后最小化"),
+        new(MinecraftLauncherVisibility.DoNothing, "游戏启动后仍保持不变"),
+    ];
+
+    public IReadOnlyList<MinecraftGameProcessPriorityOption> GameProcessPriorities { get; } =
+    [
+        new(MinecraftGameProcessPriority.RealTime, "实时（使游戏以最高优先级运行）"),
+        new(MinecraftGameProcessPriority.High, "极高（谨慎使用）"),
+        new(MinecraftGameProcessPriority.AboveNormal, "高（优先保证游戏运行）"),
+        new(MinecraftGameProcessPriority.Normal, "中（平衡）"),
+        new(MinecraftGameProcessPriority.BelowNormal, "低（优先保证其他程序运行）"),
+    ];
+
+    public IReadOnlyList<MinecraftPreferredIpStackOption> PreferredIpStacks { get; } =
+    [
+        new(MinecraftPreferredIpStack.PreferIpv4, "IPv4 优先"),
+        new(MinecraftPreferredIpStack.JavaDefault, "Java 默认"),
+        new(MinecraftPreferredIpStack.PreferIpv6, "IPv6 优先"),
+    ];
+
+    public IReadOnlyList<MinecraftRendererModeOption> RendererModes { get; } =
+    [
+        new(MinecraftRendererMode.GameDefault, "游戏默认"),
+        new(MinecraftRendererMode.Software, "软渲染（llvmpipe）"),
+        new(MinecraftRendererMode.DirectX12, "DirectX12（d3d12）"),
+        new(MinecraftRendererMode.Vulkan, "Vulkan（zink）"),
+    ];
+
+    public bool IsRendererSelectionSupported => System.OperatingSystem.IsLinux();
+
+    public bool IsWindowsLaunchOptionSupported => System.OperatingSystem.IsWindows();
+
+    public bool HasPreLaunchCommand => !string.IsNullOrWhiteSpace(PreLaunchCommand);
 
     public IReadOnlyList<CommunityResourceSortOption> CommunityResourceSortOptions { get; } =
     [
@@ -293,6 +348,65 @@ public partial class MainViewModel(
     private string additionalGameArguments = string.Empty;
 
     [ObservableProperty]
+    private MinecraftInstanceIsolationModeOption selectedInstanceIsolationMode = new(
+        MinecraftInstanceIsolationMode.All,
+        "隔离所有实例");
+
+    [ObservableProperty]
+    private string windowTitle = string.Empty;
+
+    [ObservableProperty]
+    private string customInfo = "PCL Aurora";
+
+    [ObservableProperty]
+    private MinecraftLauncherVisibilityOption selectedLauncherVisibility = new(
+        MinecraftLauncherVisibility.DoNothing,
+        "游戏启动后仍保持不变");
+
+    [ObservableProperty]
+    private MinecraftGameProcessPriorityOption selectedGameProcessPriority = new(
+        MinecraftGameProcessPriority.Normal,
+        "中（平衡）");
+
+    [ObservableProperty]
+    private MinecraftPreferredIpStackOption selectedPreferredIpStack = new(
+        MinecraftPreferredIpStack.JavaDefault,
+        "Java 默认");
+
+    [ObservableProperty]
+    private MinecraftRendererModeOption selectedRendererMode = new(
+        MinecraftRendererMode.GameDefault,
+        "游戏默认");
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPreLaunchCommand))]
+    private string preLaunchCommand = string.Empty;
+
+    [ObservableProperty]
+    private bool waitForPreLaunchCommand = true;
+
+    [ObservableProperty]
+    private bool disableJavaLaunchWrapper = true;
+
+    [ObservableProperty]
+    private bool disableLegacyFix;
+
+    [ObservableProperty]
+    private bool preferDedicatedGpu = true;
+
+    [ObservableProperty]
+    private bool useJavaExecutable;
+
+    [ObservableProperty]
+    private bool disableLwjglUnsafeAgent;
+
+    [ObservableProperty]
+    private bool disableCrashAnalysis;
+
+    [ObservableProperty]
+    private bool lockMemory;
+
+    [ObservableProperty]
     private MinecraftGameWindowModeOption selectedGameWindowMode = new(
         MinecraftGameWindowMode.Default,
         "默认窗口（854 × 480）");
@@ -316,6 +430,33 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     private bool usesCustomMemoryAllocation;
+
+    [ObservableProperty]
+    private bool usesAutomaticMemoryAllocation = true;
+
+    [ObservableProperty]
+    private double customMemorySliderValue = 15;
+
+    [ObservableProperty]
+    private double customMemorySliderMaximum = 49;
+
+    [ObservableProperty]
+    private string memoryUsedDisplay = "0.0 GiB";
+
+    [ObservableProperty]
+    private string memoryTotalDisplay = " / 0.0 GiB";
+
+    [ObservableProperty]
+    private string memoryGameDisplay = "3.0 GiB";
+
+    [ObservableProperty]
+    private GridLength memoryUsedWidth = new(1, GridUnitType.Star);
+
+    [ObservableProperty]
+    private GridLength memoryGameWidth = new(1, GridUnitType.Star);
+
+    [ObservableProperty]
+    private GridLength memoryEmptyWidth = new(1, GridUnitType.Star);
 
     [ObservableProperty]
     private string launchOptionsSummary = "正在读取本地启动选项…";
@@ -976,13 +1117,31 @@ public partial class MainViewModel(
             var launchOptions = result.Preferences.EffectiveLaunchOptions;
             AdditionalJvmArguments = launchOptions.AdditionalJvmArguments ?? string.Empty;
             AdditionalGameArguments = launchOptions.AdditionalGameArguments ?? string.Empty;
+            SelectedInstanceIsolationMode = InstanceIsolationModes.Single(option => option.Mode == launchOptions.InstanceIsolationMode);
+            WindowTitle = launchOptions.WindowTitle ?? string.Empty;
+            CustomInfo = launchOptions.CustomInfo ?? string.Empty;
+            SelectedLauncherVisibility = LauncherVisibilityModes.Single(option => option.Mode == launchOptions.LauncherVisibility);
+            SelectedGameProcessPriority = GameProcessPriorities.Single(option => option.Priority == launchOptions.ProcessPriority);
+            SelectedPreferredIpStack = PreferredIpStacks.Single(option => option.Stack == launchOptions.PreferredIpStack);
+            SelectedRendererMode = RendererModes.Single(option => option.Mode == launchOptions.Renderer);
+            PreLaunchCommand = launchOptions.PreLaunchCommand ?? string.Empty;
+            WaitForPreLaunchCommand = launchOptions.WaitForPreLaunchCommand;
+            DisableJavaLaunchWrapper = launchOptions.DisableJavaLaunchWrapper;
+            DisableLegacyFix = launchOptions.DisableLegacyFix;
+            PreferDedicatedGpu = launchOptions.PreferDedicatedGpu;
+            UseJavaExecutable = launchOptions.UseJavaExecutable;
+            DisableLwjglUnsafeAgent = launchOptions.DisableLwjglUnsafeAgent;
+            DisableCrashAnalysis = launchOptions.DisableCrashAnalysis;
+            LockMemory = launchOptions.LockMemory;
             SelectedGameWindowMode = GameWindowModes.Single(option => option.Mode == launchOptions.WindowMode);
             CustomGameWindowWidth = launchOptions.WindowWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
             CustomGameWindowHeight = launchOptions.WindowHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
             UsesCustomGameWindowSize = launchOptions.WindowMode == MinecraftGameWindowMode.Custom;
             SelectedMemoryAllocationMode = MemoryAllocationModes.Single(option => option.Mode == launchOptions.MemoryAllocationMode);
             CustomMemoryMiB = launchOptions.CustomMemoryMiB.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            CustomMemorySliderValue = MemoryMiBToSliderStep(launchOptions.CustomMemoryMiB);
             UsesCustomMemoryAllocation = launchOptions.MemoryAllocationMode == MinecraftMemoryAllocationMode.Custom;
+            RefreshMemoryDisplay();
             LaunchOptionsSummary = result.Warning ?? GetLaunchOptionsSummary(launchOptions);
             RestoreOfflineAccount(result.Preferences.OfflinePlayerName);
             UpdateMicrosoftLoginAvailability(result.Preferences.MicrosoftAccount);
@@ -1081,6 +1240,7 @@ public partial class MainViewModel(
             : string.Join(Environment.NewLine, preparation.ArgumentPreparation.BlockingReasons);
         JavaRequirementSummary = GetJavaRequirementSummary(preparation.JavaRequirement, SelectedJava);
         MemoryAllocationSummary = GetMemoryAllocationSummary(preparation);
+        RefreshMemoryDisplay(preparation.MemoryAllocation?.Allocation?.MaximumMemoryMiB);
     }
 
     private async Task RefreshGameLaunchPreparationAsync()
@@ -3222,11 +3382,79 @@ public partial class MainViewModel(
     private static string GetDownloadSettingsSummary(LauncherPreferences preferences) =>
         $"最多 {preferences.DownloadConcurrency} 个总下载连接；速度上限：{LauncherDownloadSettings.GetSpeedLimitDisplayName(preferences.DownloadSpeedLimitStep)}。设置将在下一次安装任务开始时生效。";
 
-    partial void OnSelectedGameWindowModeChanged(MinecraftGameWindowModeOption value) =>
+    partial void OnSelectedGameWindowModeChanged(MinecraftGameWindowModeOption value)
+    {
         UsesCustomGameWindowSize = value.Mode == MinecraftGameWindowMode.Custom;
+        QueueLaunchOptionsSave();
+    }
 
-    partial void OnSelectedMemoryAllocationModeChanged(MinecraftMemoryAllocationModeOption value) =>
+    partial void OnSelectedMemoryAllocationModeChanged(MinecraftMemoryAllocationModeOption value)
+    {
         UsesCustomMemoryAllocation = value.Mode == MinecraftMemoryAllocationMode.Custom;
+        UsesAutomaticMemoryAllocation = value.Mode == MinecraftMemoryAllocationMode.Automatic;
+        RefreshMemoryDisplay();
+        QueueLaunchOptionsSave();
+    }
+
+    partial void OnCustomMemorySliderValueChanged(double value)
+    {
+        CustomMemoryMiB = MemorySliderStepToMiB((int)Math.Round(value))
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+        RefreshMemoryDisplay();
+        QueueLaunchOptionsSave();
+    }
+
+    partial void OnAdditionalJvmArgumentsChanged(string value) => QueueLaunchOptionsSave();
+    partial void OnAdditionalGameArgumentsChanged(string value) => QueueLaunchOptionsSave();
+    partial void OnCustomGameWindowWidthChanged(string value) => QueueLaunchOptionsSave();
+    partial void OnCustomGameWindowHeightChanged(string value) => QueueLaunchOptionsSave();
+    partial void OnSelectedInstanceIsolationModeChanged(MinecraftInstanceIsolationModeOption value) => QueueLaunchOptionsSave();
+    partial void OnWindowTitleChanged(string value) => QueueLaunchOptionsSave();
+    partial void OnCustomInfoChanged(string value) => QueueLaunchOptionsSave();
+    partial void OnSelectedLauncherVisibilityChanged(MinecraftLauncherVisibilityOption value) => QueueLaunchOptionsSave();
+    partial void OnSelectedGameProcessPriorityChanged(MinecraftGameProcessPriorityOption value) => QueueLaunchOptionsSave();
+    partial void OnSelectedPreferredIpStackChanged(MinecraftPreferredIpStackOption value) => QueueLaunchOptionsSave();
+    partial void OnSelectedRendererModeChanged(MinecraftRendererModeOption value) => QueueLaunchOptionsSave();
+    partial void OnPreLaunchCommandChanged(string value) => QueueLaunchOptionsSave();
+    partial void OnWaitForPreLaunchCommandChanged(bool value) => QueueLaunchOptionsSave();
+    partial void OnDisableJavaLaunchWrapperChanged(bool value) => QueueLaunchOptionsSave();
+    partial void OnDisableLegacyFixChanged(bool value) => QueueLaunchOptionsSave();
+    partial void OnPreferDedicatedGpuChanged(bool value) => QueueLaunchOptionsSave();
+    partial void OnUseJavaExecutableChanged(bool value) => QueueLaunchOptionsSave();
+    partial void OnDisableLwjglUnsafeAgentChanged(bool value) => QueueLaunchOptionsSave();
+    partial void OnDisableCrashAnalysisChanged(bool value) => QueueLaunchOptionsSave();
+    partial void OnLockMemoryChanged(bool value) => QueueLaunchOptionsSave();
+
+    public void SetMemoryAllocationMode(MinecraftMemoryAllocationMode mode) =>
+        SelectedMemoryAllocationMode = MemoryAllocationModes.Single(option => option.Mode == mode);
+
+    [RelayCommand]
+    private void ResetJvmArguments() => AdditionalJvmArguments = MinecraftLaunchOptions.DefaultAdditionalJvmArguments;
+
+    private void QueueLaunchOptionsSave()
+    {
+        if (isLoadingPreferences)
+        {
+            return;
+        }
+
+        launchOptionsSaveCancellation?.Cancel();
+        launchOptionsSaveCancellation?.Dispose();
+        launchOptionsSaveCancellation = new CancellationTokenSource();
+        _ = SaveLaunchOptionsAfterDelayAsync(launchOptionsSaveCancellation.Token);
+    }
+
+    private async Task SaveLaunchOptionsAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(350, cancellationToken);
+            await SaveLaunchOptionsAsync();
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
 
     [RelayCommand]
     private async Task SaveLaunchOptionsAsync()
@@ -3263,7 +3491,23 @@ public partial class MainViewModel(
             width,
             height,
             SelectedMemoryAllocationMode.Mode,
-            customMemory);
+            customMemory,
+            SelectedInstanceIsolationMode.Mode,
+            WindowTitle,
+            CustomInfo,
+            SelectedLauncherVisibility.Mode,
+            SelectedGameProcessPriority.Priority,
+            SelectedPreferredIpStack.Stack,
+            SelectedRendererMode.Mode,
+            PreLaunchCommand,
+            WaitForPreLaunchCommand,
+            DisableJavaLaunchWrapper,
+            DisableLegacyFix,
+            PreferDedicatedGpu,
+            UseJavaExecutable,
+            DisableLwjglUnsafeAgent,
+            DisableCrashAnalysis,
+            LockMemory);
         if (!options.IsValid)
         {
             LaunchOptionsSummary = $"启动选项无效：自定义参数最多 {MinecraftLaunchOptions.MaximumArgumentTextLength} 个字符，窗口尺寸范围为 {MinecraftLaunchOptions.MinimumWindowDimension}–{MinecraftLaunchOptions.MaximumWindowDimension}，内存范围为 {MinecraftLaunchOptions.MinimumCustomMemoryMiB}–{MinecraftLaunchOptions.MaximumCustomMemoryMiB} MiB。";
@@ -3291,6 +3535,8 @@ public partial class MainViewModel(
             MinecraftGameWindowMode.Default => "默认窗口 854 × 480",
             MinecraftGameWindowMode.Fullscreen => "全屏",
             MinecraftGameWindowMode.Custom => $"自定义窗口 {options.WindowWidth} × {options.WindowHeight}",
+            MinecraftGameWindowMode.Launcher => "与启动器尺寸一致",
+            MinecraftGameWindowMode.Maximized => "最大化",
             _ => "未知窗口模式",
         };
         var jvmDescription = string.IsNullOrWhiteSpace(options.AdditionalJvmArguments) ? "未设置额外 JVM 参数" : "已设置额外 JVM 参数";
@@ -3299,6 +3545,85 @@ public partial class MainViewModel(
             ? "自动内存分配"
             : $"自定义内存 {options.CustomMemoryMiB} MiB";
         return $"{windowDescription}；{memoryDescription}；{jvmDescription}；{gameDescription}。保存后立即用于下一次启动准备。";
+    }
+
+    private void RefreshMemoryDisplay(int? preparedMemoryMiB = null)
+    {
+        try
+        {
+            var memory = systemMemoryInfo.Get();
+            if (memory.TotalBytes is not { } totalBytes || totalBytes <= 0 ||
+                memory.AvailableBytes is not { } availableBytes || availableBytes <= 0)
+            {
+                MemoryUsedWidth = new GridLength(1, GridUnitType.Star);
+                MemoryGameWidth = new GridLength(1, GridUnitType.Star);
+                MemoryEmptyWidth = new GridLength(1, GridUnitType.Star);
+                return;
+            }
+
+            const double bytesPerGiB = 1024d * 1024d * 1024d;
+            var totalGiB = Math.Round(totalBytes / bytesPerGiB, 1);
+            var availableGiB = Math.Round(Math.Min(totalBytes, availableBytes) / bytesPerGiB, 1);
+            var usedGiB = Math.Max(0.1, Math.Round(totalGiB - availableGiB, 1));
+            var configuredMiB = int.TryParse(CustomMemoryMiB, out var parsedMemory) ? parsedMemory : MinecraftLaunchOptions.DefaultCustomMemoryMiB;
+            var gameGiB = Math.Max(0.1, Math.Round(
+                (preparedMemoryMiB ?? (SelectedMemoryAllocationMode.Mode == MinecraftMemoryAllocationMode.Custom
+                    ? configuredMiB
+                    : Math.Min(configuredMiB, (int)(availableGiB * 1024d)))) / 1024d,
+                1));
+            var actualGameGiB = Math.Min(gameGiB, availableGiB);
+            var emptyGiB = Math.Max(0.1, Math.Round(totalGiB - usedGiB - actualGameGiB, 1));
+
+            MemoryUsedDisplay = $"{usedGiB:N1} GiB";
+            MemoryTotalDisplay = $" / {totalGiB:N1} GiB";
+            MemoryGameDisplay = gameGiB > availableGiB
+                ? $"{gameGiB:N1} GiB（可用 {availableGiB:N1} GiB）"
+                : $"{gameGiB:N1} GiB";
+            MemoryUsedWidth = new GridLength(usedGiB, GridUnitType.Star);
+            MemoryGameWidth = new GridLength(actualGameGiB, GridUnitType.Star);
+            MemoryEmptyWidth = new GridLength(emptyGiB, GridUnitType.Star);
+            CustomMemorySliderMaximum = Math.Max(
+                CustomMemorySliderValue,
+                GetMaximumMemorySliderStep(totalGiB));
+        }
+        catch
+        {
+            MemoryUsedWidth = new GridLength(1, GridUnitType.Star);
+            MemoryGameWidth = new GridLength(1, GridUnitType.Star);
+            MemoryEmptyWidth = new GridLength(1, GridUnitType.Star);
+        }
+    }
+
+    private static int GetMaximumMemorySliderStep(double totalGiB) => totalGiB switch
+    {
+        <= 1.5 => Math.Max((int)Math.Floor((totalGiB - 0.3) / 0.1), 1),
+        <= 8 => (int)Math.Floor((totalGiB - 1.5) / 0.5) + 12,
+        <= 16 => (int)Math.Floor(totalGiB - 8) + 25,
+        _ => (int)Math.Floor((totalGiB - 16) / 2) + 33,
+    };
+
+    private static int MemorySliderStepToMiB(int step)
+    {
+        var giB = step switch
+        {
+            <= 12 => step * 0.1 + 0.3,
+            <= 25 => (step - 12) * 0.5 + 1.5,
+            <= 33 => step - 25 + 8,
+            _ => (step - 33) * 2 + 16,
+        };
+        return (int)Math.Round(giB * 1024d, MidpointRounding.AwayFromZero);
+    }
+
+    private static double MemoryMiBToSliderStep(int memoryMiB)
+    {
+        var giB = memoryMiB / 1024d;
+        return giB switch
+        {
+            <= 1.5 => Math.Clamp(Math.Round((giB - 0.3) / 0.1), 0, 12),
+            <= 8 => Math.Clamp(Math.Round((giB - 1.5) / 0.5 + 12), 13, 25),
+            <= 16 => Math.Clamp(Math.Round(giB - 8 + 25), 26, 33),
+            _ => Math.Max(34, Math.Round((giB - 16) / 2 + 33)),
+        };
     }
 
     private static string GetJavaRequirementSummary(MinecraftJavaRequirement? requirement, JavaInstallation? java)
@@ -3758,11 +4083,13 @@ public partial class MainViewModel(
         try
         {
             var session = await gameLaunchService.LaunchAsync(gameLaunchPreparation);
+            var visibility = SelectedLauncherVisibility.Mode;
             GameLaunchSummary = $"已启动游戏进程（PID {session.ProcessId}）。输出将用于后续日志页。";
             GameLogLines.Clear();
             HasGameLogLines = false;
             GameLogSummary = $"正在捕获游戏进程 {session.ProcessId} 的输出；日志仅保留在本次会话内。";
-            _ = ObserveGameProcessAsync(session);
+            GameProcessStarted?.Invoke(this, visibility);
+            _ = ObserveGameProcessAsync(session, visibility);
         }
         catch (Exception exception)
         {
@@ -3903,7 +4230,9 @@ public partial class MainViewModel(
     private Task OpenApplicationDataDirectoryAsync() =>
         openPathService.OpenFolderAsync(ApplicationDataDirectory);
 
-    private async Task ObserveGameProcessAsync(GameProcessSession session)
+    private async Task ObserveGameProcessAsync(
+        GameProcessSession session,
+        MinecraftLauncherVisibility visibility)
     {
         var outputCount = 0;
         await foreach (var output in session.Output.ReadAllAsync())
@@ -3922,6 +4251,7 @@ public partial class MainViewModel(
         GameLaunchSummary = $"游戏进程已退出（代码 {exitCode}，捕获 {outputCount} 行输出）。";
         GameLogSummary = $"游戏进程已退出（代码 {exitCode}）。本次会话保留 {GameLogLines.Count} 行输出。";
         CanLaunchGame = false;
+        GameProcessExited?.Invoke(this, visibility);
     }
 
     [RelayCommand]
@@ -3944,6 +4274,16 @@ public partial class MainViewModel(
 public sealed record MinecraftGameWindowModeOption(MinecraftGameWindowMode Mode, string DisplayName);
 
 public sealed record MinecraftMemoryAllocationModeOption(MinecraftMemoryAllocationMode Mode, string DisplayName);
+
+public sealed record MinecraftInstanceIsolationModeOption(MinecraftInstanceIsolationMode Mode, string DisplayName);
+
+public sealed record MinecraftLauncherVisibilityOption(MinecraftLauncherVisibility Mode, string DisplayName);
+
+public sealed record MinecraftGameProcessPriorityOption(MinecraftGameProcessPriority Priority, string DisplayName);
+
+public sealed record MinecraftPreferredIpStackOption(MinecraftPreferredIpStack Stack, string DisplayName);
+
+public sealed record MinecraftRendererModeOption(MinecraftRendererMode Mode, string DisplayName);
 
 public sealed record CommunityResourceSortOption(CommunityResourceSort Sort, string DisplayName);
 

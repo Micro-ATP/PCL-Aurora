@@ -10,7 +10,23 @@ public sealed record MinecraftLaunchOptions(
     int WindowWidth = 854,
     int WindowHeight = 480,
     MinecraftMemoryAllocationMode MemoryAllocationMode = MinecraftMemoryAllocationMode.Automatic,
-    int CustomMemoryMiB = 3072)
+    int CustomMemoryMiB = 3072,
+    MinecraftInstanceIsolationMode InstanceIsolationMode = MinecraftInstanceIsolationMode.All,
+    string? WindowTitle = null,
+    string? CustomInfo = "PCL Aurora",
+    MinecraftLauncherVisibility LauncherVisibility = MinecraftLauncherVisibility.DoNothing,
+    MinecraftGameProcessPriority ProcessPriority = MinecraftGameProcessPriority.Normal,
+    MinecraftPreferredIpStack PreferredIpStack = MinecraftPreferredIpStack.JavaDefault,
+    MinecraftRendererMode Renderer = MinecraftRendererMode.GameDefault,
+    string? PreLaunchCommand = null,
+    bool WaitForPreLaunchCommand = true,
+    bool DisableJavaLaunchWrapper = true,
+    bool DisableLegacyFix = false,
+    bool PreferDedicatedGpu = true,
+    bool UseJavaExecutable = false,
+    bool DisableLwjglUnsafeAgent = false,
+    bool DisableCrashAnalysis = false,
+    bool LockMemory = false)
 {
     public const string DefaultAdditionalJvmArguments =
         "-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow " +
@@ -44,7 +60,15 @@ public sealed record MinecraftLaunchOptions(
         IsValidWindowDimension(WindowWidth) &&
         IsValidWindowDimension(WindowHeight) &&
         Enum.IsDefined(MemoryAllocationMode) &&
-        IsValidCustomMemoryMiB(CustomMemoryMiB);
+        IsValidCustomMemoryMiB(CustomMemoryMiB) &&
+        Enum.IsDefined(InstanceIsolationMode) &&
+        IsValidArgumentText(WindowTitle) &&
+        IsValidCustomInfo(CustomInfo) &&
+        Enum.IsDefined(LauncherVisibility) &&
+        Enum.IsDefined(ProcessPriority) &&
+        Enum.IsDefined(PreferredIpStack) &&
+        Enum.IsDefined(Renderer) &&
+        IsValidArgumentText(PreLaunchCommand);
 
     public static bool IsValidArgumentText(string? value) =>
         value is null || value.Length <= MaximumArgumentTextLength;
@@ -54,4 +78,8 @@ public sealed record MinecraftLaunchOptions(
 
     public static bool IsValidCustomMemoryMiB(int value) =>
         value >= MinimumCustomMemoryMiB && value <= MaximumCustomMemoryMiB;
+
+    public static bool IsValidCustomInfo(string? value) =>
+        IsValidArgumentText(value) &&
+        (value is null || value.IndexOfAny(['"', '“', '”']) < 0);
 }
