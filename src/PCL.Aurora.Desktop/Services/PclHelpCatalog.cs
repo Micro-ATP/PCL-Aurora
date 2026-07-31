@@ -8,6 +8,7 @@ namespace PCL.Aurora.Desktop.Services;
 // HelpEntry schema and bundled-catalog discovery adapt PCL2 ModMain.vb.
 internal static class PclHelpCatalog
 {
+    private const string HiddenSponsorshipGuideTitle = "赞助与内测指南";
     private static readonly Uri CatalogUri =
         new("avares://PCL.Aurora.Desktop/Assets/Help/Pcl2Help.zip");
 
@@ -30,7 +31,8 @@ internal static class PclHelpCatalog
             });
             var root = document.RootElement;
             var title = GetString(root, "Title");
-            if (string.IsNullOrWhiteSpace(title))
+            if (string.IsNullOrWhiteSpace(title) ||
+                string.Equals(title.Trim(), HiddenSponsorshipGuideTitle, StringComparison.Ordinal))
             {
                 continue;
             }
