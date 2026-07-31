@@ -436,6 +436,19 @@ public partial class MainWindow : Window
         MoreContentScroller.Offset = default;
     }
 
+    private async void ClearToolboxCacheClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel ||
+            !await ShowConfirmationAsync(
+                "清理缓存",
+                "即将删除 PCL Aurora 缓存目录中的文件。设置、账户和游戏实例不会受到影响，是否继续？"))
+        {
+            return;
+        }
+
+        await viewModel.ClearToolboxCacheCommand.ExecuteAsync(null);
+    }
+
     private void ApplyMoreSection(string section)
     {
         MoreDirectorySection.IsVisible = section == "toolbox";
@@ -453,7 +466,7 @@ public partial class MainWindow : Window
         };
         MorePageDescription.Text = section switch
         {
-            "toolbox" => "打开常用目录并使用跨平台维护工具。",
+            "toolbox" => "使用常用工具和跨平台维护功能。",
             "logs" => "查看当前游戏会话输出与诊断信息。",
             "feedback" => "提交问题报告、兼容性报告或功能建议。",
             "vote" => "了解候选功能并参与后续版本方向讨论。",

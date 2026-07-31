@@ -11,6 +11,7 @@ public sealed record LauncherPreferences(
     string? OfflinePlayerName = null,
     int DownloadConcurrency = LauncherDownloadSettings.DefaultConcurrency,
     int DownloadSpeedLimitStep = LauncherDownloadSettings.UnlimitedSpeedLimitStep,
+    int LaunchCount = 0,
     MicrosoftAccountProfile? MicrosoftAccount = null,
     MinecraftLaunchOptions? LaunchOptions = null,
     GameManagementOptions? GameManagementOptions = null,
@@ -27,6 +28,7 @@ public sealed record LauncherPreferences(
         IsValidOfflinePlayerName(OfflinePlayerName) &&
         LauncherDownloadSettings.IsValidConcurrency(DownloadConcurrency) &&
         LauncherDownloadSettings.IsValidSpeedLimitStep(DownloadSpeedLimitStep) &&
+        LaunchCount >= 0 &&
         (MicrosoftAccount?.IsValid ?? true) &&
         (LaunchOptions?.IsValid ?? true) &&
         (GameManagementOptions?.IsValid ?? true) &&

@@ -256,6 +256,17 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_RoundTripsToolboxLaunchCount()
+    {
+        var store = CreateStore();
+
+        await store.SaveAsync(new LauncherPreferences(LauncherThemeMode.System, LaunchCount: 7));
+        var result = await store.LoadAsync();
+
+        Assert.Equal(7, result.Preferences.LaunchCount);
+    }
+
+    [Fact]
     public async Task SaveAsync_RejectsInstanceNameContainingPathTraversal()
     {
         var store = CreateStore();

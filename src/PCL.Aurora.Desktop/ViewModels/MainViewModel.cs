@@ -916,6 +916,29 @@ public partial class MainViewModel(
     private string gameLogSummary = "尚未启动游戏，本次会话没有可查看的进程输出。";
 
     [ObservableProperty]
+    private string toolboxStatusText = "常用工具已就绪。";
+
+    [ObservableProperty]
+    private bool isToolboxCacheClearing;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ToolboxLaunchCountDisplay))]
+    private int toolboxLaunchCount;
+
+    public string ToolboxLaunchCountDisplay => $"已启动 {ToolboxLaunchCount} 次";
+
+    public bool IsWindowsToolboxCapability => System.OperatingSystem.IsWindows();
+
+    public string ToolboxMemoryOptimizationSummary => System.OperatingSystem.IsWindows()
+        ? "Windows 可提供工作集优化；启动参数中的锁定内存仍可跨平台使用。"
+        : "当前平台不使用 Windows 工作集压缩；可在启动设置中启用锁定内存分配（-Xms = -Xmx）。";
+
+    public bool HasToolboxCacheDirectory =>
+        !string.IsNullOrWhiteSpace(CacheDirectory) &&
+        !string.Equals(CacheDirectory, "—", StringComparison.Ordinal) &&
+        Directory.Exists(CacheDirectory);
+
+    [ObservableProperty]
     private bool hasGameLogLines;
 
     [ObservableProperty]
@@ -1472,6 +1495,7 @@ public partial class MainViewModel(
             Runtime = diagnostics.Platform.RuntimeVersion;
             ApplicationDataDirectory = diagnostics.Paths.ApplicationDataDirectory;
             CacheDirectory = diagnostics.Paths.CacheDirectory;
+            OnPropertyChanged(nameof(HasToolboxCacheDirectory));
             JavaSummary = diagnostics.JavaInstallations.Count == 0
                 ? "未发现可用 Java。"
                 : $"发现 {diagnostics.JavaInstallations.Count} 个 Java，其中 {AvailableJavaInstallations.Count} 个与当前架构兼容。";
@@ -1536,6 +1560,7 @@ public partial class MainViewModel(
             isLoadingPreferences = true;
             var result = await preferencesService.LoadAsync();
             currentPreferences = result.Preferences;
+            ToolboxLaunchCount = result.Preferences.LaunchCount;
             var option = ThemeModes.Single(item => item.Mode == result.Preferences.ThemeMode);
             SelectedThemeMode = option;
             themeService.Apply(option.Mode);
@@ -5366,6 +5391,16 @@ public partial class MainViewModel(
         {
             await TryAppendLauncherLogAsync("Launch", $"准备启动实例：{SelectedInstance?.Name ?? "未知实例"}。");
             var session = await gameLaunchService.LaunchAsync(gameLaunchPreparation);
+            ToolboxLaunchCount++;
+            currentPreferences = currentPreferences with { LaunchCount = ToolboxLaunchCount };
+            try
+            {
+                await preferencesService.ReplaceAsync(currentPreferences);
+            }
+            catch
+            {
+                ToolboxStatusText = "游戏已启动，但启动次数保存失败。";
+            }
             var visibility = SelectedLauncherVisibility.Mode;
             GameLaunchSummary = $"已启动游戏进程（PID {session.ProcessId}）。输出将用于后续日志页。";
             GameLogLines.Clear();
@@ -5400,6 +5435,101 @@ public partial class MainViewModel(
         {
             GameDirectorySummary = $"无法打开游戏目录：{exception.Message}";
         }
+    }
+
+    [RelayCommand]
+    private async Task ClearToolboxCacheAsync()
+    {
+        if (IsToolboxCacheClearing)
+        {
+            return;
+        }
+
+        IsToolboxCacheClearing = true;
+        try
+        {
+            if (!HasToolboxCacheDirectory)
+            {
+                ToolboxStatusText = "缓存目录尚未创建，无需清理。";
+                return;
+            }
+
+            var deleted = 0;
+            foreach (var file in Directory.EnumerateFiles(CacheDirectory))
+            {
+                try
+                {
+                    File.Delete(file);
+                    deleted++;
+                }
+                catch (IOException)
+                {
+                    // Cache cleanup is best effort; one locked entry must not hide the result.
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Cache cleanup is best effort; report the count of entries we could remove.
+                }
+            }
+
+            foreach (var directory in Directory.EnumerateDirectories(CacheDirectory))
+            {
+                try
+                {
+                    Directory.Delete(directory, recursive: true);
+                    deleted++;
+                }
+                catch (IOException)
+                {
+                }
+                catch (UnauthorizedAccessException)
+                {
+                }
+            }
+
+            ToolboxStatusText = deleted == 0
+                ? "缓存目录为空，未删除文件。"
+                : $"已清理缓存目录中的 {deleted} 项。";
+        }
+        catch (Exception exception)
+        {
+            ToolboxStatusText = $"清理缓存失败：{exception.Message}";
+        }
+        finally
+        {
+            IsToolboxCacheClearing = false;
+            OnPropertyChanged(nameof(HasToolboxCacheDirectory));
+        }
+    }
+
+    [RelayCommand]
+    private Task OpenToolboxCacheDirectoryAsync() =>
+        openPathService.OpenFolderAsync(CacheDirectory);
+
+    [RelayCommand]
+    private void ShowToolboxLuck()
+    {
+        var seed = DateOnly.FromDateTime(DateTime.Now).DayNumber;
+        var luck = new Random(seed).Next(0, 101);
+        var rating = luck switch
+        {
+            >= 95 => "今天手气爆棚",
+            >= 75 => "今天状态不错",
+            >= 50 => "今天平稳发挥",
+            >= 25 => "今天适合稳扎稳打",
+            _ => "今天先休息一下",
+        };
+        ToolboxStatusText = $"今日人品：{luck} · {rating}。结果仅供娱乐。";
+    }
+
+    [RelayCommand]
+    private void ShowToolboxLaunchCount() =>
+        ToolboxStatusText = $"PCL Aurora 已启动 {ToolboxLaunchCount} 次。";
+
+    [RelayCommand]
+    private void ShowToolboxMemoryOptimization()
+    {
+        ToolboxStatusText = ToolboxMemoryOptimizationSummary;
     }
 
     [RelayCommand]
