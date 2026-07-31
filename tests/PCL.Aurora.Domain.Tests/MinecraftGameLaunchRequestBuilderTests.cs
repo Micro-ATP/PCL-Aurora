@@ -17,7 +17,8 @@ public sealed class MinecraftGameLaunchRequestBuilderTests
 
         Assert.True(preparation.IsReady);
         Assert.Equal(["-Dpath=/folder with spaces", "example.Main", "--name", "semi;colon"], preparation.Request!.ArgumentList);
-        Assert.Equal("/minecraft", preparation.Request.WorkingDirectory);
+        Assert.Equal(1, preparation.Request.MainClassArgumentIndex);
+        Assert.Equal("/minecraft/versions/1.21.4", preparation.Request.WorkingDirectory);
     }
 
     [Fact]
@@ -33,5 +34,20 @@ public sealed class MinecraftGameLaunchRequestBuilderTests
 
         Assert.False(preparation.IsReady);
         Assert.Contains("缺少 classpath。", preparation.BlockingReasons);
+    }
+
+    [Fact]
+    public void JavaExecutableResolver_UsesAvailableWindowsSiblingOnlyWhenRequested()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"pcl-aurora-java-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        var java = Path.Combine(directory, "java.exe");
+        var javaw = Path.Combine(directory, "javaw.exe");
+        File.WriteAllText(java, string.Empty);
+        File.WriteAllText(javaw, string.Empty);
+
+        Assert.Equal(java, MinecraftJavaExecutableResolver.Resolve(javaw, useConsoleExecutable: true, isWindows: true));
+        Assert.Equal(javaw, MinecraftJavaExecutableResolver.Resolve(java, useConsoleExecutable: false, isWindows: true));
+        Assert.Equal(java, MinecraftJavaExecutableResolver.Resolve(java, useConsoleExecutable: false, isWindows: false));
     }
 }

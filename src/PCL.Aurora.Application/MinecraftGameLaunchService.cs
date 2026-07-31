@@ -9,7 +9,8 @@ public sealed class MinecraftGameLaunchService(
     IAssetMapper assetMapper,
     INativeLibraryPreparer nativeLibraryPreparer,
     IGameProcessRunner processRunner,
-    ILauncherPreferencesService? preferencesService = null) : IMinecraftGameLaunchService
+    ILauncherPreferencesService? preferencesService = null,
+    IMinecraftLaunchPatchService? launchPatchService = null) : IMinecraftGameLaunchService
 {
     public async Task<MinecraftGameLaunchPreparation> PrepareAsync(
         MinecraftInstance? instance,
@@ -51,11 +52,25 @@ public sealed class MinecraftGameLaunchService(
             Path.Combine(instance.DirectoryPath, "natives"),
             java?.Architecture ?? JavaArchitecture.Unknown,
             launchPreparation.VersionPreparation.RuleEnvironment);
+        var launchOptions = preferencesService?.Current.EffectiveLaunchOptions ?? MinecraftLaunchOptions.Default;
+        var metadata = launchPreparation.VersionPreparation.Inspection.EffectiveMetadata;
         var requestPreparation = MinecraftGameLaunchRequestBuilder.Prepare(
             instance,
             java,
             launchPreparation.ArgumentPreparation,
-            preferencesService?.Current.EffectiveLaunchOptions);
+            launchOptions);
+        if (requestPreparation.Request is { } request &&
+            metadata is not null &&
+            java is not null &&
+            launchPatchService is not null)
+        {
+            var patchPreparation = await launchPatchService
+                .PrepareAsync(instance, metadata, java, launchOptions, request, cancellationToken)
+                .ConfigureAwait(false);
+            requestPreparation = new(
+                patchPreparation.Request,
+                patchPreparation.BlockingReasons);
+        }
         var blockingReasons = readiness.BlockingReasons
             .Concat(guidanceBlockingReasons)
             .Concat(launchPreparation.ClasspathInspection.BlockingReasons)
@@ -109,6 +124,18 @@ public sealed class MinecraftGameLaunchService(
         if (!nativePreparation.IsReady)
         {
             throw new InvalidOperationException("native 库尚未准备：" + string.Join("；", nativePreparation.BlockingReasons));
+        }
+
+        var preferences = preferencesService?.Current ?? LauncherPreferences.Default;
+        if (preferences.EffectiveGameManagementOptions.AutoChangeGameLanguage &&
+            preparation.LaunchPreparation?.VersionPreparation.Inspection.EffectiveMetadata is { } metadata)
+        {
+            await PclCeMinecraftOptionsUpdater.UpdateLanguageAsync(
+                    preparation.RequestPreparation.Request!.WorkingDirectory,
+                    metadata.ReleaseTime,
+                    preferences.EffectiveLocalizationSettings.Language,
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
 
         return await processRunner

@@ -5,7 +5,8 @@ namespace PCL.Aurora.Application;
 
 public sealed class MinecraftVersionProvisioningService(
     HttpClient httpClient,
-    IMinecraftRootDirectoryProvider rootDirectoryProvider) : IMinecraftVersionProvisioningService
+    IMinecraftRootDirectoryProvider rootDirectoryProvider,
+    ILauncherPreferencesService? preferencesService = null) : IMinecraftVersionProvisioningService
 {
     public Task<MinecraftInstance> ProvisionAsync(
         MinecraftVersionCatalogEntry version,
@@ -39,6 +40,11 @@ public sealed class MinecraftVersionProvisioningService(
             using var response = await httpClient.GetAsync(version.MetadataUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            if (string.Equals(version.Id, "1.16.5", StringComparison.Ordinal) &&
+                (preferencesService?.Current.EffectiveGameManagementOptions.FixAuthlib ?? GameManagementOptions.Default.FixAuthlib))
+            {
+                json = PclCeAuthlibMetadataFixer.Apply(json);
+            }
             var parsed = MinecraftVersionMetadataParser.Parse(json);
             if (!parsed.IsSuccess || parsed.Metadata is null || !string.Equals(parsed.Metadata.Id, version.Id, StringComparison.Ordinal))
             {

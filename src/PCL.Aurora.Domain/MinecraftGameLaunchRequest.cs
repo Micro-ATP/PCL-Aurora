@@ -7,4 +7,6 @@ public sealed record MinecraftGameLaunchRequest(
     IReadOnlyDictionary<string, string> EnvironmentVariables,
     string? PreLaunchCommand = null,
     bool WaitForPreLaunchCommand = true,
-    MinecraftGameProcessPriority ProcessPriority = MinecraftGameProcessPriority.Normal);
+    MinecraftGameProcessPriority ProcessPriority = MinecraftGameProcessPriority.Normal,
+    int MainClassArgumentIndex = -1,
+    bool PreferDedicatedGpu = false);

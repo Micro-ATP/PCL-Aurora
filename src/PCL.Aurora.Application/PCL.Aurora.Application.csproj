@@ -14,5 +14,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Assets/PclCeMcModTranslations.buf" />
+    <EmbeddedResource Include="Assets/LaunchPatches/*.jar" />
   </ItemGroup>
 </Project>

@@ -8,6 +8,8 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Modules/Base/ModSetup.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Network/Downloader/FileDownloader.cs
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModLaunch.cs
+- PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/ModWatcher.cs (abnormal-exit crash-analysis trigger)
+- PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/CrashAnalysis/Detection/CrashDetector.cs (high-signal crash categories only)
 - PCL-CE: Plain Craft Launcher 2/Modules/Minecraft/McInstance.cs (instance isolation policy only)
 - PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/MyMsgLogin.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/MyMsgLogin.xaml
@@ -52,6 +54,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherHelpDetail.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherHelpDetail.xaml.vb
 - PCL2: Plain Craft Launcher 2/Modules/ModMain.vb (HelpEntry, HelpLoad and HelpTryExtract only)
+- PCL2: Plain Craft Launcher 2/Modules/ModMain.vb (Windows high-performance GPU preference)
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherTest.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageTools/PageToolsLeft.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageTools/PageToolsTest.xaml
@@ -162,6 +165,21 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: PCL.Core/IO/Net/Http/HostConnectionHandler.cs
 
 PCL Aurora also contains the following directly reused upstream resources:
+
+- PCL-CE: Plain Craft Launcher 2/Resources/legacyfix.jar
+  copied unchanged to src/PCL.Aurora.Application/Assets/LaunchPatches/legacyfix.jar;
+  extracted to the application cache and injected only for Minecraft versions
+  released before the PCL-CE LegacyFix cutoff.
+
+- PCL-CE: Plain Craft Launcher 2/Resources/lwjgl-unsafe-agent.jar
+  copied unchanged to src/PCL.Aurora.Application/Assets/LaunchPatches/lwjgl-unsafe-agent.jar;
+  extracted to the application cache and injected only for LWJGL 3.4.1 when
+  the corresponding launch setting permits it.
+
+- PCL2: Plain Craft Launcher 2/Resources/java-wrapper.jar
+  copied unchanged to src/PCL.Aurora.Application/Assets/LaunchPatches/java-wrapper.jar;
+  extracted only for the Windows, legacy-Java and non-ASCII-path compatibility
+  case when Java Launch Wrapper is enabled.
 
 - PCL2: Plain Craft Launcher 2/Resources/Help.zip
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Help/Pcl2Help.zip;
@@ -317,3 +335,13 @@ loader adapts PCL-CE `PageLaunchRight` and `PageSetupUI`, while rendering remote
 content through Aurora's restricted XML control allowlist rather than executing
 arbitrary XAML. Preset addresses and the Minecraft news allowlist follow the
 listed PCL-CE sources.
+The runtime launch-patch flow adapts PCL-CE `ModLaunch`: LegacyFix and the
+LWJGL unsafe agent are selected from effective version metadata, extracted
+atomically into the platform cache and injected through argument lists without
+shell joining. Windows Java executable and GPU preference behavior follows the
+listed PCL/PCL-CE launch helpers, while Linux uses PRIME environment variables
+and macOS leaves unavailable hardware-selection controls inactive. The game
+language updater and Minecraft 1.16.5 Authlib correction follow PCL-CE's
+version cutoffs and replacement values, implemented with atomic text writes
+and structured JSON updates. Abnormal process exits are analyzed only from
+Aurora's captured game output and are skipped when the user disables analysis.

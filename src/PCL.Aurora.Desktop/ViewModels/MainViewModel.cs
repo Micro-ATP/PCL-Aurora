@@ -1843,6 +1843,11 @@ public partial class MainViewModel(
             var instance = await versionProvisioningService.ProvisionAsync(SelectedCatalogVersion);
             VersionCatalogSummary = $"已创建 {instance.Name}。请点击“安装所选本地实例”下载游戏文件。";
             await RefreshAsync();
+            if (currentPreferences.EffectiveGameManagementOptions.AutoSelectNewInstance)
+            {
+                SelectedInstance = AvailableInstances.FirstOrDefault(candidate =>
+                    string.Equals(candidate.DirectoryPath, instance.DirectoryPath, StringComparison.Ordinal));
+            }
         }
         catch (OperationCanceledException)
         {
@@ -2051,24 +2056,30 @@ public partial class MainViewModel(
     {
         VersionCatalogSummary = $"正在 {rootDirectory} 创建 {version.Id}…";
         var instance = await versionProvisioningService.ProvisionAsync(version, rootDirectory);
-        try
+        var autoSelect = currentPreferences.EffectiveGameManagementOptions.AutoSelectNewInstance;
+        if (autoSelect)
         {
-            isRefreshing = true;
-            SelectedInstance = instance;
-        }
-        finally
-        {
-            isRefreshing = false;
+            try
+            {
+                isRefreshing = true;
+                SelectedInstance = instance;
+            }
+            finally
+            {
+                isRefreshing = false;
+            }
+
+            await RefreshSelectedInstanceStateAsync();
         }
 
-        await RefreshSelectedInstanceStateAsync();
-        if (!CanInstallGame)
+        var installed = await InstallGameCoreAsync(
+            refreshDefaultInstanceCatalog: false,
+            targetInstance: instance);
+        if (installed && autoSelect)
         {
-            InstallationSummary = "当前实例的下载计划尚未准备完成。";
-            return false;
+            await SaveSelectedInstancePreferenceAsync(instance.Name);
         }
-
-        return await InstallGameCoreAsync(refreshDefaultInstanceCatalog: false);
+        return installed;
     }
 
     private MinecraftInstallComponentViewModel GetCombinedComponent(MinecraftLoaderKind kind) =>
@@ -5047,9 +5058,12 @@ public partial class MainViewModel(
     [RelayCommand]
     private async Task InstallGameAsync() => await InstallGameCoreAsync(refreshDefaultInstanceCatalog: true);
 
-    private async Task<bool> InstallGameCoreAsync(bool refreshDefaultInstanceCatalog)
+    private async Task<bool> InstallGameCoreAsync(
+        bool refreshDefaultInstanceCatalog,
+        MinecraftInstance? targetInstance = null)
     {
-        if (SelectedInstance is null || !CanInstallGame)
+        var instance = targetInstance ?? SelectedInstance;
+        if (instance is null || (targetInstance is null && !CanInstallGame))
         {
             InstallationSummary = "安装条件尚未满足，未发起下载。";
             return false;
@@ -5064,7 +5078,7 @@ public partial class MainViewModel(
             CanInstallGame = false;
             var progress = new Progress<MinecraftInstallationProgress>(update =>
                 InstallationSummary = FormatInstallationProgress(update));
-            await installationService.InstallAsync(SelectedInstance, progress, cancellation.Token);
+            await installationService.InstallAsync(instance, progress, cancellation.Token);
             InstallationSummary = "安装下载完成。资源映射将在下一次显式启动时准备。";
             if (refreshDefaultInstanceCatalog)
             {
@@ -5454,7 +5468,10 @@ public partial class MainViewModel(
             GameLogSummary = $"正在捕获游戏进程 {session.ProcessId} 的输出；日志仅保留在本次会话内。";
             GameProcessStarted?.Invoke(this, visibility);
             await TryAppendLauncherLogAsync("Launch", $"游戏进程已启动，PID {session.ProcessId}。");
-            _ = ObserveGameProcessAsync(session, visibility);
+            _ = ObserveGameProcessAsync(
+                session,
+                visibility,
+                !currentPreferences.EffectiveLaunchOptions.DisableCrashAnalysis);
         }
         catch (Exception exception)
         {
@@ -5870,12 +5887,19 @@ public partial class MainViewModel(
 
     private async Task ObserveGameProcessAsync(
         GameProcessSession session,
-        MinecraftLauncherVisibility visibility)
+        MinecraftLauncherVisibility visibility,
+        bool enableCrashAnalysis)
     {
         var outputCount = 0;
+        var capturedOutput = new List<string>();
         await foreach (var output in session.Output.ReadAllAsync())
         {
             outputCount++;
+            if (capturedOutput.Count >= 4000)
+            {
+                capturedOutput.RemoveAt(0);
+            }
+            capturedOutput.Add(output.Text);
             var maximumLines = CreateMiscSettings().MaximumGameLogLines;
             if (maximumLines != int.MaxValue && GameLogLines.Count >= maximumLines)
             {
@@ -5888,8 +5912,22 @@ public partial class MainViewModel(
         }
 
         var exitCode = await session.ExitCode;
-        GameLaunchSummary = $"游戏进程已退出（代码 {exitCode}，捕获 {outputCount} 行输出）。";
-        GameLogSummary = $"游戏进程已退出（代码 {exitCode}）。本次会话保留 {GameLogLines.Count} 行输出。";
+        if (exitCode != 0 && enableCrashAnalysis)
+        {
+            var analysis = PclCeMinecraftCrashAnalyzer.Analyze(exitCode, capturedOutput);
+            GameLaunchSummary = $"游戏进程异常退出（代码 {exitCode}）：{analysis.Summary}";
+            GameLogSummary = $"自动崩溃分析：{analysis.Summary} 本次会话保留 {GameLogLines.Count} 行输出。";
+            await TryAppendLauncherLogAsync("CrashAnalysis", analysis.Summary);
+            foreach (var evidence in analysis.Evidence)
+            {
+                await TryAppendLauncherLogAsync("CrashAnalysis/Evidence", evidence);
+            }
+        }
+        else
+        {
+            GameLaunchSummary = $"游戏进程已退出（代码 {exitCode}，捕获 {outputCount} 行输出）。";
+            GameLogSummary = $"游戏进程已退出（代码 {exitCode}）。本次会话保留 {GameLogLines.Count} 行输出。";
+        }
         CanLaunchGame = false;
         await TryAppendLauncherLogAsync("Launch", GameLaunchSummary);
         GameProcessExited?.Invoke(this, visibility);

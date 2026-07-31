@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Threading.Channels;
+using Microsoft.Win32;
 using PCL.Aurora.Application;
 using PCL.Aurora.Domain;
 
@@ -14,6 +15,7 @@ public sealed class MinecraftGameProcessRunner : IGameProcessRunner
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
         await RunPreLaunchCommandAsync(request, cancellationToken).ConfigureAwait(false);
+        TryApplyDedicatedGpuPreference(request);
         var startInfo = new ProcessStartInfo(request.JavaExecutablePath)
         {
             WorkingDirectory = request.WorkingDirectory,
@@ -98,6 +100,24 @@ public sealed class MinecraftGameProcessRunner : IGameProcessRunner
         catch (Exception exception) when (exception is InvalidOperationException or PlatformNotSupportedException or System.ComponentModel.Win32Exception)
         {
             // Some Unix hosts do not allow changing priority without elevated privileges.
+        }
+    }
+
+    private static void TryApplyDedicatedGpuPreference(MinecraftGameLaunchRequest request)
+    {
+        if (!request.PreferDedicatedGpu || !OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        try
+        {
+            using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\DirectX\UserGpuPreferences");
+            key?.SetValue(request.JavaExecutablePath, "GpuPreference=2;", RegistryValueKind.String);
+        }
+        catch (Exception exception) when (exception is UnauthorizedAccessException or IOException or PlatformNotSupportedException)
+        {
+            // Windows may reject the per-user preference on managed devices; launch still proceeds.
         }
     }
 

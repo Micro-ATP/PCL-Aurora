@@ -29,6 +29,7 @@ services.AddSingleton<ISecureSecretStore, MacOSKeychainSecretStore>();
 services.AddSingleton<IMicrosoftAccountSessionService, MicrosoftAccountSessionService>();
 services.AddSingleton<ILauncherPreferencesStore, JsonLauncherPreferencesStore>();
 services.AddSingleton<ILauncherPreferencesService, LauncherPreferencesService>();
+services.AddSingleton<IMinecraftLaunchPatchService, MinecraftLaunchPatchService>();
 services.AddSingleton<IMinecraftDownloadExecutor, MinecraftDownloadExecutor>();
 services.AddSingleton<IMinecraftInstanceInstallationService, MinecraftInstanceInstallationService>();
 services.AddSingleton<IMinecraftVersionCatalogService, MinecraftVersionCatalogService>();

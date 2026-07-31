@@ -98,6 +98,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IMinecraftVersionProvisioningService, MinecraftVersionProvisioningService>();
         services.AddSingleton<IMinecraftDirectoryService, MinecraftDirectoryService>();
         services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
+        services.AddSingleton<IMinecraftLaunchPatchService, MinecraftLaunchPatchService>();
         services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();
         services.AddSingleton<IMinecraftGameLaunchService, MinecraftGameLaunchService>();
         services.AddSingleton<IThemeService, AvaloniaThemeService>();

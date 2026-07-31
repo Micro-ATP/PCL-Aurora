@@ -50,6 +50,12 @@ public static class MinecraftGameLaunchRequestBuilder
         {
             ["PCL_AURORA_MINECRAFT_DIRECTORY"] = minecraftRootDirectory,
         };
+        if (OperatingSystem.IsLinux() && launchOptions.PreferDedicatedGpu)
+        {
+            environmentVariables["DRI_PRIME"] = "1";
+            environmentVariables["__NV_PRIME_RENDER_OFFLOAD"] = "1";
+            environmentVariables["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia";
+        }
         if (OperatingSystem.IsLinux())
         {
             switch (launchOptions.Renderer)
@@ -69,13 +75,18 @@ public static class MinecraftGameLaunchRequestBuilder
 
         return new(
             new MinecraftGameLaunchRequest(
-                java.ExecutablePath,
+                MinecraftJavaExecutableResolver.Resolve(
+                    java.ExecutablePath,
+                    launchOptions.UseJavaExecutable,
+                    OperatingSystem.IsWindows()),
                 gameDirectory,
                 argumentList,
                 environmentVariables,
                 launchOptions.PreLaunchCommand,
                 launchOptions.WaitForPreLaunchCommand,
-                launchOptions.ProcessPriority),
+                launchOptions.ProcessPriority,
+                argumentPreparation.Arguments.JvmArguments.Count,
+                launchOptions.PreferDedicatedGpu),
             []);
     }
 }
