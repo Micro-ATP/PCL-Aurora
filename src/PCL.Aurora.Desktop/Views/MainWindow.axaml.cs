@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -7,6 +8,9 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Media.Imaging;
+using System.Net.Sockets;
+using System.Text;
+using System.Text.Json;
 using PCL.Aurora.Application;
 using PCL.Aurora.Desktop.Controls;
 using PCL.Aurora.Desktop.Services;
@@ -24,10 +28,20 @@ public partial class MainWindow : Window
     private Bitmap? launcherTitleBitmap;
     private bool isFeatureHidingSuspended;
     private bool isRevertingAnnouncementSelection;
+    private readonly HttpClient toolboxHttpClient = new() { Timeout = TimeSpan.FromSeconds(30) };
+    private CancellationTokenSource? toolboxDownloadCancellation;
+    private Bitmap? toolboxAvatarBitmap;
 
     public MainWindow()
     {
         InitializeComponent();
+        var downloadsDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "Downloads");
+        if (Directory.Exists(downloadsDirectory))
+        {
+            ToolboxDownloadFolderTextBox.Text = downloadsDirectory;
+        }
         PclMotionService.Attach(this);
         PclHelpView.DetailOpened += ShowHelpDetail;
         PclHelpView.DetailClosed += RestoreHelpCatalogLayout;
@@ -45,6 +59,10 @@ public partial class MainWindow : Window
         Closed += (_, _) =>
         {
             SubscribeToViewModel(null);
+            toolboxDownloadCancellation?.Cancel();
+            toolboxDownloadCancellation?.Dispose();
+            toolboxHttpClient.Dispose();
+            toolboxAvatarBitmap?.Dispose();
             launcherBackgroundBitmap?.Dispose();
             launcherTitleBitmap?.Dispose();
         };
@@ -440,13 +458,576 @@ public partial class MainWindow : Window
     {
         if (DataContext is not ViewModels.MainViewModel viewModel ||
             !await ShowConfirmationAsync(
-                "清理缓存",
-                "即将删除 PCL Aurora 缓存目录中的文件。设置、账户和游戏实例不会受到影响，是否继续？"))
+                "清理游戏垃圾",
+                "当前跨平台实现只会清理 PCL Aurora 的安全缓存，不会删除存档、模组、资源包、设置或账户。是否继续？"))
         {
             return;
         }
 
         await viewModel.ClearToolboxCacheCommand.ExecuteAsync(null);
+        await ShowMessageAsync("清理游戏垃圾", viewModel.ToolboxStatusText);
+    }
+
+    private async void ToolboxLuckClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.ShowToolboxLuckCommand.Execute(null);
+            await ShowMessageAsync("今日人品", viewModel.ToolboxStatusText);
+        }
+    }
+
+    private async void ToolboxMemoryOptimizationClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.ShowToolboxMemoryOptimizationCommand.Execute(null);
+            await ShowMessageAsync("内存优化", viewModel.ToolboxStatusText);
+        }
+    }
+
+    private async void ToolboxDontClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.ShowToolboxDontClickCommand.Execute(null);
+            await ShowMessageAsync("千万别点", viewModel.ToolboxStatusText, isWarning: true);
+        }
+    }
+
+    private void ToolboxDownloadUrlChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (ToolboxDownloadNameTextBox.Text?.Length > 0 ||
+            !Uri.TryCreate(ToolboxDownloadUrlTextBox.Text, UriKind.Absolute, out var uri))
+        {
+            return;
+        }
+
+        var suggestedName = Path.GetFileName(Uri.UnescapeDataString(uri.AbsolutePath));
+        if (IsSafeFileName(suggestedName))
+        {
+            ToolboxDownloadNameTextBox.Text = suggestedName;
+        }
+    }
+
+    private async void ToolboxDownloadFolderClick(object? sender, RoutedEventArgs e) =>
+        await ChooseToolboxDownloadFolderAsync();
+
+    private async Task<string?> ChooseToolboxDownloadFolderAsync()
+    {
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "选择下载文件夹",
+            AllowMultiple = false,
+        });
+        var path = folders.SingleOrDefault()?.TryGetLocalPath();
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+            ToolboxDownloadFolderTextBox.Text = path;
+        }
+
+        return path;
+    }
+
+    private async void ToolboxDownloadStartClick(object? sender, RoutedEventArgs e)
+    {
+        if (!Uri.TryCreate(ToolboxDownloadUrlTextBox.Text?.Trim(), UriKind.Absolute, out var uri) ||
+            uri.Scheme != Uri.UriSchemeHttps)
+        {
+            await ShowMessageAsync("下载自定义文件", "请输入有效的 HTTPS 下载地址。", isWarning: true);
+            return;
+        }
+
+        var fileName = ToolboxDownloadNameTextBox.Text?.Trim();
+        if (!IsSafeFileName(fileName))
+        {
+            await ShowMessageAsync("下载自定义文件", "请输入不含路径和非法字符的文件名。", isWarning: true);
+            return;
+        }
+
+        var folder = ToolboxDownloadFolderTextBox.Text;
+        if (string.IsNullOrWhiteSpace(folder))
+        {
+            folder = await ChooseToolboxDownloadFolderAsync();
+        }
+        if (string.IsNullOrWhiteSpace(folder))
+        {
+            return;
+        }
+
+        Directory.CreateDirectory(folder);
+        var destinationPath = Path.Combine(folder, fileName!);
+        var temporaryPath = Path.Combine(folder, $".{fileName}.{Guid.NewGuid():N}.partial");
+        toolboxDownloadCancellation?.Cancel();
+        toolboxDownloadCancellation?.Dispose();
+        toolboxDownloadCancellation = new CancellationTokenSource();
+        try
+        {
+            ToolboxDownloadStatusTextBlock.Text = $"正在下载 {fileName}…";
+            using var response = await toolboxHttpClient.GetAsync(
+                uri,
+                HttpCompletionOption.ResponseHeadersRead,
+                toolboxDownloadCancellation.Token);
+            response.EnsureSuccessStatusCode();
+            await using (var source = await response.Content.ReadAsStreamAsync(toolboxDownloadCancellation.Token))
+            await using (var target = new FileStream(
+                             temporaryPath,
+                             FileMode.CreateNew,
+                             FileAccess.Write,
+                             FileShare.None,
+                             81920,
+                             useAsync: true))
+            {
+                await source.CopyToAsync(target, toolboxDownloadCancellation.Token);
+                await target.FlushAsync(toolboxDownloadCancellation.Token);
+            }
+            File.Move(temporaryPath, destinationPath, overwrite: true);
+            ToolboxDownloadStatusTextBlock.Text = $"已下载到 {destinationPath}";
+        }
+        catch (OperationCanceledException)
+        {
+            ToolboxDownloadStatusTextBlock.Text = "下载已取消。";
+        }
+        catch (Exception exception) when (exception is HttpRequestException or IOException or UnauthorizedAccessException)
+        {
+            ToolboxDownloadStatusTextBlock.Text = $"下载失败：{exception.Message}";
+        }
+        finally
+        {
+            try
+            {
+                File.Delete(temporaryPath);
+            }
+            catch (IOException)
+            {
+            }
+        }
+    }
+
+    private async void ToolboxDownloadOpenClick(object? sender, RoutedEventArgs e)
+    {
+        var folder = ToolboxDownloadFolderTextBox.Text;
+        if (DataContext is not ViewModels.MainViewModel viewModel ||
+            string.IsNullOrWhiteSpace(folder))
+        {
+            folder = await ChooseToolboxDownloadFolderAsync();
+        }
+        if (DataContext is ViewModels.MainViewModel model && !string.IsNullOrWhiteSpace(folder))
+        {
+            Directory.CreateDirectory(folder);
+            await model.OpenToolboxFolderAsync(folder);
+        }
+    }
+
+    private async void ToolboxSkinDownloadClick(object? sender, RoutedEventArgs e)
+    {
+        var playerName = ToolboxSkinNameTextBox.Text?.Trim();
+        if (string.IsNullOrWhiteSpace(playerName) ||
+            playerName.Length is < 3 or > 16 ||
+            playerName.Any(character => !char.IsAsciiLetterOrDigit(character) && character != '_'))
+        {
+            await ShowMessageAsync("皮肤下载", "请输入有效的 Minecraft 玩家名。", isWarning: true);
+            return;
+        }
+
+        try
+        {
+            ToolboxSkinStatusTextBlock.Text = $"正在获取 {playerName} 的皮肤…";
+            using var profileResponse = await toolboxHttpClient.GetAsync(
+                $"https://api.mojang.com/users/profiles/minecraft/{Uri.EscapeDataString(playerName)}");
+            if (!profileResponse.IsSuccessStatusCode)
+            {
+                throw new InvalidDataException("未找到该正版玩家。");
+            }
+            using var profile = JsonDocument.Parse(await profileResponse.Content.ReadAsStreamAsync());
+            var profileId = profile.RootElement.GetProperty("id").GetString();
+            if (string.IsNullOrWhiteSpace(profileId))
+            {
+                throw new InvalidDataException("玩家资料未返回 UUID。");
+            }
+
+            using var sessionResponse = await toolboxHttpClient.GetAsync(
+                $"https://sessionserver.mojang.com/session/minecraft/profile/{profileId}");
+            sessionResponse.EnsureSuccessStatusCode();
+            using var session = JsonDocument.Parse(await sessionResponse.Content.ReadAsStreamAsync());
+            var textureValue = session.RootElement.GetProperty("properties")[0].GetProperty("value").GetString();
+            using var texture = JsonDocument.Parse(Convert.FromBase64String(textureValue ?? string.Empty));
+            var skinUrl = texture.RootElement.GetProperty("textures").GetProperty("SKIN").GetProperty("url").GetString();
+            if (!Uri.TryCreate(skinUrl, UriKind.Absolute, out var skinUri) || skinUri.Scheme != Uri.UriSchemeHttps)
+            {
+                throw new InvalidDataException("玩家资料中没有可用的 HTTPS 皮肤地址。");
+            }
+
+            var pngType = CreatePngFileType();
+            var destination = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = $"保存 {playerName} 的皮肤",
+                SuggestedFileName = $"{playerName}.png",
+                DefaultExtension = "png",
+                FileTypeChoices = [pngType],
+                SuggestedFileType = pngType,
+                ShowOverwritePrompt = true,
+            });
+            if (destination is null)
+            {
+                ToolboxSkinStatusTextBlock.Text = "已取消保存。";
+                return;
+            }
+
+            var bytes = await toolboxHttpClient.GetByteArrayAsync(skinUri);
+            await using var output = await destination.OpenWriteAsync();
+            output.SetLength(0);
+            await output.WriteAsync(bytes);
+            ToolboxSkinStatusTextBlock.Text = "皮肤已保存。";
+        }
+        catch (Exception exception) when (exception is HttpRequestException or JsonException or FormatException or InvalidDataException or IOException)
+        {
+            ToolboxSkinStatusTextBlock.Text = $"皮肤获取失败：{exception.Message}";
+        }
+    }
+
+    private async void ToolboxServerQueryClick(object? sender, RoutedEventArgs e)
+    {
+        if (!TryParseServerEndpoint(ToolboxServerAddressTextBox.Text, out var host, out var port))
+        {
+            await ShowMessageAsync("服务器查询", "请输入有效的服务器地址，可在末尾附加端口。", isWarning: true);
+            return;
+        }
+
+        ToolboxServerStatusTextBlock.Text = "正在查询服务器…";
+        try
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var statusJson = await QueryMinecraftServerAsync(host, port);
+            stopwatch.Stop();
+            using var status = JsonDocument.Parse(statusJson);
+            var root = status.RootElement;
+            var version = root.TryGetProperty("version", out var versionElement) &&
+                          versionElement.TryGetProperty("name", out var versionName)
+                ? versionName.GetString() ?? "未知版本"
+                : "未知版本";
+            var online = root.TryGetProperty("players", out var players) &&
+                         players.TryGetProperty("online", out var onlineElement)
+                ? onlineElement.GetInt32()
+                : 0;
+            var maximum = players.ValueKind == JsonValueKind.Object &&
+                          players.TryGetProperty("max", out var maxElement)
+                ? maxElement.GetInt32()
+                : 0;
+            var description = root.TryGetProperty("description", out var descriptionElement)
+                ? FlattenMinecraftText(descriptionElement)
+                : string.Empty;
+            ToolboxServerStatusTextBlock.Text =
+                $"{version} · {online}/{maximum} 人 · {stopwatch.ElapsedMilliseconds} ms" +
+                (string.IsNullOrWhiteSpace(description) ? string.Empty : $"\n{description}");
+        }
+        catch (Exception exception) when (exception is SocketException or IOException or JsonException or TimeoutException or OperationCanceledException)
+        {
+            ToolboxServerStatusTextBlock.Text = $"查询失败：{exception.Message}";
+        }
+    }
+
+    private void ToolboxAchievementPreviewClick(object? sender, RoutedEventArgs e) =>
+        UpdateToolboxAchievementPreview();
+
+    private async void ToolboxAchievementSaveClick(object? sender, RoutedEventArgs e)
+    {
+        UpdateToolboxAchievementPreview();
+        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+        var pngType = CreatePngFileType();
+        var destination = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "保存成就图片",
+            SuggestedFileName = $"{SanitizeSuggestedName(ToolboxAchievementIdTextBox.Text, "achievement")}.png",
+            DefaultExtension = "png",
+            FileTypeChoices = [pngType],
+            SuggestedFileType = pngType,
+            ShowOverwritePrompt = true,
+        });
+        if (destination is null)
+        {
+            return;
+        }
+
+        var size = new PixelSize(
+            Math.Max(1, (int)Math.Ceiling(ToolboxAchievementPreviewBorder.Bounds.Width)),
+            Math.Max(1, (int)Math.Ceiling(ToolboxAchievementPreviewBorder.Bounds.Height)));
+        using var bitmap = new RenderTargetBitmap(size, new Vector(96, 96));
+        bitmap.Render(ToolboxAchievementPreviewBorder);
+        await using var output = await destination.OpenWriteAsync();
+        output.SetLength(0);
+        bitmap.Save(output, PngBitmapEncoderOptions.Default);
+    }
+
+    private void UpdateToolboxAchievementPreview()
+    {
+        ToolboxAchievementPreviewTitle.Text = string.IsNullOrWhiteSpace(ToolboxAchievementTitleTextBox.Text)
+            ? "新的成就"
+            : ToolboxAchievementTitleTextBox.Text.Trim();
+        ToolboxAchievementPreviewDescription.Text = string.IsNullOrWhiteSpace(ToolboxAchievementDescriptionTextBox.Text)
+            ? "PCL Aurora 百宝箱"
+            : ToolboxAchievementDescriptionTextBox.Text.Trim() +
+              (string.IsNullOrWhiteSpace(ToolboxAchievementLine2TextBox.Text)
+                  ? string.Empty
+                  : $" · {ToolboxAchievementLine2TextBox.Text.Trim()}");
+        ToolboxAchievementPreviewBorder.IsVisible = true;
+    }
+
+    private async void ToolboxAvatarSelectClick(object? sender, RoutedEventArgs e)
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择 Minecraft 皮肤",
+            AllowMultiple = false,
+            FileTypeFilter = [CreatePngFileType()],
+        });
+        var source = files.SingleOrDefault();
+        if (source is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var stream = await source.OpenReadAsync();
+            var bitmap = new Bitmap(stream);
+            if (bitmap.PixelSize.Width < 64 || bitmap.PixelSize.Height < 32 || bitmap.PixelSize.Width % 64 != 0)
+            {
+                bitmap.Dispose();
+                throw new InvalidDataException("皮肤图片尺寸必须为 64×32、64×64 或其整数倍。");
+            }
+
+            toolboxAvatarBitmap?.Dispose();
+            toolboxAvatarBitmap = bitmap;
+            var scale = bitmap.PixelSize.Width / 64;
+            ToolboxAvatarFaceImage.Source = new CroppedBitmap(bitmap, new PixelRect(8 * scale, 8 * scale, 8 * scale, 8 * scale));
+            ToolboxAvatarOverlayImage.Source = new CroppedBitmap(bitmap, new PixelRect(40 * scale, 8 * scale, 8 * scale, 8 * scale));
+            ToolboxAvatarPreviewGrid.IsVisible = true;
+            ToolboxAvatarStatusTextBlock.Text = "已载入皮肤，可保存头像。";
+        }
+        catch (Exception exception) when (exception is IOException or InvalidDataException or ArgumentException)
+        {
+            ToolboxAvatarStatusTextBlock.Text = $"无法读取皮肤：{exception.Message}";
+        }
+    }
+
+    private async void ToolboxAvatarSaveClick(object? sender, RoutedEventArgs e)
+    {
+        if (toolboxAvatarBitmap is null || !ToolboxAvatarPreviewGrid.IsVisible)
+        {
+            await ShowMessageAsync("头像生成器", "请先选择一张 Minecraft 皮肤。", isWarning: true);
+            return;
+        }
+
+        var size = ToolboxAvatarSizeComboBox.SelectedIndex switch
+        {
+            1 => 96,
+            2 => 128,
+            _ => 64,
+        };
+        var pngType = CreatePngFileType();
+        var destination = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "保存 Minecraft 头像",
+            SuggestedFileName = $"minecraft-avatar-{size}.png",
+            DefaultExtension = "png",
+            FileTypeChoices = [pngType],
+            SuggestedFileType = pngType,
+            ShowOverwritePrompt = true,
+        });
+        if (destination is null)
+        {
+            return;
+        }
+
+        var oldWidth = ToolboxAvatarPreviewGrid.Width;
+        var oldHeight = ToolboxAvatarPreviewGrid.Height;
+        ToolboxAvatarPreviewGrid.Width = size;
+        ToolboxAvatarPreviewGrid.Height = size;
+        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+        using var bitmap = new RenderTargetBitmap(new PixelSize(size, size), new Vector(96, 96));
+        bitmap.Render(ToolboxAvatarPreviewGrid);
+        await using var output = await destination.OpenWriteAsync();
+        output.SetLength(0);
+        bitmap.Save(output, PngBitmapEncoderOptions.Default);
+        ToolboxAvatarPreviewGrid.Width = oldWidth;
+        ToolboxAvatarPreviewGrid.Height = oldHeight;
+        ToolboxAvatarStatusTextBlock.Text = $"已保存 {size}×{size} 头像。";
+    }
+
+    private static bool IsSafeFileName(string? fileName) =>
+        !string.IsNullOrWhiteSpace(fileName) &&
+        fileName is not "." and not ".." &&
+        string.Equals(fileName, Path.GetFileName(fileName), StringComparison.Ordinal) &&
+        fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
+
+    private static string SanitizeSuggestedName(string? value, string fallback)
+    {
+        var result = string.Concat((value ?? string.Empty).Select(character =>
+            Path.GetInvalidFileNameChars().Contains(character) ? '_' : character)).Trim();
+        return string.IsNullOrWhiteSpace(result) ? fallback : result;
+    }
+
+    private static FilePickerFileType CreatePngFileType() => new("PNG 图片")
+    {
+        Patterns = ["*.png"],
+        MimeTypes = ["image/png"],
+        AppleUniformTypeIdentifiers = ["public.png"],
+    };
+
+    private static bool TryParseServerEndpoint(string? value, out string host, out int port)
+    {
+        host = string.Empty;
+        port = 25565;
+        var text = value?.Trim();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
+        if (text.StartsWith('['))
+        {
+            var end = text.IndexOf(']');
+            if (end <= 1)
+            {
+                return false;
+            }
+            host = text[1..end];
+            if (end + 1 < text.Length &&
+                (!text.AsSpan(end + 1).StartsWith(":") || !int.TryParse(text[(end + 2)..], out port)))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            var separator = text.LastIndexOf(':');
+            if (separator > 0 && text.IndexOf(':') == separator)
+            {
+                host = text[..separator];
+                if (!int.TryParse(text[(separator + 1)..], out port))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                host = text;
+            }
+        }
+
+        return !string.IsNullOrWhiteSpace(host) && port is > 0 and <= ushort.MaxValue;
+    }
+
+    private static async Task<string> QueryMinecraftServerAsync(string host, int port)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+        using var client = new TcpClient();
+        await client.ConnectAsync(host, port, timeout.Token);
+        await using var stream = client.GetStream();
+
+        using var handshakeBody = new MemoryStream();
+        WriteVarInt(handshakeBody, 0);
+        WriteVarInt(handshakeBody, 765);
+        WriteMinecraftString(handshakeBody, host);
+        handshakeBody.WriteByte((byte)(port >> 8));
+        handshakeBody.WriteByte((byte)port);
+        WriteVarInt(handshakeBody, 1);
+        await WritePacketAsync(stream, handshakeBody.ToArray(), timeout.Token);
+        await WritePacketAsync(stream, [0], timeout.Token);
+
+        var packetLength = await ReadVarIntAsync(stream, timeout.Token);
+        if (packetLength is <= 0 or > 2_097_152)
+        {
+            throw new InvalidDataException("服务器返回了无效的状态包长度。");
+        }
+        if (await ReadVarIntAsync(stream, timeout.Token) != 0)
+        {
+            throw new InvalidDataException("服务器返回了非状态响应。");
+        }
+        var jsonLength = await ReadVarIntAsync(stream, timeout.Token);
+        if (jsonLength is <= 0 or > 2_097_152)
+        {
+            throw new InvalidDataException("服务器状态内容长度无效。");
+        }
+        var buffer = new byte[jsonLength];
+        await stream.ReadExactlyAsync(buffer, timeout.Token);
+        return Encoding.UTF8.GetString(buffer);
+    }
+
+    private static async Task WritePacketAsync(Stream stream, byte[] body, CancellationToken cancellationToken)
+    {
+        using var packet = new MemoryStream();
+        WriteVarInt(packet, body.Length);
+        packet.Write(body);
+        await stream.WriteAsync(packet.ToArray(), cancellationToken);
+        await stream.FlushAsync(cancellationToken);
+    }
+
+    private static void WriteMinecraftString(Stream stream, string value)
+    {
+        var bytes = Encoding.UTF8.GetBytes(value);
+        WriteVarInt(stream, bytes.Length);
+        stream.Write(bytes);
+    }
+
+    private static void WriteVarInt(Stream stream, int value)
+    {
+        do
+        {
+            var current = (byte)(value & 0x7F);
+            value = (int)((uint)value >> 7);
+            if (value != 0)
+            {
+                current |= 0x80;
+            }
+            stream.WriteByte(current);
+        } while (value != 0);
+    }
+
+    private static async Task<int> ReadVarIntAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        var result = 0;
+        for (var position = 0; position < 35; position += 7)
+        {
+            var buffer = new byte[1];
+            if (await stream.ReadAsync(buffer, cancellationToken) != 1)
+            {
+                throw new EndOfStreamException("服务器在状态响应完成前关闭了连接。");
+            }
+            result |= (buffer[0] & 0x7F) << position;
+            if ((buffer[0] & 0x80) == 0)
+            {
+                return result;
+            }
+        }
+        throw new InvalidDataException("服务器返回了过长的 VarInt。");
+    }
+
+    private static string FlattenMinecraftText(JsonElement element)
+    {
+        if (element.ValueKind == JsonValueKind.String)
+        {
+            return element.GetString() ?? string.Empty;
+        }
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            return string.Empty;
+        }
+
+        var builder = new StringBuilder();
+        if (element.TryGetProperty("text", out var text))
+        {
+            builder.Append(text.GetString());
+        }
+        if (element.TryGetProperty("extra", out var extra) && extra.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var child in extra.EnumerateArray())
+            {
+                builder.Append(FlattenMinecraftText(child));
+            }
+        }
+        return builder.ToString();
     }
 
     private void ApplyMoreSection(string section)
@@ -454,7 +1035,10 @@ public partial class MainWindow : Window
         MoreDirectorySection.IsVisible = section == "toolbox";
         MoreLogSection.IsVisible = section == "logs";
         PclHelpView.IsVisible = section == "help";
-        MorePageHeading.IsVisible = section != "help";
+        MorePageHeading.IsVisible = section is "feedback" or "vote";
+        MoreContentHost.Margin = section == "toolbox"
+            ? new Thickness(25, 10, 25, 10)
+            : new Thickness(25, 25, 25, 10);
         MorePlaceholderSection.IsVisible = section is "feedback" or "vote";
         MorePageTitle.Text = section switch
         {

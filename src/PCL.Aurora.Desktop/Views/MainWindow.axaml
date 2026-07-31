@@ -245,6 +245,35 @@
         <Style Selector="Border.setup-card:pointerover TextBlock.setup-card-title">
             <Setter Property="Foreground" Value="#0B5BCB" />
         </Style>
+        <Style Selector="Border.toolbox-card, Border.toolbox-card:pointerover">
+            <Setter Property="Background" Value="#F9FAFB" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="BoxShadow" Value="0 1 4 0 #12343D4A" />
+        </Style>
+        <Style Selector="Border.toolbox-card:pointerover TextBlock.setup-card-title">
+            <Setter Property="Foreground" Value="#343D4A" />
+        </Style>
+        <Style Selector="StackPanel.toolbox-section Button.about-action">
+            <Setter Property="Height" Value="35" />
+            <Setter Property="MinWidth" Value="100" />
+            <Setter Property="Background" Value="#00FFFFFF" />
+            <Setter Property="BorderBrush" Value="#6F747B" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Foreground" Value="#43484F" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Normal" />
+        </Style>
+        <Style Selector="StackPanel.toolbox-section Button.about-action:pointerover">
+            <Setter Property="Background" Value="#CFE3FC" />
+            <Setter Property="BorderBrush" Value="#4890F5" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="StackPanel.toolbox-section Button.about-action:pressed">
+            <Setter Property="Background" Value="#B9D8FB" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Foreground" Value="#0B5BCB" />
+        </Style>
         <Style Selector="TextBlock.setup-muted">
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="#6F7C8B" />
@@ -1154,6 +1183,36 @@
             <Setter Property="Background" Value="#F4F6F8" />
             <Setter Property="Foreground" Value="#98A3AF" />
             <Setter Property="BorderBrush" Value="#DEE5EC" />
+        </Style>
+        <Style Selector="Grid.pcl-shell StackPanel.toolbox-section Button.about-action">
+            <Setter Property="Background" Value="#00FFFFFF" />
+            <Setter Property="BorderBrush" Value="#6F747B" />
+            <Setter Property="Foreground" Value="#43484F" />
+        </Style>
+        <Style Selector="Grid.pcl-shell StackPanel.toolbox-section Button.about-action:pointerover">
+            <Setter Property="Background" Value="#CFE3FC" />
+            <Setter Property="BorderBrush" Value="#4890F5" />
+            <Setter Property="Foreground" Value="#1370F3" />
+        </Style>
+        <Style Selector="Grid.pcl-shell StackPanel.toolbox-section Button.about-action:pressed">
+            <Setter Property="Background" Value="#B9D8FB" />
+            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Foreground" Value="#0B5BCB" />
+        </Style>
+        <Style Selector="Grid.pcl-shell StackPanel.toolbox-section Button.toolbox-text-action">
+            <Setter Property="Width" Value="48" />
+            <Setter Property="MinWidth" Value="48" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="#596574" />
+        </Style>
+        <Style Selector="Grid.pcl-shell StackPanel.toolbox-section Button.toolbox-text-action:pointerover">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Foreground" Value="#1370F3" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.about-action.danger-action">
             <Setter Property="Foreground" Value="#CE2111" />
@@ -4493,124 +4552,138 @@
 
                         <controls:PclHelpView x:Name="PclHelpView" />
 
-                        <StackPanel x:Name="MoreDirectorySection" IsVisible="False" Spacing="0">
-                            <Border Classes="setup-card" Margin="0,0,0,15">
+                        <StackPanel x:Name="MoreDirectorySection" Classes="toolbox-section" IsVisible="False" Spacing="0">
+                            <Border Classes="setup-card toolbox-card" Margin="0,15,0,15">
                                 <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="常用工具" />
-                                    <StackPanel Grid.Row="1" Margin="25,0,25,18" Spacing="10">
-                                        <WrapPanel ItemHeight="35" ItemWidth="145" Orientation="Horizontal">
-                                            <Button Classes="about-action" Margin="0,0,12,10"
-                                                    Command="{Binding OpenGameDirectoryCommand}" Content="打开游戏目录" />
-                                            <Button Classes="about-action" Margin="0,0,12,10"
-                                                    Command="{Binding OpenApplicationDataDirectoryCommand}" Content="打开应用目录" />
-                                            <Button Classes="about-action" Margin="0,0,12,10"
-                                                    Command="{Binding OpenToolboxCacheDirectoryCommand}"
-                                                    IsEnabled="{Binding HasToolboxCacheDirectory}" Content="打开缓存目录" />
-                                            <Button Classes="about-action" Margin="0,0,12,10"
+                                    <TextBlock Classes="setup-card-title" Text="百宝箱" />
+                                    <StackPanel Grid.Row="1" Margin="25,0,21,20" Spacing="10">
+                                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="15">
+                                            <Button Grid.Column="0" Classes="about-action"
+                                                    Click="ToolboxLuckClick" Content="今日人品" />
+                                            <Button Grid.Column="1" Classes="about-action"
+                                                    Click="ToolboxMemoryOptimizationClick" Content="内存优化" />
+                                            <Button Grid.Column="2" Classes="about-action"
                                                     Click="ClearToolboxCacheClick"
-                                                    IsEnabled="{Binding HasToolboxCacheDirectory}"
-                                                    Content="清理缓存" />
-                                            <Button Classes="about-action" Margin="0,0,12,10"
-                                                    Command="{Binding ShowToolboxLuckCommand}" Content="今日人品" />
-                                            <Button Classes="about-action" Margin="0,0,12,10"
-                                                    Command="{Binding ShowToolboxLaunchCountCommand}" Content="启动次数" />
-                                            <Button Classes="about-action" Margin="0,0,12,10"
-                                                    Command="{Binding ShowToolboxMemoryOptimizationCommand}" Content="内存优化" />
-                                        </WrapPanel>
-                                        <TextBlock Classes="setup-muted" Text="{Binding ToolboxStatusText}" />
-                                        <TextBlock Classes="setup-muted" Text="{Binding ToolboxLaunchCountDisplay}" />
-                                        <TextBlock Classes="setup-muted" Text="{Binding ToolboxMemoryOptimizationSummary}" />
+                                                    Content="清理游戏垃圾" />
+                                            <Button Grid.Column="3" Classes="about-action danger-action"
+                                                    Click="ToolboxDontClick" Content="千万别点" />
+                                        </Grid>
                                     </StackPanel>
                                 </Grid>
                             </Border>
 
-                            <Border Classes="setup-card" Margin="0,0,0,15">
+                            <Border Classes="setup-card toolbox-card" Margin="0,0,0,15">
                                 <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="自定义下载" />
-                                    <StackPanel Grid.Row="1" Margin="25,0,25,18" Spacing="8">
-                                        <TextBlock Classes="setup-muted" Text="输入公开 HTTPS 地址，将文件保存到本机指定位置。" />
+                                    <TextBlock Classes="setup-card-title" Text="下载自定义文件" />
+                                    <StackPanel Grid.Row="1" Margin="25,0,25,20" Spacing="8">
+                                        <TextBlock Classes="setup-muted" Text="使用 PCL Aurora 下载任意文件。请注意，部分网站可能会拒绝非浏览器下载请求。" />
                                         <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
                                             <TextBlock VerticalAlignment="Center" Margin="0,0,18,0" Text="下载地址" />
-                                            <TextBox Grid.Column="1" Grid.ColumnSpan="2" Classes="setup-launch-field"
-                                                     PlaceholderText="https://" IsReadOnly="True" ToolTip.Tip="跨平台下载服务正在接入" />
-                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Margin="0,0,18,0" Text="保存位置" />
-                                            <TextBox Grid.Row="1" Grid.Column="1" Classes="setup-launch-field" IsReadOnly="True" Text="由下载时选择" />
-                                            <Button Grid.Row="1" Grid.Column="2" Classes="about-action" IsEnabled="False" Content="选择" />
+                                            <TextBox x:Name="ToolboxDownloadUrlTextBox" Grid.Column="1" Grid.ColumnSpan="2"
+                                                     Classes="setup-launch-field" PlaceholderText="https://" TextChanged="ToolboxDownloadUrlChanged" />
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Margin="0,0,18,0" Text="保存到" />
+                                            <TextBox x:Name="ToolboxDownloadFolderTextBox" Grid.Row="1" Grid.Column="1"
+                                                     Classes="setup-launch-field" PlaceholderText="选择或输入下载文件夹" />
+                                            <Button Grid.Row="1" Grid.Column="2" Classes="toolbox-text-action" Margin="10,0,5,0"
+                                                    Click="ToolboxDownloadFolderClick" Content="选择" />
                                             <TextBlock Grid.Row="2" VerticalAlignment="Center" Margin="0,0,18,0" Text="文件名" />
-                                            <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Classes="setup-launch-field" IsReadOnly="True" Text="等待下载服务接入" />
+                                            <TextBox x:Name="ToolboxDownloadNameTextBox" Grid.Row="2" Grid.Column="1"
+                                                     Grid.ColumnSpan="2" Classes="setup-launch-field" PlaceholderText="文件名" />
                                         </Grid>
-                                        <Button Classes="about-action" HorizontalAlignment="Center" IsEnabled="False" Content="开始下载" />
+                                        <Grid Margin="0,7,0,0" ColumnDefinitions="*,*">
+                                            <Button Grid.Column="0" Classes="about-action" Width="140"
+                                                    HorizontalAlignment="Right" Margin="0,0,15,0"
+                                                    Click="ToolboxDownloadStartClick" Content="开始下载" />
+                                            <Button Grid.Column="1" Classes="about-action" Width="140"
+                                                    HorizontalAlignment="Left" Click="ToolboxDownloadOpenClick" Content="打开文件夹" />
+                                        </Grid>
+                                        <TextBlock x:Name="ToolboxDownloadStatusTextBlock" Classes="setup-muted" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
 
-                            <Border Classes="setup-card" Margin="0,0,0,15">
+                            <Border Classes="setup-card toolbox-card" Margin="0,0,0,15">
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="皮肤下载" />
-                                    <StackPanel Grid.Row="1" Margin="25,0,25,18" Spacing="8">
-                                        <TextBlock Classes="setup-muted" Text="按 Minecraft 用户名获取皮肤文件。" />
-                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                                            <TextBlock VerticalAlignment="Center" Text="玩家名" />
-                                            <TextBox Grid.Column="1" Classes="setup-launch-field" IsReadOnly="True" PlaceholderText="Minecraft 用户名" />
-                                            <Button Grid.Column="2" Classes="about-action" IsEnabled="False" Content="保存皮肤" />
+                                    <StackPanel Grid.Row="1" Margin="25,0,25,15" Spacing="8">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="0,14,0,2">
+                                            <TextBlock VerticalAlignment="Center" Margin="0,0,15,0" Text="玩家名" />
+                                            <TextBox x:Name="ToolboxSkinNameTextBox" Grid.Column="1" Classes="setup-launch-field" PlaceholderText="Minecraft 用户名" />
+                                            <Button Grid.Column="2" Classes="about-action" Click="ToolboxSkinDownloadClick" Content="保存皮肤" />
                                         </Grid>
-                                        <TextBlock Classes="setup-muted" Text="跨平台网络服务接入后可用。" />
+                                        <TextBlock x:Name="ToolboxSkinStatusTextBlock" Classes="setup-muted" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
 
-                            <Border Classes="setup-card" Margin="0,0,0,15">
+                            <Border Classes="setup-card toolbox-card" Margin="0,0,0,15">
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="服务器查询" />
-                                    <StackPanel Grid.Row="1" Margin="25,0,25,18" Spacing="8">
-                                        <TextBlock Classes="setup-muted" Text="查询 Minecraft 服务器在线状态和延迟。" />
-                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                    <StackPanel Grid.Row="1" Margin="15,0,15,15" Spacing="8">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="0,14,0,2">
                                             <TextBlock VerticalAlignment="Center" Text="服务器地址" />
-                                            <TextBox Grid.Column="1" Classes="setup-launch-field" IsReadOnly="True" PlaceholderText="地址或域名" />
-                                            <Button Grid.Column="2" Classes="about-action" IsEnabled="False" Content="查询" />
+                                            <TextBox x:Name="ToolboxServerAddressTextBox" Grid.Column="1" Classes="setup-launch-field" PlaceholderText="地址或域名[:端口]" />
+                                            <Button Grid.Column="2" Classes="about-action" Click="ToolboxServerQueryClick" Content="查询" />
                                         </Grid>
-                                        <TextBlock Classes="setup-muted" Text="查询协议正在进行跨平台实现。" />
+                                        <TextBlock x:Name="ToolboxServerStatusTextBlock" Classes="setup-muted" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
 
-                            <Border Classes="setup-card" Margin="0,0,0,15">
+                            <Border Classes="setup-card toolbox-card" Margin="0,0,0,15">
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="成就生成器" />
-                                    <StackPanel Grid.Row="1" Margin="25,0,25,18" Spacing="8">
-                                        <TextBlock Classes="setup-muted" Text="生成与 Minecraft 成就样式一致的分享图片。" />
-                                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
-                                            <TextBlock VerticalAlignment="Center" Margin="0,0,18,0" Text="图标" />
-                                            <TextBox Grid.Column="1" Grid.ColumnSpan="2" Classes="setup-launch-field" IsReadOnly="True" Text="等待图片生成器接入" />
-                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Margin="0,0,18,0" Text="标题" />
-                                            <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Classes="setup-launch-field" IsReadOnly="True" />
-                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Margin="0,0,18,0" Text="描述" />
-                                            <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Classes="setup-launch-field" IsReadOnly="True" />
+                                    <StackPanel Grid.Row="1" Margin="25,0,25,15" Spacing="8">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8" Margin="0,4,0,2">
+                                            <TextBlock VerticalAlignment="Center" Margin="0,0,18,0" Text="物品 ID" />
+                                            <TextBox x:Name="ToolboxAchievementIdTextBox" Grid.Column="1" Grid.ColumnSpan="2" Classes="setup-launch-field" Text="story.aurora" />
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Margin="0,0,18,0" Text="成就名称" />
+                                            <TextBox x:Name="ToolboxAchievementTitleTextBox" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Classes="setup-launch-field" Text="新的成就" />
+                                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Margin="0,0,18,0" Text="第一行" />
+                                            <TextBox x:Name="ToolboxAchievementDescriptionTextBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Classes="setup-launch-field" Text="PCL Aurora 百宝箱" />
+                                            <TextBlock Grid.Row="3" VerticalAlignment="Center" Margin="0,0,18,0" Text="第二行" />
+                                            <TextBox x:Name="ToolboxAchievementLine2TextBox" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Classes="setup-launch-field" />
                                         </Grid>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-                                            <Button Classes="about-action" IsEnabled="False" Content="预览" />
-                                            <Button Classes="about-action" IsEnabled="False" Content="保存" />
-                                        </StackPanel>
+                                        <Grid Margin="0,7,0,2" ColumnDefinitions="*,*">
+                                            <Button Grid.Column="0" Classes="about-action" Width="140" HorizontalAlignment="Right"
+                                                    Margin="0,0,15,0" Click="ToolboxAchievementPreviewClick" Content="预览" />
+                                            <Button Grid.Column="1" Classes="about-action" Width="140" HorizontalAlignment="Left"
+                                                    Click="ToolboxAchievementSaveClick" Content="保存" />
+                                        </Grid>
+                                        <Border x:Name="ToolboxAchievementPreviewBorder" Margin="0,10,0,0" Padding="14"
+                                                Width="320" Height="64" HorizontalAlignment="Center"
+                                                Background="#263238" CornerRadius="4" IsVisible="False">
+                                            <StackPanel Spacing="2">
+                                                <TextBlock x:Name="ToolboxAchievementPreviewTitle" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold" />
+                                                <TextBlock x:Name="ToolboxAchievementPreviewDescription" Foreground="#C7D2D9" FontSize="13" />
+                                            </StackPanel>
+                                        </Border>
                                     </StackPanel>
                                 </Grid>
                             </Border>
 
-                            <Border Classes="setup-card" Margin="0,0,0,15">
+                            <Border Classes="setup-card toolbox-card" Margin="0,0,0,15">
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="头像生成器" />
-                                    <StackPanel Grid.Row="1" Margin="25,0,25,18" Spacing="8">
-                                        <TextBlock Classes="setup-muted" Text="从本地皮肤图片裁切 Minecraft 头像。" />
-                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                    <StackPanel Grid.Row="1" Margin="25,0,25,20" Spacing="8">
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                             <TextBlock VerticalAlignment="Center" Text="头像尺寸" />
-                                            <ComboBox Grid.Column="1" Classes="setup-launch-field" IsEnabled="False" SelectedIndex="0">
+                                            <ComboBox x:Name="ToolboxAvatarSizeComboBox" Grid.Column="1" Classes="setup-launch-field" SelectedIndex="0">
                                                 <ComboBoxItem Content="64 × 64" />
                                                 <ComboBoxItem Content="96 × 96" />
                                                 <ComboBoxItem Content="128 × 128" />
                                             </ComboBox>
-                                            <Button Grid.Column="2" Classes="about-action" IsEnabled="False" Content="选择皮肤" />
                                         </Grid>
-                                        <Button Classes="about-action" HorizontalAlignment="Center" IsEnabled="False" Content="保存头像" />
-                                        <TextBlock Classes="setup-muted" Text="图像裁切器将按各平台统一使用 Avalonia 图形接口。" />
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                                            <Button Classes="about-action" Width="140" Click="ToolboxAvatarSelectClick" Content="选择皮肤" />
+                                            <Button Classes="about-action" Width="140" Click="ToolboxAvatarSaveClick" Content="保存头像" />
+                                        </StackPanel>
+                                        <Grid x:Name="ToolboxAvatarPreviewGrid" Width="96" Height="96"
+                                              HorizontalAlignment="Center" IsVisible="False">
+                                            <Image x:Name="ToolboxAvatarFaceImage" Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+                                            <Image x:Name="ToolboxAvatarOverlayImage" Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+                                        </Grid>
+                                        <TextBlock x:Name="ToolboxAvatarStatusTextBlock" Classes="setup-muted" />
                                     </StackPanel>
                                 </Grid>
                             </Border>

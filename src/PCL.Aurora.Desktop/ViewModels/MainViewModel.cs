@@ -5506,6 +5506,9 @@ public partial class MainViewModel(
     private Task OpenToolboxCacheDirectoryAsync() =>
         openPathService.OpenFolderAsync(CacheDirectory);
 
+    public Task OpenToolboxFolderAsync(string path) =>
+        openPathService.OpenFolderAsync(path);
+
     [RelayCommand]
     private void ShowToolboxLuck()
     {
@@ -5530,6 +5533,12 @@ public partial class MainViewModel(
     private void ShowToolboxMemoryOptimization()
     {
         ToolboxStatusText = ToolboxMemoryOptimizationSummary;
+    }
+
+    [RelayCommand]
+    private void ShowToolboxDontClick()
+    {
+        ToolboxStatusText = "你还是点了。PCL Aurora 不会在这里执行崩溃、删文件或其他破坏性操作。";
     }
 
     [RelayCommand]
