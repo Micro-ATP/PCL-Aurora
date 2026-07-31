@@ -42,6 +42,10 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherLeft.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherAbout.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherHelp.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherHelp.xaml.vb
+- PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherHelpDetail.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherHelpDetail.xaml.vb
+- PCL2: Plain Craft Launcher 2/Modules/ModMain.vb (HelpEntry, HelpLoad and HelpTryExtract only)
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherTest.xaml
 - PCL2: Plain Craft Launcher 2/Controls/MyButton.xaml
 - PCL2: Plain Craft Launcher 2/Controls/MyButton.xaml.vb
@@ -149,6 +153,10 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: PCL.Core/IO/Net/Http/HostConnectionHandler.cs
 
 PCL Aurora also contains the following directly reused upstream resources:
+
+- PCL2: Plain Craft Launcher 2/Resources/Help.zip
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Help/Pcl2Help.zip;
+  used as the built-in help catalog and rich help-page content.
 
 - PCL-CE: Plain Craft Launcher 2/Resources/mcmod.buf
   copied unchanged to src/PCL.Aurora.Application/Assets/PclCeMcModTranslations.buf;

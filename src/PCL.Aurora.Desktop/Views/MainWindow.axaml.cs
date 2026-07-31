@@ -10,6 +10,7 @@ using Avalonia.Media.Imaging;
 using PCL.Aurora.Application;
 using PCL.Aurora.Desktop.Controls;
 using PCL.Aurora.Desktop.Services;
+using PCL.Aurora.Desktop.Models;
 using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Desktop.Views;
@@ -24,21 +25,13 @@ public partial class MainWindow : Window
     private bool isFeatureHidingSuspended;
     private bool isRevertingAnnouncementSelection;
 
-    private static readonly string[] HelpTopics =
-    {
-        "启动前检查",
-        "正版与离线账户",
-        "下载与安装",
-        "实例与版本选择",
-        "Java 与内存",
-        "日志与故障排查",
-    };
-
     public MainWindow()
     {
         InitializeComponent();
         PclMotionService.Attach(this);
-        PopulateMorePlaceholder("help");
+        PclHelpView.DetailOpened += ShowHelpDetail;
+        PclHelpView.DetailClosed += RestoreHelpCatalogLayout;
+        PclHelpView.ActionRequested += HandleHelpAction;
         DataContextChanged += (_, _) => SubscribeToViewModel();
         KeyDown += MainWindowKeyDown;
         Opened += async (_, _) =>
@@ -326,6 +319,11 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (page != 3)
+        {
+            PclHelpView.ResetToHome();
+        }
+
         var loadTask = page == 1
             ? LoadDownloadSectionAsync(currentDownloadSection)
             : Task.CompletedTask;
@@ -401,6 +399,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        PclHelpView.ResetToHome();
+
         foreach (var navigation in MoreNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>())
         {
             var isSelected = navigation == selectedNavigation;
@@ -424,14 +424,16 @@ public partial class MainWindow : Window
             force: sectionChanged);
     }
 
-    private void MoreSectionRefreshClick(object? sender, RoutedEventArgs e)
+    private async void MoreSectionRefreshClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string section } || section != "help")
         {
             return;
         }
 
-        PopulateMorePlaceholder("help");
+        PclHelpView.ResetToHome();
+        await PclHelpView.ReloadAsync();
+        MoreContentScroller.Offset = default;
     }
 
     private void ApplyMoreSection(string section)
@@ -439,7 +441,9 @@ public partial class MainWindow : Window
         MoreDirectorySection.IsVisible = section == "toolbox";
         MoreLogSection.IsVisible = section == "logs";
         MoreAboutSection.IsVisible = section == "about";
-        MorePlaceholderSection.IsVisible = section is "help" or "feedback" or "vote";
+        PclHelpView.IsVisible = section == "help";
+        MorePageHeading.IsVisible = section != "help";
+        MorePlaceholderSection.IsVisible = section is "feedback" or "vote";
         MorePageTitle.Text = section switch
         {
             "toolbox" => "百宝箱",
@@ -459,7 +463,7 @@ public partial class MainWindow : Window
             _ => "查看启动、下载、实例与故障排查入口。",
         };
 
-        if (MorePlaceholderSection.IsVisible)
+        if (section != "help")
         {
             PopulateMorePlaceholder(section);
         }
@@ -471,12 +475,12 @@ public partial class MainWindow : Window
         {
             "feedback" => ("反馈", "选择反馈类型；实际提交将在 Aurora 的公开反馈入口接入后启用。", new[] { "问题反馈", "兼容性报告", "功能建议" }),
             "vote" => ("新功能投票", "查看候选功能与开发进度；投票数据将在后续接入 Aurora 自有服务。", new[] { "候选功能", "已采纳建议", "版本路线图" }),
-            _ => ("帮助", "按主题查找常见问题与故障排查内容。", HelpTopics),
+            _ => ("帮助", string.Empty, Array.Empty<string>()),
         };
 
         MorePlaceholderTitle.Text = model.Item1;
         MorePlaceholderDescription.Text = model.Item2;
-        MoreHelpSearchBox.IsVisible = section == "help";
+        MoreHelpSearchBox.IsVisible = false;
         MoreHelpSearchBox.Text = string.Empty;
         MorePlaceholderItems.ItemsSource = model.Item3;
     }
@@ -489,9 +493,7 @@ public partial class MainWindow : Window
         }
 
         var query = MoreHelpSearchBox.Text?.Trim() ?? string.Empty;
-        MorePlaceholderItems.ItemsSource = string.IsNullOrEmpty(query)
-            ? HelpTopics
-            : HelpTopics.Where(topic => topic.Contains(query, StringComparison.OrdinalIgnoreCase)).ToArray();
+        MorePlaceholderItems.ItemsSource = Array.Empty<string>();
     }
 
     private async void DownloadNavigationClick(object? sender, RoutedEventArgs e)
@@ -1182,8 +1184,13 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(() => firstMenuItem?.Focus());
     }
 
-    private async void CommunityResourceBackClick(object? sender, RoutedEventArgs e)
+    private async void DetailTitleBackClick(object? sender, RoutedEventArgs e)
     {
+        if (PclHelpView.CloseDetail())
+        {
+            return;
+        }
+
         await PclMotionService.SwitchSectionsAsync(
             DownloadContentScroller,
             [DownloadCommunityCatalogView, DownloadCommunityDetailView],
@@ -1197,6 +1204,79 @@ public partial class MainWindow : Window
 
                 ApplyCommunityCatalogState();
             });
+    }
+
+    private void ShowHelpDetail(PclHelpEntry entry)
+    {
+        MainTitleBar.IsVisible = false;
+        CommunityDetailTitleBar.IsVisible = true;
+        CommunityDetailTitleBarTitle.Text = entry.Title;
+        MorePageLayout.ColumnDefinitions[0].Width = new GridLength(0);
+        MoreSidebar.IsVisible = false;
+        MoreContentScroller.Offset = default;
+    }
+
+    private void RestoreHelpCatalogLayout()
+    {
+        MainTitleBar.IsVisible = true;
+        CommunityDetailTitleBar.IsVisible = false;
+        MorePageLayout.ColumnDefinitions[0].Width = new GridLength(152);
+        MoreSidebar.IsVisible = true;
+        MoreContentScroller.Offset = default;
+    }
+
+    private async void HandleHelpAction(PclHelpAction action)
+    {
+        try
+        {
+            switch (action.Type)
+            {
+                case "打开网页":
+                case "下载文件":
+                    if (Uri.TryCreate(action.Data, UriKind.Absolute, out var uri) &&
+                        uri.Scheme is "http" or "https" &&
+                        DataContext is ViewModels.MainViewModel viewModel)
+                    {
+                        await viewModel.OpenExternalUriAsync(uri);
+                    }
+                    break;
+                case "复制文本":
+                    if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+                    {
+                        await clipboard.SetTextAsync(action.Data);
+                    }
+                    break;
+                case "弹出窗口":
+                {
+                    var parts = action.Data.Split('|', 2);
+                    await ShowMessageAsync(parts[0], parts.Length > 1 ? parts[1] : string.Empty);
+                    break;
+                }
+                case "打开文件":
+                    await ShowMessageAsync(
+                        "仅适用于原版 PCL",
+                        "该操作调用的是 Windows 程序或 PCL2 本地目录，无法直接用于当前平台。请根据正文说明改用系统对应工具。",
+                        isWarning: true);
+                    break;
+                case "启动游戏":
+                    await ShowMessageAsync(
+                        "请从启动页操作",
+                        "帮助中的这个按钮是 PCL2 自定义页面事件示例。PCL Aurora 的游戏启动请回到启动页选择实例后进行。",
+                        isWarning: false);
+                    break;
+                case "清理垃圾":
+                case "内存优化":
+                    await ShowMessageAsync(
+                        "当前平台不支持此操作",
+                        "这是一项 PCL2 的 Windows 专用帮助事件，PCL Aurora 不会在其他平台伪装执行。",
+                        isWarning: true);
+                    break;
+            }
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("操作失败", exception.Message, isWarning: true);
+        }
     }
 
     private async void CommunityResourceCopyNameClick(object? sender, RoutedEventArgs e)

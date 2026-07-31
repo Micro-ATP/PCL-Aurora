@@ -1,0 +1,86 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:PCL.Aurora.Desktop.Controls"
+             x:Class="PCL.Aurora.Desktop.Controls.PclHelpView">
+    <UserControl.Styles>
+        <Style Selector="TextBox.help-search">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="38,0,12,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Background" Value="#EEF4FA" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="5" />
+        </Style>
+        <Style Selector="TextBox.help-search:pointerover">
+            <Setter Property="Background" Value="#F5F9FD" />
+            <Setter Property="BorderBrush" Value="#BBD9F4" />
+        </Style>
+        <Style Selector="TextBox.help-search:focus">
+            <Setter Property="Background" Value="#F9FCFF" />
+            <Setter Property="BorderBrush" Value="#68AEEB" />
+        </Style>
+        <Style Selector="Button.help-entry">
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Padding" Value="5,0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.help-entry:pointerover">
+            <Setter Property="Background" Value="#DDEEFF" />
+        </Style>
+        <Style Selector="Button.help-entry:pressed">
+            <Setter Property="Background" Value="#CFE5FA" />
+        </Style>
+        <Style Selector="Button.help-detail-action">
+            <Setter Property="MinHeight" Value="35" />
+            <Setter Property="Padding" Value="13,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Background" Value="#E2F0FD" />
+            <Setter Property="BorderBrush" Value="#BBD9F4" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#126DBB" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.help-detail-action:pointerover">
+            <Setter Property="Background" Value="#D4EAFD" />
+            <Setter Property="BorderBrush" Value="#8EC3EE" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <StackPanel x:Name="LoadingPanel" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <controls:PclLoadingIndicator Text="正在加载帮助列表" />
+        </StackPanel>
+
+        <StackPanel x:Name="HomePanel" IsVisible="False" Spacing="15">
+            <Grid>
+                <TextBox x:Name="SearchBox" Classes="help-search" PlaceholderText="搜索帮助"
+                         TextChanged="SearchBoxTextChanged" />
+                <Path Width="15" Height="15" Margin="14,0,0,0" HorizontalAlignment="Left"
+                      VerticalAlignment="Center" IsHitTestVisible="False" Data="M21 21l-4.35-4.35 M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z"
+                      Fill="Transparent" Stroke="#778594" StrokeThickness="2"
+                      StrokeLineCap="Round" StrokeJoin="Round" />
+            </Grid>
+            <StackPanel x:Name="CategoryPanel" Spacing="15" />
+            <StackPanel x:Name="SearchPanel" IsVisible="False" />
+        </StackPanel>
+
+        <StackPanel x:Name="DetailPanel" IsVisible="False" Spacing="0" />
+
+        <Border x:Name="ErrorPanel" Classes="pcl-card" Padding="20" IsVisible="False"
+                HorizontalAlignment="Stretch" VerticalAlignment="Top">
+            <StackPanel Spacing="10">
+                <TextBlock FontSize="15" FontWeight="SemiBold" Foreground="#C34242" Text="帮助列表加载失败" />
+                <TextBlock x:Name="ErrorText" Foreground="#6F7C8B" TextWrapping="Wrap" />
+                <Button Classes="help-detail-action" Click="RetryClick" Content="重试" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

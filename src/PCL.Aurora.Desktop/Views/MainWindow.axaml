@@ -2102,8 +2102,8 @@
         <Border x:Name="CommunityDetailTitleBar" Background="{StaticResource PclTitleBarBrush}"
                 PointerPressed="TitleBarPointerPressed" IsVisible="False">
             <Grid ColumnDefinitions="Auto,*,Auto">
-                <Button Classes="community-detail-title-back" Click="CommunityResourceBackClick"
-                        ToolTip.Tip="返回资源目录" AutomationProperties.Name="返回资源目录">
+                <Button Classes="community-detail-title-back" Click="DetailTitleBackClick"
+                        ToolTip.Tip="返回" AutomationProperties.Name="返回上一级">
                     <Path Width="18" Height="18" Data="{StaticResource CommunityBackIcon}" Stretch="Uniform"
                           Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                           StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
@@ -4457,8 +4457,8 @@
             </Grid>
 
             <Grid x:Name="MorePage" IsVisible="False">
-                <Grid ColumnDefinitions="152,*" Background="#D9EAF9">
-                    <Border Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
+                <Grid x:Name="MorePageLayout" ColumnDefinitions="152,*" Background="#D9EAF9">
+                    <Border x:Name="MoreSidebar" Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <!-- PCL2 PageOtherLeft.xaml structure, plus PCL-CE/Aurora session log access. -->
                         <StackPanel x:Name="MoreNavigationPanel" Spacing="0">
                             <Grid Classes="nav-row selected" ColumnDefinitions="*,36">
@@ -4484,13 +4484,15 @@
                                                           IconData="M4 2h16v20H4z M8 7h8 M8 11h8 M8 15h5" />
                         </StackPanel>
                     </Border>
-                    <ScrollViewer Grid.Column="1" Classes="pcl-page-right" Background="#D9EAF9">
+                    <ScrollViewer x:Name="MoreContentScroller" Grid.Column="1" Classes="pcl-page-right" Background="#D9EAF9">
                     <StackPanel x:Name="MoreContentHost" Margin="25,25,25,10" MaxWidth="860" Spacing="15">
-                        <StackPanel Spacing="6">
+                        <StackPanel x:Name="MorePageHeading" Spacing="6" IsVisible="False">
                             <TextBlock x:Name="MorePageTitle" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}" Text="帮助" />
                             <TextBlock x:Name="MorePageDescription" Foreground="#6F7C8B"
                                        Text="查看启动、下载、实例与故障排查入口。" />
                         </StackPanel>
+
+                        <controls:PclHelpView x:Name="PclHelpView" />
 
                         <Border x:Name="MoreDirectorySection" Classes="pcl-card" Padding="20" Background="#FCFDFF" IsVisible="False">
                             <StackPanel Spacing="10">
@@ -4570,7 +4572,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border x:Name="MorePlaceholderSection" Classes="pcl-card" Padding="20">
+                        <Border x:Name="MorePlaceholderSection" Classes="pcl-card" Padding="20" IsVisible="False">
                             <StackPanel Spacing="12">
                                 <TextBlock x:Name="MorePlaceholderTitle" FontSize="17" FontWeight="SemiBold" Text="帮助" />
                                 <TextBlock x:Name="MorePlaceholderDescription" Foreground="#6F7C8B" TextWrapping="Wrap" />

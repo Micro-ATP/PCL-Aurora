@@ -5664,6 +5664,8 @@ public partial class MainViewModel(
     private Task OpenApplicationDataDirectoryAsync() =>
         openPathService.OpenFolderAsync(ApplicationDataDirectory);
 
+    public Task OpenExternalUriAsync(Uri uri) => openPathService.OpenUriAsync(uri);
+
     public string GetInterfaceContentDirectory(string contentType)
     {
         var folderName = contentType switch
