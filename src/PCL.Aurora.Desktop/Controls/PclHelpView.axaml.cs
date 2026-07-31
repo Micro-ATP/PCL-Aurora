@@ -17,6 +17,9 @@ namespace PCL.Aurora.Desktop.Controls;
 // Catalog/search/detail structure adapts PCL2 PageOtherHelp and PageOtherHelpDetail.
 public partial class PclHelpView : UserControl
 {
+    public static readonly StyledProperty<bool> IsStandaloneProperty =
+        AvaloniaProperty.Register<PclHelpView, bool>(nameof(IsStandalone));
+
     private static readonly IBrush PrimaryTextBrush = new SolidColorBrush(Color.Parse("#35404C"));
     private static readonly IBrush MutedTextBrush = new SolidColorBrush(Color.Parse("#87929D"));
     private static readonly IBrush ThemeBrush = new SolidColorBrush(Color.Parse("#127AE1"));
@@ -33,16 +36,64 @@ public partial class PclHelpView : UserControl
     internal event Action? DetailClosed;
     internal event Action<PclHelpAction>? ActionRequested;
 
+    public bool IsStandalone
+    {
+        get => GetValue(IsStandaloneProperty);
+        set => SetValue(IsStandaloneProperty, value);
+    }
+
     public PclHelpView()
     {
         InitializeComponent();
         AttachedToVisualTree += async (_, _) =>
         {
-            if (entries.Count == 0)
+            if (!IsStandalone && entries.Count == 0)
             {
                 await ReloadAsync();
             }
         };
+    }
+
+    internal void ShowStandaloneLoading(string text = "正在加载主页")
+    {
+        LoadingPanel.Children.Clear();
+        LoadingPanel.Children.Add(new PclLoadingIndicator { Text = text });
+        LoadingPanel.IsVisible = true;
+        HomePanel.IsVisible = false;
+        DetailPanel.IsVisible = false;
+        ErrorPanel.IsVisible = false;
+    }
+
+    internal void ShowStandaloneContent(string content)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        LoadingPanel.IsVisible = false;
+        ErrorPanel.IsVisible = false;
+        currentEntry = null;
+        detailHistory.Clear();
+        RenderDetail(new PclHelpEntry(
+            "Homepage/Custom.xaml",
+            "主页",
+            string.Empty,
+            string.Empty,
+            [],
+            null,
+            false,
+            true,
+            true,
+            false,
+            null,
+            null,
+            content), rememberCurrent: false);
+    }
+
+    internal void ShowStandaloneError(string message)
+    {
+        LoadingPanel.IsVisible = false;
+        HomePanel.IsVisible = false;
+        DetailPanel.IsVisible = false;
+        ErrorText.Text = message;
+        ErrorPanel.IsVisible = true;
     }
 
     internal async Task ReloadAsync()
@@ -633,5 +684,14 @@ public partial class PclHelpView : UserControl
         catch { color = default; return false; }
     }
 
-    private async void RetryClick(object? sender, RoutedEventArgs e) => await ReloadAsync();
+    private async void RetryClick(object? sender, RoutedEventArgs e)
+    {
+        if (IsStandalone)
+        {
+            RequestAction("刷新主页", "/");
+            return;
+        }
+
+        await ReloadAsync();
+    }
 }

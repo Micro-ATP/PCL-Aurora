@@ -41,6 +41,10 @@ public interface ILauncherPreferencesService
         LauncherUpdateSettings settings,
         CancellationToken cancellationToken = default);
 
+    Task SaveManualJavaExecutablePathsAsync(
+        IReadOnlyList<string> executablePaths,
+        CancellationToken cancellationToken = default);
+
     Task ReplaceAsync(LauncherPreferences preferences, CancellationToken cancellationToken = default);
 
     Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default);

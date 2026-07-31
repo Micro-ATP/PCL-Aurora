@@ -87,6 +87,16 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
         return UpdateAsync(preferences => preferences with { UpdateSettings = settings }, cancellationToken);
     }
 
+    public Task SaveManualJavaExecutablePathsAsync(
+        IReadOnlyList<string> executablePaths,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(executablePaths);
+        return UpdateAsync(
+            preferences => preferences with { ManualJavaExecutablePaths = executablePaths.ToArray() },
+            cancellationToken);
+    }
+
     public Task ReplaceAsync(LauncherPreferences preferences, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(preferences);

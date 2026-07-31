@@ -45,6 +45,7 @@ public partial class MainViewModel(
     IGitHubIssueService gitHubIssueService,
     ILauncherLogService launcherLogService,
     IOpenPathService openPathService,
+    IJavaInstallationInspector javaInstallationInspector,
     IThemeService themeService,
     ISystemMemoryInfo systemMemoryInfo,
     ISecureSecretStore secretStore,
@@ -265,8 +266,8 @@ public partial class MainViewModel(
     public IReadOnlyList<ThemeOption> ThemeModes { get; } =
     [
         new(LauncherThemeMode.System, "跟随系统"),
-        new(LauncherThemeMode.Light, "浅色"),
-        new(LauncherThemeMode.Dark, "深色"),
+        new(LauncherThemeMode.Light, "月之亮面"),
+        new(LauncherThemeMode.Dark, "月之暗面"),
     ];
 
     public IReadOnlyList<GameManagementOption<LauncherUpdateChannel>> UpdateChannels { get; } =
@@ -404,8 +405,8 @@ public partial class MainViewModel(
     private ThemeOption selectedThemeMode = new(themeService.CurrentMode, themeService.CurrentMode switch
     {
         LauncherThemeMode.System => "跟随系统",
-        LauncherThemeMode.Light => "浅色",
-        LauncherThemeMode.Dark => "深色",
+        LauncherThemeMode.Light => "月之亮面",
+        LauncherThemeMode.Dark => "月之暗面",
         _ => throw new ArgumentOutOfRangeException(nameof(themeService.CurrentMode)),
     });
 
@@ -1481,8 +1482,22 @@ public partial class MainViewModel(
                 SelectedInstance?.Name,
                 StringComparison.Ordinal);
             var selectedJavaPath = SelectedJava?.ExecutablePath;
+            var discoveredJava = diagnostics.JavaInstallations.ToList();
+            foreach (var executablePath in currentPreferences.EffectiveManualJavaExecutablePaths)
+            {
+                var manualJava = await javaInstallationInspector.InspectAsync(executablePath);
+                if (manualJava is not null)
+                {
+                    discoveredJava.Add(manualJava);
+                }
+            }
+
+            var uniqueJava = discoveredJava
+                .GroupBy(java => java.ExecutablePath, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.OrderByDescending(java => java.Source == JavaSource.Manual).First())
+                .ToArray();
             AvailableJavaInstallations.Clear();
-            foreach (var java in diagnostics.JavaInstallations.Where(java => java.IsCompatible))
+            foreach (var java in uniqueJava.Where(java => java.IsCompatible))
             {
                 AvailableJavaInstallations.Add(java);
             }
@@ -1496,9 +1511,9 @@ public partial class MainViewModel(
             ApplicationDataDirectory = diagnostics.Paths.ApplicationDataDirectory;
             CacheDirectory = diagnostics.Paths.CacheDirectory;
             OnPropertyChanged(nameof(HasToolboxCacheDirectory));
-            JavaSummary = diagnostics.JavaInstallations.Count == 0
+            JavaSummary = uniqueJava.Length == 0
                 ? "未发现可用 Java。"
-                : $"发现 {diagnostics.JavaInstallations.Count} 个 Java，其中 {AvailableJavaInstallations.Count} 个与当前架构兼容。";
+                : $"发现 {uniqueJava.Length} 个 Java，其中 {AvailableJavaInstallations.Count} 个与当前架构兼容。";
             InstanceSummary = instances.Count == 0
                 ? "未在 macOS 默认 Minecraft 目录中发现实例。"
                 : $"发现 {instances.Count} 个本地实例，其中 {instances.Count(instance => instance.Status == MinecraftInstanceStatus.Valid)} 个可读取版本元数据。";
@@ -1551,6 +1566,37 @@ public partial class MainViewModel(
         {
             // Logging must never prevent initialization from completing.
         }
+    }
+
+    public async Task<JavaInstallation> AddManualJavaAsync(string executablePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
+        var installation = await javaInstallationInspector.InspectAsync(executablePath)
+            ?? throw new InvalidOperationException("该文件不是可用的 Java 程序，或当前用户没有执行权限。");
+        if (!installation.IsCompatible)
+        {
+            throw new InvalidOperationException(
+                $"该 Java 的架构为 {installation.Architecture}，与当前系统架构不兼容。");
+        }
+
+        if (AvailableJavaInstallations.Any(java => string.Equals(
+                java.ExecutablePath,
+                installation.ExecutablePath,
+                StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidOperationException("该 Java 已经存在于列表中。");
+        }
+
+        var paths = currentPreferences.EffectiveManualJavaExecutablePaths
+            .Append(installation.ExecutablePath)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        await preferencesService.SaveManualJavaExecutablePathsAsync(paths);
+        currentPreferences = preferencesService.Current;
+        await RefreshAsync();
+        SelectedJava = AvailableJavaInstallations.FirstOrDefault(java =>
+            string.Equals(java.ExecutablePath, installation.ExecutablePath, StringComparison.OrdinalIgnoreCase));
+        return installation;
     }
 
     private async Task LoadPreferencesAsync()

@@ -21,6 +21,20 @@ namespace PCL.Aurora.Desktop.Views;
 
 public partial class MainWindow : Window
 {
+    private const int MaximumHomepageContentLength = 2_000_000;
+    private static readonly Uri HomepageTutorialUri =
+        new("https://docs.pclc.cc/ce/customization/xaml-format");
+    private static readonly Uri MinecraftNewsApiUri =
+        new("https://net-secondary.web.minecraft-services.net/api/v1.0/zh-cn/search?pageSize=24&sortType=Recent&category=News&newsOnly=true&page=1");
+    private static readonly string[] HomepageHints =
+    [
+        "为不同 Minecraft 版本保留独立实例目录，可以减少模组与配置互相影响。",
+        "内存并非越大越好；大型整合包通常也不需要占用全部可用内存。",
+        "遇到启动失败时，设置中的查看日志可以导出当前启动器日志。",
+        "社区资源页面支持收藏，常用模组、光影和资源包可以集中管理。",
+        "PCL Aurora 会校验下载文件，校验失败的文件不会直接覆盖现有内容。",
+    ];
+
     private string currentDownloadSection = "game";
     private string currentMoreSection = "help";
     private ViewModels.MainViewModel? subscribedViewModel;
@@ -30,6 +44,7 @@ public partial class MainWindow : Window
     private bool isRevertingAnnouncementSelection;
     private readonly HttpClient toolboxHttpClient = new() { Timeout = TimeSpan.FromSeconds(30) };
     private CancellationTokenSource? toolboxDownloadCancellation;
+    private CancellationTokenSource? homepageRefreshCancellation;
     private Bitmap? toolboxAvatarBitmap;
 
     public MainWindow()
@@ -46,6 +61,7 @@ public partial class MainWindow : Window
         PclHelpView.DetailOpened += ShowHelpDetail;
         PclHelpView.DetailClosed += RestoreHelpCatalogLayout;
         PclHelpView.ActionRequested += HandleHelpAction;
+        PclHomepageView.ActionRequested += HandleHelpAction;
         DataContextChanged += (_, _) => SubscribeToViewModel();
         KeyDown += MainWindowKeyDown;
         Opened += async (_, _) =>
@@ -54,6 +70,7 @@ public partial class MainWindow : Window
             if (DataContext is ViewModels.MainViewModel viewModel)
             {
                 await viewModel.InitializeAsync();
+                await RefreshHomepageAsync(showSuccess: false);
             }
         };
         Closed += (_, _) =>
@@ -61,6 +78,8 @@ public partial class MainWindow : Window
             SubscribeToViewModel(null);
             toolboxDownloadCancellation?.Cancel();
             toolboxDownloadCancellation?.Dispose();
+            homepageRefreshCancellation?.Cancel();
+            homepageRefreshCancellation?.Dispose();
             toolboxHttpClient.Dispose();
             toolboxAvatarBitmap?.Dispose();
             launcherBackgroundBitmap?.Dispose();
@@ -121,6 +140,33 @@ public partial class MainWindow : Window
         else if (e.PropertyName?.StartsWith("Hide", StringComparison.Ordinal) == true)
         {
             Dispatcher.UIThread.Post(() => ApplyFeatureVisibility(viewModel));
+        }
+
+        if (e.PropertyName is nameof(ViewModels.MainViewModel.HomepageTypeIndex)
+            or nameof(ViewModels.MainViewModel.HomepagePresetIndex)
+            or nameof(ViewModels.MainViewModel.HomepageUrl))
+        {
+            QueueHomepageRefresh();
+        }
+    }
+
+    private void QueueHomepageRefresh()
+    {
+        homepageRefreshCancellation?.Cancel();
+        homepageRefreshCancellation?.Dispose();
+        homepageRefreshCancellation = new CancellationTokenSource();
+        _ = RefreshHomepageAfterDelayAsync(homepageRefreshCancellation.Token);
+    }
+
+    private async Task RefreshHomepageAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(450, cancellationToken);
+            await RefreshHomepageAsync(showSuccess: false, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
         }
     }
 
@@ -327,6 +373,62 @@ public partial class MainWindow : Window
             DataContext is ViewModels.MainViewModel viewModel)
         {
             await viewModel.OpenProjectPageCommand.ExecuteAsync(target);
+        }
+    }
+
+    private async void AddJavaClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel ||
+            TopLevel.GetTopLevel(this)?.StorageProvider is not { } storageProvider)
+        {
+            return;
+        }
+
+        var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择 Java 程序",
+            AllowMultiple = false,
+            FileTypeFilter =
+            [
+                new FilePickerFileType("Java 程序")
+                {
+                    Patterns = OperatingSystem.IsWindows()
+                        ? ["java.exe", "javaw.exe"]
+                        : ["java"],
+                },
+                FilePickerFileTypes.All,
+            ],
+        });
+        var executablePath = files.FirstOrDefault()?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(executablePath))
+        {
+            return;
+        }
+
+        try
+        {
+            var installation = await viewModel.AddManualJavaAsync(executablePath);
+            await ShowMessageAsync(
+                "添加 Java",
+                $"已添加 Java {installation.Version ?? "未知版本"}（{installation.Architecture}）。");
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("添加 Java 失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void RefreshHomepageClick(object? sender, RoutedEventArgs e)
+    {
+        homepageRefreshCancellation?.Cancel();
+        await RefreshHomepageAsync(showSuccess: true);
+    }
+
+    private async void HomepageTutorialClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.OpenExternalUriAsync(HomepageTutorialUri);
         }
     }
 
@@ -1840,6 +1942,9 @@ public partial class MainWindow : Window
                         await clipboard.SetTextAsync(action.Data);
                     }
                     break;
+                case "刷新主页":
+                    await RefreshHomepageAsync(showSuccess: false);
+                    break;
                 case "弹出窗口":
                 {
                     var parts = action.Data.Split('|', 2);
@@ -1872,6 +1977,209 @@ public partial class MainWindow : Window
             await ShowMessageAsync("操作失败", exception.Message, isWarning: true);
         }
     }
+
+    private async Task RefreshHomepageAsync(
+        bool showSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel ||
+            string.IsNullOrWhiteSpace(viewModel.ApplicationDataDirectory))
+        {
+            return;
+        }
+
+        if (viewModel.HomepageTypeIndex == (int)LauncherHomepageType.Blank)
+        {
+            LaunchDefaultHomepage.IsVisible = true;
+            PclHomepageView.IsVisible = false;
+            return;
+        }
+
+        LaunchDefaultHomepage.IsVisible = false;
+        PclHomepageView.IsVisible = true;
+        PclHomepageView.ShowStandaloneLoading();
+
+        try
+        {
+            var content = (LauncherHomepageType)viewModel.HomepageTypeIndex switch
+            {
+                LauncherHomepageType.LocalFile => await LoadLocalHomepageAsync(
+                    viewModel.ApplicationDataDirectory,
+                    cancellationToken),
+                LauncherHomepageType.Online => await DownloadHomepageAsync(
+                    ParseHomepageUri(viewModel.HomepageUrl),
+                    cancellationToken),
+                LauncherHomepageType.Preset when viewModel.HomepagePresetIndex == 0 => BuildTriviaHomepage(),
+                LauncherHomepageType.Preset when viewModel.HomepagePresetIndex == 14 =>
+                    await BuildMinecraftNewsHomepageAsync(cancellationToken),
+                LauncherHomepageType.Preset => await DownloadHomepageAsync(
+                    GetPresetHomepageUri(viewModel.HomepagePresetIndex),
+                    cancellationToken),
+                _ => throw new InvalidOperationException("不支持的主页类型。"),
+            };
+
+            cancellationToken.ThrowIfCancellationRequested();
+            PclHomepageView.ShowStandaloneContent(content);
+            if (showSuccess)
+            {
+                await ShowMessageAsync("刷新主页", "主页已重新加载。");
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception)
+        {
+            PclHomepageView.ShowStandaloneError(exception.Message);
+            if (showSuccess)
+            {
+                await ShowMessageAsync("刷新主页失败", exception.Message, isWarning: true);
+            }
+        }
+    }
+
+    private static async Task<string> LoadLocalHomepageAsync(
+        string applicationDataDirectory,
+        CancellationToken cancellationToken)
+    {
+        var directory = Path.Combine(applicationDataDirectory, "PCL");
+        var path = Path.Combine(directory, "Custom.xaml");
+        Directory.CreateDirectory(directory);
+        if (!File.Exists(path))
+        {
+            await File.WriteAllTextAsync(path, DefaultCustomHomepage, cancellationToken);
+        }
+
+        if (new FileInfo(path).Length > MaximumHomepageContentLength)
+        {
+            throw new InvalidDataException("Custom.xaml 超过 2 MB，无法安全加载。");
+        }
+
+        return await File.ReadAllTextAsync(path, cancellationToken);
+    }
+
+    private async Task<string> DownloadHomepageAsync(Uri uri, CancellationToken cancellationToken)
+    {
+        using var response = await toolboxHttpClient.GetAsync(
+            uri,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken);
+        response.EnsureSuccessStatusCode();
+        if (response.Content.Headers.ContentLength > MaximumHomepageContentLength)
+        {
+            throw new InvalidDataException("联网主页超过 2 MB，无法安全加载。");
+        }
+
+        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+        return content.Length <= MaximumHomepageContentLength
+            ? content
+            : throw new InvalidDataException("联网主页超过 2 MB，无法安全加载。");
+    }
+
+    private async Task<string> BuildMinecraftNewsHomepageAsync(CancellationToken cancellationToken)
+    {
+        var json = await DownloadHomepageAsync(MinecraftNewsApiUri, cancellationToken);
+        using var document = JsonDocument.Parse(json);
+        if (!document.RootElement.TryGetProperty("result", out var result) ||
+            !result.TryGetProperty("results", out var items) ||
+            items.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidDataException("Minecraft 官方信息流返回了无法识别的数据。");
+        }
+
+        var content = new StringBuilder("<local:MyCard Title=\"Minecraft 官方信息流\" Margin=\"0,0,0,15\"><StackPanel Margin=\"18,8,18,15\">");
+        foreach (var item in items.EnumerateArray().Take(24))
+        {
+            var title = GetJsonString(item, "title", "未命名资讯");
+            var description = System.Net.WebUtility.HtmlDecode(GetJsonString(item, "description", string.Empty));
+            var link = GetJsonString(item, "readMoreLink", string.Empty);
+            if (!IsAllowedMinecraftNewsUri(link))
+            {
+                continue;
+            }
+
+            content.Append("<local:MyListItem Title=\"")
+                .Append(System.Net.WebUtility.HtmlEncode(title))
+                .Append("\" Info=\"")
+                .Append(System.Net.WebUtility.HtmlEncode(description))
+                .Append("\" EventType=\"打开网页\" EventData=\"")
+                .Append(System.Net.WebUtility.HtmlEncode(link))
+                .Append("\" />");
+        }
+        content.Append("</StackPanel></local:MyCard>");
+        return content.ToString();
+    }
+
+    private static string BuildTriviaHomepage()
+    {
+        var hint = HomepageHints[Random.Shared.Next(HomepageHints.Length)];
+        return $"""
+            <local:MyCard Title="你知道吗？" Margin="0,0,0,15">
+                <StackPanel Margin="18,8,18,15" Spacing="10">
+                    <TextBlock FontSize="13.5" TextWrapping="Wrap" Text="{System.Net.WebUtility.HtmlEncode(hint)}" />
+                    <local:MyButton Text="换一条" EventType="刷新主页" EventData="/" />
+                </StackPanel>
+            </local:MyCard>
+            """;
+    }
+
+    private static Uri ParseHomepageUri(string value)
+    {
+        if (!Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uri) ||
+            uri.Scheme is not ("http" or "https"))
+        {
+            throw new InvalidOperationException("请输入有效的 HTTP 或 HTTPS 主页地址。");
+        }
+
+        return uri;
+    }
+
+    private static Uri GetPresetHomepageUri(int presetIndex) => presetIndex switch
+    {
+        1 => new Uri("https://news.bugjump.net"),
+        2 => new Uri("https://pclsub.sodamc.com/"),
+        3 => new Uri("https://forgepixel.com/pcl_sub_file"),
+        4 => new Uri("https://pcl-bmcl.milu.ink/"),
+        5 => new Uri("https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml"),
+        6 => new Uri("https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml"),
+        7 => new Uri("https://ddf.pcl-community.org/Custom.xaml"),
+        8 => new Uri("https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml"),
+        9 => new Uri("https://pcl.wyc-w.top/index.xaml"),
+        10 => new Uri("https://www.xxag.top/mkss"),
+        11 => new Uri("https://qawsedrftgyhujiko.fun/pcl2/Custom.xaml"),
+        12 => new Uri("https://bangumi.p.kaphia.qzz.io"),
+        13 => new Uri("https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml"),
+        _ => throw new ArgumentOutOfRangeException(nameof(presetIndex), "未知的主页预设。"),
+    };
+
+    private static string GetJsonString(JsonElement element, string propertyName, string fallback) =>
+        element.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString() ?? fallback
+            : fallback;
+
+    private static bool IsAllowedMinecraftNewsUri(string value)
+    {
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
+        {
+            return false;
+        }
+
+        return uri.IdnHost.Equals("minecraft.net", StringComparison.OrdinalIgnoreCase) ||
+               uri.IdnHost.EndsWith(".minecraft.net", StringComparison.OrdinalIgnoreCase) ||
+               uri.IdnHost.Equals("minecraft-services.net", StringComparison.OrdinalIgnoreCase) ||
+               uri.IdnHost.EndsWith(".minecraft-services.net", StringComparison.OrdinalIgnoreCase) ||
+               uri.IdnHost.Equals("microsoft.com", StringComparison.OrdinalIgnoreCase) ||
+               uri.IdnHost.EndsWith(".microsoft.com", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private const string DefaultCustomHomepage = """
+        <local:MyCard Title="自定义主页" Margin="0,0,0,15">
+            <StackPanel Margin="18,8,18,15" Spacing="8">
+                <TextBlock FontSize="13.5" TextWrapping="Wrap" Text="这是 PCL Aurora 的 Custom.xaml 主页。" />
+                <TextBlock FontSize="12" TextWrapping="Wrap" Text="编辑应用数据目录 PCL/Custom.xaml 后，回到设置点击刷新主页即可重新加载。" />
+            </StackPanel>
+        </local:MyCard>
+        """;
 
     private async void CommunityResourceCopyNameClick(object? sender, RoutedEventArgs e)
     {

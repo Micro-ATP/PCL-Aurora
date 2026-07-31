@@ -19,6 +19,12 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/FormMain.xaml (in-window message host only)
 - PCL-CE: Plain Craft Launcher 2/FormMain.xaml.cs (message keyboard routing only)
 - PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchRight.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchRight.xaml.cs (homepage loading and preset mapping)
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUI.xaml (homepage controls)
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUI.xaml.cs (homepage refresh and tutorial actions)
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupJava.xaml.cs (manual Java import flow)
+- PCL-CE: PCL.Core/Minecraft/Java/JavaService.cs (Java manager lifecycle boundary)
+- PCL-CE: PCL.Core/ViewModel/Homepage/NewsViewModel.cs (official news endpoint and link allowlist)
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLaunch.xaml.cs
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModMinecraft.vb
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModLaunch.vb
@@ -303,3 +309,11 @@ credential-free requests through the public mirror used by PCL-CE, parses them
 into Aurora's own immutable models, and imports verified world ZIP files through
 a transactional cross-platform extractor. No PCL or PCL-CE API credential is
 copied, embedded or distributed by PCL Aurora.
+The manual Java import flow adapts PCL2 `ModJava.ManuallyImportJava` and
+PCL-CE `PageSetupJava.BtnAdd_Click`: the user selects an executable, Aurora
+executes the existing platform inspector, validates version and architecture,
+deduplicates the result and stores only the local executable path. The homepage
+loader adapts PCL-CE `PageLaunchRight` and `PageSetupUI`, while rendering remote
+content through Aurora's restricted XML control allowlist rather than executing
+arbitrary XAML. Preset addresses and the Minecraft news allowlist follow the
+listed PCL-CE sources.

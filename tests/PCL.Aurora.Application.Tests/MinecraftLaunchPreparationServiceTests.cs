@@ -237,6 +237,10 @@ public sealed class MinecraftLaunchPreparationServiceTests
             LauncherUpdateSettings settings,
             CancellationToken cancellationToken = default) => Task.CompletedTask;
 
+        public Task SaveManualJavaExecutablePathsAsync(
+            IReadOnlyList<string> executablePaths,
+            CancellationToken cancellationToken = default) => Task.CompletedTask;
+
         public Task ReplaceAsync(
             LauncherPreferences replacement,
             CancellationToken cancellationToken = default) => Task.CompletedTask;

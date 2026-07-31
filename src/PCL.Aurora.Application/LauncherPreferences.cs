@@ -18,7 +18,8 @@ public sealed record LauncherPreferences(
     InterfaceSettings? InterfaceSettings = null,
     LauncherLocalizationSettings? LocalizationSettings = null,
     LauncherMiscSettings? MiscSettings = null,
-    LauncherUpdateSettings? UpdateSettings = null)
+    LauncherUpdateSettings? UpdateSettings = null,
+    IReadOnlyList<string>? ManualJavaExecutablePaths = null)
 {
     public static LauncherPreferences Default { get; } = new(LauncherThemeMode.System);
 
@@ -35,7 +36,8 @@ public sealed record LauncherPreferences(
         (InterfaceSettings?.IsValid ?? true) &&
         (LocalizationSettings?.IsValid ?? true) &&
         (MiscSettings?.IsValid ?? true) &&
-        (UpdateSettings?.IsValid ?? true);
+        (UpdateSettings?.IsValid ?? true) &&
+        IsValidManualJavaExecutablePaths(ManualJavaExecutablePaths);
 
     public MinecraftLaunchOptions EffectiveLaunchOptions => LaunchOptions ?? MinecraftLaunchOptions.Default;
 
@@ -54,6 +56,9 @@ public sealed record LauncherPreferences(
     public LauncherUpdateSettings EffectiveUpdateSettings =>
         UpdateSettings ?? LauncherUpdateSettings.Default;
 
+    public IReadOnlyList<string> EffectiveManualJavaExecutablePaths =>
+        ManualJavaExecutablePaths ?? [];
+
     public static bool IsValidInstanceName(string? instanceName) =>
         instanceName is null ||
         (!string.IsNullOrWhiteSpace(instanceName) &&
@@ -65,4 +70,22 @@ public sealed record LauncherPreferences(
 
     public static bool IsValidOfflinePlayerName(string? playerName) =>
         playerName is null || OfflineAccount.TryCreate(playerName, out _);
+
+    private static bool IsValidManualJavaExecutablePaths(IReadOnlyList<string>? paths)
+    {
+        if (paths is null)
+        {
+            return true;
+        }
+
+        if (paths.Count > 64 || paths.Any(path =>
+                string.IsNullOrWhiteSpace(path) ||
+                path.Length > 4096 ||
+                !Path.IsPathFullyQualified(path)))
+        {
+            return false;
+        }
+
+        return paths.Distinct(StringComparer.OrdinalIgnoreCase).Count() == paths.Count;
+    }
 }

@@ -112,6 +112,24 @@ public sealed class LauncherPreferencesServiceTests
         Assert.Equal("Aurora_01", store.SavedPreferences?.OfflinePlayerName);
     }
 
+    [Fact]
+    public async Task SaveManualJavaExecutablePathsAsync_PreservesOtherPreferences()
+    {
+        var store = new RecordingPreferencesStore(
+            new LauncherPreferencesLoadResult(
+                new LauncherPreferences(LauncherThemeMode.Light, "1.21.4", "Aurora_01"),
+                null));
+        var service = new LauncherPreferencesService(store);
+        var javaPath = Path.GetFullPath(Path.Combine("java", "bin", OperatingSystem.IsWindows() ? "java.exe" : "java"));
+        await service.LoadAsync();
+
+        await service.SaveManualJavaExecutablePathsAsync([javaPath]);
+
+        Assert.Equal([javaPath], store.SavedPreferences?.EffectiveManualJavaExecutablePaths);
+        Assert.Equal("1.21.4", store.SavedPreferences?.SelectedInstanceName);
+        Assert.Equal("Aurora_01", store.SavedPreferences?.OfflinePlayerName);
+    }
+
     private sealed class RecordingPreferencesStore(LauncherPreferencesLoadResult loadResult) : ILauncherPreferencesStore
     {
         public LauncherPreferences? SavedPreferences { get; private set; }

@@ -6,7 +6,7 @@ using PCL.Aurora.Platform.Abstractions;
 
 namespace PCL.Aurora.Platform.MacOS;
 
-public sealed partial class MacOSJavaLocator : IJavaLocator
+public sealed partial class MacOSJavaLocator : IJavaLocator, IJavaInstallationInspector
 {
     private const string JavaHomeTool = "/usr/libexec/java_home";
     private const string SystemVirtualMachinesDirectory = "/Library/Java/JavaVirtualMachines";
@@ -47,6 +47,14 @@ public sealed partial class MacOSJavaLocator : IJavaLocator
             .Select(group => group.First())
             .OrderBy(installation => installation.ExecutablePath, StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    public Task<JavaInstallation?> InspectAsync(
+        string executablePath,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
+        return InspectJavaAsync(new JavaCandidate(executablePath, JavaSource.Manual), cancellationToken);
     }
 
     private static IEnumerable<JavaCandidate> FindJavaHomeCandidate()

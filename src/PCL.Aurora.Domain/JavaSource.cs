@@ -7,4 +7,5 @@ public enum JavaSource
     UserDirectory,
     Path,
     JavaHomeTool,
+    Manual,
 }

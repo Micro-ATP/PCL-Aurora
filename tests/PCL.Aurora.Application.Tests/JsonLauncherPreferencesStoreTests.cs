@@ -107,6 +107,31 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_RoundTripsManualJavaExecutablePaths()
+    {
+        var store = CreateStore();
+        var javaPath = Path.GetFullPath(Path.Combine("java", "bin", OperatingSystem.IsWindows() ? "java.exe" : "java"));
+
+        await store.SaveAsync(new LauncherPreferences(
+            LauncherThemeMode.System,
+            ManualJavaExecutablePaths: [javaPath]));
+        var result = await store.LoadAsync();
+
+        Assert.Equal([javaPath], result.Preferences.EffectiveManualJavaExecutablePaths);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RejectsRelativeManualJavaExecutablePath()
+    {
+        var store = CreateStore();
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => store.SaveAsync(
+            new LauncherPreferences(
+                LauncherThemeMode.System,
+                ManualJavaExecutablePaths: [Path.Combine("java", "bin", "java")])));
+    }
+
+    [Fact]
     public async Task SaveAsync_RoundTripsValidatedDownloadSettings()
     {
         var store = CreateStore();
