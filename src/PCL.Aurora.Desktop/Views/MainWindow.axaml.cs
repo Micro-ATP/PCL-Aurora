@@ -1504,6 +1504,16 @@ public partial class MainWindow : Window
         {
             await updateViewModel.CheckForUpdatesCommand.ExecuteAsync(null);
         }
+
+        if (section == "feedback" && DataContext is ViewModels.MainViewModel feedbackViewModel)
+        {
+            await feedbackViewModel.RefreshFeedbackAsync();
+        }
+
+        if (section == "log" && DataContext is ViewModels.MainViewModel logViewModel)
+        {
+            await logViewModel.RefreshLauncherLogsAsync();
+        }
     }
 
     private async void UpdateChangelogClick(object? sender, RoutedEventArgs e)
@@ -1511,6 +1521,154 @@ public partial class MainWindow : Window
         if (DataContext is ViewModels.MainViewModel viewModel)
         {
             await ShowMessageAsync("更新日志", viewModel.UpdateChangelog);
+        }
+    }
+
+    private async void SubmitFeedbackClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var result = await MessageDialogHost.ShowAsync(new PclMessageDialogOptions(
+            Title: "反馈",
+            Message: "提交前请先搜索是否已有相同反馈，并确认问题仍能在当前版本中复现。反馈内容应包含复现步骤、实际结果和必要的日志。",
+            PrimaryButtonText: "提交新反馈",
+            SecondaryButtonText: "查看反馈列表",
+            TertiaryButtonText: "取消"));
+        if (result == 1)
+        {
+            await viewModel.OpenNewFeedbackAsync();
+        }
+        else if (result == 2)
+        {
+            await viewModel.OpenProjectPageCommand.ExecuteAsync("issues");
+        }
+    }
+
+    private async void FeedbackIssueClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: ViewModels.FeedbackIssueItemViewModel item } ||
+            DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var issue = item.Issue;
+        var typeName = string.IsNullOrWhiteSpace(issue.TypeName) ? "未分类" : issue.TypeName;
+        var labels = issue.Labels.Count == 0 ? "无" : string.Join("、", issue.Labels);
+        var message = $"由 {issue.Author} 提交于 {issue.CreatedAt.LocalDateTime:yyyy/M/d HH:mm}\n" +
+                      $"类型：{typeName}\n标签：{labels}\n\n{issue.Body}";
+        var result = await MessageDialogHost.ShowAsync(new PclMessageDialogOptions(
+            Title: $"#{issue.Number} {issue.Title}",
+            Message: message,
+            PrimaryButtonText: "确定",
+            SecondaryButtonText: "查看详情"));
+        if (result == 2)
+        {
+            await viewModel.OpenFeedbackIssueAsync(issue);
+        }
+    }
+
+    private async void ExportCurrentLogClick(object? sender, RoutedEventArgs e) =>
+        await ExportLauncherLogsAsync(exportAll: false);
+
+    private async void ExportAllLogsClick(object? sender, RoutedEventArgs e) =>
+        await ExportLauncherLogsAsync(exportAll: true);
+
+    private async Task ExportLauncherLogsAsync(bool exportAll)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var zipType = new FilePickerFileType("ZIP 压缩文件")
+        {
+            Patterns = ["*.zip"],
+            MimeTypes = ["application/zip"],
+            AppleUniformTypeIdentifiers = ["public.zip-archive"],
+        };
+        var destination = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "选择日志保存位置",
+            SuggestedFileName = $"PCL_Aurora_Logs_{DateTime.Now:yyyyMMddHHmmss}.zip",
+            DefaultExtension = "zip",
+            FileTypeChoices = [zipType],
+            SuggestedFileType = zipType,
+            ShowOverwritePrompt = true,
+        });
+        var destinationPath = destination?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(destinationPath))
+        {
+            return;
+        }
+
+        try
+        {
+            await viewModel.ExportLauncherLogsAsync(destinationPath, exportAll);
+            await ShowMessageAsync("导出日志", exportAll ? "全部日志已导出。" : "当前日志已导出。");
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("导出失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void OpenLogDirectoryClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        try
+        {
+            await viewModel.OpenLauncherLogDirectoryAsync();
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("打开失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void ClearLogHistoryClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel ||
+            !await ShowConfirmationAsync(
+                "清理历史日志",
+                "即将删除除当前日志之外的所有 PCL Aurora 历史日志。此操作不可撤销，是否继续？"))
+        {
+            return;
+        }
+
+        try
+        {
+            var deleted = await viewModel.ClearLauncherLogHistoryAsync();
+            await ShowMessageAsync("清理历史日志", $"已清理 {deleted} 个历史日志文件。");
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("清理失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void LauncherLogFileClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: ViewModels.LauncherLogFileItemViewModel item } ||
+            DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        try
+        {
+            await viewModel.OpenLauncherLogFileAsync(item.File);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("打开失败", exception.Message, isWarning: true);
         }
     }
 
@@ -1784,6 +1942,10 @@ public partial class MainWindow : Window
         if (section == "java")
         {
             await viewModel.RefreshCommand.ExecuteAsync(null);
+        }
+        else if (section == "feedback")
+        {
+            await viewModel.RefreshFeedbackAsync();
         }
     }
 

@@ -53,6 +53,8 @@ public sealed class MinecraftDirectoryServiceTests : IDisposable
             return Task.CompletedTask;
         }
 
+        public Task OpenFileAsync(string path, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
         public Task OpenUriAsync(Uri uri, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }

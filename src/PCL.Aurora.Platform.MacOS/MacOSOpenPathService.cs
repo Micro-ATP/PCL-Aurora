@@ -12,6 +12,13 @@ public sealed class MacOSOpenPathService : IOpenPathService
         await OpenAsync(path, "无法打开路径", cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task OpenFileAsync(string path, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        await OpenAsync(path, "无法打开文件", cancellationToken).ConfigureAwait(false);
+    }
+
     public Task OpenUriAsync(Uri uri, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(uri);

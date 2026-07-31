@@ -745,6 +745,70 @@
             <Setter Property="Foreground" Value="#FF4C4C" />
             <Setter Property="LineHeight" Value="16" />
         </Style>
+        <Style Selector="Border.snapshot-promotion">
+            <Setter Property="Margin" Value="0,5,0,12" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="#EAF2FE" />
+        </Style>
+        <Style Selector="Button.feedback-issue, Button.log-file">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="56" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="Stretch"
+                                          VerticalContentAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.feedback-issue:pointerover, Button.log-file:pointerover">
+            <Setter Property="Background" Value="#BEE0EAFD" />
+        </Style>
+        <Style Selector="Button.feedback-issue:pressed, Button.log-file:pressed">
+            <Setter Property="Background" Value="#D5E6FD" />
+        </Style>
+        <Style Selector="Button.log-danger">
+            <Setter Property="Foreground" Value="#CE2111" />
+            <Setter Property="BorderBrush" Value="#CE2111" />
+            <Setter Property="Background" Value="#FFF8F8" />
+        </Style>
+        <Style Selector="Button.log-danger:pointerover">
+            <Setter Property="Foreground" Value="#FF4C4C" />
+            <Setter Property="BorderBrush" Value="#FF4C4C" />
+            <Setter Property="Background" Value="#80FBDDDD" />
+        </Style>
+        <Style Selector="Border.feedback-tag">
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Background" Value="#DDEAF8" />
+        </Style>
+        <Style Selector="TextBlock.feedback-tag-text">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="#4D6F94" />
+        </Style>
         <Style Selector="Border.pcl-notice">
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Background" Value="#FCFDFF" />
@@ -3167,8 +3231,16 @@
                                                               IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="update" Label="软件更新"
                                                               IconData="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8 M21 3v5h-5 M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16 M8 16H3v5" />
-                                <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="feedback" Label="反馈"
-                                                              IconData="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719z" />
+                                <Grid Classes="nav-row" ColumnDefinitions="*,36">
+                                    <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="feedback" Label="反馈"
+                                                                  IconData="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719z" />
+                                    <Button Grid.Column="1" Classes="nav-row-action" Tag="feedback" Click="SettingsSectionRefreshClick"
+                                            ToolTip.Tip="刷新" AutomationProperties.Name="刷新反馈列表">
+                                        <Path Width="16" Height="16" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="log" Label="查看日志"
                                                               IconData="M15 12h-5 M15 8h-5 M19 17V5a2 2 0 0 0-2-2H4 M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" />
                             </StackPanel>
@@ -3568,6 +3640,17 @@
                                             <Slider Grid.Column="1" Minimum="0" Maximum="600" TickFrequency="10"
                                                     Value="{Binding InterfaceWindowOpacity, Mode=TwoWay}" />
                                         </Grid>
+                                        <Border Classes="snapshot-promotion">
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <TextBlock HorizontalAlignment="Center" FontSize="13" TextWrapping="Wrap"
+                                                           Text="蓝色，蓝色，还是蓝色！想要逃离蓝色困境？请使用官方快照版！" />
+                                                <Button Width="140" Height="35" Margin="0,9,0,0"
+                                                        Classes="launch-download-button"
+                                                        Command="{Binding OpenProjectPageCommand}"
+                                                        CommandParameter="pcl-snapshot"
+                                                        Content="获取官方快照版" />
+                                            </StackPanel>
+                                        </Border>
                                         <Grid Height="28" ColumnDefinitions="Auto,*,92,*,92,*">
                                             <TextBlock Classes="setup-launch-label" Text="主题" />
                                             <ComboBox x:Name="ThemeModeSelector" Grid.Column="1" Classes="setup-launch-field"
@@ -4260,51 +4343,110 @@
                             </Border>
                         </StackPanel>
 
-                        <StackPanel x:Name="SettingsFeedbackSection" IsVisible="False">
+                        <StackPanel x:Name="SettingsFeedbackSection" Classes="setup-launch-section" IsVisible="False">
                             <Border Classes="setup-card">
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="提交反馈" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="12">
-                                        <TextBlock TextWrapping="Wrap" Text="提交前请先搜索是否已有相同问题，并确认问题仍能在当前版本中复现。" />
-                                        <Button HorizontalAlignment="Left" Command="{Binding OpenProjectPageCommand}" CommandParameter="issues" Content="前往反馈" />
+                                    <StackPanel Grid.Row="1" Margin="20,0,18,22">
+                                        <TextBlock TextWrapping="Wrap"
+                                                   Text="如果你在使用 PCL Aurora 时遇到了问题，或者有新的想法与建议，欢迎提交反馈。" />
+                                        <Button MinWidth="140" Height="35" Margin="0,15,0,0"
+                                                HorizontalAlignment="Left" Classes="launch-download-button"
+                                                Click="SubmitFeedbackClick" Content="前往反馈" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
-                            <Border Classes="setup-card">
-                                <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="反馈列表" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8">
-                                        <TextBlock Classes="setup-muted" Text="PCL Aurora 的公开问题、功能建议与处理状态均在 GitHub Issues 中维护。" />
-                                        <Button HorizontalAlignment="Left" Command="{Binding OpenProjectPageCommand}" CommandParameter="issues" Content="查看全部反馈" />
-                                    </StackPanel>
-                                </Grid>
+                            <Border Classes="setup-card" MinHeight="180" IsVisible="{Binding IsLoadingFeedback}">
+                                <controls:PclLoadingIndicator Text="{Binding FeedbackStatusText}" />
                             </Border>
+                            <Button MinHeight="90" Margin="0,0,0,15" HorizontalAlignment="Stretch"
+                                    Classes="log-file" IsVisible="{Binding HasFeedbackLoadError}"
+                                    Command="{Binding RefreshFeedbackCommand}">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
+                                    <TextBlock HorizontalAlignment="Center" Foreground="{StaticResource PclThemePrimaryBrush}"
+                                               Text="{Binding FeedbackStatusText}" />
+                                    <TextBlock HorizontalAlignment="Center" Classes="setup-muted" Text="点击重新获取" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock Margin="5,0,5,15" HorizontalAlignment="Center" Classes="setup-muted"
+                                       IsVisible="{Binding !IsLoadingFeedback}"
+                                       Text="{Binding FeedbackStatusText}" />
+                            <ItemsControl ItemsSource="{Binding FeedbackGroups}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:FeedbackGroupViewModel">
+                                        <controls:PclCollapsibleCard Margin="0,0,0,15"
+                                                                      IsVisible="{Binding HasItems}"
+                                                                      Title="{Binding Title}"
+                                                                      IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+                                            <controls:PclCollapsibleCard.Body>
+                                                <ItemsControl Margin="12,0,12,12" ItemsSource="{Binding Issues}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:FeedbackIssueItemViewModel">
+                                                            <Button Classes="feedback-issue" Tag="{Binding}" Click="FeedbackIssueClick">
+                                                                <Grid ColumnDefinitions="30,10,*,Auto" RowDefinitions="Auto,4,Auto">
+                                                                    <Image Grid.RowSpan="3" Width="28" Height="28"
+                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                           Source="{Binding IconPath}" />
+                                                                    <TextBlock Grid.Column="2" FontSize="14" FontWeight="Normal" Text="{Binding Title}" TextWrapping="Wrap" />
+                                                                    <Border Grid.Column="3" Margin="12,0,0,0" Classes="feedback-tag">
+                                                                        <TextBlock Classes="feedback-tag-text" Text="{Binding TypeDisplay}" />
+                                                                    </Border>
+                                                                    <TextBlock Grid.Row="2" Grid.Column="2" FontSize="11" Foreground="#87929D" Text="{Binding Metadata}" />
+                                                                    <TextBlock Grid.Row="2" Grid.Column="3" Margin="12,0,0,0" FontSize="11"
+                                                                               Foreground="#87929D" Text="{Binding LabelsDisplay}" />
+                                                                </Grid>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </controls:PclCollapsibleCard.Body>
+                                        </controls:PclCollapsibleCard>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
 
-                        <StackPanel x:Name="SettingsLogSection" IsVisible="False">
-                            <Border Classes="setup-card">
+                        <StackPanel x:Name="SettingsLogSection" Classes="setup-launch-section" IsVisible="False">
+                            <Border Classes="setup-card" Margin="0,0,0,15">
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="日志操作" />
-                                    <WrapPanel Grid.Row="1" Margin="18,0,18,16" ItemHeight="34">
-                                        <Button MinWidth="100" Margin="0,0,10,0" IsEnabled="False" Content="导出日志" />
-                                        <Button MinWidth="120" Margin="0,0,10,0" IsEnabled="False" Content="导出全部日志" />
-                                        <Button MinWidth="120" Margin="0,0,10,0" Command="{Binding OpenApplicationDataDirectoryCommand}" Content="打开日志文件夹" />
-                                        <Button MinWidth="120" Command="{Binding ClearGameLogsCommand}" IsEnabled="{Binding HasGameLogLines}" Content="清理历史日志" />
+                                    <WrapPanel Grid.Row="1" Margin="25,0,20,20" ItemHeight="35">
+                                        <Button MinWidth="100" Height="35" Margin="0,0,10,0" Classes="launch-download-button"
+                                                IsEnabled="{Binding HasLauncherLogFiles}" Click="ExportCurrentLogClick" Content="导出日志" />
+                                        <Button MinWidth="120" Height="35" Margin="0,0,10,0"
+                                                IsEnabled="{Binding HasLauncherLogFiles}" Click="ExportAllLogsClick" Content="导出全部日志" />
+                                        <Button MinWidth="120" Height="35" Margin="0,0,10,0"
+                                                Click="OpenLogDirectoryClick" Content="打开日志目录" />
+                                        <Button MinWidth="120" Height="35" Classes="log-danger"
+                                                Click="ClearLogHistoryClick" Content="清理历史日志" />
                                     </WrapPanel>
                                 </Grid>
                             </Border>
-                            <Border Classes="setup-card">
+                            <Border Classes="setup-card" Margin="0">
                                 <Grid RowDefinitions="40,*">
-                                    <TextBlock Classes="setup-card-title" Text="全部日志" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8">
-                                        <TextBlock Classes="setup-muted" Text="{Binding GameLogSummary}" />
-                                        <Border MinHeight="160" MaxHeight="420" Background="#F7F9FB" BorderBrush="#D9E2EB" BorderThickness="1" CornerRadius="3" Padding="10">
-                                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                                <ItemsControl ItemsSource="{Binding GameLogLines}">
-                                                    <ItemsControl.ItemTemplate><DataTemplate><TextBlock FontFamily="Menlo,Consolas,monospace" FontSize="11" Foreground="#4B5563" Text="{Binding DisplayText}" TextWrapping="Wrap" /></DataTemplate></ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </ScrollViewer>
-                                        </Border>
+                                    <TextBlock Classes="setup-card-title" Text="所有日志" />
+                                    <StackPanel Grid.Row="1" Margin="20,0,18,18">
+                                        <controls:PclLoadingIndicator MinHeight="150" IsVisible="{Binding IsLoadingLauncherLogs}"
+                                                                      Text="{Binding LauncherLogStatusText}" />
+                                        <TextBlock Margin="0,8" HorizontalAlignment="Center" Classes="setup-muted"
+                                                   IsVisible="{Binding !HasLauncherLogFiles}"
+                                                   Text="{Binding LauncherLogStatusText}" />
+                                        <ItemsControl ItemsSource="{Binding LauncherLogFiles}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:LauncherLogFileItemViewModel">
+                                                    <Button Classes="log-file" Tag="{Binding}" Click="LauncherLogFileClick">
+                                                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,3,Auto">
+                                                            <TextBlock FontSize="14" FontWeight="Normal" Text="{Binding Title}" TextWrapping="Wrap" />
+                                                            <Path Grid.Column="1" Width="16" Height="16" Margin="15,0,5,0"
+                                                                  VerticalAlignment="Center" Stretch="Uniform"
+                                                                  Data="M9 18l6-6-6-6" Fill="Transparent" Stroke="#7B8794"
+                                                                  StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                            <TextBlock Grid.Row="2" FontSize="11" Foreground="#87929D" Text="{Binding Metadata}" />
+                                                        </Grid>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
                                     </StackPanel>
                                 </Grid>
                             </Border>

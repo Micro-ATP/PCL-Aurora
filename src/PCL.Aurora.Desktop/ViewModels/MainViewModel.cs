@@ -42,6 +42,8 @@ public partial class MainViewModel(
     IMicrosoftAccountSessionService microsoftAccountSessionService,
     IGitHubContributorService gitHubContributorService,
     ILauncherUpdateService launcherUpdateService,
+    IGitHubIssueService gitHubIssueService,
+    ILauncherLogService launcherLogService,
     IOpenPathService openPathService,
     IThemeService themeService,
     ISystemMemoryInfo systemMemoryInfo,
@@ -57,6 +59,8 @@ public partial class MainViewModel(
     private static readonly Uri AuroraRepositoryUri = new("https://github.com/Micro-ATP/PCL-Aurora");
     private static readonly Uri AuroraReleasesUri = new("https://github.com/Micro-ATP/PCL-Aurora/releases");
     private static readonly Uri AuroraIssuesUri = new("https://github.com/Micro-ATP/PCL-Aurora/issues");
+    private static readonly Uri AuroraNewIssueUri = new("https://github.com/Micro-ATP/PCL-Aurora/issues/new/choose");
+    private static readonly Uri PclOfficialSnapshotUri = new("https://afdian.com/a/LTCat");
     private static readonly Uri AuroraLicenseUri = new("https://github.com/Micro-ATP/PCL-Aurora/blob/main/LICENSE");
     private static readonly Uri PclRepositoryUri = new("https://github.com/Meloong-Git/PCL");
     private static readonly Uri PclCeRepositoryUri = new("https://github.com/PCL-Community/PCL-CE");
@@ -110,6 +114,7 @@ public partial class MainViewModel(
     private CancellationTokenSource? communityVersionCancellation;
     private CancellationTokenSource? communityDownloadCancellation;
     private CancellationTokenSource? communityDescriptionTranslationCancellation;
+    private CancellationTokenSource? feedbackLoadCancellation;
     private CancellationTokenSource? loaderDirectoryCancellation;
     private CancellationTokenSource? launchOptionsSaveCancellation;
     private CancellationTokenSource? gameManagementOptionsSaveCancellation;
@@ -162,6 +167,21 @@ public partial class MainViewModel(
     public ObservableCollection<JavaInstallation> AvailableJavaInstallations { get; } = [];
 
     public ObservableCollection<GameLogLine> GameLogLines { get; } = [];
+
+    public ObservableCollection<FeedbackGroupViewModel> FeedbackGroups { get; } =
+    [
+        new(GitHubIssueStatus.Processing, "正在处理", true),
+        new(GitHubIssueStatus.Triage, "等待处理", true),
+        new(GitHubIssueStatus.Waiting, "等待", true),
+        new(GitHubIssueStatus.Paused, "暂停", true),
+        new(GitHubIssueStatus.UpNext, "在即", true),
+        new(GitHubIssueStatus.Completed, "已完成", false),
+        new(GitHubIssueStatus.Declined, "已拒绝", false),
+        new(GitHubIssueStatus.Ignored, "已忽略", false),
+        new(GitHubIssueStatus.Duplicate, "重复", false),
+    ];
+
+    public ObservableCollection<LauncherLogFileItemViewModel> LauncherLogFiles { get; } = [];
 
     public ObservableCollection<GitHubContributorItemViewModel> Contributors { get; } = [];
 
@@ -899,6 +919,27 @@ public partial class MainViewModel(
     private bool hasGameLogLines;
 
     [ObservableProperty]
+    private bool isLoadingFeedback;
+
+    [ObservableProperty]
+    private bool hasFeedbackGroups;
+
+    [ObservableProperty]
+    private bool hasFeedbackLoadError;
+
+    [ObservableProperty]
+    private string feedbackStatusText = "正在获取反馈列表";
+
+    [ObservableProperty]
+    private bool isLoadingLauncherLogs;
+
+    [ObservableProperty]
+    private bool hasLauncherLogFiles;
+
+    [ObservableProperty]
+    private string launcherLogStatusText = "正在读取日志列表";
+
+    [ObservableProperty]
     private bool canLaunchGame;
 
     [ObservableProperty]
@@ -1464,9 +1505,28 @@ public partial class MainViewModel(
 
     public async Task InitializeAsync()
     {
+        try
+        {
+            await launcherLogService.InitializeAsync();
+            await launcherLogService.AppendAsync("Launcher", "开始初始化启动器界面。");
+        }
+        catch
+        {
+            // Logging must never prevent the launcher from opening.
+        }
+
         await LoadPreferencesAsync();
         await LoadCommunityFavoritesAsync();
         await RefreshAsync();
+
+        try
+        {
+            await launcherLogService.AppendAsync("Launcher", "启动器界面初始化完成。");
+        }
+        catch
+        {
+            // Logging must never prevent initialization from completing.
+        }
     }
 
     private async Task LoadPreferencesAsync()
@@ -5298,11 +5358,13 @@ public partial class MainViewModel(
         if (gameLaunchPreparation is null || !gameLaunchPreparation.CanLaunch)
         {
             GameLaunchSummary = "启动条件尚未满足，未启动游戏进程。";
+            await TryAppendLauncherLogAsync("Launch", GameLaunchSummary);
             return;
         }
 
         try
         {
+            await TryAppendLauncherLogAsync("Launch", $"准备启动实例：{SelectedInstance?.Name ?? "未知实例"}。");
             var session = await gameLaunchService.LaunchAsync(gameLaunchPreparation);
             var visibility = SelectedLauncherVisibility.Mode;
             GameLaunchSummary = $"已启动游戏进程（PID {session.ProcessId}）。输出将用于后续日志页。";
@@ -5310,12 +5372,14 @@ public partial class MainViewModel(
             HasGameLogLines = false;
             GameLogSummary = $"正在捕获游戏进程 {session.ProcessId} 的输出；日志仅保留在本次会话内。";
             GameProcessStarted?.Invoke(this, visibility);
+            await TryAppendLauncherLogAsync("Launch", $"游戏进程已启动，PID {session.ProcessId}。");
             _ = ObserveGameProcessAsync(session, visibility);
         }
         catch (Exception exception)
         {
             GameLaunchSummary = $"启动游戏失败：{exception.Message}";
             CanLaunchGame = false;
+            await TryAppendLauncherLogAsync("Launch", GameLaunchSummary);
         }
     }
 
@@ -5391,6 +5455,117 @@ public partial class MainViewModel(
     }
 
     [RelayCommand(AllowConcurrentExecutions = false)]
+    public async Task RefreshFeedbackAsync()
+    {
+        feedbackLoadCancellation?.Cancel();
+        feedbackLoadCancellation?.Dispose();
+        feedbackLoadCancellation = new CancellationTokenSource();
+        var cancellationToken = feedbackLoadCancellation.Token;
+
+        IsLoadingFeedback = true;
+        HasFeedbackLoadError = false;
+        FeedbackStatusText = "正在获取反馈列表";
+        try
+        {
+            var issues = await gitHubIssueService.GetIssuesAsync(cancellationToken);
+            foreach (var group in FeedbackGroups)
+            {
+                group.ReplaceIssues(issues.Where(issue => issue.Status == group.Status));
+            }
+
+            HasFeedbackGroups = FeedbackGroups.Any(group => group.HasItems);
+            FeedbackStatusText = HasFeedbackGroups
+                ? $"已获取 {issues.Count} 条反馈"
+                : "暂时没有公开反馈";
+            await TryAppendLauncherLogAsync("Feedback", $"反馈列表刷新完成，共 {issues.Count} 条。");
+        }
+        catch (OperationCanceledException)
+        {
+            FeedbackStatusText = "反馈列表加载已取消";
+        }
+        catch (Exception exception)
+        {
+            foreach (var group in FeedbackGroups)
+            {
+                group.ReplaceIssues([]);
+            }
+
+            HasFeedbackGroups = false;
+            HasFeedbackLoadError = true;
+            FeedbackStatusText = "暂时无法获取反馈列表，点击重试";
+            await TryAppendLauncherLogAsync("Feedback", $"反馈列表刷新失败：{exception.Message}");
+        }
+        finally
+        {
+            IsLoadingFeedback = false;
+        }
+    }
+
+    public Task OpenNewFeedbackAsync() => openPathService.OpenUriAsync(AuroraNewIssueUri);
+
+    public Task OpenFeedbackIssueAsync(GitHubIssue issue)
+    {
+        ArgumentNullException.ThrowIfNull(issue);
+        return openPathService.OpenUriAsync(issue.IssueUri);
+    }
+
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    public async Task RefreshLauncherLogsAsync()
+    {
+        IsLoadingLauncherLogs = true;
+        LauncherLogStatusText = "正在读取日志列表";
+        try
+        {
+            var files = await launcherLogService.GetFilesAsync();
+            LauncherLogFiles.Clear();
+            foreach (var file in files)
+            {
+                LauncherLogFiles.Add(new LauncherLogFileItemViewModel(file));
+            }
+
+            HasLauncherLogFiles = LauncherLogFiles.Count > 0;
+            LauncherLogStatusText = HasLauncherLogFiles
+                ? $"共 {LauncherLogFiles.Count} 个日志文件"
+                : "暂无日志";
+        }
+        catch (Exception exception)
+        {
+            LauncherLogFiles.Clear();
+            HasLauncherLogFiles = false;
+            LauncherLogStatusText = $"无法读取日志：{exception.Message}";
+        }
+        finally
+        {
+            IsLoadingLauncherLogs = false;
+        }
+    }
+
+    public async Task ExportLauncherLogsAsync(string destinationPath, bool exportAll)
+    {
+        var files = await launcherLogService.GetFilesAsync();
+        var selected = exportAll ? files : files.Where(file => file.IsCurrent).ToArray();
+        await launcherLogService.ExportAsync(selected, destinationPath);
+        await TryAppendLauncherLogAsync("Log", exportAll ? "已导出全部日志。" : "已导出当前日志。");
+        await RefreshLauncherLogsAsync();
+    }
+
+    public Task OpenLauncherLogDirectoryAsync() => openPathService.OpenFolderAsync(launcherLogService.LogDirectory);
+
+    public Task OpenLauncherLogFileAsync(LauncherLogFile file)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        return openPathService.OpenFileAsync(file.FullPath);
+    }
+
+    public async Task<int> ClearLauncherLogHistoryAsync()
+    {
+        var deleted = await launcherLogService.ClearHistoryAsync();
+        await launcherLogService.AppendAsync("Log", $"已清理 {deleted} 个历史日志文件。");
+        await RefreshLauncherLogsAsync();
+        return deleted;
+    }
+
+    [RelayCommand(AllowConcurrentExecutions = false)]
     private async Task LoadContributorsAsync()
     {
         if (contributorsLoadAttempted)
@@ -5451,6 +5626,7 @@ public partial class MainViewModel(
             "license" => AuroraLicenseUri,
             "notice" => new Uri("https://github.com/Micro-ATP/PCL-Aurora/blob/main/NOTICE"),
             "pcl" => PclRepositoryUri,
+            "pcl-snapshot" => PclOfficialSnapshotUri,
             "pcl-license" => new Uri("https://github.com/Meloong-Git/PCL/blob/main/LICENCE"),
             "pcl-terms" => new Uri("https://shimo.im/docs/rGrd8pY8xWkt6ryW"),
             "pcl-ce" => PclCeRepositoryUri,
@@ -5521,13 +5697,27 @@ public partial class MainViewModel(
 
             GameLogLines.Add(GameLogLine.FromOutput(output));
             HasGameLogLines = true;
+            await TryAppendLauncherLogAsync(output.IsError ? "Game/Stderr" : "Game/Stdout", output.Text);
         }
 
         var exitCode = await session.ExitCode;
         GameLaunchSummary = $"游戏进程已退出（代码 {exitCode}，捕获 {outputCount} 行输出）。";
         GameLogSummary = $"游戏进程已退出（代码 {exitCode}）。本次会话保留 {GameLogLines.Count} 行输出。";
         CanLaunchGame = false;
+        await TryAppendLauncherLogAsync("Launch", GameLaunchSummary);
         GameProcessExited?.Invoke(this, visibility);
+    }
+
+    private async Task TryAppendLauncherLogAsync(string category, string message)
+    {
+        try
+        {
+            await launcherLogService.AppendAsync(category, message);
+        }
+        catch
+        {
+            // A file-system logging failure must not interrupt user operations.
+        }
     }
 
     [RelayCommand]

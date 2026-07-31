@@ -128,6 +128,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupGameManage.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupGameLink.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUI.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUI.xaml.cs (official snapshot promotion action only)
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLauncherLanguage.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLauncherLanguage.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLauncherMisc.xaml
@@ -136,7 +137,10 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUpdate.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupUpdate.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupFeedback.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupFeedback.xaml.cs
 - PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLog.xaml
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLog.xaml.cs
+- PCL-CE: Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml.cs (feedback submission and refresh flow only)
 - PCL-CE: PCL.Core/App/Config.cs (setup defaults and default JVM arguments only)
 - PCL-CE: PCL.Core/App/ConfigEnums.cs (setup option ordering only)
 - PCL-CE: PCL.Core/App/Localization/Languages/zh-CN.xaml (setup-page wording)
@@ -185,6 +189,18 @@ PCL Aurora also contains the following directly reused upstream resources:
 - PCL-CE: Plain Craft Launcher 2/Images/Blocks/LabyMod.png
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeLabyMod.png;
   displayed as the LabyMod installer image.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/RedstoneBlock.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeRedstoneBlock.png;
+  displayed for feedback items waiting to be processed.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/Anvil.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeAnvil.png;
+  displayed for feedback items waiting on another condition.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/RedstoneLampOff.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeRedstoneLampOff.png;
+  displayed for paused feedback items.
+- PCL-CE: Plain Craft Launcher 2/Images/Blocks/RedstoneLampOn.png
+  copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeRedstoneLampOn.png;
+  displayed for feedback items scheduled next.
 - PCL-CE: Plain Craft Launcher 2/Images/Blocks/Egg.png
   copied unchanged to src/PCL.Aurora.Desktop/Assets/Loaders/PclCeLiteLoader.png;
   displayed as the LiteLoader installer image.
