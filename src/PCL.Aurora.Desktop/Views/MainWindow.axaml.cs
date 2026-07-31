@@ -440,7 +440,6 @@ public partial class MainWindow : Window
     {
         MoreDirectorySection.IsVisible = section == "toolbox";
         MoreLogSection.IsVisible = section == "logs";
-        MoreAboutSection.IsVisible = section == "about";
         PclHelpView.IsVisible = section == "help";
         MorePageHeading.IsVisible = section != "help";
         MorePlaceholderSection.IsVisible = section is "feedback" or "vote";
@@ -448,7 +447,6 @@ public partial class MainWindow : Window
         {
             "toolbox" => "百宝箱",
             "logs" => "查看日志",
-            "about" => "关于与鸣谢",
             "feedback" => "反馈",
             "vote" => "新功能投票",
             _ => "帮助",
@@ -457,7 +455,6 @@ public partial class MainWindow : Window
         {
             "toolbox" => "打开常用目录并使用跨平台维护工具。",
             "logs" => "查看当前游戏会话输出与诊断信息。",
-            "about" => "查看项目版本、更新入口、来源与许可证信息。",
             "feedback" => "提交问题报告、兼容性报告或功能建议。",
             "vote" => "了解候选功能并参与后续版本方向讨论。",
             _ => "查看启动、下载、实例与故障排查入口。",

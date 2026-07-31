@@ -4471,8 +4471,6 @@
                                           StrokeLineCap="Round" StrokeJoin="Round" />
                                 </Button>
                             </Grid>
-                            <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="about" Label="关于与鸣谢"
-                                                          IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
                             <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="toolbox" Label="百宝箱"
                                                           IconData="M3 6h18v14H3z M8 6V4h8v2 M3 11h18 M10 11v3h4v-3" />
                             <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="feedback" Label="反馈"
@@ -4540,35 +4538,6 @@
                                         </ItemsControl>
                                     </ScrollViewer>
                                 </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <Border x:Name="MoreAboutSection" Classes="pcl-card" Padding="20" IsVisible="False">
-                            <StackPanel Spacing="10">
-                                <TextBlock FontWeight="SemiBold" Text="PCL Aurora" />
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="当前发行、更新说明与安装包均由 PCL Aurora 的 GitHub Releases 提供。"
-                                           TextWrapping="Wrap" />
-                                <Button HorizontalAlignment="Left"
-                                        Command="{Binding OpenAuroraReleasesCommand}"
-                                        Content="获取 PCL Aurora 最新版本" />
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="{Binding AuroraReleaseSummary}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="PCL 与 PCL-CE 归属说明" />
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="PCL Aurora 是基于 Plain Craft Launcher（PCL）及 PCL-CE 的第三方跨平台迁移与二次创作项目，并非官方项目。"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="原作者：龙腾猫跃（成都瓜皮龙科技有限公司）· 赞助链接：https://meloong.com/afd/a/LTCat"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="直接适配内容及其分发遵循随附的上游许可证和 NOTICE；Micro-ATP 的新增内容适用根目录许可证。"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="界面字体" />
-                                <TextBlock Foreground="#6F7C8B"
-                                           Text="本软件使用 HarmonyOS Sans SC 字体，字体版权归 Huawei Device Co., Ltd. 所有。字体许可协议随软件一同提供。"
-                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
