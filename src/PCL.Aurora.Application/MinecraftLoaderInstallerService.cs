@@ -10,7 +10,8 @@ namespace PCL.Aurora.Application;
 public sealed class MinecraftLoaderInstallerService(
     HttpClient httpClient,
     IMinecraftDownloadExecutor downloadExecutor,
-    IMinecraftLoaderInstallerProcessRunner processRunner) : IMinecraftLoaderInstallerService
+    IMinecraftLoaderInstallerProcessRunner processRunner,
+    ILauncherPreferencesService? preferencesService = null) : IMinecraftLoaderInstallerService
 {
     private static readonly Uri FabricInstallerCatalogUri = new("https://meta.fabricmc.net/v2/versions/installer");
 
@@ -26,9 +27,11 @@ public sealed class MinecraftLoaderInstallerService(
         {
             try
             {
-                using var response = await httpClient.GetAsync(FabricInstallerCatalogUri, cancellationToken).ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                var preference = preferencesService?.Current.EffectiveGameManagementOptions.VersionListSource
+                    ?? DownloadSourcePreference.PreferOfficialWithFallback;
+                var mirrorUri = PclCeDownloadSourceResolver.ToBmclapi(FabricInstallerCatalogUri);
+                var sources = PclCeDownloadSourceResolver.Order(preference, FabricInstallerCatalogUri, mirrorUri);
+                var content = await DownloadTextWithFallbackAsync(sources, cancellationToken).ConfigureAwait(false);
                 fabricInstallerUri = MinecraftFabricInstallerMetadataParser.ParseLatestStableInstallerUri(content);
             }
             catch (OperationCanceledException)
@@ -86,6 +89,32 @@ public sealed class MinecraftLoaderInstallerService(
                 BlockingReasons = [$"无法获取官方安装器 SHA-1 校验文件：{exception.Message}"],
             };
         }
+    }
+
+    private async Task<string> DownloadTextWithFallbackAsync(
+        IReadOnlyList<Uri> sources,
+        CancellationToken cancellationToken)
+    {
+        var failures = new List<string>();
+        foreach (var source in sources)
+        {
+            try
+            {
+                using var response = await httpClient.GetAsync(source, cancellationToken).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception) when (exception is HttpRequestException or IOException)
+            {
+                failures.Add($"{source.Host}: {exception.Message}");
+            }
+        }
+
+        throw new HttpRequestException(string.Join("；", failures));
     }
 
     public async Task<MinecraftLoaderInstallerExecutionResult> InstallAsync(

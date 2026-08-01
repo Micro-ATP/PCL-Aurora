@@ -41,6 +41,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IPlatformInfo, MacOSPlatformInfo>();
         services.AddSingleton<IPlatformPaths, MacOSPlatformPaths>();
         services.AddSingleton<ISystemMemoryInfo, MacOSSystemMemoryInfo>();
+        services.AddSingleton<ISystemMemoryOptimizer, MacOSSystemMemoryOptimizer>();
         services.AddSingleton<MacOSJavaLocator>();
         services.AddSingleton<IJavaLocator>(provider => provider.GetRequiredService<MacOSJavaLocator>());
         services.AddSingleton<IJavaInstallationInspector>(provider => provider.GetRequiredService<MacOSJavaLocator>());
@@ -101,6 +102,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IMinecraftLoaderInstallerService, MinecraftLoaderInstallerService>();
         services.AddSingleton<IMinecraftVersionProvisioningService, MinecraftVersionProvisioningService>();
         services.AddSingleton<IMinecraftDirectoryService, MinecraftDirectoryService>();
+        services.AddSingleton<IMinecraftJunkCleanupService, MinecraftJunkCleanupService>();
         services.AddSingleton<INativeLibraryPreparer, MinecraftNativeLibraryPreparer>();
         services.AddSingleton<IMinecraftLaunchPatchService, MinecraftLaunchPatchService>();
         services.AddSingleton<IGameProcessRunner, MinecraftGameProcessRunner>();

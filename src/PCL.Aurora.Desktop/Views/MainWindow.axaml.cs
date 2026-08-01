@@ -835,16 +835,53 @@ public partial class MainWindow : Window
 
     private async void ClearToolboxCacheClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not ViewModels.MainViewModel viewModel ||
-            !await ShowConfirmationAsync(
-                "清理游戏垃圾",
-                "当前跨平台实现只会清理 PCL Aurora 的安全缓存，不会删除存档、模组、资源包、设置或账户。是否继续？"))
+        if (DataContext is not ViewModels.MainViewModel viewModel)
         {
             return;
         }
 
-        await viewModel.ClearToolboxCacheCommand.ExecuteAsync(null);
-        await ShowMessageAsync("清理游戏垃圾", viewModel.ToolboxStatusText);
+        try
+        {
+            IStorageFolder? suggestedStartLocation = null;
+            if (Directory.Exists(viewModel.MinecraftRootDirectory))
+            {
+                suggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(
+                    new Uri(viewModel.MinecraftRootDirectory));
+            }
+
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "选择要清理的 Minecraft 文件夹",
+                AllowMultiple = false,
+                SuggestedStartLocation = suggestedStartLocation,
+            });
+            var root = folders.FirstOrDefault()?.TryGetLocalPath();
+            if (string.IsNullOrWhiteSpace(root))
+            {
+                return;
+            }
+
+            var plan = await viewModel.ScanToolboxGameJunkAsync(root);
+            if (plan.IsEmpty)
+            {
+                await ShowMessageAsync("清理游戏垃圾", viewModel.ToolboxStatusText);
+                return;
+            }
+
+            if (!await ShowConfirmationAsync(
+                    "清理游戏垃圾",
+                    $"将从所选 Minecraft 文件夹清理 {plan.FileCount} 个日志、崩溃报告和可再生成临时文件，共 {FormatToolboxBytes(plan.TotalSize)}。不会删除存档、模组、资源包或设置。是否继续？"))
+            {
+                return;
+            }
+
+            await viewModel.CleanToolboxGameJunkAsync(plan);
+            await ShowMessageAsync("清理游戏垃圾", viewModel.ToolboxStatusText);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+        {
+            await ShowMessageAsync("清理游戏垃圾", $"无法清理所选目录：{exception.Message}", isWarning: true);
+        }
     }
 
     private async void ToolboxLuckClick(object? sender, RoutedEventArgs e)
@@ -858,12 +895,23 @@ public partial class MainWindow : Window
 
     private async void ToolboxMemoryOptimizationClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ViewModels.MainViewModel viewModel)
+        if (DataContext is ViewModels.MainViewModel viewModel &&
+            await ShowConfirmationAsync(
+                "内存优化",
+                "将清理整个 macOS 系统的文件缓存，并附带回收 PCL Aurora 内存。操作可能导致短时卡顿，系统也可能要求管理员授权，但不会关闭其他应用。是否继续？"))
         {
-            viewModel.ShowToolboxMemoryOptimizationCommand.Execute(null);
+            await viewModel.OptimizeToolboxMemoryCommand.ExecuteAsync(null);
             await ShowMessageAsync("内存优化", viewModel.ToolboxStatusText);
         }
     }
+
+    private static string FormatToolboxBytes(long value) => value switch
+    {
+        < 1024 => $"{value} B",
+        < 1024L * 1024 => $"{value / 1024d:0.#} KiB",
+        < 1024L * 1024 * 1024 => $"{value / 1024d / 1024d:0.#} MiB",
+        _ => $"{value / 1024d / 1024d / 1024d:0.#} GiB",
+    };
 
     private async void ToolboxDontClick(object? sender, RoutedEventArgs e)
     {

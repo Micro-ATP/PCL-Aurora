@@ -52,6 +52,8 @@ public partial class MainViewModel(
     IBackgroundMusicService backgroundMusicService,
     IThemeService themeService,
     ISystemMemoryInfo systemMemoryInfo,
+    ISystemMemoryOptimizer systemMemoryOptimizer,
+    IMinecraftJunkCleanupService minecraftJunkCleanupService,
     ISecureSecretStore secretStore,
     ILauncherNetworkSettingsService networkSettingsService) : ViewModelBase
 {
@@ -978,14 +980,8 @@ public partial class MainViewModel(
 
     public bool IsWindowsToolboxCapability => System.OperatingSystem.IsWindows();
 
-    public string ToolboxMemoryOptimizationSummary => System.OperatingSystem.IsWindows()
-        ? "Windows 可提供工作集优化；启动参数中的锁定内存仍可跨平台使用。"
-        : "当前平台不使用 Windows 工作集压缩；可在启动设置中启用锁定内存分配（-Xms = -Xmx）。";
-
-    public bool HasToolboxCacheDirectory =>
-        !string.IsNullOrWhiteSpace(CacheDirectory) &&
-        !string.Equals(CacheDirectory, "—", StringComparison.Ordinal) &&
-        Directory.Exists(CacheDirectory);
+    public string ToolboxMemoryOptimizationSummary =>
+        "清理整个 macOS 系统的文件缓存，并附带回收 Aurora 托管内存；系统可能要求管理员授权。";
 
     [ObservableProperty]
     private bool hasGameLogLines;
@@ -1558,7 +1554,6 @@ public partial class MainViewModel(
             Runtime = diagnostics.Platform.RuntimeVersion;
             ApplicationDataDirectory = diagnostics.Paths.ApplicationDataDirectory;
             CacheDirectory = diagnostics.Paths.CacheDirectory;
-            OnPropertyChanged(nameof(HasToolboxCacheDirectory));
             JavaSummary = uniqueJava.Length == 0
                 ? "未发现可用 Java。"
                 : $"发现 {uniqueJava.Length} 个 Java，其中 {AvailableJavaInstallations.Count} 个与当前架构兼容。";
@@ -6015,8 +6010,34 @@ public partial class MainViewModel(
         }
     }
 
-    [RelayCommand]
-    private async Task ClearToolboxCacheAsync()
+    public async Task<MinecraftJunkCleanupPlan> ScanToolboxGameJunkAsync(
+        string minecraftRootDirectory,
+        CancellationToken cancellationToken = default)
+    {
+        if (IsToolboxCacheClearing)
+        {
+            throw new InvalidOperationException("已有清理任务正在进行。");
+        }
+
+        IsToolboxCacheClearing = true;
+        try
+        {
+            ToolboxStatusText = "正在扫描 Minecraft 日志、崩溃报告和临时文件…";
+            var plan = await minecraftJunkCleanupService.ScanAsync(minecraftRootDirectory, cancellationToken);
+            ToolboxStatusText = plan.IsEmpty
+                ? "没有发现可安全清理的游戏垃圾。"
+                : $"发现 {plan.FileCount} 个文件，共 {FormatByteCount(plan.TotalSize)}。";
+            return plan;
+        }
+        finally
+        {
+            IsToolboxCacheClearing = false;
+        }
+    }
+
+    public async Task CleanToolboxGameJunkAsync(
+        MinecraftJunkCleanupPlan plan,
+        CancellationToken cancellationToken = default)
     {
         if (IsToolboxCacheClearing)
         {
@@ -6026,63 +6047,21 @@ public partial class MainViewModel(
         IsToolboxCacheClearing = true;
         try
         {
-            if (!HasToolboxCacheDirectory)
-            {
-                ToolboxStatusText = "缓存目录尚未创建，无需清理。";
-                return;
-            }
-
-            var deleted = 0;
-            foreach (var file in Directory.EnumerateFiles(CacheDirectory))
-            {
-                try
-                {
-                    File.Delete(file);
-                    deleted++;
-                }
-                catch (IOException)
-                {
-                    // Cache cleanup is best effort; one locked entry must not hide the result.
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    // Cache cleanup is best effort; report the count of entries we could remove.
-                }
-            }
-
-            foreach (var directory in Directory.EnumerateDirectories(CacheDirectory))
-            {
-                try
-                {
-                    Directory.Delete(directory, recursive: true);
-                    deleted++;
-                }
-                catch (IOException)
-                {
-                }
-                catch (UnauthorizedAccessException)
-                {
-                }
-            }
-
-            ToolboxStatusText = deleted == 0
-                ? "缓存目录为空，未删除文件。"
-                : $"已清理缓存目录中的 {deleted} 项。";
+            ToolboxStatusText = "正在清理游戏垃圾…";
+            var result = await minecraftJunkCleanupService.CleanAsync(plan, cancellationToken);
+            ToolboxStatusText = result.FailedEntries == 0
+                ? $"已清理 {result.DeletedFiles} 个文件，释放 {FormatByteCount(result.DeletedBytes)}。"
+                : $"已清理 {result.DeletedFiles} 个文件，释放 {FormatByteCount(result.DeletedBytes)}；{result.FailedEntries} 项未能删除。";
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
-            ToolboxStatusText = $"清理缓存失败：{exception.Message}";
+            ToolboxStatusText = $"清理游戏垃圾失败：{exception.Message}";
         }
         finally
         {
             IsToolboxCacheClearing = false;
-            OnPropertyChanged(nameof(HasToolboxCacheDirectory));
         }
     }
-
-    [RelayCommand]
-    private Task OpenToolboxCacheDirectoryAsync() =>
-        openPathService.OpenFolderAsync(CacheDirectory);
 
     public Task OpenToolboxFolderAsync(string path) =>
         openPathService.OpenFolderAsync(path);
@@ -6107,10 +6086,29 @@ public partial class MainViewModel(
     private void ShowToolboxLaunchCount() =>
         ToolboxStatusText = $"PCL Aurora 已启动 {ToolboxLaunchCount} 次。";
 
-    [RelayCommand]
-    private void ShowToolboxMemoryOptimization()
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task OptimizeToolboxMemoryAsync()
     {
-        ToolboxStatusText = ToolboxMemoryOptimizationSummary;
+        ToolboxStatusText = "正在整理整个系统的文件缓存与 Aurora 内存…";
+        try
+        {
+            var result = await systemMemoryOptimizer.OptimizeAsync();
+            var availableChange = result.SystemAvailableBytesGained is { } gained
+                ? gained >= 0
+                    ? $"系统可用内存增加 {FormatByteCount(gained)}"
+                    : $"系统可用内存变化 -{FormatByteCount(-gained)}"
+                : "系统可用内存变化无法读取";
+            var managed = $"Aurora 回收 {FormatByteCount(result.ManagedBytesReleased)}";
+            ToolboxStatusText = $"{result.Detail} {availableChange}，{managed}。";
+        }
+        catch (OperationCanceledException)
+        {
+            ToolboxStatusText = "已取消系统内存整理。";
+        }
+        catch (Exception exception)
+        {
+            ToolboxStatusText = $"系统内存整理失败：{exception.Message}";
+        }
     }
 
     [RelayCommand]
@@ -6622,36 +6620,14 @@ public partial class MainViewModel(
 
     private static IReadOnlyList<LauncherLanguageOption> CreateLanguageOptions()
     {
-        var autoCulture = ResolveUiCulture(LauncherLocalizationSettings.Auto);
-        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["zh-CN"] = "简体中文（中国大陆）",
-            ["zh-TW"] = "繁體中文（台灣）",
-            ["en-US"] = "English (US)",
-            ["en-GB"] = "English (United Kingdom)",
-            ["ja-JP"] = "日本語（日本）",
-            ["fr-FR"] = "Français (France)",
-            ["es-ES"] = "Español (España)",
-        };
-        var fonts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["zh-CN"] = "PingFang SC, Microsoft YaHei UI, sans-serif",
-            ["zh-TW"] = "PingFang TC, Microsoft JhengHei UI, sans-serif",
-            ["en-US"] = "Segoe UI, Arial, sans-serif",
-            ["en-GB"] = "Segoe UI, Arial, sans-serif",
-            ["ja-JP"] = "Hiragino Sans, Yu Gothic UI, sans-serif",
-            ["fr-FR"] = "Segoe UI, Arial, sans-serif",
-            ["es-ES"] = "Segoe UI, Arial, sans-serif",
-        };
-
-        var result = new List<LauncherLanguageOption>
-        {
-            new(LauncherLocalizationSettings.Auto, $"跟随系统（{names[autoCulture.Name]}）",
-                autoCulture.Name, fonts[autoCulture.Name]),
-        };
-        result.AddRange(LauncherLocalizationSettings.SupportedLanguageCodes.Select(code =>
-            new LauncherLanguageOption(code, names[code], code, fonts[code])));
-        return result;
+        return
+        [
+            new LauncherLanguageOption(
+                LauncherLocalizationSettings.DefaultLanguageCode,
+                "简体中文（中国大陆）",
+                LauncherLocalizationSettings.DefaultLanguageCode,
+                "PingFang SC, Microsoft YaHei UI, sans-serif"),
+        ];
     }
 
     private static IReadOnlyList<LauncherFormatCultureOption> CreateFormatCultureOptions()
@@ -6662,7 +6638,7 @@ public partial class MainViewModel(
             new(LauncherLocalizationSettings.FollowInterfaceLanguage, "同步界面语言"),
         };
         result.AddRange(LauncherLocalizationSettings.SupportedLanguageCodes.Select(code =>
-            new LauncherFormatCultureOption(code, CultureInfo.GetCultureInfo(code).NativeName)));
+            new LauncherFormatCultureOption(code, "简体中文（中国大陆）")));
         return result;
     }
 }

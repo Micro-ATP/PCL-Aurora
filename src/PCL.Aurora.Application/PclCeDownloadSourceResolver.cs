@@ -53,8 +53,27 @@ public static class PclCeDownloadSourceResolver
             .Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com", StringComparison.OrdinalIgnoreCase)
             .Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com", StringComparison.OrdinalIgnoreCase)
             .Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/maven", StringComparison.OrdinalIgnoreCase)
-            .Replace("https://resources.download.minecraft.net", "https://bmclapi2.bangbang93.com/assets", StringComparison.OrdinalIgnoreCase);
+            .Replace("https://resources.download.minecraft.net", "https://bmclapi2.bangbang93.com/assets", StringComparison.OrdinalIgnoreCase)
+            .Replace("https://maven.minecraftforge.net", "https://bmclapi2.bangbang93.com/maven", StringComparison.OrdinalIgnoreCase)
+            .Replace("https://files.minecraftforge.net/maven", "https://bmclapi2.bangbang93.com/maven", StringComparison.OrdinalIgnoreCase)
+            .Replace("https://maven.fabricmc.net", "https://bmclapi2.bangbang93.com/maven", StringComparison.OrdinalIgnoreCase)
+            .Replace("https://meta.fabricmc.net", "https://bmclapi2.bangbang93.com/fabric-meta", StringComparison.OrdinalIgnoreCase);
+        if (original.Host.Equals("maven.neoforged.net", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = original.AbsolutePath.StartsWith("/releases/", StringComparison.Ordinal)
+                ? original.AbsolutePath["/releases".Length..]
+                : original.AbsolutePath;
+            rewritten = $"https://bmclapi2.bangbang93.com/maven{path}{original.Query}";
+        }
+
         return Uri.TryCreate(rewritten, UriKind.Absolute, out var uri) && uri != original ? uri : null;
+    }
+
+    public static bool IsMirror(Uri uri)
+    {
+        ArgumentNullException.ThrowIfNull(uri);
+        return uri.Host.Equals("bmclapi2.bangbang93.com", StringComparison.OrdinalIgnoreCase) ||
+               uri.Host.Equals("mod.mcimirror.top", StringComparison.OrdinalIgnoreCase);
     }
 
     public static Uri? ToCommunityMirror(Uri original)

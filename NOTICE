@@ -58,7 +58,7 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Pages/PageOther/PageOtherTest.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageTools/PageToolsLeft.xaml
 - PCL-CE: Plain Craft Launcher 2/Pages/PageTools/PageToolsTest.xaml
-- PCL-CE: Plain Craft Launcher 2/Pages/PageTools/PageToolsTest.xaml.cs (tool ordering and capability boundaries only)
+- PCL-CE: Plain Craft Launcher 2/Pages/PageTools/PageToolsTest.xaml.cs (tool ordering, cleanup targets and capability boundaries)
 - PCL2: Plain Craft Launcher 2/Controls/MyButton.xaml
 - PCL2: Plain Craft Launcher 2/Controls/MyButton.xaml.vb
 - PCL-CE: Plain Craft Launcher 2/Controls/MyButton.xaml.cs (button press and release motion only)
@@ -348,7 +348,13 @@ operation fails or is cancelled. Aurora queries Azul's public metadata service
 for macOS ARM64 and x64 packages because Mojang does not publish every required
 Java generation for macOS ARM64. Downloaded runtimes are obtained directly from
 Azul at the user's request and are not included in the PCL Aurora repository or
-release package. Window-title variable behavior adapts PCL-CE
+release package. The toolbox memory optimizer follows PCL2's system-wide memory
+optimization contract while using the macOS system `purge` utility to clear the
+global file cache; Aurora's own managed-heap collection is only an additional
+step. The game-junk cleanup targets follow the listed PCL-CE toolbox source,
+with Aurora-specific root containment, symbolic-link rejection, preview and
+confirmation safeguards.
+Window-title variable behavior adapts PCL-CE
 `ModLaunch.ArgumentReplace`, limited to the variables exposed by Aurora's UI.
 The runtime launch-patch flow adapts PCL-CE `ModLaunch`: LegacyFix and the
 LWJGL unsafe agent are selected from effective version metadata, extracted

@@ -30,7 +30,36 @@ public sealed class JsonLauncherPreferencesStore(IPlatformPaths platformPaths) :
         {
             var json = await File.ReadAllTextAsync(preferencesPath, cancellationToken).ConfigureAwait(false);
             var preferences = JsonSerializer.Deserialize<LauncherPreferences>(json, SerializerOptions);
-            if (preferences is null || !preferences.IsValid)
+            if (preferences is null)
+            {
+                return InvalidResult();
+            }
+
+            if (preferences.LocalizationSettings is { } localization)
+            {
+                var language = LauncherLocalizationSettings.SupportedLanguageCodes.Contains(
+                    localization.Language,
+                    StringComparer.OrdinalIgnoreCase)
+                    ? localization.Language
+                    : LauncherLocalizationSettings.DefaultLanguageCode;
+                var formatCulture = LauncherLocalizationSettings.IsValidCulture(localization.FormatCulture)
+                    ? localization.FormatCulture
+                    : LauncherLocalizationSettings.Auto;
+                if (!string.Equals(language, localization.Language, StringComparison.OrdinalIgnoreCase) ||
+                    !string.Equals(formatCulture, localization.FormatCulture, StringComparison.OrdinalIgnoreCase))
+                {
+                    preferences = preferences with
+                    {
+                        LocalizationSettings = localization with
+                        {
+                            Language = language,
+                            FormatCulture = formatCulture,
+                        },
+                    };
+                }
+            }
+
+            if (!preferences.IsValid)
             {
                 return InvalidResult();
             }

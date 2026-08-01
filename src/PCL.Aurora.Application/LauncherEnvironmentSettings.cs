@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace PCL.Aurora.Application;
 
 public enum LauncherAnnouncementMode
@@ -17,7 +15,7 @@ public enum LauncherProxyMode
 }
 
 public sealed record LauncherLocalizationSettings(
-    string Language = "auto",
+    string Language = "zh-CN",
     string FormatCulture = "auto")
 {
     public const string Auto = "auto";
@@ -26,14 +24,13 @@ public sealed record LauncherLocalizationSettings(
 
     public static IReadOnlyList<string> SupportedLanguageCodes { get; } =
     [
-        "zh-CN", "zh-TW", "en-US", "en-GB", "ja-JP", "fr-FR", "es-ES",
+        DefaultLanguageCode,
     ];
 
     public static LauncherLocalizationSettings Default { get; } = new();
 
     public bool IsValid =>
-        (string.Equals(Language, Auto, StringComparison.OrdinalIgnoreCase) ||
-         SupportedLanguageCodes.Contains(Language, StringComparer.OrdinalIgnoreCase)) &&
+        SupportedLanguageCodes.Contains(Language, StringComparer.OrdinalIgnoreCase) &&
         IsValidCulture(FormatCulture);
 
     public static bool IsValidCulture(string? value)
@@ -49,15 +46,7 @@ public sealed record LauncherLocalizationSettings(
             return true;
         }
 
-        try
-        {
-            _ = CultureInfo.GetCultureInfo(value);
-            return true;
-        }
-        catch (CultureNotFoundException)
-        {
-            return false;
-        }
+        return SupportedLanguageCodes.Contains(value, StringComparer.OrdinalIgnoreCase);
     }
 }
 

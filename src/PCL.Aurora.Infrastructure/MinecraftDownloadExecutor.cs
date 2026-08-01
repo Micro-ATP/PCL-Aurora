@@ -116,14 +116,18 @@ public sealed class MinecraftDownloadExecutor(
         MinecraftDownloadArtifact artifact,
         DownloadSourcePreference preference)
     {
-        var officialSources = new[] { artifact.Url }
+        var suppliedSources = new[] { artifact.Url }
             .Concat(artifact.AlternativeUrls ?? [])
             .Distinct()
+            .ToArray();
+        var officialSources = suppliedSources
+            .Where(uri => !PclCeDownloadSourceResolver.IsMirror(uri))
             .ToArray();
         var mirrorSources = officialSources
             .Select(PclCeDownloadSourceResolver.ToBmclapi)
             .Where(uri => uri is not null)
             .Cast<Uri>()
+            .Concat(suppliedSources.Where(PclCeDownloadSourceResolver.IsMirror))
             .Distinct()
             .ToArray();
         var ordered = (preference == DownloadSourcePreference.Mirror

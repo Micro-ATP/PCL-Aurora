@@ -60,6 +60,27 @@ public sealed class MinecraftOfficialLoaderCatalogServiceTests
     }
 
     [Fact]
+    public async Task FetchAsync_MirrorPreferenceRequestsForgeMirrorFirst()
+    {
+        var handler = new RecordingCatalogHandler();
+        using var client = new HttpClient(handler);
+        var preferencesService = new LauncherPreferencesService(new StaticPreferencesStore(
+            new LauncherPreferences(
+                LauncherThemeMode.System,
+                GameManagementOptions: GameManagementOptions.Default with
+                {
+                    VersionListSource = DownloadSourcePreference.Mirror,
+                })));
+        await preferencesService.LoadAsync();
+        var service = new MinecraftOfficialLoaderCatalogService(client, preferencesService);
+
+        var result = await service.FetchAsync("1.20.1", PCL.Aurora.Domain.MinecraftLoaderKind.Forge);
+
+        Assert.NotNull(result.Catalog);
+        Assert.Equal(["bmclapi2.bangbang93.com"], handler.RequestedHosts);
+    }
+
+    [Fact]
     public async Task FetchDirectoryAsync_UsesIndependentPclCeDirectoryEndpoints()
     {
         using var client = new HttpClient(new IndependentDirectoryHandler());
@@ -151,13 +172,22 @@ public sealed class MinecraftOfficialLoaderCatalogServiceTests
         }
     }
 
+    private sealed class StaticPreferencesStore(LauncherPreferences preferences) : ILauncherPreferencesStore
+    {
+        public Task<LauncherPreferencesLoadResult> LoadAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new LauncherPreferencesLoadResult(preferences, null));
+
+        public Task SaveAsync(LauncherPreferences savedPreferences, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+    }
+
     private sealed class IndependentDirectoryHandler : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var content = request.RequestUri!.AbsolutePath switch
             {
-                "/forge/minecraft" => """["1.20.1"]""",
+                "/net/minecraftforge/forge/maven-metadata.xml" => """<metadata><versioning><versions><version>1.20.1-47.2.0</version></versions></versioning></metadata>""",
                 "/forge/minecraft/1.20.1" => """[{"version":"47.2.0","files":[{"category":"installer","format":"jar"}]}]""",
                 "/v2/versions/installer" => """[{"version":"1.0.3","stable":true,"url":"https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.0.3/fabric-installer-1.0.3.jar"}]""",
                 _ => throw new InvalidOperationException($"意外请求：{request.RequestUri}"),

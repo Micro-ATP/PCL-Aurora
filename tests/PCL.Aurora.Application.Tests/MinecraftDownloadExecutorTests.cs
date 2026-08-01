@@ -62,7 +62,15 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
     {
         var content = "PCL Aurora mirror fallback"u8.ToArray();
         using var client = new HttpClient(new MirrorFailureHandler(content));
-        var executor = new MinecraftDownloadExecutor(client);
+        var preferencesService = new LauncherPreferencesService(new StaticPreferencesStore(
+            new LauncherPreferences(
+                LauncherThemeMode.System,
+                GameManagementOptions: GameManagementOptions.Default with
+                {
+                    FileSource = DownloadSourcePreference.Mirror,
+                })));
+        await preferencesService.LoadAsync();
+        var executor = new MinecraftDownloadExecutor(client, preferencesService);
         var plan = CreatePlan(content) with
         {
             Artifacts = [new MinecraftDownloadArtifact(
@@ -77,6 +85,37 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
         await executor.ExecuteAsync(plan, rootDirectory);
 
         Assert.Equal(content, await File.ReadAllBytesAsync(Path.Combine(rootDirectory, "cache", "installer.jar")));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_OfficialPreferenceReordersSuppliedMirrorPrimaryUrl()
+    {
+        var content = "PCL Aurora official loader source"u8.ToArray();
+        var handler = new RecordingResponseHandler(content);
+        using var client = new HttpClient(handler);
+        var preferencesService = new LauncherPreferencesService(new StaticPreferencesStore(
+            new LauncherPreferences(
+                LauncherThemeMode.System,
+                GameManagementOptions: GameManagementOptions.Default with
+                {
+                    FileSource = DownloadSourcePreference.Official,
+                })));
+        await preferencesService.LoadAsync();
+        var executor = new MinecraftDownloadExecutor(client, preferencesService);
+        var plan = CreatePlan(content) with
+        {
+            Artifacts = [new MinecraftDownloadArtifact(
+                "Forge 安装器",
+                "cache/forge-installer.jar",
+                new Uri("https://bmclapi2.bangbang93.com/maven/example/forge-installer.jar"),
+                Convert.ToHexString(SHA1.HashData(content)),
+                content.Length,
+                [new Uri("https://maven.minecraftforge.net/example/forge-installer.jar")])],
+        };
+
+        await executor.ExecuteAsync(plan, rootDirectory);
+
+        Assert.Equal("maven.minecraftforge.net", handler.RequestedHosts[0]);
     }
 
     [Fact]
@@ -254,6 +293,17 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
             Task.FromResult(request.RequestUri!.Host == "bmclapi2.bangbang93.com"
                 ? new HttpResponseMessage(HttpStatusCode.BadGateway)
                 : new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(content) });
+    }
+
+    private sealed class RecordingResponseHandler(byte[] content) : HttpMessageHandler
+    {
+        public List<string> RequestedHosts { get; } = [];
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            RequestedHosts.Add(request.RequestUri!.Host);
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(content) });
+        }
     }
 
     private sealed class DelayedResponseHandler(byte[] content) : HttpMessageHandler

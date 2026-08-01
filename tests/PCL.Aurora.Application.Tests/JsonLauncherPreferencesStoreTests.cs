@@ -28,7 +28,7 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     public async Task SaveAsync_RoundTripsLocalizationAndMiscSettingsWithoutProxyPassword()
     {
         var store = CreateStore();
-        var localization = new LauncherLocalizationSettings("en-US", "ui-language");
+        var localization = new LauncherLocalizationSettings("zh-CN", "ui-language");
         var misc = LauncherMiscSettings.Default with
         {
             EnableDoh = false,
@@ -47,6 +47,40 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
         Assert.Equal(misc, result.Preferences.EffectiveMiscSettings);
         var storedJson = await File.ReadAllTextAsync(GetPreferencesPath());
         Assert.DoesNotContain("proxyPassword", storedJson, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task LoadAsync_MigratesLegacyInterfaceLanguageWithoutResettingOtherPreferences()
+    {
+        Directory.CreateDirectory(applicationDataDirectory);
+        await File.WriteAllTextAsync(
+            GetPreferencesPath(),
+            """{"themeMode":"Dark","downloadConcurrency":8,"localizationSettings":{"language":"en-US","formatCulture":"auto"}}""");
+        var store = CreateStore();
+
+        var result = await store.LoadAsync();
+
+        Assert.Equal(LauncherThemeMode.Dark, result.Preferences.ThemeMode);
+        Assert.Equal(8, result.Preferences.DownloadConcurrency);
+        Assert.Equal("zh-CN", result.Preferences.EffectiveLocalizationSettings.Language);
+        Assert.Equal("auto", result.Preferences.EffectiveLocalizationSettings.FormatCulture);
+        Assert.Null(result.Warning);
+    }
+
+    [Fact]
+    public async Task LoadAsync_MigratesHiddenLegacyFormatCultureToAutomatic()
+    {
+        Directory.CreateDirectory(applicationDataDirectory);
+        await File.WriteAllTextAsync(
+            GetPreferencesPath(),
+            """{"themeMode":"System","localizationSettings":{"language":"zh-TW","formatCulture":"en-US"}}""");
+        var store = CreateStore();
+
+        var result = await store.LoadAsync();
+
+        Assert.Equal("zh-CN", result.Preferences.EffectiveLocalizationSettings.Language);
+        Assert.Equal("auto", result.Preferences.EffectiveLocalizationSettings.FormatCulture);
+        Assert.Null(result.Warning);
     }
 
     [Fact]

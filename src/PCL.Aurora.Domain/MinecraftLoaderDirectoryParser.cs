@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace PCL.Aurora.Domain;
 
@@ -26,6 +27,34 @@ public static class MinecraftLoaderDirectoryParser
             .Select(version => new MinecraftLoaderDirectoryGroup(version, version, [], IsLazy: true))
             .ToArray();
         return CreateDirectory(MinecraftLoaderKind.Forge, "BMCLAPI Forge 目录", groups);
+    }
+
+    public static MinecraftLoaderDirectory ParseForgeMinecraftVersionsFromMaven(string xml)
+    {
+        var document = XDocument.Parse(xml, LoadOptions.None);
+        var groups = document.Descendants()
+            .Where(element => element.Name.LocalName == "version")
+            .Select(element => element.Value.Trim())
+            .Select(TryGetForgeMinecraftVersion)
+            .Where(version => version is not null)
+            .Cast<string>()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(version => version, VersionComparer)
+            .Select(version => new MinecraftLoaderDirectoryGroup(version, version, [], IsLazy: true))
+            .ToArray();
+        return CreateDirectory(MinecraftLoaderKind.Forge, "Forge Maven 目录", groups);
+    }
+
+    private static string? TryGetForgeMinecraftVersion(string coordinate)
+    {
+        var separator = coordinate.IndexOf('-');
+        if (separator <= 0)
+        {
+            return null;
+        }
+
+        var minecraftVersion = coordinate[..separator];
+        return IsSafeToken(minecraftVersion, 64) ? minecraftVersion : null;
     }
 
     public static MinecraftLoaderDirectory ParseForgeVersions(string minecraftVersion, string json)

@@ -3,16 +3,19 @@ using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Application;
 
-public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient) : IMinecraftOfficialLoaderCatalogService
+public sealed class MinecraftOfficialLoaderCatalogService(
+    HttpClient httpClient,
+    ILauncherPreferencesService? preferencesService = null) : IMinecraftOfficialLoaderCatalogService
 {
     private static readonly Uri ForgeMetadataUri = new("https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml");
+    private static readonly Uri ForgeMetadataMirrorUri = new("https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/maven-metadata.xml");
     private static readonly Uri NeoForgeReleasesUri = new("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge");
     private static readonly Uri NeoForgeLegacyUri = new("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/forge");
     private static readonly Uri NeoForgeMirrorReleasesUri = new("https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/neoforge");
     private static readonly Uri NeoForgeMirrorLegacyUri = new("https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/forge");
     private static readonly Uri OptiFineCatalogUri = new("https://bmclapi2.bangbang93.com/optifine/versionList");
-    private static readonly Uri ForgeMinecraftVersionsUri = new("https://bmclapi2.bangbang93.com/forge/minecraft");
     private static readonly Uri FabricInstallersUri = new("https://meta.fabricmc.net/v2/versions/installer");
+    private static readonly Uri FabricInstallersMirrorUri = new("https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/installer");
     private static readonly Uri CleanroomReleasesUri = new("https://api.github.com/repos/CleanroomMC/Cleanroom/releases?per_page=100");
     private static readonly Uri LegacyFabricVersionsUri = new("https://meta.legacyfabric.net/v2/versions");
     private static readonly Uri LabyModProductionUri = new("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json");
@@ -33,17 +36,18 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
         try
         {
             var fabricUri = new Uri($"https://meta.fabricmc.net/v2/versions/loader/{Uri.EscapeDataString(minecraftVersion)}");
+            var fabricMirrorUri = PclCeDownloadSourceResolver.ToBmclapi(fabricUri)!;
             var forgeTask = Includes(MinecraftLoaderKind.Forge)
-                ? TryFetchAsync("Forge", ForgeMetadataUri, cancellationToken)
+                ? TryFetchWithPreferenceAsync("Forge", ForgeMetadataUri, ForgeMetadataMirrorUri, cancellationToken)
                 : Task.FromResult(CatalogResponse.Empty);
             var neoForgeTask = Includes(MinecraftLoaderKind.NeoForge)
-                ? TryFetchWithFallbackAsync("NeoForge", NeoForgeMirrorReleasesUri, NeoForgeReleasesUri, cancellationToken)
+                ? TryFetchWithPreferenceAsync("NeoForge", NeoForgeReleasesUri, NeoForgeMirrorReleasesUri, cancellationToken)
                 : Task.FromResult(CatalogResponse.Empty);
             var neoForgeLegacyTask = Includes(MinecraftLoaderKind.NeoForge)
-                ? TryFetchWithFallbackAsync("NeoForge 遗留目录", NeoForgeMirrorLegacyUri, NeoForgeLegacyUri, cancellationToken)
+                ? TryFetchWithPreferenceAsync("NeoForge 遗留目录", NeoForgeLegacyUri, NeoForgeMirrorLegacyUri, cancellationToken)
                 : Task.FromResult(CatalogResponse.Empty);
             var fabricTask = Includes(MinecraftLoaderKind.Fabric)
-                ? TryFetchAsync("Fabric", fabricUri, cancellationToken)
+                ? TryFetchWithPreferenceAsync("Fabric", fabricUri, fabricMirrorUri, cancellationToken)
                 : Task.FromResult(CatalogResponse.Empty);
             var optiFineTask = Includes(MinecraftLoaderKind.OptiFine)
                 ? TryFetchAsync("OptiFine 公开目录", OptiFineCatalogUri, cancellationToken)
@@ -92,14 +96,22 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
             return loaderKind switch
             {
                 MinecraftLoaderKind.Forge => ParseSingle(
-                    await TryFetchAsync("Forge", ForgeMinecraftVersionsUri, cancellationToken).ConfigureAwait(false),
-                    MinecraftLoaderDirectoryParser.ParseForgeMinecraftVersions),
+                    await TryFetchWithPreferenceAsync(
+                        "Forge",
+                        ForgeMetadataUri,
+                        ForgeMetadataMirrorUri,
+                        cancellationToken).ConfigureAwait(false),
+                    MinecraftLoaderDirectoryParser.ParseForgeMinecraftVersionsFromMaven),
                 MinecraftLoaderKind.NeoForge => await FetchNeoForgeDirectoryAsync(cancellationToken).ConfigureAwait(false),
                 MinecraftLoaderKind.OptiFine => ParseSingle(
                     await TryFetchAsync("OptiFine", OptiFineCatalogUri, cancellationToken).ConfigureAwait(false),
                     MinecraftLoaderDirectoryParser.ParseOptiFineVersions),
                 MinecraftLoaderKind.Fabric => ParseSingle(
-                    await TryFetchAsync("Fabric", FabricInstallersUri, cancellationToken).ConfigureAwait(false),
+                    await TryFetchWithPreferenceAsync(
+                        "Fabric",
+                        FabricInstallersUri,
+                        FabricInstallersMirrorUri,
+                        cancellationToken).ConfigureAwait(false),
                     MinecraftLoaderDirectoryParser.ParseFabricInstallers),
                 MinecraftLoaderKind.Cleanroom => ParseSingle(
                     await TryFetchAsync("Cleanroom", CleanroomReleasesUri, cancellationToken).ConfigureAwait(false),
@@ -109,7 +121,7 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
                     MinecraftLoaderDirectoryParser.ParseLegacyFabricInstallers),
                 MinecraftLoaderKind.LabyMod => await FetchLabyModDirectoryAsync(cancellationToken).ConfigureAwait(false),
                 MinecraftLoaderKind.LiteLoader => ParseSingle(
-                    await TryFetchWithFallbackAsync(
+                    await TryFetchWithPreferenceAsync(
                         "LiteLoader",
                         LiteLoaderOfficialUri,
                         LiteLoaderMirrorUri,
@@ -162,8 +174,8 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
 
     private async Task<MinecraftLoaderDirectoryResult> FetchNeoForgeDirectoryAsync(CancellationToken cancellationToken)
     {
-        var releasesTask = TryFetchWithFallbackAsync("NeoForge", NeoForgeMirrorReleasesUri, NeoForgeReleasesUri, cancellationToken);
-        var legacyTask = TryFetchWithFallbackAsync("NeoForge 遗留目录", NeoForgeMirrorLegacyUri, NeoForgeLegacyUri, cancellationToken);
+        var releasesTask = TryFetchWithPreferenceAsync("NeoForge", NeoForgeReleasesUri, NeoForgeMirrorReleasesUri, cancellationToken);
+        var legacyTask = TryFetchWithPreferenceAsync("NeoForge 遗留目录", NeoForgeLegacyUri, NeoForgeMirrorLegacyUri, cancellationToken);
         await Task.WhenAll(releasesTask, legacyTask).ConfigureAwait(false);
         var responses = new[] { await releasesTask.ConfigureAwait(false), await legacyTask.ConfigureAwait(false) };
         var errors = responses.Where(response => response.Error is not null).Select(response => response.Error!).ToArray();
@@ -229,22 +241,31 @@ public sealed class MinecraftOfficialLoaderCatalogService(HttpClient httpClient)
         }
     }
 
-    private async Task<CatalogResponse> TryFetchWithFallbackAsync(
+    private async Task<CatalogResponse> TryFetchWithPreferenceAsync(
         string sourceName,
-        Uri primaryUri,
-        Uri fallbackUri,
+        Uri officialUri,
+        Uri mirrorUri,
         CancellationToken cancellationToken)
     {
-        var primary = await TryFetchAsync(sourceName, primaryUri, cancellationToken).ConfigureAwait(false);
-        if (primary.Content is not null)
+        var preference = preferencesService?.Current.EffectiveGameManagementOptions.VersionListSource
+            ?? DownloadSourcePreference.PreferOfficialWithFallback;
+        var sources = PclCeDownloadSourceResolver.Order(preference, officialUri, mirrorUri);
+        var errors = new List<string>();
+        foreach (var source in sources)
         {
-            return primary;
+            var response = await TryFetchAsync(sourceName, source, cancellationToken).ConfigureAwait(false);
+            if (response.Content is not null)
+            {
+                return response;
+            }
+
+            if (response.Error is not null)
+            {
+                errors.Add(response.Error);
+            }
         }
 
-        var fallback = await TryFetchAsync(sourceName, fallbackUri, cancellationToken).ConfigureAwait(false);
-        return fallback.Content is not null
-            ? fallback
-            : new(null, string.Join("；", new[] { primary.Error, fallback.Error }.Where(error => error is not null)));
+        return new(null, string.Join("；", errors));
     }
 
     private sealed record CatalogResponse(string? Content, string? Error)
