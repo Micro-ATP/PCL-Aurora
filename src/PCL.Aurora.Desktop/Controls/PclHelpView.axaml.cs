@@ -20,12 +20,15 @@ public partial class PclHelpView : UserControl
     public static readonly StyledProperty<bool> IsStandaloneProperty =
         AvaloniaProperty.Register<PclHelpView, bool>(nameof(IsStandalone));
 
-    private static readonly IBrush PrimaryTextBrush = new SolidColorBrush(Color.Parse("#35404C"));
-    private static readonly IBrush MutedTextBrush = new SolidColorBrush(Color.Parse("#87929D"));
-    private static readonly IBrush ThemeBrush = new SolidColorBrush(Color.Parse("#127AE1"));
-    private static readonly IBrush CardBrush = new SolidColorBrush(Color.Parse("#FBFCFE"));
-    private static readonly IBrush WarningBrush = new SolidColorBrush(Color.Parse("#FFF0F0"));
-    private static readonly IBrush InformationBrush = new SolidColorBrush(Color.Parse("#EAF4FE"));
+    private IBrush primaryTextBrush = new SolidColorBrush(Color.Parse("#35404C"));
+    private IBrush mutedTextBrush = new SolidColorBrush(Color.Parse("#87929D"));
+    private IBrush themeBrush = new SolidColorBrush(Color.Parse("#127AE1"));
+    private IBrush warningBrush = new SolidColorBrush(Color.Parse("#FFF0F0"));
+    private IBrush warningTextBrush = new SolidColorBrush(Color.Parse("#A94747"));
+    private IBrush warningBorderBrush = new SolidColorBrush(Color.Parse("#F0BABA"));
+    private IBrush informationBrush = new SolidColorBrush(Color.Parse("#EAF4FE"));
+    private IBrush informationTextBrush = new SolidColorBrush(Color.Parse("#3E6D93"));
+    private IBrush informationBorderBrush = new SolidColorBrush(Color.Parse("#B9DCF7"));
 
     private IReadOnlyList<PclHelpEntry> entries = [];
     private Dictionary<string, PclHelpEntry> entriesByPath = new(StringComparer.OrdinalIgnoreCase);
@@ -47,12 +50,32 @@ public partial class PclHelpView : UserControl
         InitializeComponent();
         AttachedToVisualTree += async (_, _) =>
         {
+            ResolvePaletteResources();
             if (!IsStandalone && entries.Count == 0)
             {
                 await ReloadAsync();
             }
         };
     }
+
+    private void ResolvePaletteResources()
+    {
+        primaryTextBrush = FindBrush("PclTextPrimaryBrush", primaryTextBrush);
+        mutedTextBrush = FindBrush("PclTextMutedBrush", mutedTextBrush);
+        themeBrush = FindBrush("PclThemePrimaryBrush", themeBrush);
+        warningBrush = FindBrush("PclDangerBackgroundBrush", warningBrush);
+        warningTextBrush = FindBrush("PclDangerTextBrush", warningTextBrush);
+        warningBorderBrush = FindBrush("PclWarningBorderBrush", warningBorderBrush);
+        informationBrush = FindBrush("PclHintBackgroundBrush", informationBrush);
+        informationTextBrush = FindBrush("PclTextSecondaryBrush", informationTextBrush);
+        informationBorderBrush = FindBrush("PclHintBorderBrush", informationBorderBrush);
+    }
+
+    private IBrush FindBrush(string key, IBrush fallback) =>
+        Avalonia.Application.Current?.TryGetResource(key, ActualThemeVariant, out var resource) == true &&
+        resource is IBrush brush
+            ? brush
+            : fallback;
 
     internal void ShowStandaloneLoading(string text = "正在加载主页")
     {
@@ -201,14 +224,14 @@ public partial class PclHelpView : UserControl
                 new TextBlock
                 {
                     FontSize = 13,
-                    Foreground = PrimaryTextBrush,
+                    Foreground = primaryTextBrush,
                     Text = entry.Title,
                     TextTrimming = TextTrimming.CharacterEllipsis,
                 },
                 new TextBlock
                 {
                     FontSize = 11,
-                    Foreground = MutedTextBrush,
+                    Foreground = mutedTextBrush,
                     Text = entry.Description,
                     TextTrimming = TextTrimming.CharacterEllipsis,
                 },
@@ -396,7 +419,7 @@ public partial class PclHelpView : UserControl
         {
             Text = GetAttribute(element, "Text", element.Value),
             TextWrapping = GetAttribute(element, "TextWrapping") == "NoWrap" ? TextWrapping.NoWrap : TextWrapping.Wrap,
-            Foreground = PrimaryTextBrush,
+            Foreground = primaryTextBrush,
             FontSize = GetDouble(element, "FontSize", 13),
             LineHeight = GetDouble(element, "LineHeight", double.NaN),
         };
@@ -518,13 +541,13 @@ public partial class PclHelpView : UserControl
         return new Border
         {
             MinHeight = 42,
-            Background = InformationBrush,
+            Background = informationBrush,
             CornerRadius = new CornerRadius(4),
             Child = new TextBlock
             {
                 Margin = new Thickness(12),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Foreground = MutedTextBrush,
+                Foreground = mutedTextBrush,
                 Text = "图片资源",
             },
         };
@@ -537,7 +560,7 @@ public partial class PclHelpView : UserControl
             Width = GetDouble(element, "Width", 18),
             Height = GetDouble(element, "Height", 18),
             Stretch = Stretch.Uniform,
-            Fill = ThemeBrush,
+            Fill = themeBrush,
         };
         try { path.Data = Geometry.Parse(GetAttribute(element, "Data")); } catch { }
         return path;
@@ -556,13 +579,13 @@ public partial class PclHelpView : UserControl
         {
             Margin = new Thickness(0, 0, 0, 15),
             Padding = new Thickness(12, 10),
-            Background = isWarning ? WarningBrush : InformationBrush,
-            BorderBrush = new SolidColorBrush(Color.Parse(isWarning ? "#F0BABA" : "#B9DCF7")),
+            Background = isWarning ? warningBrush : informationBrush,
+            BorderBrush = isWarning ? warningBorderBrush : informationBorderBrush,
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(4),
             Child = new TextBlock
             {
-                Foreground = new SolidColorBrush(Color.Parse(isWarning ? "#A94747" : "#3E6D93")),
+                Foreground = isWarning ? warningTextBrush : informationTextBrush,
                 FontSize = 12,
                 Text = text,
                 TextWrapping = TextWrapping.Wrap,

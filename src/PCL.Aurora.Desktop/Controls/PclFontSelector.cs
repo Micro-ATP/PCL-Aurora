@@ -27,11 +27,12 @@ public sealed class PclFontSelector : ComboBox
     private bool isSynchronizing;
     private bool isLoaded;
 
+    protected override Type StyleKeyOverride => typeof(ComboBox);
+
     public PclFontSelector()
     {
         ItemsSource = fonts;
         MaxDropDownHeight = 300;
-        AttachedToVisualTree += (_, _) => LoadFonts();
         SelectionChanged += (_, _) => SynchronizeTagFromSelection();
     }
 
@@ -50,9 +51,15 @@ public sealed class PclFontSelector : ComboBox
         }
     }
 
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        LoadFonts();
+    }
+
     private void LoadFonts()
     {
-        if (isLoaded || !this.IsAttachedToVisualTree())
+        if (isLoaded)
         {
             return;
         }
@@ -93,7 +100,7 @@ public sealed class PclFontSelector : ComboBox
         }
 
         isSynchronizing = true;
-        SelectedFontTag = option.Tag;
+        SetCurrentValue(SelectedFontTagProperty, option.Tag);
         isSynchronizing = false;
     }
 }

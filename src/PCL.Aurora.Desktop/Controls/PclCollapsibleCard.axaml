@@ -8,7 +8,7 @@
     <UserControl.Styles>
         <Style Selector="Border.collapsible-card-surface">
             <Setter Property="CornerRadius" Value="5" />
-            <Setter Property="Background" Value="#D2FBFBFB" />
+            <Setter Property="Background" Value="{DynamicResource PclCardBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="BoxShadow" Value="0 1 4 0 #12343D4A" />
@@ -20,7 +20,7 @@
             </Setter>
         </Style>
         <Style Selector="Border.collapsible-card-surface:pointerover">
-            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Background" Value="{DynamicResource PclCardHoverBrush}" />
             <Setter Property="BoxShadow" Value="0 1 3 0 #664890F5" />
         </Style>
         <Style Selector="Button.collapsible-card-header">
@@ -61,7 +61,7 @@
         <Style Selector="TextBlock.collapsible-card-title">
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Foreground" Duration="0:0:0.09" />
@@ -69,10 +69,10 @@
             </Setter>
         </Style>
         <Style Selector="Border.collapsible-card-surface:pointerover TextBlock.collapsible-card-title">
-            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Path.collapsible-card-arrow">
-            <Setter Property="Stroke" Value="#343D4A" />
+            <Setter Property="Stroke" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Stroke" Duration="0:0:0.09" />
@@ -80,7 +80,7 @@
             </Setter>
         </Style>
         <Style Selector="Border.collapsible-card-surface:pointerover Path.collapsible-card-arrow">
-            <Setter Property="Stroke" Value="#0B5BCB" />
+            <Setter Property="Stroke" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
     </UserControl.Styles>
 

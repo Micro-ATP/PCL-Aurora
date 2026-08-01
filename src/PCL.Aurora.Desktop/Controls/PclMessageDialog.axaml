@@ -9,9 +9,9 @@
             <Setter Property="MinWidth" Value="64" />
             <Setter Property="Height" Value="32" />
             <Setter Property="Padding" Value="12,0" />
-            <Setter Property="Background" Value="#FBFBFB" />
-            <Setter Property="Foreground" Value="#343D4A" />
-            <Setter Property="BorderBrush" Value="#343D4A" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceRaisedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclTextSecondaryBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="FontSize" Value="14" />
@@ -21,41 +21,41 @@
             <Setter Property="FocusAdorner" Value="{x:Null}" />
         </Style>
         <Style Selector="Button.dialog-button:focus-visible">
-            <Setter Property="Background" Value="#ECF5FF" />
-            <Setter Property="BorderBrush" Value="#127AE1" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.dialog-button:pointerover">
-            <Setter Property="Background" Value="#ECF5FF" />
-            <Setter Property="Foreground" Value="#127AE1" />
-            <Setter Property="BorderBrush" Value="#127AE1" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.dialog-button:pressed">
-            <Setter Property="Background" Value="#DCEEFF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
         </Style>
         <Style Selector="Button.dialog-button.primary">
-            <Setter Property="Foreground" Value="#0B5BCB" />
-            <Setter Property="BorderBrush" Value="#0B5BCB" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.dialog-button.primary:pointerover">
-            <Setter Property="Foreground" Value="#127AE1" />
-            <Setter Property="BorderBrush" Value="#127AE1" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.dialog-button.danger">
             <Setter Property="Foreground" Value="#CE2111" />
             <Setter Property="BorderBrush" Value="#CE2111" />
         </Style>
         <Style Selector="Button.dialog-button.danger:focus-visible">
-            <Setter Property="Background" Value="#FFF0F0" />
+            <Setter Property="Background" Value="{DynamicResource PclDangerBackgroundBrush}" />
             <Setter Property="Foreground" Value="#CE2111" />
             <Setter Property="BorderBrush" Value="#CE2111" />
         </Style>
         <Style Selector="Button.dialog-button.danger:pointerover">
-            <Setter Property="Background" Value="#FFF0F0" />
+            <Setter Property="Background" Value="{DynamicResource PclDangerBackgroundBrush}" />
             <Setter Property="Foreground" Value="#FF4C4C" />
             <Setter Property="BorderBrush" Value="#FF4C4C" />
         </Style>
         <Style Selector="Button.dialog-button.danger:pressed">
-            <Setter Property="Background" Value="#FBDDDD" />
+            <Setter Property="Background" Value="{DynamicResource PclDangerBackgroundBrush}" />
         </Style>
     </UserControl.Styles>
 
@@ -79,7 +79,7 @@
                     <TranslateTransform Y="40" />
                 </TransformGroup>
             </Grid.RenderTransform>
-            <Border Background="#FBFBFB"
+            <Border Background="{DynamicResource PclSurfaceRaisedBrush}"
                     CornerRadius="7"
                     BoxShadow="0 4 20 2 #CC3C3C3C">
                 <Grid Margin="22,22,22,23" RowDefinitions="Auto,2,13,*,Auto">
@@ -90,12 +90,12 @@
                                VerticalAlignment="Top"
                                FontSize="23"
                                FontWeight="Light"
-                               Foreground="#0B5BCB"
+                               Foreground="{DynamicResource PclThemePrimaryBrush}"
                                TextWrapping="Wrap" />
                     <Border x:Name="TitleDivider"
                             Grid.Row="1"
                             Height="2"
-                            Background="#0B5BCB" />
+                            Background="{DynamicResource PclThemePrimaryBrush}" />
 
                     <ScrollViewer Grid.Row="3"
                                   MaxHeight="300"
@@ -108,7 +108,7 @@
                                        Padding="1"
                                        FontSize="15"
                                        FontWeight="Normal"
-                                       Foreground="#343D4A"
+                                       Foreground="{DynamicResource PclTextPrimaryBrush}"
                                        LineHeight="18"
                                        TextWrapping="Wrap" />
                             <ContentControl x:Name="DialogContent"

@@ -19,6 +19,8 @@ internal sealed class PclRemoteImage : Border
         Timeout = TimeSpan.FromSeconds(25),
     };
     private static readonly ConcurrentDictionary<string, Task<Bitmap?>> Cache = new(StringComparer.Ordinal);
+    private IBrush loadingBackgroundBrush = new SolidColorBrush(Color.Parse("#ECF3FA"));
+    private IBrush mutedTextBrush = new SolidColorBrush(Color.Parse("#83909E"));
 
     public PclRemoteImage(string source)
     {
@@ -26,17 +28,39 @@ internal sealed class PclRemoteImage : Border
         MaxWidth = 760;
         Margin = new Thickness(40, 8, 40, 8);
         HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
-        Background = new SolidColorBrush(Color.Parse("#ECF3FA"));
+        Background = loadingBackgroundBrush;
         CornerRadius = new CornerRadius(4);
         Child = new TextBlock
         {
             Margin = new Thickness(12),
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-            Foreground = new SolidColorBrush(Color.Parse("#83909E")),
+            Foreground = mutedTextBrush,
             Text = "正在加载图片",
         };
+        AttachedToVisualTree += (_, _) => ResolvePaletteResources();
         _ = LoadAsync(source);
+    }
+
+    private void ResolvePaletteResources()
+    {
+        if (Avalonia.Application.Current?.TryGetResource(
+                "PclHintBackgroundBrush", ActualThemeVariant, out var background) == true &&
+            background is IBrush backgroundBrush)
+        {
+            loadingBackgroundBrush = backgroundBrush;
+        }
+        if (Avalonia.Application.Current?.TryGetResource(
+                "PclTextMutedBrush", ActualThemeVariant, out var foreground) == true &&
+            foreground is IBrush foregroundBrush)
+        {
+            mutedTextBrush = foregroundBrush;
+        }
+        if (Child is TextBlock text)
+        {
+            Background = loadingBackgroundBrush;
+            text.Foreground = mutedTextBrush;
+        }
     }
 
     private async Task LoadAsync(string source)
@@ -53,7 +77,7 @@ internal sealed class PclRemoteImage : Border
                 {
                     Margin = new Thickness(12),
                     HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                    Foreground = new SolidColorBrush(Color.Parse("#83909E")),
+                    Foreground = mutedTextBrush,
                     Text = "图片暂时无法加载",
                 };
                 return;

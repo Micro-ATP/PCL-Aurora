@@ -4,6 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -41,6 +42,7 @@ public partial class MainWindow : Window
     private ViewModels.MainViewModel? subscribedViewModel;
     private Bitmap? launcherBackgroundBitmap;
     private Bitmap? launcherTitleBitmap;
+    private Bitmap? startupLogoBitmap;
     private bool isFeatureHidingSuspended;
     private bool isRevertingAnnouncementSelection;
     private readonly HttpClient toolboxHttpClient = new() { Timeout = TimeSpan.FromSeconds(30) };
@@ -54,6 +56,18 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        try
+        {
+            using var startupLogoStream = AssetLoader.Open(
+                new Uri("avares://PCL.Aurora.Desktop/Assets/Icons/AppIcon-2048.png"));
+            startupLogoBitmap = new Bitmap(startupLogoStream);
+            StartupLogoImage.Source = startupLogoBitmap;
+        }
+        catch
+        {
+            StartupLogoOverlay.IsVisible = false;
+            MainShellBorder.Opacity = 1;
+        }
         var downloadsDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             "Downloads");
@@ -84,8 +98,8 @@ public partial class MainWindow : Window
             if (DataContext is ViewModels.MainViewModel viewModel)
             {
                 await viewModel.InitializeAsync();
-                await RefreshHomepageAsync(showSuccess: false);
                 await CompleteStartupLogoAsync(viewModel.ShowStartupLogo);
+                await RefreshHomepageAsync(showSuccess: false);
             }
         };
         Closed += (_, _) =>
@@ -105,6 +119,7 @@ public partial class MainWindow : Window
             toolboxAvatarBitmap?.Dispose();
             launcherBackgroundBitmap?.Dispose();
             launcherTitleBitmap?.Dispose();
+            startupLogoBitmap?.Dispose();
         };
     }
 
@@ -180,9 +195,11 @@ public partial class MainWindow : Window
         if (!showStartupLogo)
         {
             StartupLogoOverlay.IsVisible = false;
+            MainShellBorder.Opacity = 1;
             return;
         }
-        await Task.Delay(520);
+        await Task.Delay(420);
+        MainShellBorder.Opacity = 1;
         StartupLogoOverlay.Opacity = 0;
         await Task.Delay(260);
         StartupLogoOverlay.IsVisible = false;
@@ -375,12 +392,6 @@ public partial class MainWindow : Window
             ? [WindowTransparencyLevel.AcrylicBlur, WindowTransparencyLevel.Blur, WindowTransparencyLevel.Transparent]
             : [WindowTransparencyLevel.Transparent];
         LauncherColorOverlay.IsVisible = viewModel.UseColorfulBackground;
-        if (Resources["PclPageBackgroundBrush"] is SolidColorBrush pageBackground)
-        {
-            pageBackground.Color = launcherBackgroundBitmap is null
-                ? Color.Parse("#D9EAF9")
-                : Color.Parse("#B8D9EAF9");
-        }
         PclHomepageView.FontFamily = string.IsNullOrWhiteSpace(viewModel.MotdInterfaceFont)
             ? FontFamily
             : new FontFamily(viewModel.MotdInterfaceFont.Trim());
@@ -483,6 +494,7 @@ public partial class MainWindow : Window
         var isDark = viewModel.SelectedThemeMode.Mode == LauncherThemeMode.Dark ||
                      (viewModel.SelectedThemeMode.Mode == LauncherThemeMode.System &&
                       Avalonia.Application.Current?.ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark);
+        ApplySemanticPalette(isDark, launcherBackgroundBitmap is not null);
         var theme = (LauncherColorTheme)(isDark ? viewModel.DarkThemeColorIndex : viewModel.LightThemeColorIndex);
         var colors = theme switch
         {
@@ -491,7 +503,7 @@ public partial class MainWindow : Window
             _ => (Primary: "#1370F3", Start: "#106AC4", Middle: "#1377DD", End: "#106AC5"),
         };
 
-        if (Resources["PclThemePrimaryBrush"] is Avalonia.Media.SolidColorBrush primary)
+        if (Avalonia.Application.Current?.Resources["PclThemePrimaryBrush"] is Avalonia.Media.SolidColorBrush primary)
         {
             primary.Color = Avalonia.Media.Color.Parse(colors.Primary);
         }
@@ -501,6 +513,81 @@ public partial class MainWindow : Window
             title.GradientStops[0].Color = Avalonia.Media.Color.Parse(colors.Start);
             title.GradientStops[1].Color = Avalonia.Media.Color.Parse(colors.Middle);
             title.GradientStops[2].Color = Avalonia.Media.Color.Parse(colors.End);
+        }
+    }
+
+    private void ApplySemanticPalette(bool isDark, bool hasBackgroundImage)
+    {
+        var colors = isDark
+            ? new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["PclPageBackgroundBrush"] = hasBackgroundImage ? "#C024282E" : "#24282E",
+                ["PclTextPrimaryBrush"] = "#EEF2F7",
+                ["PclTextSecondaryBrush"] = "#B6C0CB",
+                ["PclTextMutedBrush"] = "#8994A1",
+                ["PclSurfaceBrush"] = "#292E35",
+                ["PclSurfaceRaisedBrush"] = "#30363E",
+                ["PclCardBrush"] = "#E62B3037",
+                ["PclCardHoverBrush"] = "#34404E",
+                ["PclControlBackgroundBrush"] = "#30363E",
+                ["PclControlHoverBrush"] = "#394655",
+                ["PclControlPressedBrush"] = "#273F58",
+                ["PclControlSelectedBrush"] = "#334F6D",
+                ["PclControlSelectedHoverBrush"] = "#3B5E82",
+                ["PclControlBorderBrush"] = "#556577",
+                ["PclControlAccentBorderBrush"] = "#6F9FD5",
+                ["PclDividerBrush"] = "#424B56",
+                ["PclDisabledSurfaceBrush"] = "#292D32",
+                ["PclDisabledTextBrush"] = "#6E7782",
+                ["PclHintBackgroundBrush"] = "#26384B",
+                ["PclHintBorderBrush"] = "#426787",
+                ["PclWarningBackgroundBrush"] = "#4A4020",
+                ["PclWarningBorderBrush"] = "#8E7837",
+                ["PclWarningTextBrush"] = "#E6CF84",
+                ["PclDangerBackgroundBrush"] = "#4A292C",
+                ["PclDangerTextBrush"] = "#FF9A9A",
+                ["PclSuccessBackgroundBrush"] = "#244333",
+                ["PclSuccessTextBrush"] = "#86D8A8",
+                ["PclOverlaySurfaceBrush"] = "#F230363E",
+            }
+            : new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["PclPageBackgroundBrush"] = hasBackgroundImage ? "#B8D9EAF9" : "#D9EAF9",
+                ["PclTextPrimaryBrush"] = "#343D4A",
+                ["PclTextSecondaryBrush"] = "#6F7C8B",
+                ["PclTextMutedBrush"] = "#87929D",
+                ["PclSurfaceBrush"] = "#FCFDFF",
+                ["PclSurfaceRaisedBrush"] = "#FBFBFB",
+                ["PclCardBrush"] = "#D2FBFBFB",
+                ["PclCardHoverBrush"] = "#EAF2FE",
+                ["PclControlBackgroundBrush"] = "#FFFFFF",
+                ["PclControlHoverBrush"] = "#F8FBFE",
+                ["PclControlPressedBrush"] = "#F2F8FF",
+                ["PclControlSelectedBrush"] = "#E4F1FF",
+                ["PclControlSelectedHoverBrush"] = "#DCEEFF",
+                ["PclControlBorderBrush"] = "#C3D2E2",
+                ["PclControlAccentBorderBrush"] = "#83B8F8",
+                ["PclDividerBrush"] = "#D1DDEA",
+                ["PclDisabledSurfaceBrush"] = "#F4F6F8",
+                ["PclDisabledTextBrush"] = "#9AA5B1",
+                ["PclHintBackgroundBrush"] = "#EAF4FF",
+                ["PclHintBorderBrush"] = "#BFD9F3",
+                ["PclWarningBackgroundBrush"] = "#FFF5D6",
+                ["PclWarningBorderBrush"] = "#E8D69A",
+                ["PclWarningTextBrush"] = "#765B00",
+                ["PclDangerBackgroundBrush"] = "#80FBDDDD",
+                ["PclDangerTextBrush"] = "#A44343",
+                ["PclSuccessBackgroundBrush"] = "#E8F7EE",
+                ["PclSuccessTextBrush"] = "#287A49",
+                ["PclOverlaySurfaceBrush"] = "#F2FFFFFF",
+            };
+
+        foreach (var (key, value) in colors)
+        {
+            if (Avalonia.Application.Current?.Resources[key] is SolidColorBrush brush)
+            {
+                brush.Color = Color.Parse(value);
+            }
         }
     }
 

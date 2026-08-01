@@ -28,8 +28,6 @@
     <Window.Resources>
         <converters:MinecraftVersionIconConverter x:Key="MinecraftVersionIconConverter" />
         <converters:MinecraftLoaderIconConverter x:Key="MinecraftLoaderIconConverter" />
-        <SolidColorBrush x:Key="PclThemePrimaryBrush" Color="#127AE1" />
-        <SolidColorBrush x:Key="PclPageBackgroundBrush" Color="#D9EAF9" />
         <LinearGradientBrush x:Key="PclTitleBarBrush" StartPoint="0,0" EndPoint="1,0">
             <GradientStop Offset="0" Color="#106AC4" />
             <GradientStop Offset="0.5" Color="#1377DD" />
@@ -56,7 +54,7 @@
                 <Grid Margin="7,0,7,0" ColumnDefinitions="50,8,*" RowDefinitions="5,20,18,16,5"
                       IsHitTestVisible="False">
                     <Border Grid.Row="1" Grid.RowSpan="3" Width="50" Height="50" VerticalAlignment="Center"
-                            Background="#DCEEFF" CornerRadius="6" ClipToBounds="True">
+                            Background="{DynamicResource PclControlSelectedBrush}" CornerRadius="6" ClipToBounds="True">
                         <Grid>
                             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
                                        FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}"
@@ -67,9 +65,9 @@
                     </Border>
                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal"
                                 VerticalAlignment="Center" Spacing="0">
-                        <TextBlock FontSize="14" Foreground="#36424F" Text="{Binding DisplayTitle}"
+                        <TextBlock FontSize="14" Foreground="{DynamicResource PclTextPrimaryBrush}" Text="{Binding DisplayTitle}"
                                    TextTrimming="CharacterEllipsis" />
-                        <TextBlock FontSize="12" Foreground="#8B96A1" Text="{Binding SecondaryTitle}"
+                        <TextBlock FontSize="12" Foreground="{DynamicResource PclTextMutedBrush}" Text="{Binding SecondaryTitle}"
                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                     </StackPanel>
                     <Grid Grid.Row="2" Grid.Column="2" ColumnDefinitions="Auto,*" ColumnSpacing="4">
@@ -81,13 +79,13 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Padding="3,1" Background="#E9EDF1" CornerRadius="3">
-                                        <TextBlock FontSize="11" Foreground="#7B8794" Text="{Binding}" />
+                                    <Border Padding="3,1" Background="{DynamicResource PclDisabledSurfaceBrush}" CornerRadius="3">
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding}" />
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Foreground="#7B8794"
+                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                    Text="{Binding Project.Description}" TextTrimming="CharacterEllipsis"
                                    ToolTip.Tip="{Binding Project.Description}" />
                     </Grid>
@@ -95,23 +93,23 @@
                         <StackPanel Orientation="Horizontal" Spacing="4" MinWidth="0">
                             <Path Width="12" Height="12" Data="{StaticResource CommunityVersionIcon}" Stretch="Uniform"
                                   Fill="Transparent" Stroke="#7B8794" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
-                            <TextBlock FontSize="12" Foreground="#7B8794" Text="{Binding Project.CompatibilityDisplay}"
+                            <TextBlock FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding Project.CompatibilityDisplay}"
                                        TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
                             <Path Width="12" Height="12" Data="{StaticResource CommunityDownloadIcon}" Stretch="Uniform"
                                   Fill="Transparent" Stroke="#87929D" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
-                            <TextBlock FontSize="12" Foreground="#87929D" Text="{Binding Project.CompactDownloadCountDisplay}" />
+                            <TextBlock FontSize="12" Foreground="{DynamicResource PclTextMutedBrush}" Text="{Binding Project.CompactDownloadCountDisplay}" />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
                             <Path Width="12" Height="12" Data="{StaticResource CommunityTimeIcon}" Stretch="Uniform"
                                   Fill="Transparent" Stroke="#87929D" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
-                            <TextBlock FontSize="12" Foreground="#87929D" Text="{Binding Project.LastUpdatedRelativeDisplay}" />
+                            <TextBlock FontSize="12" Foreground="{DynamicResource PclTextMutedBrush}" Text="{Binding Project.LastUpdatedRelativeDisplay}" />
                         </StackPanel>
                         <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4">
                             <Path Width="12" Height="12" Data="{StaticResource CommunitySourceIcon}" Stretch="Uniform"
                                   Fill="Transparent" Stroke="#87929D" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
-                            <TextBlock FontSize="12" Foreground="#87929D" Text="{Binding Project.SourceDisplay}" />
+                            <TextBlock FontSize="12" Foreground="{DynamicResource PclTextMutedBrush}" Text="{Binding Project.SourceDisplay}" />
                         </StackPanel>
                     </Grid>
                 </Grid>
@@ -154,7 +152,7 @@
                                    Source="{Binding Converter={StaticResource MinecraftVersionIconConverter}}" />
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="0">
                                 <TextBlock FontSize="14" Text="{Binding Id}" />
-                                <TextBlock FontSize="11" Foreground="#88929D"
+                                <TextBlock FontSize="11" Foreground="{DynamicResource PclTextMutedBrush}"
                                            Text="{Binding ReleaseTime, StringFormat={}{0:yyyy/M/d HH:mm}}" />
                             </StackPanel>
                         </Grid>
@@ -209,13 +207,13 @@
         </Style>
         <Style Selector="Border.pcl-card">
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Background" Value="#FCFDFF" />
-            <Setter Property="BorderBrush" Value="#D1DDEA" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Border.setup-card">
             <Setter Property="CornerRadius" Value="5" />
-            <Setter Property="Background" Value="#D2FBFBFB" />
+            <Setter Property="Background" Value="{DynamicResource PclCardBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Margin" Value="0,0,0,15" />
@@ -228,7 +226,7 @@
             </Setter>
         </Style>
         <Style Selector="Border.setup-card:pointerover">
-            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
             <Setter Property="BoxShadow" Value="0 1 3 0 #664890F5" />
         </Style>
         <Style Selector="TextBlock.setup-card-title">
@@ -236,7 +234,7 @@
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="IsHitTestVisible" Value="False" />
             <Setter Property="Transitions">
                 <Transitions>
@@ -245,15 +243,15 @@
             </Setter>
         </Style>
         <Style Selector="Border.setup-card:pointerover TextBlock.setup-card-title">
-            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Border.toolbox-card, Border.toolbox-card:pointerover">
-            <Setter Property="Background" Value="#F9FAFB" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceBrush}" />
             <Setter Property="CornerRadius" Value="5" />
             <Setter Property="BoxShadow" Value="0 1 4 0 #12343D4A" />
         </Style>
         <Style Selector="Border.toolbox-card:pointerover TextBlock.setup-card-title">
-            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.toolbox-section Button.about-action">
             <Setter Property="Height" Value="35" />
@@ -262,29 +260,29 @@
             <Setter Property="BorderBrush" Value="#6F747B" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
-            <Setter Property="Foreground" Value="#43484F" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="Normal" />
         </Style>
         <Style Selector="StackPanel.toolbox-section Button.about-action:pointerover">
-            <Setter Property="Background" Value="#CFE3FC" />
-            <Setter Property="BorderBrush" Value="#4890F5" />
-            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.toolbox-section Button.about-action:pressed">
-            <Setter Property="Background" Value="#B9D8FB" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="TextBlock.setup-muted">
             <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="#6F7C8B" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextSecondaryBrush}" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section TextBlock">
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="Normal" />
-            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section TextBlock.setup-card-title">
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -292,12 +290,12 @@
         <Style Selector="StackPanel.setup-launch-section TextBox">
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="Normal" />
-            <Setter Property="Foreground" Value="#343D4A" />
-            <Setter Property="CaretBrush" Value="#404040" />
-            <Setter Property="SelectionBrush" Value="#801370F3" />
-            <Setter Property="PlaceholderForeground" Value="#A6A6A6" />
-            <Setter Property="Background" Value="#55FFFFFF" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="CaretBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="SelectionBrush" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="PlaceholderForeground" Value="{DynamicResource PclTextMutedBrush}" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="Padding" Value="7,0,5,0" />
@@ -310,47 +308,49 @@
             </Setter>
         </Style>
         <Style Selector="StackPanel.setup-launch-section TextBox.setup-launch-field /template/ Border#PART_BorderElement, StackPanel.setup-launch-section TextBox.setup-launch-editor /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#55FFFFFF" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section TextBox:pointerover">
-            <Setter Property="Background" Value="#E0EAFD" />
-            <Setter Property="BorderBrush" Value="#4890F5" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section TextBox.setup-launch-field:pointerover /template/ Border#PART_BorderElement, StackPanel.setup-launch-section TextBox.setup-launch-editor:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#E0EAFD" />
-            <Setter Property="BorderBrush" Value="#4890F5" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section TextBox:focus">
-            <Setter Property="Background" Value="#E0EAFD" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section TextBox.setup-launch-field:focus /template/ Border#PART_BorderElement, StackPanel.setup-launch-section TextBox.setup-launch-editor:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#E0EAFD" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section TextBox:disabled">
-            <Setter Property="Background" Value="#EBEBEB" />
-            <Setter Property="BorderBrush" Value="#CCCCCC" />
-            <Setter Property="Foreground" Value="#A6A6A6" />
-            <Setter Property="PlaceholderForeground" Value="#A6A6A6" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextMutedBrush}" />
+            <Setter Property="PlaceholderForeground" Value="{DynamicResource PclTextMutedBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section TextBox.setup-launch-field:disabled /template/ Border#PART_BorderElement, StackPanel.setup-launch-section TextBox.setup-launch-editor:disabled /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#EBEBEB" />
-            <Setter Property="BorderBrush" Value="#CCCCCC" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox">
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="Normal" />
-            <Setter Property="Foreground" Value="#343D4A" />
-            <Setter Property="PlaceholderForeground" Value="#A6A6A6" />
-            <Setter Property="Background" Value="#55FFFFFF" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="PlaceholderForeground" Value="{DynamicResource PclTextMutedBrush}" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="Padding" Value="8,0,22,0" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.1" />
@@ -360,8 +360,8 @@
             </Setter>
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox /template/ Border#Background">
-            <Setter Property="Background" Value="#55FFFFFF" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
         </Style>
@@ -369,7 +369,8 @@
             <Setter Property="IsVisible" Value="False" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox /template/ ContentControl#ContentPresenter">
-            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox /template/ TextBox#PART_EditableTextBox">
@@ -391,43 +392,43 @@
             <Setter Property="Height" Value="7" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox /template/ Border#PopupBorder">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="BoxShadow" Value="0 2 5 0 #26000000" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox:pointerover">
-            <Setter Property="Background" Value="#E0EAFD" />
-            <Setter Property="BorderBrush" Value="#4890F5" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox:pointerover /template/ Border#Background">
-            <Setter Property="Background" Value="#E0EAFD" />
-            <Setter Property="BorderBrush" Value="#4890F5" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox:pointerover /template/ PathIcon#DropDownGlyph">
-            <Setter Property="Foreground" Value="#4890F5" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox:pressed, StackPanel.setup-launch-section ComboBox:focus">
-            <Setter Property="Background" Value="#E0EAFD" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox:pressed /template/ Border#Background, StackPanel.setup-launch-section ComboBox:focus /template/ Border#Background">
-            <Setter Property="Background" Value="#E0EAFD" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox:disabled">
-            <Setter Property="Background" Value="#EBEBEB" />
-            <Setter Property="BorderBrush" Value="#CCCCCC" />
-            <Setter Property="Foreground" Value="#A6A6A6" />
-            <Setter Property="PlaceholderForeground" Value="#A6A6A6" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextMutedBrush}" />
+            <Setter Property="PlaceholderForeground" Value="{DynamicResource PclTextMutedBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox:disabled /template/ Border#Background">
-            <Setter Property="Background" Value="#EBEBEB" />
-            <Setter Property="BorderBrush" Value="#CCCCCC" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section ComboBox:disabled /template/ ContentControl#ContentPresenter, StackPanel.setup-launch-section ComboBox:disabled /template/ PathIcon#DropDownGlyph">
-            <Setter Property="Foreground" Value="#A6A6A6" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextMutedBrush}" />
         </Style>
         <Style Selector="ComboBox.setup-launch-field">
             <Setter Property="Height" Value="28" />
@@ -448,14 +449,14 @@
             <Setter Property="Margin" Value="0,0,25,0" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="Normal" />
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
         </Style>
         <Style Selector="RadioButton.setup-memory-mode">
             <Setter Property="Height" Value="28" />
             <Setter Property="MinHeight" Value="28" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="Normal" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -464,7 +465,7 @@
                     <Grid ColumnDefinitions="20,*" Background="Transparent">
                         <Ellipse x:Name="RadioBorder" Width="18" Height="18" Margin="1,0,0,0"
                                  HorizontalAlignment="Left" VerticalAlignment="Center"
-                                 Fill="#55FFFFFF" Stroke="#343D4A" StrokeThickness="1.1">
+                                 Fill="#55FFFFFF" Stroke="{DynamicResource PclTextPrimaryBrush}" StrokeThickness="1.1">
                             <Ellipse.Transitions>
                                 <Transitions>
                                     <BrushTransition Property="Fill" Duration="0:0:0.1" />
@@ -474,7 +475,7 @@
                         </Ellipse>
                         <Ellipse x:Name="RadioDot" Width="8" Height="8" Margin="6,0,0,0"
                                  HorizontalAlignment="Left" VerticalAlignment="Center"
-                                 Fill="#0B5BCB" Opacity="0">
+                                 Fill="{DynamicResource PclThemePrimaryBrush}" Opacity="0">
                             <Ellipse.Transitions>
                                 <Transitions>
                                     <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
@@ -497,20 +498,20 @@
             </Setter>
         </Style>
         <Style Selector="RadioButton.setup-memory-mode:checked /template/ Ellipse#RadioBorder">
-            <Setter Property="Stroke" Value="#0B5BCB" />
+            <Setter Property="Stroke" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="RadioButton.setup-memory-mode:checked /template/ Ellipse#RadioDot">
             <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="RadioButton.setup-memory-mode:pointerover">
-            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="RadioButton.setup-memory-mode:pointerover /template/ Ellipse#RadioBorder">
             <Setter Property="Fill" Value="#BEE0EAFD" />
-            <Setter Property="Stroke" Value="#1370F3" />
+            <Setter Property="Stroke" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="RadioButton.setup-memory-mode:disabled">
-            <Setter Property="Foreground" Value="#A6A6A6" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextMutedBrush}" />
         </Style>
         <Style Selector="RadioButton.setup-memory-mode:disabled /template/ Ellipse#RadioBorder">
             <Setter Property="Fill" Value="#EBEBEB" />
@@ -520,7 +521,7 @@
             <Setter Property="MinHeight" Value="20" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="Normal" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -529,7 +530,7 @@
                     <Grid ColumnDefinitions="20,*" Background="Transparent">
                         <Border x:Name="CheckBorder" Width="18" Height="18" Margin="1,0,0,0"
                                 HorizontalAlignment="Left" VerticalAlignment="Center"
-                                Background="#55FFFFFF" BorderBrush="#343D4A"
+                                Background="{DynamicResource PclControlBackgroundBrush}" BorderBrush="{DynamicResource PclTextSecondaryBrush}"
                                 BorderThickness="1.1" CornerRadius="3">
                             <Border.Transitions>
                                 <Transitions>
@@ -541,7 +542,7 @@
                         <Path x:Name="CheckMark" Width="12" Height="12" Margin="4,0,0,0"
                               HorizontalAlignment="Left" VerticalAlignment="Center"
                               Data="M0,6L1.5,4.5 4.5,7.5 10.5,1.5 12,3 4.5,10.5 0,6z"
-                              Fill="#0B5BCB" Opacity="0">
+                              Fill="{DynamicResource PclThemePrimaryBrush}" Opacity="0">
                             <Path.Transitions>
                                 <Transitions>
                                     <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
@@ -564,27 +565,27 @@
             </Setter>
         </Style>
         <Style Selector="StackPanel.setup-launch-section CheckBox:checked /template/ Border#CheckBorder">
-            <Setter Property="BorderBrush" Value="#0B5BCB" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section CheckBox:checked /template/ Path#CheckMark">
             <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section CheckBox:pointerover">
-            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section CheckBox:pointerover /template/ Border#CheckBorder">
-            <Setter Property="Background" Value="#BEE0EAFD" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section CheckBox:disabled">
-            <Setter Property="Foreground" Value="#A6A6A6" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextMutedBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section CheckBox:disabled /template/ Border#CheckBorder">
-            <Setter Property="Background" Value="#EBEBEB" />
-            <Setter Property="BorderBrush" Value="#A6A6A6" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section CheckBox:disabled /template/ Path#CheckMark">
-            <Setter Property="Fill" Value="#A6A6A6" />
+            <Setter Property="Fill" Value="{DynamicResource PclDisabledTextBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section Slider">
             <Setter Property="Height" Value="28" />
@@ -624,7 +625,7 @@
                                     <Thumb.Template>
                                         <ControlTemplate TargetType="Thumb">
                                             <Border x:Name="SliderThumbVisual" Width="10" Height="10"
-                                                    Background="#96C0F9" BorderBrush="#96C0F9"
+                                                    Background="#96C0F9" BorderBrush="{DynamicResource PclControlAccentBorderBrush}"
                                                     BorderThickness="1.2" CornerRadius="5">
                                                 <Border.Transitions>
                                                     <Transitions>
@@ -649,7 +650,7 @@
             </Setter>
         </Style>
         <Style Selector="StackPanel.setup-launch-section Slider:pointerover">
-            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
             <Setter Property="Background" Value="#4D1370F3" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section Slider:pointerover /template/ Border#SliderTrackBackground">
@@ -657,25 +658,25 @@
         </Style>
         <Style Selector="StackPanel.setup-launch-section Slider:pointerover /template/ Thumb#SliderThumb /template/ Border#SliderThumbVisual">
             <Setter Property="Background" Value="#1370F3" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section Slider:disabled">
-            <Setter Property="Foreground" Value="#CCCCCC" />
-            <Setter Property="Background" Value="#80CCCCCC" />
+            <Setter Property="Foreground" Value="{DynamicResource PclDisabledTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section Slider:disabled /template/ Border#SliderTrackBackground">
-            <Setter Property="Background" Value="#CCCCCC" />
+            <Setter Property="Background" Value="{DynamicResource PclDividerBrush}" />
         </Style>
         <Style Selector="StackPanel.setup-launch-section Slider:disabled /template/ Thumb#SliderThumb /template/ Border#SliderThumbVisual">
-            <Setter Property="Background" Value="#CCCCCC" />
-            <Setter Property="BorderBrush" Value="#CCCCCC" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
         </Style>
         <Style Selector="Border.about-avatar">
             <Setter Property="Width" Value="36" />
             <Setter Property="Height" Value="36" />
             <Setter Property="CornerRadius" Value="18" />
             <Setter Property="ClipToBounds" Value="True" />
-            <Setter Property="Background" Value="#DCEEFF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
         </Style>
         <Style Selector="Button.about-action">
             <Setter Property="MinWidth" Value="132" />
@@ -697,7 +698,7 @@
             </Setter>
         </Style>
         <Style Selector="Border.about-item:pointerover">
-            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
             <Setter Property="BorderBrush" Value="#5C9EE9" />
             <Setter Property="Transitions">
                 <Transitions>
@@ -707,13 +708,13 @@
             </Setter>
         </Style>
         <Style Selector="Border.about-item:focus-within">
-            <Setter Property="Background" Value="#D5E6FD" />
-            <Setter Property="BorderBrush" Value="#4890F5" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="TextBlock.about-item-title">
             <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="Light" />
-            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Foreground" Duration="0:0:0.18" />
@@ -721,7 +722,7 @@
             </Setter>
         </Style>
         <Style Selector="Border.about-item:pointerover TextBlock.about-item-title">
-            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Foreground" Duration="0:0:0.12" />
@@ -748,27 +749,27 @@
             <Setter Property="CornerRadius" Value="4" />
         </Style>
         <Style Selector="Button.contributor-item:pointerover">
-            <Setter Property="Background" Value="#BEE0EAFD" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.contributor-item:pressed">
-            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
         </Style>
         <Style Selector="Border.setup-hint">
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="Padding" Value="12,8" />
-            <Setter Property="Background" Value="#EAF4FF" />
-            <Setter Property="BorderBrush" Value="#BFD9F3" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Border.setup-hint.warning">
-            <Setter Property="Background" Value="#FFF5D6" />
-            <Setter Property="BorderBrush" Value="#E8D69A" />
+            <Setter Property="Background" Value="{DynamicResource PclWarningBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclWarningBorderBrush}" />
         </Style>
         <Style Selector="Border.setup-hint.error">
             <Setter Property="CornerRadius" Value="2" />
             <Setter Property="Padding" Value="12,9" />
-            <Setter Property="Background" Value="#80FBDDDD" />
+            <Setter Property="Background" Value="{DynamicResource PclDangerBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="#FF4C4C" />
             <Setter Property="BorderThickness" Value="3,0,0,0" />
         </Style>
@@ -780,7 +781,7 @@
             <Setter Property="Margin" Value="0,5,0,12" />
             <Setter Property="Padding" Value="20" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
         </Style>
         <Style Selector="Button.feedback-issue, Button.log-file">
             <Setter Property="MinWidth" Value="0" />
@@ -816,34 +817,34 @@
             </Setter>
         </Style>
         <Style Selector="Button.feedback-issue:pointerover, Button.log-file:pointerover">
-            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
         </Style>
         <Style Selector="Button.feedback-issue:pressed, Button.log-file:pressed">
-            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
         </Style>
         <Style Selector="Button.log-danger">
             <Setter Property="Foreground" Value="#CE2111" />
             <Setter Property="BorderBrush" Value="#CE2111" />
-            <Setter Property="Background" Value="#FFF8F8" />
+            <Setter Property="Background" Value="{DynamicResource PclDangerBackgroundBrush}" />
         </Style>
         <Style Selector="Button.log-danger:pointerover">
             <Setter Property="Foreground" Value="#FF4C4C" />
             <Setter Property="BorderBrush" Value="#FF4C4C" />
-            <Setter Property="Background" Value="#80FBDDDD" />
+            <Setter Property="Background" Value="{DynamicResource PclDangerBackgroundBrush}" />
         </Style>
         <Style Selector="Border.feedback-tag">
             <Setter Property="Padding" Value="8,3" />
             <Setter Property="CornerRadius" Value="3" />
-            <Setter Property="Background" Value="#DDEAF8" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
         </Style>
         <Style Selector="TextBlock.feedback-tag-text">
             <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="#4D6F94" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextSecondaryBrush}" />
         </Style>
         <Style Selector="Border.pcl-notice">
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Background" Value="#FCFDFF" />
-            <Setter Property="BorderBrush" Value="#CADBEA" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="16" />
         </Style>
@@ -852,8 +853,8 @@
             <Setter Property="Padding" Value="10,7" />
         </Style>
         <Style Selector="Border.pcl-option-row">
-            <Setter Property="Background" Value="#F7FAFD" />
-            <Setter Property="BorderBrush" Value="#E0E8F0" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
             <Setter Property="Padding" Value="12,10" />
         </Style>
@@ -863,7 +864,7 @@
             <Setter Property="CornerRadius" Value="3" />
         </Style>
         <Style Selector="Button.launch-download-button">
-            <Setter Property="Background" Value="#FCFCFD" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource PclThemePrimaryBrush}" />
             <Setter Property="BorderThickness" Value="1" />
@@ -924,7 +925,7 @@
             </Setter>
         </Style>
         <Style Selector="controls|PclNavigationButton.secondary-navigation:pointerover">
-            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="controls|PclNavigationButton.secondary-navigation.selected">
@@ -932,7 +933,7 @@
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="controls|PclNavigationButton.secondary-navigation.selected:pointerover">
-            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="controls|PclNavigationButton.secondary-navigation.selected /template/ Border#SelectionIndicator">
@@ -943,15 +944,15 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBlock">
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="Foreground" Value="#273444" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="CaretBrush" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="SelectionBrush" Value="#C7E1FA" />
-            <Setter Property="PlaceholderForeground" Value="#8291A2" />
-            <Setter Property="BorderBrush" Value="#C3D2E2" />
+            <Setter Property="SelectionBrush" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="PlaceholderForeground" Value="{DynamicResource PclTextMutedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -964,48 +965,49 @@
             </Setter>
         </Style>
         <Style Selector="Grid.pcl-shell TextBox /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#C3D2E2" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:pointerover">
-            <Setter Property="Background" Value="#F8FBFE" />
-            <Setter Property="Foreground" Value="#273444" />
-            <Setter Property="BorderBrush" Value="#8DB9E2" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#F8FBFE" />
-            <Setter Property="BorderBrush" Value="#8DB9E2" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:focus">
-            <Setter Property="Background" Value="#F2F8FF" />
-            <Setter Property="Foreground" Value="#273444" />
-            <Setter Property="BorderBrush" Value="#5A9DE0" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#F2F8FF" />
-            <Setter Property="BorderBrush" Value="#5A9DE0" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:disabled">
-            <Setter Property="Background" Value="#F4F6F8" />
-            <Setter Property="Foreground" Value="#8C98A6" />
-            <Setter Property="PlaceholderForeground" Value="#A0AAB5" />
-            <Setter Property="BorderBrush" Value="#DEE5EC" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclDisabledTextBrush}" />
+            <Setter Property="PlaceholderForeground" Value="{DynamicResource PclDisabledTextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell TextBox:disabled /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="#F4F6F8" />
-            <Setter Property="BorderBrush" Value="#DEE5EC" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="Foreground" Value="#273444" />
-            <Setter Property="PlaceholderForeground" Value="#8291A2" />
-            <Setter Property="BorderBrush" Value="#C3D2E2" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="PlaceholderForeground" Value="{DynamicResource PclTextMutedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Transitions">
                 <Transitions>
@@ -1016,77 +1018,77 @@
             </Setter>
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ Border#Background">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#C3D2E2" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ ContentControl#ContentPresenter">
-            <Setter Property="Foreground" Value="#273444" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ PathIcon#DropDownGlyph">
-            <Setter Property="Foreground" Value="#526170" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextSecondaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox /template/ Border#PopupBorder">
-            <Setter Property="Background" Value="#FCFCFD" />
-            <Setter Property="BorderBrush" Value="#83B8F8" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="BoxShadow" Value="0 2 6 0 #26000000" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:pointerover">
-            <Setter Property="Background" Value="#F8FBFE" />
-            <Setter Property="Foreground" Value="#273444" />
-            <Setter Property="BorderBrush" Value="#8DB9E2" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:pointerover /template/ Border#Background">
-            <Setter Property="Background" Value="#F8FBFE" />
-            <Setter Property="BorderBrush" Value="#8DB9E2" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:pressed">
-            <Setter Property="Background" Value="#F2F8FF" />
-            <Setter Property="Foreground" Value="#273444" />
-            <Setter Property="BorderBrush" Value="#5A9DE0" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:pressed /template/ Border#Background">
-            <Setter Property="Background" Value="#F2F8FF" />
-            <Setter Property="BorderBrush" Value="#5A9DE0" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:focus">
-            <Setter Property="Background" Value="#F2F8FF" />
-            <Setter Property="Foreground" Value="#273444" />
-            <Setter Property="BorderBrush" Value="#5A9DE0" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:focus /template/ Border#Background">
-            <Setter Property="Background" Value="#F2F8FF" />
-            <Setter Property="BorderBrush" Value="#5A9DE0" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:focus-visible /template/ Border#HighlightBackground">
-            <Setter Property="IsVisible" Value="True" />
-            <Setter Property="Background" Value="#E4F1FF" />
-            <Setter Property="BorderBrush" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="IsVisible" Value="False" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:disabled">
-            <Setter Property="Background" Value="#F4F6F8" />
-            <Setter Property="Foreground" Value="#8C98A6" />
-            <Setter Property="PlaceholderForeground" Value="#A0AAB5" />
-            <Setter Property="BorderBrush" Value="#DEE5EC" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclDisabledTextBrush}" />
+            <Setter Property="PlaceholderForeground" Value="{DynamicResource PclDisabledTextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:disabled /template/ Border#Background">
-            <Setter Property="Background" Value="#F4F6F8" />
-            <Setter Property="BorderBrush" Value="#DEE5EC" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:disabled /template/ ContentControl#ContentPresenter">
-            <Setter Property="Foreground" Value="#7C8794" />
+            <Setter Property="Foreground" Value="{DynamicResource PclDisabledTextBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:disabled /template/ PathIcon#DropDownGlyph">
-            <Setter Property="Foreground" Value="#9AA5B1" />
+            <Setter Property="Foreground" Value="{DynamicResource PclDisabledTextBrush}" />
         </Style>
         <Style Selector="ComboBoxItem">
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="Padding" Value="9,6" />
-            <Setter Property="MinHeight" Value="30" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.12" />
@@ -1112,29 +1114,29 @@
             </Setter>
         </Style>
         <Style Selector="ComboBoxItem:pointerover">
-            <Setter Property="Background" Value="#F0F7FF" />
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
         </Style>
         <Style Selector="ComboBoxItem:selected">
-            <Setter Property="Background" Value="#E4F1FF" />
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
         </Style>
         <Style Selector="ComboBoxItem:selected:pointerover">
-            <Setter Property="Background" Value="#DCEEFF" />
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
         </Style>
         <Style Selector="ComboBoxItem:disabled">
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#9AA5B1" />
+            <Setter Property="Foreground" Value="{DynamicResource PclDisabledTextBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell CheckBox">
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid.pcl-shell Button">
-            <Setter Property="Background" Value="#FAFBFC" />
-            <Setter Property="Foreground" Value="#344150" />
-            <Setter Property="BorderBrush" Value="#C8D4E0" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceRaisedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -1168,38 +1170,38 @@
             </Setter>
         </Style>
         <Style Selector="Grid.pcl-shell Button:pointerover">
-            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="#D5E6FD" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button:pressed">
-            <Setter Property="Background" Value="#D5E6FD" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button:focus-visible">
             <Setter Property="BorderBrush" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button:disabled">
             <Setter Property="Opacity" Value="1" />
-            <Setter Property="Background" Value="#F4F6F8" />
-            <Setter Property="Foreground" Value="#98A3AF" />
-            <Setter Property="BorderBrush" Value="#DEE5EC" />
+            <Setter Property="Background" Value="{DynamicResource PclDisabledSurfaceBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextMutedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell StackPanel.toolbox-section Button.about-action">
             <Setter Property="Background" Value="#00FFFFFF" />
             <Setter Property="BorderBrush" Value="#6F747B" />
-            <Setter Property="Foreground" Value="#43484F" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell StackPanel.toolbox-section Button.about-action:pointerover">
-            <Setter Property="Background" Value="#CFE3FC" />
-            <Setter Property="BorderBrush" Value="#4890F5" />
-            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell StackPanel.toolbox-section Button.about-action:pressed">
-            <Setter Property="Background" Value="#B9D8FB" />
-            <Setter Property="BorderBrush" Value="#1370F3" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell StackPanel.toolbox-section Button.toolbox-text-action">
             <Setter Property="Width" Value="48" />
@@ -1209,27 +1211,27 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Foreground" Value="#596574" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextSecondaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell StackPanel.toolbox-section Button.toolbox-text-action:pointerover">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Foreground" Value="#1370F3" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.about-action.danger-action">
             <Setter Property="Foreground" Value="#CE2111" />
             <Setter Property="BorderBrush" Value="#CE2111" />
-            <Setter Property="Background" Value="#FFF8F8" />
+            <Setter Property="Background" Value="{DynamicResource PclDangerBackgroundBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.about-action.danger-action:pointerover">
             <Setter Property="Foreground" Value="#FF4C4C" />
             <Setter Property="BorderBrush" Value="#FF4C4C" />
-            <Setter Property="Background" Value="#80FBDDDD" />
+            <Setter Property="Background" Value="{DynamicResource PclDangerBackgroundBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.about-action.danger-action:pressed">
             <Setter Property="Foreground" Value="#CE2111" />
             <Setter Property="BorderBrush" Value="#CE2111" />
-            <Setter Property="Background" Value="#80FBDDDD" />
+            <Setter Property="Background" Value="{DynamicResource PclDangerBackgroundBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.main-navigation">
             <Setter Property="Background" Value="Transparent" />
@@ -1285,7 +1287,7 @@
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.account-mode:pointerover">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.account-mode.selected:pointerover">
@@ -1297,7 +1299,7 @@
         </Style>
         <Style Selector="Grid.pcl-shell Button.account-mode:disabled">
             <Setter Property="Opacity" Value="1" />
-            <Setter Property="Foreground" Value="#6F7C8B" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextSecondaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.launch-button">
             <Setter Property="Background" Value="{StaticResource PclThemePrimaryBrush}" />
@@ -1315,12 +1317,12 @@
             <Setter Property="BorderBrush" Value="#0F5FCC" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.launch-download-button">
-            <Setter Property="Background" Value="#FCFCFD" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.launch-download-button:pointerover">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
             <Setter Property="Foreground" Value="#0F5FCC" />
             <Setter Property="BorderBrush" Value="#0F5FCC" />
         </Style>
@@ -1347,7 +1349,7 @@
         <Style Selector="Grid.pcl-shell Button.update-text:pressed">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Button.launch-action">
             <Setter Property="BorderThickness" Value="1" />
@@ -1376,10 +1378,10 @@
         <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation:pointerover">
-            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation.selected">
@@ -1387,11 +1389,11 @@
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation.selected:pointerover">
-            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation /template/ TextBlock#NavigationLabel">
-            <Setter Property="Foreground" Value="#343D4A" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell controls|PclNavigationButton.secondary-navigation:pointerover /template/ TextBlock#NavigationLabel">
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
@@ -1428,9 +1430,9 @@
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="Button.version-group">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="Foreground" Value="#344150" />
-            <Setter Property="BorderBrush" Value="#CCD8E4" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Height" Value="46" />
@@ -1439,55 +1441,55 @@
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.version-group:pointerover">
-            <Setter Property="BorderBrush" Value="#96C0F9" />
-            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
         </Style>
         <Style Selector="Button.version-group.selected">
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
-            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
         </Style>
         <Style Selector="Button.download-primary">
-            <Setter Property="Background" Value="#EAF2FE" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="MinHeight" Value="34" />
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.download-primary:pointerover">
-            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Button.download-primary:pressed">
-            <Setter Property="Background" Value="#D5E6FD" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Button.community-action-primary">
             <Setter Property="Height" Value="34" />
-            <Setter Property="Background" Value="#EAF2FE" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="16,0" />
         </Style>
         <Style Selector="Button.community-action-primary:pointerover">
-            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Button.community-action-primary:pressed">
-            <Setter Property="Background" Value="#D5E6FD" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Button.community-project-row">
             <Setter Property="Height" Value="64" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#E0E8F0" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
             <Setter Property="CornerRadius" Value="2" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -1495,16 +1497,16 @@
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.community-project-row:pointerover">
-            <Setter Property="Background" Value="#EDF6FF" />
-            <Setter Property="BorderBrush" Value="#C7DEF5" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Button.community-project-row:pressed">
-            <Setter Property="Background" Value="#DCEEFF" />
-            <Setter Property="BorderBrush" Value="#83B8F8" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Border.community-row-action-surface">
             <Setter Property="Opacity" Value="0" />
-            <Setter Property="Background" Value="#EDF6FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
             <Setter Property="Transitions">
                 <Transitions>
                     <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
@@ -1524,8 +1526,8 @@
             <Setter Property="CornerRadius" Value="3" />
         </Style>
         <Style Selector="Button.community-row-action:pointerover">
-            <Setter Property="Background" Value="#D3E9FD" />
-            <Setter Property="Foreground" Value="#176FC5" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.community-row-action:disabled">
             <Setter Property="Opacity" Value="0.45" />
@@ -1537,40 +1539,40 @@
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#344150" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="3" />
         </Style>
         <Style Selector="Button.community-favorite-menu-item:pointerover">
-            <Setter Property="Background" Value="#E8F3FF" />
-            <Setter Property="Foreground" Value="#176FC5" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.community-favorite-menu-item.danger">
             <Setter Property="Foreground" Value="#B44242" />
         </Style>
         <Style Selector="Button.community-favorite-menu-item.danger:pointerover">
-            <Setter Property="Background" Value="#FFF0F0" />
+            <Setter Property="Background" Value="{DynamicResource PclDangerBackgroundBrush}" />
             <Setter Property="Foreground" Value="#9F3030" />
         </Style>
         <Style Selector="Button.community-detail-action">
             <Setter Property="Height" Value="27" />
             <Setter Property="Padding" Value="10,0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#343D4A" />
-            <Setter Property="BorderBrush" Value="#D5E6FD" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="13.5" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.community-detail-action:pointerover">
-            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="#D5E6FD" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Button.community-detail-action:pressed">
-            <Setter Property="Background" Value="#D5E6FD" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.community-detail-title-back">
             <Setter Property="Width" Value="42" />
@@ -1617,7 +1619,7 @@
             </Setter>
         </Style>
         <Style Selector="RadioButton.community-version-filter:pointerover">
-            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="RadioButton.community-version-filter /template/ TextBlock#CommunityVersionFilterText">
@@ -1634,20 +1636,20 @@
         <Style Selector="RadioButton.community-version-filter:checked:pointerover">
             <Setter Property="Background" Value="#4890F5" />
             <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderBrush" Value="#4890F5" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="RadioButton.community-version-filter:checked:pointerover /template/ TextBlock#CommunityVersionFilterText">
             <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="RadioButton.community-version-filter:focus-visible">
-            <Setter Property="BorderBrush" Value="#0B5BCB" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="ToggleButton.community-version-group-toggle">
             <Setter Property="Height" Value="40" />
             <Setter Property="Padding" Value="15,0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#E6EDF4" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="5" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -1671,7 +1673,7 @@
             </Setter>
         </Style>
         <Style Selector="ToggleButton.community-version-group-toggle:pointerover">
-            <Setter Property="Background" Value="#EAF2FE" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="ToggleButton.community-version-group-toggle:checked">
@@ -1680,16 +1682,16 @@
         <Style Selector="Button.community-version-install">
             <Setter Property="Height" Value="30" />
             <Setter Property="Padding" Value="11,0" />
-            <Setter Property="Background" Value="#EAF2FE" />
-            <Setter Property="Foreground" Value="#0B5BCB" />
-            <Setter Property="BorderBrush" Value="#D5E6FD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="3" />
         </Style>
         <Style Selector="Button.community-version-install:pointerover">
-            <Setter Property="Background" Value="#D5E6FD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="#96C0F9" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Button.nav-row-action">
             <Setter Property="Width" Value="36" />
@@ -1734,7 +1736,7 @@
             </Setter>
         </Style>
         <Style Selector="Grid.nav-row:pointerover">
-            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
         </Style>
         <Style Selector="Grid.nav-row.selected">
             <Setter Property="Background" Value="Transparent" />
@@ -1743,7 +1745,7 @@
             <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="Grid.pcl-shell Grid.nav-row.selected:pointerover">
-            <Setter Property="Background" Value="#BEE0EAFD" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell Grid.nav-row controls|PclNavigationButton.secondary-navigation.selected">
             <Setter Property="Background" Value="Transparent" />
@@ -1776,8 +1778,8 @@
             <Setter Property="Width" Value="200" />
             <Setter Property="Height" Value="114" />
             <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="Background" Value="#FCFDFF" />
-            <Setter Property="BorderBrush" Value="#D1DDEA" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="BoxShadow" Value="0 1 4 0 #24000000" />
@@ -1812,8 +1814,8 @@
         </Style>
         <Style Selector="ListBox.download-list ListBoxItem">
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#36424F" />
-            <Setter Property="BorderBrush" Value="#E0E8F0" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
             <Setter Property="CornerRadius" Value="2" />
             <Setter Property="Padding" Value="11,9" />
@@ -1846,18 +1848,18 @@
             </Setter>
         </Style>
         <Style Selector="ListBox.download-list ListBoxItem:pointerover">
-            <Setter Property="Background" Value="#EDF6FF" />
-            <Setter Property="Foreground" Value="#24415F" />
-            <Setter Property="BorderBrush" Value="#C7DEF5" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="ListBox.download-list ListBoxItem:selected">
-            <Setter Property="Background" Value="#DCEEFF" />
-            <Setter Property="Foreground" Value="#0F5FCC" />
-            <Setter Property="BorderBrush" Value="#83B8F8" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="ListBox.download-list ListBoxItem:selected:pointerover">
-            <Setter Property="Background" Value="#D3E9FF" />
-            <Setter Property="Foreground" Value="#0F5FCC" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Border.official-version-row">
             <Setter Property="Height" Value="42" />
@@ -1873,7 +1875,7 @@
             </Setter>
         </Style>
         <Style Selector="Border.official-version-row:pointerover">
-            <Setter Property="Background" Value="#EDF6FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
         </Style>
         <Style Selector="Button.official-version-main">
             <Setter Property="Height" Value="42" />
@@ -1899,10 +1901,10 @@
             <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="Button.official-version-main:pressed">
-            <Setter Property="Background" Value="#D3E9FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
         </Style>
         <Style Selector="Border.official-version-row:focus-within">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
         </Style>
         <Style Selector="StackPanel.version-actions">
             <Setter Property="Opacity" Value="0" />
@@ -1928,12 +1930,12 @@
             <Setter Property="CornerRadius" Value="3" />
         </Style>
         <Style Selector="Button.version-row-action:pointerover">
-            <Setter Property="Background" Value="#D3E9FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
             <Setter Property="Foreground" Value="#1265C1" />
         </Style>
         <Style Selector="Border.version-category-card">
             <Setter Property="CornerRadius" Value="5" />
-            <Setter Property="Background" Value="#FCFDFF" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="BoxShadow" Value="0 1 3 0 #16000000" />
@@ -1945,7 +1947,7 @@
             <Setter Property="Height" Value="40" />
             <Setter Property="Padding" Value="15,0,16,0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="5" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -1968,16 +1970,16 @@
         </Style>
         <Style Selector="ToggleButton.version-category-header:pointerover">
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
-            <Setter Property="Background" Value="#F8FBFE" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
         </Style>
         <Style Selector="ToggleButton.version-category-header:pressed">
-            <Setter Property="Background" Value="#EAF4FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
         </Style>
         <Style Selector="Button.loader-directory-header">
             <Setter Property="Height" Value="40" />
             <Setter Property="Padding" Value="15,0,16,0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#36424F" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="5" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -1997,11 +1999,11 @@
             </Setter>
         </Style>
         <Style Selector="Button.loader-directory-header:pointerover">
-            <Setter Property="Background" Value="#F8FBFE" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.loader-directory-header:pressed">
-            <Setter Property="Background" Value="#EAF4FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
         </Style>
         <Style Selector="Button.loader-package-main">
             <Setter Property="Height" Value="42" />
@@ -2027,34 +2029,34 @@
             <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="Button.loader-package-main:pressed">
-            <Setter Property="Background" Value="#D3E9FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
         </Style>
         <Style Selector="Button.version-component">
             <Setter Property="MinHeight" Value="58" />
             <Setter Property="Padding" Value="14,0" />
-            <Setter Property="Background" Value="#FCFDFF" />
-            <Setter Property="Foreground" Value="#344150" />
-            <Setter Property="BorderBrush" Value="#D1DDEA" />
+            <Setter Property="Background" Value="{DynamicResource PclSurfaceBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclDividerBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.version-component:pointerover">
-            <Setter Property="Background" Value="#F2F8FF" />
-            <Setter Property="BorderBrush" Value="#9FC8EC" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="Button.version-detail-back">
             <Setter Property="Width" Value="40" />
             <Setter Property="Height" Value="40" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#7D8894" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextSecondaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
         </Style>
         <Style Selector="Button.version-detail-back:pointerover">
-            <Setter Property="Background" Value="#EDF6FF" />
-            <Setter Property="Foreground" Value="#176FC5" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.install-component-clear">
             <Setter Property="Width" Value="30" />
@@ -2064,19 +2066,19 @@
             <Setter Property="HorizontalAlignment" Value="Right" />
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#6F7C8B" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextSecondaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="3" />
         </Style>
         <Style Selector="Button.install-component-clear:pointerover">
-            <Setter Property="Background" Value="#E4F1FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.install-version-row">
             <Setter Property="MinHeight" Value="42" />
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#344150" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="3" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -2084,11 +2086,11 @@
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.install-version-row:pointerover">
-            <Setter Property="Background" Value="#EAF4FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.install-version-row:pressed">
-            <Setter Property="Background" Value="#D3E9FF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
         </Style>
     </Window.Styles>
 
@@ -2099,7 +2101,10 @@
     </Grid>
     <Border x:Name="LauncherColorOverlay" Background="{DynamicResource PclThemePrimaryBrush}"
             Opacity="0.12" IsHitTestVisible="False" />
-    <Border x:Name="MainShellBorder" CornerRadius="8" ClipToBounds="True">
+    <Border x:Name="MainShellBorder" CornerRadius="8" ClipToBounds="True" Opacity="0">
+    <Border.Transitions>
+        <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.22" /></Transitions>
+    </Border.Transitions>
     <Grid Classes="pcl-shell" RowDefinitions="48,*">
         <Border x:Name="MainTitleBar" Background="{StaticResource PclTitleBarBrush}" PointerPressed="TitleBarPointerPressed">
             <Grid x:Name="MainTitleBarGrid" ColumnDefinitions="*,Auto,*">
@@ -2194,7 +2199,7 @@
         <Grid x:Name="MainPages" Grid.Row="1" ClipToBounds="True">
             <Grid x:Name="LaunchPage">
                 <Grid ColumnDefinitions="300,*" Background="{DynamicResource PclPageBackgroundBrush}">
-                    <Border Classes="pcl-page-left" Background="#FCFCFD" BorderBrush="#D7DCE2" BorderThickness="0,0,1,0">
+                    <Border Classes="pcl-page-left" Background="{DynamicResource PclSurfaceBrush}" BorderBrush="{DynamicResource PclDividerBrush}" BorderThickness="0,0,1,0">
                         <Grid Margin="20,20" RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="8">
                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
                                 <!-- Icons reused from PCL2 PageLaunchLeft.xaml under the upstream project license. -->
@@ -2219,11 +2224,11 @@
                                 </Button>
                             </StackPanel>
                             <StackPanel Grid.Row="1" Margin="0,8,0,0" Spacing="6">
-                                <Border Classes="pcl-status-strip" Background="#E8F3FF">
-                                    <TextBlock FontSize="12" Foreground="#2472C8" Text="{Binding AccountSummary}" TextWrapping="Wrap" />
+                                <Border Classes="pcl-status-strip" Background="{DynamicResource PclHintBackgroundBrush}">
+                                    <TextBlock FontSize="12" Foreground="{DynamicResource PclThemePrimaryBrush}" Text="{Binding AccountSummary}" TextWrapping="Wrap" />
                                 </Border>
-                                <Border Classes="pcl-status-strip" Background="#FFF4D7" IsVisible="{Binding NeedsGameDownload}">
-                                    <TextBlock FontSize="12" Foreground="#9A6A00" Text="尚未发现可用实例，请先下载或选择游戏版本" TextWrapping="Wrap" />
+                                <Border Classes="pcl-status-strip" Background="{DynamicResource PclWarningBackgroundBrush}" IsVisible="{Binding NeedsGameDownload}">
+                                    <TextBlock FontSize="12" Foreground="{DynamicResource PclWarningTextBrush}" Text="尚未发现可用实例，请先下载或选择游戏版本" TextWrapping="Wrap" />
                                 </Border>
                             </StackPanel>
                             <Grid Grid.Row="2" VerticalAlignment="Center">
@@ -2259,7 +2264,7 @@
                                     <TextBlock HorizontalAlignment="Center" FontSize="15" FontWeight="SemiBold"
                                                Text="{Binding MicrosoftAccountDisplayName}" />
                                     <StackPanel Spacing="8">
-                                        <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="#6F7C8B"
+                                        <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                    Text="{Binding MicrosoftLoginSummary}" TextAlignment="Center" TextWrapping="Wrap" />
                                         <WrapPanel HorizontalAlignment="Center">
                                             <Button Height="34" MinWidth="96" Margin="4,0"
@@ -2302,7 +2307,7 @@
                                     <DataTemplate>
                                         <StackPanel Spacing="2">
                                             <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
-                                            <TextBlock Foreground="#6F7C8B"
+                                            <TextBlock Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                        Text="{Binding VersionDisplay}" />
                                         </StackPanel>
                                     </DataTemplate>
@@ -2321,15 +2326,15 @@
                                         <TextBlock Margin="18,0" VerticalAlignment="Center"
                                                    FontSize="16" FontWeight="SemiBold"
                                                    Foreground="{StaticResource PclThemePrimaryBrush}" Text="PCL Aurora 提示" />
-                                        <Border Grid.Row="1" Height="1" VerticalAlignment="Top" Background="#E2E8F0" />
+                                        <Border Grid.Row="1" Height="1" VerticalAlignment="Top" Background="{DynamicResource PclDividerBrush}" />
                                         <StackPanel Grid.Row="1" Margin="18,14,18,17" Spacing="11">
-                                            <TextBlock FontSize="13.5" Foreground="#4F5E6E" LineHeight="20"
+                                            <TextBlock FontSize="13.5" Foreground="{DynamicResource PclTextSecondaryBrush}" LineHeight="20"
                                                        TextWrapping="Wrap"
                                                        Text="你正在使用 PCL Aurora（PCL 跨平台版）！此版本为独立开发和维护，与原版维护路线不同，体验有所出入。" />
-                                            <TextBlock FontSize="13.5" Foreground="#4F5E6E" LineHeight="20"
+                                            <TextBlock FontSize="13.5" Foreground="{DynamicResource PclTextSecondaryBrush}" LineHeight="20"
                                                        TextWrapping="Wrap"
                                                        Text="如果你是意外下载到了 PCL Aurora，我们十分建议您下载原版 PCL 长期使用，此发行版本对新手用户体验可能不友好。" />
-                                            <TextBlock FontSize="13.5" Foreground="#4F5E6E" LineHeight="20"
+                                            <TextBlock FontSize="13.5" Foreground="{DynamicResource PclTextSecondaryBrush}" LineHeight="20"
                                                        TextWrapping="Wrap"
                                                        Text="此外，PCL Aurora 的问题请向 PCL Aurora 的仓库提交 Issue，不要向官方仓库反馈 PCL Aurora 的问题哦！" />
 
@@ -2340,9 +2345,9 @@
                                     <StackPanel Spacing="9">
                                         <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}" Text="启动状态" />
                                         <TextBlock Text="{Binding GameLaunchSummary}" TextWrapping="Wrap" />
-                                        <TextBlock Foreground="#6F7C8B" Text="{Binding LaunchPreflightSummary}" TextWrapping="Wrap" />
-                                        <TextBlock Foreground="#6F7C8B" Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
-                                        <TextBlock Foreground="#6F7C8B" Text="{Binding JavaRequirementSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding LaunchPreflightSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding VersionMetadataSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding JavaRequirementSummary}" TextWrapping="Wrap" />
                                         <CheckBox IsEnabled="{Binding RequiresAccountGuidance}"
                                                   IsChecked="{Binding HasAcknowledgedAccountGuidance}"
                                                   Content="我已知悉正版购买与上游赞助提示。" />
@@ -2362,8 +2367,8 @@
                         <ColumnDefinition Width="178" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border x:Name="DownloadSidebar" Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0"
-                            BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
+                    <Border x:Name="DownloadSidebar" Classes="pcl-page-left" Background="{DynamicResource PclSurfaceBrush}" Padding="0,12,0,0"
+                            BorderBrush="{DynamicResource PclDividerBrush}" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Column names follow PCL2 PageDownloadLeft.xaml with PCL-CE installer additions. -->
                             <StackPanel x:Name="DownloadNavigationPanel" Spacing="0">
@@ -2378,7 +2383,7 @@
                                               StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="社区资源" />
+                                <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="社区资源" />
                                 <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="mod" Label="模组"
                                                                   IconData="M14.7 6.3 17.7 3.3 20.7 6.3 17.7 9.3 M14.7 6.3 4 17v3h3l10.7-10.7" />
@@ -2422,7 +2427,7 @@
                                         <Path Width="18" Height="18" Data="{StaticResource DownloadRefreshIcon}" Stretch="Uniform" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="安装包" />
+                                <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="安装包" />
                                 <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="DownloadNavigationClick" Tag="optifine" Label="OptiFine" IconData="M12 14l4-4 M3.34 19a10 10 0 1 1 17.32 0" />
                                     <Button Grid.Column="1" Classes="nav-row-action" Tag="optifine" Click="DownloadSectionRefreshClick" ToolTip.Tip="刷新" AutomationProperties.Name="刷新 OptiFine">
@@ -2604,7 +2609,7 @@
                                                Source="{Binding SelectedCatalogVersion, Converter={StaticResource MinecraftVersionIconConverter}}" />
                                         <StackPanel Grid.Column="2" Margin="7,0,0,0" VerticalAlignment="Center" Spacing="1">
                                             <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding CombinedInstallationName}" />
-                                            <TextBlock FontSize="11" Foreground="#7D8894"
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                        Text="{Binding SelectedCatalogVersion.Id, StringFormat=Minecraft {0}}" />
                                         </StackPanel>
                                     </Grid>
@@ -2631,7 +2636,7 @@
                                                                 <Image Grid.Column="1" Width="18" Height="18" VerticalAlignment="Center"
                                                                        Stretch="Uniform" Source="{Binding IconPath}"
                                                                        IsVisible="{Binding HasSelection}" />
-                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Foreground="#6F7C8B"
+                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                                            TextTrimming="CharacterEllipsis" Text="{Binding HeaderSummary}" />
                                                                 <Grid Grid.Column="3" Width="18" Height="18" IsVisible="{Binding CanExpand}">
                                                                     <Path Width="12" Height="7" Data="{StaticResource VersionExpandDownIcon}"
@@ -2665,15 +2670,15 @@
                                                                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                                                                         <StackPanel VerticalAlignment="Center" Spacing="0">
                                                                             <TextBlock FontSize="13" FontWeight="SemiBold" Text="{Binding Version}" />
-                                                                            <TextBlock FontSize="11" Foreground="#89939E"
+                                                                            <TextBlock FontSize="11" Foreground="{DynamicResource PclTextMutedBrush}"
                                                                                        Text="{Binding MinecraftVersion, StringFormat=Minecraft {0}}" />
                                                                         </StackPanel>
                                                                         <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="11"
-                                                                                   Foreground="#6F7C8B" Text="{Binding Channel}" />
+                                                                                   Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding Channel}" />
                                                                         <Border Grid.Column="2" VerticalAlignment="Center" Padding="6,2"
-                                                                                CornerRadius="2" Background="#E8F7EE"
+                                                                                CornerRadius="2" Background="{DynamicResource PclSuccessBackgroundBrush}"
                                                                                 IsVisible="{Binding IsRecommended}">
-                                                                            <TextBlock FontSize="11" Foreground="#287A49" Text="推荐" />
+                                                                            <TextBlock FontSize="11" Foreground="{DynamicResource PclSuccessTextBrush}" Text="推荐" />
                                                                         </Border>
                                                                     </Grid>
                                                                 </Button>
@@ -2689,7 +2694,7 @@
                                 <Border Classes="version-category-card" Padding="16,13" Margin="0,3,0,15"
                                         IsVisible="{Binding !IsCombinedInstallerLoading}">
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                                        <TextBlock VerticalAlignment="Center" Foreground="#5F6C79" TextWrapping="Wrap"
+                                        <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource PclTextSecondaryBrush}" TextWrapping="Wrap"
                                                    Text="{Binding CombinedInstallationSummary}" />
                                         <Button Grid.Column="1" Classes="download-primary" MinWidth="112"
                                                 Click="CombinedInstallStartClick"
@@ -2704,7 +2709,7 @@
                                 <Border Classes="pcl-card" Padding="18">
                                     <StackPanel Spacing="10">
                                         <TextBlock x:Name="DownloadLoaderIntroTitle" FontSize="16" FontWeight="SemiBold" Text="Forge 简介" />
-                                        <TextBlock x:Name="DownloadLoaderIntroDescription" Foreground="#5F6C79" TextWrapping="Wrap"
+                                        <TextBlock x:Name="DownloadLoaderIntroDescription" Foreground="{DynamicResource PclTextSecondaryBrush}" TextWrapping="Wrap"
                                                    Text="Forge 是一个模组加载器，你需要先安装 Forge 才能安装各种 Forge 模组。" />
                                         <Button x:Name="DownloadLoaderWebsiteButton" Classes="download-primary"
                                                 MinWidth="140" Height="35" HorizontalAlignment="Left"
@@ -2770,11 +2775,11 @@
                                                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="0">
                                                                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                                                                         <TextBlock FontSize="14" Text="{Binding DisplayName}" />
-                                                                                        <TextBlock FontSize="11" Foreground="#287A49"
+                                                                                        <TextBlock FontSize="11" Foreground="{DynamicResource PclSuccessTextBrush}"
                                                                                                    VerticalAlignment="Center" IsVisible="{Binding IsRecommended}"
                                                                                                    Text="推荐" />
                                                                                     </StackPanel>
-                                                                                    <TextBlock FontSize="11" Foreground="#88929D"
+                                                                                    <TextBlock FontSize="11" Foreground="{DynamicResource PclTextMutedBrush}"
                                                                                                Text="{Binding Information}" TextTrimming="CharacterEllipsis" />
                                                                                 </StackPanel>
                                                                             </Grid>
@@ -2820,7 +2825,7 @@
                                             <Grid Height="34" ColumnDefinitions="24,*" ColumnSpacing="8">
                                                 <Path Width="18" Height="18" VerticalAlignment="Center"
                                                       Data="M21 21l-4.35-4.35 M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16"
-                                                      Fill="Transparent" Stroke="#36424F" StrokeThickness="2"
+                                                      Fill="Transparent" Stroke="{DynamicResource PclTextPrimaryBrush}" StrokeThickness="2"
                                                       StrokeLineCap="Round" StrokeJoin="Round" />
                                                 <TextBox Grid.Column="1" Classes="community-search-input"
                                                          PlaceholderText="在当前收藏夹中搜索"
@@ -2872,9 +2877,9 @@
                                             Margin="40,80" HorizontalAlignment="Center"
                                             IsVisible="{Binding IsCommunityFavoriteEmptyVisible}">
                                         <StackPanel>
-                                            <TextBlock HorizontalAlignment="Center" FontSize="19" Foreground="#2780DF"
+                                            <TextBlock HorizontalAlignment="Center" FontSize="19" Foreground="{DynamicResource PclThemePrimaryBrush}"
                                                        Text="{Binding CommunityFavoriteEmptyTitle}" />
-                                            <Border Height="2" Margin="0,10,0,15" Background="#2780DF" />
+                                            <Border Height="2" Margin="0,10,0,15" Background="{DynamicResource PclThemePrimaryBrush}" />
                                             <TextBlock HorizontalAlignment="Center" TextAlignment="Center"
                                                        Text="{Binding CommunityFavoriteEmptyDescription}" TextWrapping="Wrap" />
                                         </StackPanel>
@@ -2886,7 +2891,7 @@
                                     <Grid Height="34" ColumnDefinitions="24,*,88" ColumnSpacing="8">
                                         <Path Width="18" Height="18" VerticalAlignment="Center"
                                               Data="M21 21l-4.35-4.35 M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16"
-                                              Fill="Transparent" Stroke="#36424F" StrokeThickness="2"
+                                              Fill="Transparent" Stroke="{DynamicResource PclTextPrimaryBrush}" StrokeThickness="2"
                                               StrokeLineCap="Round" StrokeJoin="Round" />
                                         <TextBox Grid.Column="1" Classes="community-search-input"
                                                  PlaceholderText="搜索资源"
@@ -2949,9 +2954,9 @@
                                     </Grid>
                                 </Border>
 
-                                <Border Classes="pcl-status-strip" Background="#EDF6FF"
+                                <Border Classes="pcl-status-strip" Background="{DynamicResource PclControlHoverBrush}"
                                         IsVisible="{Binding IsCommunityStatusVisible}">
-                                    <TextBlock FontSize="12" Foreground="#365879"
+                                    <TextBlock FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                Text="{Binding CommunityResourceSummary}"
                                                TextWrapping="Wrap" />
                                 </Border>
@@ -2971,7 +2976,7 @@
                                     <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
                                             <Button MinWidth="72" Command="{Binding PreviousCommunityPageCommand}"
                                                     IsEnabled="{Binding CanGoToPreviousCommunityPage}" Content="上一页" />
-                                            <Border MinWidth="42" Background="#EDF6FF" CornerRadius="3" Padding="10,7">
+                                            <Border MinWidth="42" Background="{DynamicResource PclControlHoverBrush}" CornerRadius="3" Padding="10,7">
                                                 <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold"
                                                            Text="{Binding CommunityPageNumber}" />
                                             </Border>
@@ -3052,7 +3057,7 @@
                                                 </Button>
                                             </WrapPanel>
 
-                                            <Border Padding="12,10" Background="#F3F8FD" CornerRadius="4"
+                                            <Border Padding="12,10" Background="{DynamicResource PclHintBackgroundBrush}" CornerRadius="4"
                                                     IsVisible="{Binding IsCommunityDescriptionTranslationPanelVisible}">
                                                 <Grid MinHeight="70">
                                                     <controls:PclLoadingIndicator
@@ -3060,21 +3065,21 @@
                                                         Text="正在获取简介译文" />
                                                     <StackPanel IsVisible="{Binding !IsCommunityDescriptionTranslationRunning}"
                                                                 Spacing="8">
-                                                        <TextBlock Foreground="#52708C"
+                                                        <TextBlock Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                                    Text="{Binding CommunityDescriptionTranslationSummary}"
                                                                    TextWrapping="Wrap" />
                                                         <StackPanel Spacing="3">
                                                             <TextBlock FontSize="12" FontWeight="SemiBold"
-                                                                       Foreground="#798692" Text="原文" />
-                                                            <TextBlock Foreground="#4E5D6B"
+                                                                       Foreground="{DynamicResource PclTextSecondaryBrush}" Text="原文" />
+                                                            <TextBlock Foreground="{DynamicResource PclTextPrimaryBrush}"
                                                                        Text="{Binding SelectedCommunityResource.Project.Description}"
                                                                        TextWrapping="Wrap" />
                                                         </StackPanel>
                                                         <StackPanel Spacing="3"
                                                                     IsVisible="{Binding HasCommunityDescriptionTranslation}">
                                                             <TextBlock FontSize="12" FontWeight="SemiBold"
-                                                                       Foreground="#2472C8" Text="译文" />
-                                                            <TextBlock Foreground="#364E64"
+                                                                       Foreground="{DynamicResource PclThemePrimaryBrush}" Text="译文" />
+                                                            <TextBlock Foreground="{DynamicResource PclTextPrimaryBrush}"
                                                                        Text="{Binding CommunityDescriptionTranslation}"
                                                                        TextWrapping="Wrap" />
                                                         </StackPanel>
@@ -3095,7 +3100,7 @@
                                             <Grid Margin="10,10,10,5" ColumnDefinitions="Auto,*" ColumnSpacing="4"
                                                   IsVisible="{Binding IsCommunityGameVersionFilterVisible}">
                                                 <TextBlock Margin="2,4,0,0" VerticalAlignment="Top"
-                                                           FontSize="13" Foreground="#343D4A" Text="实例筛选：" />
+                                                           FontSize="13" Foreground="{DynamicResource PclTextPrimaryBrush}" Text="实例筛选：" />
                                                 <ItemsControl Grid.Column="1" ItemsSource="{Binding CommunityGameVersionFilters}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
@@ -3118,7 +3123,7 @@
                                             <Grid Margin="10,5,10,10" ColumnDefinitions="Auto,*" ColumnSpacing="4"
                                                   IsVisible="{Binding IsCommunityLoaderVersionFilterVisible}">
                                                 <TextBlock Margin="2,4,0,0" VerticalAlignment="Top"
-                                                           FontSize="13" Foreground="#343D4A" Text="模组加载器筛选：" />
+                                                           FontSize="13" Foreground="{DynamicResource PclTextPrimaryBrush}" Text="模组加载器筛选：" />
                                                 <ItemsControl Grid.Column="1" ItemsSource="{Binding CommunityLoaderVersionFilters}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
@@ -3170,24 +3175,24 @@
                                                                       IsVisible="{Binding IsExpanded}">
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate x:DataType="domain:CommunityResourceVersion">
-                                                                    <Border MinHeight="58" Padding="5,6" BorderBrush="#E7EDF3" BorderThickness="0,0,0,1">
+                                                                    <Border MinHeight="58" Padding="5,6" BorderBrush="{DynamicResource PclDividerBrush}" BorderThickness="0,0,0,1">
                                                                         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
                                                                             <StackPanel VerticalAlignment="Center" Spacing="2">
                                                                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
                                                                                     <TextBlock FontWeight="SemiBold" Text="{Binding VersionNumber}" />
-                                                                                    <TextBlock Grid.Column="1" FontSize="11" Foreground="#6F7C8B"
+                                                                                    <TextBlock Grid.Column="1" FontSize="11" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                                                                Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                                                                                 </Grid>
-                                                                                <TextBlock FontSize="11" Foreground="#526170"
+                                                                                <TextBlock FontSize="11" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                                                            Text="{Binding FileSummary}" TextTrimming="CharacterEllipsis" />
                                                                             </StackPanel>
                                                                             <StackPanel Grid.Column="1" MinWidth="92" VerticalAlignment="Center"
                                                                                         HorizontalAlignment="Right" Spacing="2">
                                                                                 <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="{StaticResource PclThemePrimaryBrush}"
                                                                                            Text="{Binding ChannelDisplay}" />
-                                                                                <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#526170"
+                                                                                <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                                                            Text="{Binding LoaderSummary}" />
-                                                                                <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#6F7C8B"
+                                                                                <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                                                            Text="{Binding PublishedAtDisplay}" />
                                                                             </StackPanel>
                                                                             <Button Grid.Column="2" Classes="community-version-install" Tag="{Binding}"
@@ -3205,9 +3210,9 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
 
-                                    <Border Classes="pcl-status-strip" Background="#EDF6FF"
+                                    <Border Classes="pcl-status-strip" Background="{DynamicResource PclControlHoverBrush}"
                                             IsVisible="{Binding !HasCommunityResourceVersions}">
-                                        <TextBlock FontSize="12" Foreground="#365879"
+                                        <TextBlock FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                    Text="{Binding CommunityVersionSummary}" TextWrapping="Wrap" />
                                     </Border>
                                 </StackPanel>
@@ -3216,7 +3221,7 @@
                             <Border x:Name="DownloadDeferredCard" Classes="pcl-card" Padding="20" IsVisible="False">
                                 <StackPanel Spacing="8">
                                     <TextBlock x:Name="DownloadDeferredTitle" FontSize="17" FontWeight="SemiBold" Text="安装包" />
-                                    <TextBlock Foreground="#6F7C8B" Text="暂未开放" />
+                                    <TextBlock Foreground="{DynamicResource PclTextSecondaryBrush}" Text="暂未开放" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -3226,11 +3231,11 @@
 
             <Grid x:Name="SettingsPage" IsVisible="False">
                 <Grid ColumnDefinitions="140,*" Background="{DynamicResource PclPageBackgroundBrush}">
-                    <Border Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
+                    <Border Classes="pcl-page-left" Background="{DynamicResource PclSurfaceBrush}" Padding="0,12,0,0" BorderBrush="{DynamicResource PclDividerBrush}" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Category structure follows PCL-CE PageSetupLeft.xaml; visual treatment follows PCL2. -->
                             <StackPanel x:Name="SettingsNavigationPanel" Spacing="0">
-                                <TextBlock Margin="13,0,5,3" FontSize="12" Foreground="#6F7C8B" Text="游戏" />
+                                <TextBlock Margin="13,0,5,3" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="游戏" />
                                 <Grid Classes="nav-row selected" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation selected" Click="SettingsNavigationClick" Tag="launch" Label="启动"
                                                                   IconData="M5 5a2 2 0 0 1 3-1.73l12 7a2 2 0 0 1 0 3.46l-12 7A2 2 0 0 1 5 19z" />
@@ -3261,10 +3266,10 @@
                                               StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="#6F7C8B" Text="工具" />
+                                <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="工具" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="link" Label="联机"
                                                               IconData="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                                <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="#6F7C8B" Text="启动器" />
+                                <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="启动器" />
                                 <Grid Classes="nav-row" ColumnDefinitions="*,36">
                                     <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="interface" Label="个性化"
                                                                   IconData="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z M13.5 6a.5.5 0 1 0 0 1 .5.5 0 1 0 0-1 M17.5 10a.5.5 0 1 0 0 1 .5.5 0 1 0 0-1 M6.5 12a.5.5 0 1 0 0 1 .5.5 0 1 0 0-1 M8.5 7a.5.5 0 1 0 0 1 .5.5 0 1 0 0-1" />
@@ -3295,7 +3300,7 @@
                                               StrokeLineCap="Round" StrokeJoin="Round" />
                                     </Button>
                                 </Grid>
-                                <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="#6F7C8B" Text="关于" />
+                                <TextBlock Margin="13,8,5,3" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="关于" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="about" Label="软件信息"
                                                               IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01" />
                                 <controls:PclNavigationButton Classes="secondary-navigation" Click="SettingsNavigationClick" Tag="update" Label="软件更新"
@@ -3426,14 +3431,14 @@
                                                        Opacity="0.7" Text="游戏分配" />
                                             <Border Grid.Row="1" Background="#5D7287" />
                                             <Border Grid.Row="1" Grid.Column="1" Background="#79B8F3" />
-                                            <Border Grid.Row="1" Grid.Column="2" Background="#D4E6F8" />
+                                            <Border Grid.Row="1" Grid.Column="2" Background="{DynamicResource PclControlSelectedBrush}" />
                                             <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="2,3,0,0"
                                                         Orientation="Horizontal">
-                                                <TextBlock FontSize="16" Foreground="#287DCE" Text="{Binding MemoryUsedDisplay}" />
-                                                <TextBlock FontSize="16" Foreground="#287DCE" Text="{Binding MemoryTotalDisplay}" />
+                                                <TextBlock FontSize="16" Foreground="{DynamicResource PclThemePrimaryBrush}" Text="{Binding MemoryUsedDisplay}" />
+                                                <TextBlock FontSize="16" Foreground="{DynamicResource PclThemePrimaryBrush}" Text="{Binding MemoryTotalDisplay}" />
                                             </StackPanel>
                                             <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="2,3,0,0"
-                                                       FontSize="16" Foreground="#287DCE" Text="{Binding MemoryGameDisplay}" />
+                                                       FontSize="16" Foreground="{DynamicResource PclThemePrimaryBrush}" Text="{Binding MemoryGameDisplay}" />
                                         </Grid>
                                     </StackPanel>
                                 </Grid>
@@ -3535,8 +3540,8 @@
                                                 <DataTemplate>
                                                     <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
                                                         <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
-                                                        <TextBlock Grid.Column="1" Foreground="#6F7C8B" Text="{Binding Vendor}" />
-                                                        <TextBlock Grid.Column="2" Foreground="#6F7C8B" Text="{Binding ExecutablePath}" TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Grid.Column="1" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding Vendor}" />
+                                                        <TextBlock Grid.Column="2" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding ExecutablePath}" TextTrimming="CharacterEllipsis" />
                                                     </Grid>
                                                 </DataTemplate>
                                             </ComboBox.ItemTemplate>
@@ -3544,11 +3549,11 @@
                                         <ItemsControl ItemsSource="{Binding AvailableJavaInstallations}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border BorderBrush="#D8E2EC" BorderThickness="0,1,0,0" Padding="4,9">
+                                                    <Border BorderBrush="{DynamicResource PclDividerBrush}" BorderThickness="0,1,0,0" Padding="4,9">
                                                         <Grid ColumnDefinitions="90,130,*" ColumnSpacing="10">
                                                             <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
-                                                            <TextBlock Grid.Column="1" Foreground="#536272" Text="{Binding Vendor}" TextTrimming="CharacterEllipsis" />
-                                                            <TextBlock Grid.Column="2" FontSize="11" Foreground="#6F7C8B" Text="{Binding ExecutablePath}" TextWrapping="Wrap" />
+                                                            <TextBlock Grid.Column="1" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding Vendor}" TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Grid.Column="2" FontSize="11" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding ExecutablePath}" TextWrapping="Wrap" />
                                                         </Grid>
                                                     </Border>
                                                 </DataTemplate>
@@ -3696,15 +3701,15 @@
                             <Border Classes="setup-card" MinHeight="350">
                                 <Grid>
                                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-                                        <Border Width="70" Height="70" CornerRadius="35" Background="#E1F0FF">
+                                        <Border Width="70" Height="70" CornerRadius="35" Background="{DynamicResource PclControlSelectedBrush}">
                                             <Path Width="34" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                   Data="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
                                                   Stretch="Uniform" Fill="Transparent" Stroke="{StaticResource PclThemePrimaryBrush}"
                                                   StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
                                         </Border>
                                         <TextBlock HorizontalAlignment="Center" FontSize="22" FontWeight="SemiBold"
-                                                   Foreground="#344150" Text="敬请期待" />
-                                        <TextBlock HorizontalAlignment="Center" FontSize="13" Foreground="#6F7C8B"
+                                                   Foreground="{DynamicResource PclTextPrimaryBrush}" Text="敬请期待" />
+                                        <TextBlock HorizontalAlignment="Center" FontSize="13" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                    Text="PCL Aurora 的联机功能正在准备中。" />
                                     </StackPanel>
                                 </Grid>
@@ -3780,7 +3785,7 @@
                                                                   SelectedFontTag="{Binding GlobalInterfaceFont, Mode=TwoWay}">
                                             <controls:PclFontSelector.ItemTemplate>
                                                 <DataTemplate x:DataType="controls:PclFontOption">
-                                                    <TextBlock HorizontalAlignment="Center" Text="{Binding DisplayName}" FontFamily="{Binding Font}" />
+                                                    <TextBlock HorizontalAlignment="Left" Text="{Binding DisplayName}" FontFamily="{Binding Font}" />
                                                 </DataTemplate>
                                             </controls:PclFontSelector.ItemTemplate>
                                         </controls:PclFontSelector>
@@ -3789,7 +3794,7 @@
                                                                   SelectedFontTag="{Binding MotdInterfaceFont, Mode=TwoWay}">
                                             <controls:PclFontSelector.ItemTemplate>
                                                 <DataTemplate x:DataType="controls:PclFontOption">
-                                                    <TextBlock HorizontalAlignment="Center" Text="{Binding DisplayName}" FontFamily="{Binding Font}" />
+                                                    <TextBlock HorizontalAlignment="Left" Text="{Binding DisplayName}" FontFamily="{Binding Font}" />
                                                 </DataTemplate>
                                             </controls:PclFontSelector.ItemTemplate>
                                         </controls:PclFontSelector>
@@ -3847,7 +3852,7 @@
                                                   IsEnabled="{Binding SupportsSystemMediaControls}"
                                                   Content="接入系统媒体传输控制 (SMTC) 控件"
                                                   ToolTip.Tip="SMTC 是 Windows 专属能力；macOS 与 Linux 将使用各自的媒体控制接口。" />
-                                        <TextBlock Margin="0,2,0,0" FontSize="12" Foreground="#657588"
+                                        <TextBlock Margin="0,2,0,0" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                    Text="{Binding BackgroundMusicStatus}" TextWrapping="Wrap" />
                                         <StackPanel Margin="0,3,0,0" Orientation="Horizontal" Spacing="20">
                                             <Button Classes="about-action" Click="OpenMusicFolderClick" Content="打开文件夹" />
@@ -3979,7 +3984,7 @@
                                                       SelectedItem="{Binding SelectedLauncherLanguage, Mode=TwoWay}">
                                                 <ComboBox.ItemTemplate>
                                                     <DataTemplate>
-                                                        <TextBlock HorizontalAlignment="Center" Text="{Binding DisplayName}" FontFamily="{Binding FontFamily}" />
+                                                        <TextBlock HorizontalAlignment="Left" Text="{Binding DisplayName}" FontFamily="{Binding FontFamily}" />
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
@@ -3988,7 +3993,7 @@
                                                       ItemsSource="{Binding LauncherFormatCultures}"
                                                       SelectedItem="{Binding SelectedLauncherFormatCulture, Mode=TwoWay}">
                                                 <ComboBox.ItemTemplate>
-                                                    <DataTemplate><TextBlock HorizontalAlignment="Center" Text="{Binding DisplayName}" /></DataTemplate>
+                                                    <DataTemplate><TextBlock HorizontalAlignment="Left" Text="{Binding DisplayName}" /></DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
                                         </Grid>
@@ -4035,7 +4040,7 @@
                                                 <Button Classes="about-action" MinWidth="140" Height="35" Click="ImportLauncherSettingsClick" Content="导入设置" />
                                                 <Button Classes="about-action danger-action" MinWidth="140" Height="35" Click="StopUsingAuroraClick" Content="停止使用 PCL Aurora" />
                                             </StackPanel>
-                                            <TextBlock Margin="0,7,0,0" FontSize="12" Foreground="#5E6C7B" TextWrapping="Wrap"
+                                            <TextBlock Margin="0,7,0,0" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}" TextWrapping="Wrap"
                                                        IsVisible="{Binding HasMiscSettingsStatus}" Text="{Binding MiscSettingsStatus}" />
                                         </StackPanel>
                                     </Grid>
@@ -4057,8 +4062,8 @@
                                         </Grid>
                                         <Grid Grid.Row="4" Grid.Column="1" RowDefinitions="28,9,28,9,28"
                                               ColumnDefinitions="Auto,*,Auto,*,Auto" IsVisible="{Binding UsesCustomProxy}">
-                                            <Border Grid.ColumnSpan="5" Background="#FFF7D6" BorderBrush="#E6C55A" BorderThickness="1" CornerRadius="3" Padding="10,5">
-                                                <TextBlock Foreground="#765B00" Text="请勿填写不信任的代理地址" />
+                                            <Border Grid.ColumnSpan="5" Background="{DynamicResource PclWarningBackgroundBrush}" BorderBrush="{DynamicResource PclWarningBorderBrush}" BorderThickness="1" CornerRadius="3" Padding="10,5">
+                                                <TextBlock Foreground="{DynamicResource PclWarningTextBrush}" Text="请勿填写不信任的代理地址" />
                                             </Border>
                                             <TextBox Grid.Row="2" Grid.ColumnSpan="5" Classes="setup-launch-field"
                                                      MaxLength="2048" PlaceholderText="比如 http://127.0.0.1:1080/"
@@ -4243,7 +4248,7 @@
                                                             </Border>
                                                             <TextBlock MaxWidth="78" HorizontalAlignment="Center" FontSize="12"
                                                                        Text="{Binding Login}" TextTrimming="CharacterEllipsis" />
-                                                            <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#7B8794"
+                                                            <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="{DynamicResource PclTextSecondaryBrush}"
                                                                        Text="{Binding Contributions, StringFormat={}{0} 次贡献}" />
                                                         </StackPanel>
                                                     </Button>
@@ -4426,7 +4431,7 @@
                                     <StackPanel Grid.Row="7" Grid.ColumnSpan="4" Margin="0,10,0,0" Spacing="5"
                                                 IsVisible="{Binding HasUpdateInstallStatus}">
                                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                            <TextBlock Foreground="#566575" Text="{Binding UpdateInstallStatus}" TextWrapping="Wrap" />
+                                            <TextBlock Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding UpdateInstallStatus}" TextWrapping="Wrap" />
                                             <Button Grid.Column="1" Height="28" Padding="12,0" Classes="about-action"
                                                     IsVisible="{Binding IsPreparingLauncherUpdate}"
                                                     Command="{Binding CancelLauncherUpdateCommand}" Content="取消" />
@@ -4487,9 +4492,9 @@
                                                                     <Border Grid.Column="3" Margin="12,0,0,0" Classes="feedback-tag">
                                                                         <TextBlock Classes="feedback-tag-text" Text="{Binding TypeDisplay}" />
                                                                     </Border>
-                                                                    <TextBlock Grid.Row="2" Grid.Column="2" FontSize="11" Foreground="#87929D" Text="{Binding Metadata}" />
+                                                                    <TextBlock Grid.Row="2" Grid.Column="2" FontSize="11" Foreground="{DynamicResource PclTextMutedBrush}" Text="{Binding Metadata}" />
                                                                     <TextBlock Grid.Row="2" Grid.Column="3" Margin="12,0,0,0" FontSize="11"
-                                                                               Foreground="#87929D" Text="{Binding LabelsDisplay}" />
+                                                                               Foreground="{DynamicResource PclTextMutedBrush}" Text="{Binding LabelsDisplay}" />
                                                                 </Grid>
                                                             </Button>
                                                         </DataTemplate>
@@ -4537,7 +4542,7 @@
                                                                   VerticalAlignment="Center" Stretch="Uniform"
                                                                   Data="M9 18l6-6-6-6" Fill="Transparent" Stroke="#7B8794"
                                                                   StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
-                                                            <TextBlock Grid.Row="2" FontSize="11" Foreground="#87929D" Text="{Binding Metadata}" />
+                                                            <TextBlock Grid.Row="2" FontSize="11" Foreground="{DynamicResource PclTextMutedBrush}" Text="{Binding Metadata}" />
                                                         </Grid>
                                                     </Button>
                                                 </DataTemplate>
@@ -4554,7 +4559,7 @@
 
             <Grid x:Name="MorePage" IsVisible="False">
                 <Grid x:Name="MorePageLayout" ColumnDefinitions="152,*" Background="{DynamicResource PclPageBackgroundBrush}">
-                    <Border x:Name="MoreSidebar" Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
+                    <Border x:Name="MoreSidebar" Classes="pcl-page-left" Background="{DynamicResource PclSurfaceBrush}" Padding="0,12,0,0" BorderBrush="{DynamicResource PclDividerBrush}" BorderThickness="0,0,1,0">
                         <!-- PCL2 PageOtherLeft.xaml structure, plus PCL-CE/Aurora session log access. -->
                         <StackPanel x:Name="MoreNavigationPanel" Spacing="0">
                             <Grid Classes="nav-row selected" ColumnDefinitions="*,36">
@@ -4569,7 +4574,7 @@
                             </Grid>
                             <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="toolbox" Label="百宝箱"
                                                           IconData="M3 6h18v14H3z M8 6V4h8v2 M3 11h18 M10 11v3h4v-3" />
-                            <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="诊断" />
+                            <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}" Text="诊断" />
                             <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="logs" Label="查看日志"
                                                           IconData="M4 2h16v20H4z M8 7h8 M8 11h8 M8 15h5" />
                         </StackPanel>
@@ -4718,7 +4723,7 @@
                         <Border x:Name="MoreLogSection" Classes="pcl-card" Padding="20" IsVisible="False">
                             <StackPanel Spacing="10">
                                 <TextBlock FontWeight="SemiBold" Text="游戏日志" />
-                                <TextBlock Foreground="#6F7C8B"
+                                <TextBlock Foreground="{DynamicResource PclTextSecondaryBrush}"
                                            Text="{Binding GameLogSummary}"
                                            TextWrapping="Wrap" />
                                 <Button HorizontalAlignment="Left"
@@ -4727,7 +4732,7 @@
                                         Content="清除本次会话日志" />
                                 <Border MaxHeight="260"
                                         Padding="12"
-                                        Background="#FCFDFF"
+                                        Background="{DynamicResource PclSurfaceBrush}"
                                         CornerRadius="8">
                                     <ScrollViewer HorizontalScrollBarVisibility="Auto"
                                                   VerticalScrollBarVisibility="Auto">
@@ -4763,7 +4768,7 @@
                     Padding="22,20,22,22"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Background="#FBFBFB"
+                    Background="{DynamicResource PclSurfaceBrush}"
                     BorderThickness="0"
                     CornerRadius="7"
                     BoxShadow="0 4 20 2 #CC3C3C3C">
@@ -4783,27 +4788,27 @@
                                     VerticalAlignment="Center"
                                     Spacing="10">
                             <TextBlock FontSize="15"
-                                       Foreground="#536271"
+                                       Foreground="{DynamicResource PclTextSecondaryBrush}"
                                        Text="登录网页已经打开，设备代码也已复制。请在浏览器中完成 Microsoft 账户授权。"
                                        TextWrapping="Wrap" />
                             <Border Padding="14,9"
-                                    Background="#EAF2FE"
-                                    BorderBrush="#96C0F9"
+                                    Background="{DynamicResource PclControlHoverBrush}"
+                                    BorderBrush="{DynamicResource PclControlAccentBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="3">
                                 <TextBlock HorizontalAlignment="Center"
                                            FontFamily="Menlo, Consolas, monospace"
                                            FontSize="25"
                                            FontWeight="SemiBold"
-                                           Foreground="#0B5BCB"
+                                           Foreground="{DynamicResource PclThemePrimaryBrush}"
                                            Text="{Binding MicrosoftDeviceCode}" />
                             </Border>
                             <TextBlock FontSize="13"
-                                       Foreground="#758392"
+                                       Foreground="{DynamicResource PclTextSecondaryBrush}"
                                        Text="也可以在其他设备中打开 microsoft.com/devicelogin 并输入此代码。"
                                        TextWrapping="Wrap" />
                             <TextBlock FontSize="13"
-                                       Foreground="#3E7BB4"
+                                       Foreground="{DynamicResource PclThemePrimaryBrush}"
                                        Text="{Binding MicrosoftLoginSummary}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
@@ -4843,7 +4848,7 @@
 
     <Border x:Name="LaunchingHintOverlay" Margin="24,0,24,22" Padding="16,11"
             HorizontalAlignment="Center" VerticalAlignment="Bottom" MaxWidth="620"
-            Background="#F2FFFFFF" BorderBrush="#A8C9ED" BorderThickness="1"
+            Background="{DynamicResource PclOverlaySurfaceBrush}" BorderBrush="{DynamicResource PclControlAccentBorderBrush}" BorderThickness="1"
             CornerRadius="5" BoxShadow="0 5 18 0 #30000000"
             Opacity="0" IsVisible="False" IsHitTestVisible="False">
         <Border.Transitions>
@@ -4853,15 +4858,15 @@
             <Path Width="18" Height="18" Stretch="Uniform" Fill="{DynamicResource PclThemePrimaryBrush}"
                   Data="M12 2a7 7 0 0 0-4 12.74V17h8v-2.26A7 7 0 0 0 12 2zm-3 17h6v2H9z" />
             <TextBlock x:Name="LaunchingHintText" VerticalAlignment="Center" FontSize="13"
-                       Foreground="#40546A" TextWrapping="Wrap" />
+                       Foreground="{DynamicResource PclTextPrimaryBrush}" TextWrapping="Wrap" />
         </StackPanel>
     </Border>
 
-    <Grid x:Name="StartupLogoOverlay" IsHitTestVisible="False">
+    <Grid x:Name="StartupLogoOverlay" IsHitTestVisible="False" ZIndex="300">
         <Grid.Transitions>
             <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.24" /></Transitions>
         </Grid.Transitions>
-        <Image Width="78" Height="78" HorizontalAlignment="Center" VerticalAlignment="Center"
+        <Image x:Name="StartupLogoImage" Width="78" Height="78" HorizontalAlignment="Center" VerticalAlignment="Center"
                Source="/Assets/Icons/AppIcon-2048.png" />
     </Grid>
 
@@ -4870,7 +4875,7 @@
            IsLightDismissEnabled="True"
            VerticalOffset="4">
         <Border MinWidth="220" MaxWidth="280" Padding="5"
-                Background="#FCFDFF" BorderBrush="#BFD3E6" BorderThickness="1"
+                Background="{DynamicResource PclSurfaceBrush}" BorderBrush="{DynamicResource PclControlAccentBorderBrush}" BorderThickness="1"
                 CornerRadius="5" BoxShadow="0 4 12 0 #30000000">
             <StackPanel x:Name="CommunityFavoriteMenuItems" Spacing="2" />
         </Border>

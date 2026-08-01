@@ -5,6 +5,35 @@
 
     <Application.Resources>
         <FontFamily x:Key="PclAuroraInterfaceFont">avares://PCL.Aurora.Desktop/Fonts/HarmonyOS_Sans_SC#HarmonyOS Sans SC</FontFamily>
+        <SolidColorBrush x:Key="PclThemePrimaryBrush" Color="#127AE1" />
+        <SolidColorBrush x:Key="PclPageBackgroundBrush" Color="#D9EAF9" />
+        <SolidColorBrush x:Key="PclTextPrimaryBrush" Color="#343D4A" />
+        <SolidColorBrush x:Key="PclTextSecondaryBrush" Color="#6F7C8B" />
+        <SolidColorBrush x:Key="PclTextMutedBrush" Color="#87929D" />
+        <SolidColorBrush x:Key="PclSurfaceBrush" Color="#FCFDFF" />
+        <SolidColorBrush x:Key="PclSurfaceRaisedBrush" Color="#FBFBFB" />
+        <SolidColorBrush x:Key="PclCardBrush" Color="#D2FBFBFB" />
+        <SolidColorBrush x:Key="PclCardHoverBrush" Color="#EAF2FE" />
+        <SolidColorBrush x:Key="PclControlBackgroundBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="PclControlHoverBrush" Color="#F8FBFE" />
+        <SolidColorBrush x:Key="PclControlPressedBrush" Color="#F2F8FF" />
+        <SolidColorBrush x:Key="PclControlSelectedBrush" Color="#E4F1FF" />
+        <SolidColorBrush x:Key="PclControlSelectedHoverBrush" Color="#DCEEFF" />
+        <SolidColorBrush x:Key="PclControlBorderBrush" Color="#C3D2E2" />
+        <SolidColorBrush x:Key="PclControlAccentBorderBrush" Color="#83B8F8" />
+        <SolidColorBrush x:Key="PclDividerBrush" Color="#D1DDEA" />
+        <SolidColorBrush x:Key="PclDisabledSurfaceBrush" Color="#F4F6F8" />
+        <SolidColorBrush x:Key="PclDisabledTextBrush" Color="#9AA5B1" />
+        <SolidColorBrush x:Key="PclHintBackgroundBrush" Color="#EAF4FF" />
+        <SolidColorBrush x:Key="PclHintBorderBrush" Color="#BFD9F3" />
+        <SolidColorBrush x:Key="PclWarningBackgroundBrush" Color="#FFF5D6" />
+        <SolidColorBrush x:Key="PclWarningBorderBrush" Color="#E8D69A" />
+        <SolidColorBrush x:Key="PclWarningTextBrush" Color="#765B00" />
+        <SolidColorBrush x:Key="PclDangerBackgroundBrush" Color="#80FBDDDD" />
+        <SolidColorBrush x:Key="PclDangerTextBrush" Color="#A44343" />
+        <SolidColorBrush x:Key="PclSuccessBackgroundBrush" Color="#E8F7EE" />
+        <SolidColorBrush x:Key="PclSuccessTextBrush" Color="#287A49" />
+        <SolidColorBrush x:Key="PclOverlaySurfaceBrush" Color="#F2FFFFFF" />
         <ControlTheme x:Key="PclScrollBarThumbTheme" TargetType="Thumb">
             <Setter Property="Background" Value="#804890F5" />
             <Setter Property="CornerRadius" Value="3" />

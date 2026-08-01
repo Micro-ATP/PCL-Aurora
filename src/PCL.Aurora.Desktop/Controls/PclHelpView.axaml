@@ -8,18 +8,18 @@
             <Setter Property="Padding" Value="38,0,12,0" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Background" Value="#EEF4FA" />
+            <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="5" />
         </Style>
         <Style Selector="TextBox.help-search:pointerover">
-            <Setter Property="Background" Value="#F5F9FD" />
-            <Setter Property="BorderBrush" Value="#BBD9F4" />
+            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
         </Style>
         <Style Selector="TextBox.help-search:focus">
-            <Setter Property="Background" Value="#F9FCFF" />
-            <Setter Property="BorderBrush" Value="#68AEEB" />
+            <Setter Property="Background" Value="{DynamicResource PclControlPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
         <Style Selector="Button.help-entry">
             <Setter Property="Height" Value="42" />
@@ -32,25 +32,25 @@
             <Setter Property="Cursor" Value="Hand" />
         </Style>
         <Style Selector="Button.help-entry:pointerover">
-            <Setter Property="Background" Value="#DDEEFF" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
         </Style>
         <Style Selector="Button.help-entry:pressed">
-            <Setter Property="Background" Value="#CFE5FA" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
         </Style>
         <Style Selector="Button.help-detail-action">
             <Setter Property="MinHeight" Value="35" />
             <Setter Property="Padding" Value="13,0" />
             <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="Background" Value="#E2F0FD" />
-            <Setter Property="BorderBrush" Value="#BBD9F4" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclControlAccentBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#126DBB" />
+            <Setter Property="Foreground" Value="{DynamicResource PclThemePrimaryBrush}" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Cursor" Value="Hand" />
         </Style>
         <Style Selector="Button.help-detail-action:pointerover">
-            <Setter Property="Background" Value="#D4EAFD" />
-            <Setter Property="BorderBrush" Value="#8EC3EE" />
+            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PclThemePrimaryBrush}" />
         </Style>
     </UserControl.Styles>
 
@@ -78,7 +78,7 @@
                 HorizontalAlignment="Stretch" VerticalAlignment="Top">
             <StackPanel Spacing="10">
                 <TextBlock FontSize="15" FontWeight="SemiBold" Foreground="#C34242" Text="帮助列表加载失败" />
-                <TextBlock x:Name="ErrorText" Foreground="#6F7C8B" TextWrapping="Wrap" />
+                <TextBlock x:Name="ErrorText" Foreground="{DynamicResource PclTextSecondaryBrush}" TextWrapping="Wrap" />
                 <Button Classes="help-detail-action" Click="RetryClick" Content="重试" />
             </StackPanel>
         </Border>
