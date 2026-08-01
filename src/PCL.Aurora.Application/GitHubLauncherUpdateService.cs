@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PCL.Aurora.Platform.Abstractions;
 
 namespace PCL.Aurora.Application;
 
@@ -60,7 +61,15 @@ public sealed class GitHubLauncherUpdateService(HttpClient httpClient) : ILaunch
             CreateSummary(changelog),
             changelog,
             release.Entry.ReleaseUri,
-            release.Entry.PublishedAt);
+            release.Entry.PublishedAt,
+            release.Entry.Assets
+                .Where(asset => asset.Size >= 0 && asset.DownloadUri.Scheme == Uri.UriSchemeHttps)
+                .Select(asset => new LauncherUpdateAsset(
+                    asset.Name,
+                    asset.DownloadUri,
+                    asset.Size,
+                    asset.ContentType))
+                .ToArray());
 
         return new LauncherUpdateCheckResult(release.Parsed.CompareTo(parsedCurrentVersion) > 0, latestRelease);
     }
@@ -108,7 +117,17 @@ public sealed class GitHubLauncherUpdateService(HttpClient httpClient) : ILaunch
         [property: JsonPropertyName("html_url")] Uri ReleaseUri,
         [property: JsonPropertyName("draft")] bool Draft,
         [property: JsonPropertyName("prerelease")] bool Prerelease,
-        [property: JsonPropertyName("published_at")] DateTimeOffset PublishedAt);
+        [property: JsonPropertyName("published_at")] DateTimeOffset PublishedAt,
+        [property: JsonPropertyName("assets")] IReadOnlyList<ReleaseAssetResponse>? RawAssets)
+    {
+        public IReadOnlyList<ReleaseAssetResponse> Assets => RawAssets ?? [];
+    }
+
+    private sealed record ReleaseAssetResponse(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("browser_download_url")] Uri DownloadUri,
+        [property: JsonPropertyName("size")] long Size,
+        [property: JsonPropertyName("content_type")] string? ContentType);
 
     private sealed record ReleaseVersion(
         int Major,

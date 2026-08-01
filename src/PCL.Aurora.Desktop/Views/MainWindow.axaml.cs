@@ -8,6 +8,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Media.Imaging;
+using Avalonia.Media;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
@@ -45,6 +46,7 @@ public partial class MainWindow : Window
     private readonly HttpClient toolboxHttpClient = new() { Timeout = TimeSpan.FromSeconds(30) };
     private CancellationTokenSource? toolboxDownloadCancellation;
     private CancellationTokenSource? homepageRefreshCancellation;
+    private CancellationTokenSource? launchingHintCancellation;
     private Bitmap? toolboxAvatarBitmap;
     private string? lastProcessedClipboardText;
     private bool isResolvingClipboardResource;
@@ -66,7 +68,14 @@ public partial class MainWindow : Window
         PclHomepageView.ActionRequested += HandleHelpAction;
         DataContextChanged += (_, _) => SubscribeToViewModel();
         KeyDown += MainWindowKeyDown;
-        SizeChanged += (_, _) => UpdateLauncherWindowSize();
+        SizeChanged += (_, _) =>
+        {
+            UpdateLauncherWindowSize();
+            if (DataContext is ViewModels.MainViewModel viewModel)
+            {
+                ApplyBackgroundLayout(viewModel);
+            }
+        };
         Activated += MainWindowActivated;
         Opened += async (_, _) =>
         {
@@ -76,15 +85,22 @@ public partial class MainWindow : Window
             {
                 await viewModel.InitializeAsync();
                 await RefreshHomepageAsync(showSuccess: false);
+                await CompleteStartupLogoAsync(viewModel.ShowStartupLogo);
             }
         };
         Closed += (_, _) =>
         {
+            if (DataContext is ViewModels.MainViewModel viewModel)
+            {
+                _ = viewModel.StopBackgroundMusicAsync();
+            }
             SubscribeToViewModel(null);
             toolboxDownloadCancellation?.Cancel();
             toolboxDownloadCancellation?.Dispose();
             homepageRefreshCancellation?.Cancel();
             homepageRefreshCancellation?.Dispose();
+            launchingHintCancellation?.Cancel();
+            launchingHintCancellation?.Dispose();
             toolboxHttpClient.Dispose();
             toolboxAvatarBitmap?.Dispose();
             launcherBackgroundBitmap?.Dispose();
@@ -116,6 +132,8 @@ public partial class MainWindow : Window
             subscribedViewModel.GameProcessStarted -= GameProcessStarted;
             subscribedViewModel.GameProcessExited -= GameProcessExited;
             subscribedViewModel.MinecraftVersionUpdateAvailable -= MinecraftVersionUpdateAvailable;
+            subscribedViewModel.LauncherRestartRequested -= LauncherRestartRequested;
+            subscribedViewModel.LaunchingHintRequested -= LaunchingHintRequested;
             subscribedViewModel.PropertyChanged -= ViewModelPropertyChanged;
         }
 
@@ -126,9 +144,48 @@ public partial class MainWindow : Window
             subscribedViewModel.GameProcessStarted += GameProcessStarted;
             subscribedViewModel.GameProcessExited += GameProcessExited;
             subscribedViewModel.MinecraftVersionUpdateAvailable += MinecraftVersionUpdateAvailable;
+            subscribedViewModel.LauncherRestartRequested += LauncherRestartRequested;
+            subscribedViewModel.LaunchingHintRequested += LaunchingHintRequested;
             subscribedViewModel.PropertyChanged += ViewModelPropertyChanged;
             ApplyInterfacePreferences(subscribedViewModel);
         }
+    }
+
+    private void LauncherRestartRequested(object? sender, EventArgs e) =>
+        Dispatcher.UIThread.Post(Close);
+
+    private async void LaunchingHintRequested(object? sender, EventArgs e)
+    {
+        launchingHintCancellation?.Cancel();
+        launchingHintCancellation?.Dispose();
+        launchingHintCancellation = new CancellationTokenSource();
+        var cancellationToken = launchingHintCancellation.Token;
+        LaunchingHintText.Text = HomepageHints[Random.Shared.Next(HomepageHints.Length)];
+        LaunchingHintOverlay.IsVisible = true;
+        LaunchingHintOverlay.Opacity = 1;
+        try
+        {
+            await Task.Delay(3200, cancellationToken);
+            LaunchingHintOverlay.Opacity = 0;
+            await Task.Delay(220, cancellationToken);
+            LaunchingHintOverlay.IsVisible = false;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private async Task CompleteStartupLogoAsync(bool showStartupLogo)
+    {
+        if (!showStartupLogo)
+        {
+            StartupLogoOverlay.IsVisible = false;
+            return;
+        }
+        await Task.Delay(520);
+        StartupLogoOverlay.Opacity = 0;
+        await Task.Delay(260);
+        StartupLogoOverlay.IsVisible = false;
     }
 
     private async void MinecraftVersionUpdateAvailable(object? sender, MinecraftVersionCatalogEntry version)
@@ -242,6 +299,13 @@ public partial class MainWindow : Window
             or nameof(ViewModels.MainViewModel.InterfaceBackgroundOpacity)
             or nameof(ViewModels.MainViewModel.InterfaceBackgroundBlurRadius)
             or nameof(ViewModels.MainViewModel.BackgroundSuitIndex)
+            or nameof(ViewModels.MainViewModel.EnableAdvancedMaterial)
+            or nameof(ViewModels.MainViewModel.InterfaceBlurRadius)
+            or nameof(ViewModels.MainViewModel.InterfaceBlurSamplingRate)
+            or nameof(ViewModels.MainViewModel.InterfaceBlurKernelIndex)
+            or nameof(ViewModels.MainViewModel.MotdInterfaceFont)
+            or nameof(ViewModels.MainViewModel.UseColorfulBackground)
+            or nameof(ViewModels.MainViewModel.TitleLeftAligned)
             or nameof(ViewModels.MainViewModel.LightThemeColorIndex)
             or nameof(ViewModels.MainViewModel.DarkThemeColorIndex)
             or nameof(ViewModels.MainViewModel.SelectedThemeMode))
@@ -298,19 +362,120 @@ public partial class MainWindow : Window
             : "PCL Aurora";
         MainTitleImage.IsVisible = viewModel.TitleContentTypeIndex == (int)LauncherTitleContentType.Image &&
                                    launcherTitleBitmap is not null;
-        LauncherBackgroundImage.Opacity = viewModel.InterfaceBackgroundOpacity / 1000d;
-        LauncherBackgroundImage.Effect = viewModel.InterfaceBackgroundBlurRadius > 0
-            ? new Avalonia.Media.ImmutableBlurEffect(viewModel.InterfaceBackgroundBlurRadius)
+        LauncherBackgroundHost.Opacity = viewModel.InterfaceBackgroundOpacity / 1000d;
+        var advancedBlur = viewModel.EnableAdvancedMaterial
+            ? viewModel.InterfaceBlurRadius * (viewModel.InterfaceBlurSamplingRate / 100d) *
+              (viewModel.InterfaceBlurKernelIndex == (int)LauncherBlurKernel.Box ? 0.75d : 1d)
+            : 0;
+        var effectiveBlur = Math.Max(viewModel.InterfaceBackgroundBlurRadius, advancedBlur);
+        LauncherBackgroundHost.Effect = effectiveBlur > 0
+            ? new ImmutableBlurEffect(effectiveBlur)
             : null;
-        LauncherBackgroundImage.Stretch = viewModel.BackgroundSuitIndex switch
+        TransparencyLevelHint = viewModel.EnableAdvancedMaterial
+            ? [WindowTransparencyLevel.AcrylicBlur, WindowTransparencyLevel.Blur, WindowTransparencyLevel.Transparent]
+            : [WindowTransparencyLevel.Transparent];
+        LauncherColorOverlay.IsVisible = viewModel.UseColorfulBackground;
+        if (Resources["PclPageBackgroundBrush"] is SolidColorBrush pageBackground)
         {
-            (int)LauncherBackgroundSuitMode.Center => Avalonia.Media.Stretch.None,
-            (int)LauncherBackgroundSuitMode.Stretch => Avalonia.Media.Stretch.Fill,
-            (int)LauncherBackgroundSuitMode.Tile => Avalonia.Media.Stretch.None,
-            _ => Avalonia.Media.Stretch.UniformToFill,
-        };
+            pageBackground.Color = launcherBackgroundBitmap is null
+                ? Color.Parse("#D9EAF9")
+                : Color.Parse("#B8D9EAF9");
+        }
+        PclHomepageView.FontFamily = string.IsNullOrWhiteSpace(viewModel.MotdInterfaceFont)
+            ? FontFamily
+            : new FontFamily(viewModel.MotdInterfaceFont.Trim());
+        var alignNavigationLeft = viewModel.TitleContentTypeIndex == (int)LauncherTitleContentType.None &&
+                                  viewModel.TitleLeftAligned;
+        MainTitleBarGrid.ColumnDefinitions = new ColumnDefinitions(alignNavigationLeft ? "0,Auto,*" : "*,Auto,*");
+        ApplyBackgroundLayout(viewModel);
         ApplyThemeColor(viewModel);
         ApplyFeatureVisibility(viewModel);
+    }
+
+    private void ApplyBackgroundLayout(ViewModels.MainViewModel viewModel)
+    {
+        var hasBackground = launcherBackgroundBitmap is not null;
+        LauncherBackgroundImage.IsVisible = hasBackground;
+        LauncherBackgroundTile.IsVisible = false;
+        LauncherBackgroundImage.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+        LauncherBackgroundImage.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
+        LauncherBackgroundImage.Stretch = Stretch.UniformToFill;
+        LauncherBackgroundTile.Background = null;
+        if (!hasBackground) return;
+
+        var mode = (LauncherBackgroundSuitMode)viewModel.BackgroundSuitIndex;
+        if (mode == LauncherBackgroundSuitMode.Tile)
+        {
+            var pixelSize = launcherBackgroundBitmap!.PixelSize;
+            LauncherBackgroundImage.IsVisible = false;
+            LauncherBackgroundTile.IsVisible = true;
+            LauncherBackgroundTile.Background = new ImageBrush
+            {
+                Source = launcherBackgroundBitmap,
+                Stretch = Stretch.None,
+                TileMode = TileMode.Tile,
+                SourceRect = new RelativeRect(0, 0, 1, 1, RelativeUnit.Relative),
+                DestinationRect = new RelativeRect(0, 0, pixelSize.Width, pixelSize.Height, RelativeUnit.Absolute),
+            };
+            return;
+        }
+
+        switch (mode)
+        {
+            case LauncherBackgroundSuitMode.Center:
+                SetBackgroundPlacement(Avalonia.Layout.HorizontalAlignment.Center, Avalonia.Layout.VerticalAlignment.Center);
+                break;
+            case LauncherBackgroundSuitMode.Fit:
+                LauncherBackgroundImage.Stretch = Stretch.UniformToFill;
+                break;
+            case LauncherBackgroundSuitMode.Stretch:
+                LauncherBackgroundImage.Stretch = Stretch.Fill;
+                break;
+            case LauncherBackgroundSuitMode.TopLeft:
+                SetBackgroundPlacement(Avalonia.Layout.HorizontalAlignment.Left, Avalonia.Layout.VerticalAlignment.Top);
+                break;
+            case LauncherBackgroundSuitMode.TopRight:
+                SetBackgroundPlacement(Avalonia.Layout.HorizontalAlignment.Right, Avalonia.Layout.VerticalAlignment.Top);
+                break;
+            case LauncherBackgroundSuitMode.BottomLeft:
+                SetBackgroundPlacement(Avalonia.Layout.HorizontalAlignment.Left, Avalonia.Layout.VerticalAlignment.Bottom);
+                break;
+            case LauncherBackgroundSuitMode.BottomRight:
+                SetBackgroundPlacement(Avalonia.Layout.HorizontalAlignment.Right, Avalonia.Layout.VerticalAlignment.Bottom);
+                break;
+            case LauncherBackgroundSuitMode.Smart:
+                var pixelSize = launcherBackgroundBitmap!.PixelSize;
+                if (pixelSize.Width < ClientSize.Width / 2d && pixelSize.Height < ClientSize.Height / 2d)
+                {
+                    LauncherBackgroundImage.IsVisible = false;
+                    LauncherBackgroundTile.IsVisible = true;
+                    LauncherBackgroundTile.Background = new ImageBrush
+                    {
+                        Source = launcherBackgroundBitmap,
+                        Stretch = Stretch.None,
+                        TileMode = TileMode.Tile,
+                        SourceRect = new RelativeRect(0, 0, 1, 1, RelativeUnit.Relative),
+                        DestinationRect = new RelativeRect(0, 0, pixelSize.Width, pixelSize.Height, RelativeUnit.Absolute),
+                    };
+                }
+                else
+                {
+                    LauncherBackgroundImage.Stretch = Stretch.UniformToFill;
+                }
+                break;
+            default:
+                LauncherBackgroundImage.Stretch = Stretch.UniformToFill;
+                break;
+        }
+    }
+
+    private void SetBackgroundPlacement(
+        Avalonia.Layout.HorizontalAlignment horizontal,
+        Avalonia.Layout.VerticalAlignment vertical)
+    {
+        LauncherBackgroundImage.Stretch = Stretch.None;
+        LauncherBackgroundImage.HorizontalAlignment = horizontal;
+        LauncherBackgroundImage.VerticalAlignment = vertical;
     }
 
     private void ApplyThemeColor(ViewModels.MainViewModel viewModel)
@@ -2907,11 +3072,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private void RefreshMusicContentClick(object? sender, RoutedEventArgs e)
+    private async void RefreshMusicContentClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ViewModels.MainViewModel viewModel)
         {
-            Directory.CreateDirectory(viewModel.GetInterfaceContentDirectory("music"));
+            await viewModel.RefreshBackgroundMusicAsync(startAccordingToSettings: true);
         }
     }
 
@@ -2923,7 +3088,9 @@ public partial class MainWindow : Window
             return;
         }
 
+        await viewModel.StopBackgroundMusicAsync();
         ClearDirectoryFiles(viewModel.GetInterfaceContentDirectory("music"));
+        await viewModel.RefreshBackgroundMusicAsync();
     }
 
     private async void ChangeTitleImageClick(object? sender, RoutedEventArgs e)
@@ -2971,7 +3138,6 @@ public partial class MainWindow : Window
         launcherBackgroundBitmap?.Dispose();
         launcherBackgroundBitmap = TryLoadBitmap(path);
         LauncherBackgroundImage.Source = launcherBackgroundBitmap;
-        LauncherBackgroundImage.IsVisible = launcherBackgroundBitmap is not null;
         ApplyInterfacePreferences(viewModel);
     }
 

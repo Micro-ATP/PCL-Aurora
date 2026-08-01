@@ -1,3 +1,5 @@
+using PCL.Aurora.Platform.Abstractions;
+
 namespace PCL.Aurora.Application;
 
 public interface ILauncherUpdateService
@@ -18,4 +20,5 @@ public sealed record LauncherUpdateRelease(
     string Summary,
     string Changelog,
     Uri ReleaseUri,
-    DateTimeOffset PublishedAt);
+    DateTimeOffset PublishedAt,
+    IReadOnlyList<LauncherUpdateAsset> Assets);

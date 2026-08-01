@@ -29,6 +29,7 @@
         <converters:MinecraftVersionIconConverter x:Key="MinecraftVersionIconConverter" />
         <converters:MinecraftLoaderIconConverter x:Key="MinecraftLoaderIconConverter" />
         <SolidColorBrush x:Key="PclThemePrimaryBrush" Color="#127AE1" />
+        <SolidColorBrush x:Key="PclPageBackgroundBrush" Color="#D9EAF9" />
         <LinearGradientBrush x:Key="PclTitleBarBrush" StartPoint="0,0" EndPoint="1,0">
             <GradientStop Offset="0" Color="#106AC4" />
             <GradientStop Offset="0.5" Color="#1377DD" />
@@ -2092,12 +2093,17 @@
     </Window.Styles>
 
     <Grid>
-    <Image x:Name="LauncherBackgroundImage" Stretch="UniformToFill" IsHitTestVisible="False" IsVisible="False" />
-    <Border CornerRadius="8" ClipToBounds="True">
+    <Grid x:Name="LauncherBackgroundHost" ClipToBounds="True" IsHitTestVisible="False">
+        <Image x:Name="LauncherBackgroundImage" Stretch="UniformToFill" IsVisible="False" />
+        <Border x:Name="LauncherBackgroundTile" IsVisible="False" />
+    </Grid>
+    <Border x:Name="LauncherColorOverlay" Background="{DynamicResource PclThemePrimaryBrush}"
+            Opacity="0.12" IsHitTestVisible="False" />
+    <Border x:Name="MainShellBorder" CornerRadius="8" ClipToBounds="True">
     <Grid Classes="pcl-shell" RowDefinitions="48,*">
         <Border x:Name="MainTitleBar" Background="{StaticResource PclTitleBarBrush}" PointerPressed="TitleBarPointerPressed">
-            <Grid ColumnDefinitions="*,Auto,*">
-                <StackPanel Margin="18,0,0,0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="8">
+            <Grid x:Name="MainTitleBarGrid" ColumnDefinitions="*,Auto,*">
+                <StackPanel x:Name="MainTitleHost" Margin="18,0,0,0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="8">
                     <Image x:Name="MainTitleImage" Height="24" MaxWidth="150" Stretch="Uniform" IsVisible="False" />
                     <TextBlock x:Name="MainTitleLabel" FontSize="17" FontWeight="Normal" Foreground="White" Text="PCL Aurora" />
                 </StackPanel>
@@ -2187,7 +2193,7 @@
 
         <Grid x:Name="MainPages" Grid.Row="1" ClipToBounds="True">
             <Grid x:Name="LaunchPage">
-                <Grid ColumnDefinitions="300,*" Background="#D9EAF9">
+                <Grid ColumnDefinitions="300,*" Background="{DynamicResource PclPageBackgroundBrush}">
                     <Border Classes="pcl-page-left" Background="#FCFCFD" BorderBrush="#D7DCE2" BorderThickness="0,0,1,0">
                         <Grid Margin="20,20" RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="8">
                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
@@ -2304,7 +2310,7 @@
                             </ComboBox>
                         </Grid>
                     </Border>
-                    <Border Grid.Column="1" Classes="pcl-page-right" Background="#D9EAF9">
+                    <Border Grid.Column="1" Classes="pcl-page-right" Background="{DynamicResource PclPageBackgroundBrush}">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <Grid Margin="28,24,28,28" MaxWidth="520"
                                   HorizontalAlignment="Stretch" VerticalAlignment="Top">
@@ -2351,7 +2357,7 @@
             </Grid>
 
             <Grid x:Name="DownloadPage" IsVisible="False">
-                <Grid x:Name="DownloadPageLayout" Background="#D9EAF9">
+                <Grid x:Name="DownloadPageLayout" Background="{DynamicResource PclPageBackgroundBrush}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="178" />
                         <ColumnDefinition Width="*" />
@@ -2469,7 +2475,7 @@
                         </ScrollViewer>
                     </Border>
                     <ScrollViewer x:Name="DownloadContentScroller" Grid.Column="1" Classes="pcl-page-right"
-                                  Background="#D9EAF9" HorizontalScrollBarVisibility="Disabled">
+                                  Background="{DynamicResource PclPageBackgroundBrush}" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="25,10,25,25" MaxWidth="860" Spacing="15">
                             <!-- PCL2 PageDownloadClient/PageDownloadInstall structure adapted to Aurora's existing commands. -->
                             <StackPanel x:Name="DownloadGameView" MinHeight="430" Spacing="15">
@@ -3219,7 +3225,7 @@
             </Grid>
 
             <Grid x:Name="SettingsPage" IsVisible="False">
-                <Grid ColumnDefinitions="140,*" Background="#D9EAF9">
+                <Grid ColumnDefinitions="140,*" Background="{DynamicResource PclPageBackgroundBrush}">
                     <Border Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <!-- Category structure follows PCL-CE PageSetupLeft.xaml; visual treatment follows PCL2. -->
@@ -3309,7 +3315,7 @@
                             </StackPanel>
                         </ScrollViewer>
                     </Border>
-                    <ScrollViewer Grid.Column="1" Classes="pcl-page-right" Background="#D9EAF9">
+                    <ScrollViewer Grid.Column="1" Classes="pcl-page-right" Background="{DynamicResource PclPageBackgroundBrush}">
                     <StackPanel Margin="25,25,25,10" Spacing="15">
 
                         <StackPanel x:Name="SettingsLaunchSection" Classes="setup-launch-section" Spacing="15">
@@ -3841,6 +3847,8 @@
                                                   IsEnabled="{Binding SupportsSystemMediaControls}"
                                                   Content="接入系统媒体传输控制 (SMTC) 控件"
                                                   ToolTip.Tip="SMTC 是 Windows 专属能力；macOS 与 Linux 将使用各自的媒体控制接口。" />
+                                        <TextBlock Margin="0,2,0,0" FontSize="12" Foreground="#657588"
+                                                   Text="{Binding BackgroundMusicStatus}" TextWrapping="Wrap" />
                                         <StackPanel Margin="0,3,0,0" Orientation="Horizontal" Spacing="20">
                                             <Button Classes="about-action" Click="OpenMusicFolderClick" Content="打开文件夹" />
                                             <Button Classes="about-action" Click="RefreshMusicContentClick" Content="刷新背景音乐" />
@@ -4392,7 +4400,7 @@
                             <Border Classes="setup-card" Margin="0" IsVisible="{Binding HasAvailableUpdate}">
                                 <Grid Margin="20"
                                       ColumnDefinitions="50,10,*,85"
-                                      RowDefinitions="29,1,20,8,Auto,10,Auto">
+                                      RowDefinitions="29,1,20,8,Auto,10,Auto,Auto">
                                     <Image Grid.RowSpan="3" Width="50" Height="50"
                                            HorizontalAlignment="Left" VerticalAlignment="Center"
                                            Source="/Assets/Icons/AppIcon-2048.png" />
@@ -4406,6 +4414,7 @@
                                             Classes="launch-download-button"
                                             HorizontalAlignment="Center" VerticalAlignment="Center"
                                             Command="{Binding InstallAvailableUpdateCommand}"
+                                            IsEnabled="{Binding CanInstallAvailableUpdate}"
                                             Content="安装" />
                                     <TextBlock Grid.Row="4" Grid.ColumnSpan="4"
                                                Text="{Binding AvailableUpdateSummary}"
@@ -4414,6 +4423,18 @@
                                             HorizontalAlignment="Left" VerticalAlignment="Center"
                                             Click="UpdateChangelogClick"
                                             Content="查看详细更新日志" />
+                                    <StackPanel Grid.Row="7" Grid.ColumnSpan="4" Margin="0,10,0,0" Spacing="5"
+                                                IsVisible="{Binding HasUpdateInstallStatus}">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                            <TextBlock Foreground="#566575" Text="{Binding UpdateInstallStatus}" TextWrapping="Wrap" />
+                                            <Button Grid.Column="1" Height="28" Padding="12,0" Classes="about-action"
+                                                    IsVisible="{Binding IsPreparingLauncherUpdate}"
+                                                    Command="{Binding CancelLauncherUpdateCommand}" Content="取消" />
+                                        </Grid>
+                                        <ProgressBar Height="3" Minimum="0" Maximum="100"
+                                                     IsVisible="{Binding HasUpdateDownloadProgress}"
+                                                     Value="{Binding UpdateDownloadProgress}" />
+                                    </StackPanel>
                                 </Grid>
                             </Border>
                         </StackPanel>
@@ -4532,7 +4553,7 @@
             </Grid>
 
             <Grid x:Name="MorePage" IsVisible="False">
-                <Grid x:Name="MorePageLayout" ColumnDefinitions="152,*" Background="#D9EAF9">
+                <Grid x:Name="MorePageLayout" ColumnDefinitions="152,*" Background="{DynamicResource PclPageBackgroundBrush}">
                     <Border x:Name="MoreSidebar" Classes="pcl-page-left" Background="#FCFCFD" Padding="0,12,0,0" BorderBrush="#D1DDEA" BorderThickness="0,0,1,0">
                         <!-- PCL2 PageOtherLeft.xaml structure, plus PCL-CE/Aurora session log access. -->
                         <StackPanel x:Name="MoreNavigationPanel" Spacing="0">
@@ -4553,7 +4574,7 @@
                                                           IconData="M4 2h16v20H4z M8 7h8 M8 11h8 M8 15h5" />
                         </StackPanel>
                     </Border>
-                    <ScrollViewer x:Name="MoreContentScroller" Grid.Column="1" Classes="pcl-page-right" Background="#D9EAF9">
+                    <ScrollViewer x:Name="MoreContentScroller" Grid.Column="1" Classes="pcl-page-right" Background="{DynamicResource PclPageBackgroundBrush}">
                     <StackPanel x:Name="MoreContentHost" Margin="25,25,25,10" MaxWidth="860" Spacing="15">
                         <controls:PclHelpView x:Name="PclHelpView" />
 
@@ -4819,6 +4840,33 @@
                                    ZIndex="200" />
     </Grid>
     </Border>
+
+    <Border x:Name="LaunchingHintOverlay" Margin="24,0,24,22" Padding="16,11"
+            HorizontalAlignment="Center" VerticalAlignment="Bottom" MaxWidth="620"
+            Background="#F2FFFFFF" BorderBrush="#A8C9ED" BorderThickness="1"
+            CornerRadius="5" BoxShadow="0 5 18 0 #30000000"
+            Opacity="0" IsVisible="False" IsHitTestVisible="False">
+        <Border.Transitions>
+            <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.18" /></Transitions>
+        </Border.Transitions>
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <Path Width="18" Height="18" Stretch="Uniform" Fill="{DynamicResource PclThemePrimaryBrush}"
+                  Data="M12 2a7 7 0 0 0-4 12.74V17h8v-2.26A7 7 0 0 0 12 2zm-3 17h6v2H9z" />
+            <TextBlock x:Name="LaunchingHintText" VerticalAlignment="Center" FontSize="13"
+                       Foreground="#40546A" TextWrapping="Wrap" />
+        </StackPanel>
+    </Border>
+
+    <Grid x:Name="StartupLogoOverlay" Background="#F7FAFD" IsHitTestVisible="True">
+        <Grid.Transitions>
+            <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.24" /></Transitions>
+        </Grid.Transitions>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="13">
+            <Image Width="92" Height="92" Source="/Assets/Icons/AppIcon-2048.png" />
+            <TextBlock HorizontalAlignment="Center" FontSize="21" FontWeight="SemiBold"
+                       Foreground="{DynamicResource PclThemePrimaryBrush}" Text="PCL Aurora" />
+        </StackPanel>
+    </Grid>
 
     <Popup x:Name="CommunityFavoriteMenuPopup"
            Placement="BottomEdgeAlignedRight"

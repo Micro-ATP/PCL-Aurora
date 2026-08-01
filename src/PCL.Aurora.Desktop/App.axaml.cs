@@ -45,6 +45,8 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IJavaLocator>(provider => provider.GetRequiredService<MacOSJavaLocator>());
         services.AddSingleton<IJavaInstallationInspector>(provider => provider.GetRequiredService<MacOSJavaLocator>());
         services.AddSingleton<IJavaRuntimeInstallationService, AzulJavaRuntimeInstallationService>();
+        services.AddSingleton<IBackgroundAudioPlayer, MacOSBackgroundAudioPlayer>();
+        services.AddSingleton<IBackgroundMusicService, BackgroundMusicService>();
         services.AddSingleton<IMinecraftInstanceLocator, MacOSMinecraftInstanceLocator>();
         services.AddSingleton<IMinecraftRootDirectoryProvider, MacOSMinecraftRootDirectoryProvider>();
         services.AddSingleton<IMinecraftVersionMetadataReader, MacOSMinecraftVersionMetadataReader>();
@@ -89,6 +91,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<ICommunityResourceDescriptionTranslationService, PclCeCommunityResourceDescriptionTranslationService>();
         services.AddSingleton<IGitHubContributorService, GitHubContributorService>();
         services.AddSingleton<ILauncherUpdateService, GitHubLauncherUpdateService>();
+        services.AddSingleton<ILauncherUpdateInstaller, MacOSLauncherUpdateInstaller>();
         services.AddSingleton<IGitHubIssueService, GitHubIssueService>();
         services.AddSingleton<ILauncherLogService, LauncherLogService>();
         services.AddSingleton<IMinecraftLoaderCatalogService, MinecraftLoaderCatalogService>();

@@ -54,6 +54,37 @@ public sealed class GitHubLauncherUpdateServiceTests
             service.CheckAsync("1.2.0", LauncherUpdateChannel.Release));
     }
 
+    [Fact]
+    public async Task CheckAsync_ParsesHttpsReleaseAssets()
+    {
+        var service = CreateService("""
+            [
+              {
+                "tag_name":"v1.4.0",
+                "name":"Release",
+                "body":"stable",
+                "html_url":"https://github.com/Micro-ATP/PCL-Aurora/releases/tag/v1.4.0",
+                "draft":false,
+                "prerelease":false,
+                "published_at":"2026-08-01T00:00:00Z",
+                "assets":[
+                  {"name":"PCL-Aurora-1.4.0-osx-arm64.zip","browser_download_url":"https://github.com/Micro-ATP/PCL-Aurora/releases/download/v1.4.0/PCL-Aurora-1.4.0-osx-arm64.zip","size":2048,"content_type":"application/zip"},
+                  {"name":"SHA256SUMS","browser_download_url":"https://github.com/Micro-ATP/PCL-Aurora/releases/download/v1.4.0/SHA256SUMS","size":120,"content_type":"text/plain"},
+                  {"name":"unsafe.zip","browser_download_url":"http://example.invalid/unsafe.zip","size":1,"content_type":"application/zip"}
+                ]
+              }
+            ]
+            """);
+
+        var result = await service.CheckAsync("1.3.0", LauncherUpdateChannel.Release);
+
+        Assert.True(result.IsUpdateAvailable);
+        Assert.Collection(
+            result.LatestRelease.Assets,
+            asset => Assert.Equal("PCL-Aurora-1.4.0-osx-arm64.zip", asset.Name),
+            asset => Assert.Equal("SHA256SUMS", asset.Name));
+    }
+
     private static GitHubLauncherUpdateService CreateService(string responseJson) =>
         new(new HttpClient(new StaticResponseHandler(responseJson)));
 

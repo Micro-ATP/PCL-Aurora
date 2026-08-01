@@ -43,11 +43,13 @@ public partial class MainViewModel(
     IMicrosoftAccountSessionService microsoftAccountSessionService,
     IGitHubContributorService gitHubContributorService,
     ILauncherUpdateService launcherUpdateService,
+    ILauncherUpdateInstaller launcherUpdateInstaller,
     IGitHubIssueService gitHubIssueService,
     ILauncherLogService launcherLogService,
     IOpenPathService openPathService,
     IJavaInstallationInspector javaInstallationInspector,
     IJavaRuntimeInstallationService javaRuntimeInstallationService,
+    IBackgroundMusicService backgroundMusicService,
     IThemeService themeService,
     ISystemMemoryInfo systemMemoryInfo,
     ISecureSecretStore secretStore,
@@ -57,6 +59,8 @@ public partial class MainViewModel(
     public event EventHandler<MinecraftLauncherVisibility>? GameProcessStarted;
     public event EventHandler<MinecraftLauncherVisibility>? GameProcessExited;
     public event EventHandler<MinecraftVersionCatalogEntry>? MinecraftVersionUpdateAvailable;
+    public event EventHandler? LauncherRestartRequested;
+    public event EventHandler? LaunchingHintRequested;
 
     private const string ProxySecretService = "PCL.Aurora.Network.Proxy";
     private const string ProxySecretAccount = "default";
@@ -99,6 +103,7 @@ public partial class MainViewModel(
     private static readonly CultureInfo SystemFormatCulture = CultureInfo.CurrentCulture;
 
     private readonly List<MinecraftVersionCatalogEntry> allCatalogVersions = [];
+    private readonly SemaphoreSlim launcherUpdateGate = new(1, 1);
     private MinecraftAccount? selectedAccount;
     private MinecraftLoaderCatalog? loaderCatalog;
     private MinecraftLoaderKind? loaderKindFilter;
@@ -109,6 +114,7 @@ public partial class MainViewModel(
     private bool isRefreshing;
     private bool isLoadingPreferences;
     private bool isSelectingJavaForRequirement;
+    private bool isBackgroundMusicSubscribed;
     private bool contributorsLoadAttempted;
     private int launcherClientWidth = MinecraftLaunchOptions.DefaultWindowWidth;
     private int launcherClientHeight = MinecraftLaunchOptions.DefaultWindowHeight;
@@ -126,9 +132,11 @@ public partial class MainViewModel(
     private CancellationTokenSource? launchOptionsSaveCancellation;
     private CancellationTokenSource? gameManagementOptionsSaveCancellation;
     private CancellationTokenSource? interfaceSettingsSaveCancellation;
+    private CancellationTokenSource? backgroundMusicSettingsCancellation;
     private CancellationTokenSource? localizationSettingsSaveCancellation;
     private CancellationTokenSource? miscSettingsSaveCancellation;
     private CancellationTokenSource? updateSettingsSaveCancellation;
+    private CancellationTokenSource? launcherUpdateCancellation;
     private CommunityResourceVersionFilterSet communityVersionFilters = new([], [], false, false);
     private string? selectedCommunityGameVersionFilter;
     private string? selectedCommunityLoaderFilter;
@@ -561,9 +569,12 @@ public partial class MainViewModel(
     public bool IsHomepageOnline { get => HomepageTypeIndex == 2; set { if (value) HomepageTypeIndex = 2; } }
     public bool IsHomepagePreset { get => HomepageTypeIndex == 3; set { if (value) HomepageTypeIndex = 3; } }
 
-    public bool SupportsSystemMediaControls => System.OperatingSystem.IsWindows();
+    public bool SupportsSystemMediaControls => backgroundMusicService.SupportsSystemMediaControls;
 
     public bool SupportsAdvancedWindowMaterial => System.OperatingSystem.IsWindows();
+
+    [ObservableProperty]
+    private string backgroundMusicStatus = "尚未读取背景音乐。";
 
     public IReadOnlyList<LauncherLanguageOption> LauncherLanguages { get; } = CreateLanguageOptions();
 
@@ -648,10 +659,17 @@ public partial class MainViewModel(
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCheckForUpdates))]
+    [NotifyPropertyChangedFor(nameof(CanInstallAvailableUpdate))]
     private bool isCheckingForUpdates;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanInstallAvailableUpdate))]
     private bool hasAvailableUpdate;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanCheckForUpdates))]
+    [NotifyPropertyChangedFor(nameof(CanInstallAvailableUpdate))]
+    private bool isPreparingLauncherUpdate;
 
     [ObservableProperty]
     private string updateStatusText = "尚未检查更新";
@@ -665,9 +683,24 @@ public partial class MainViewModel(
     [ObservableProperty]
     private string updateChangelog = "暂无可用的更新日志。";
 
-    private Uri? latestUpdateReleaseUri;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUpdateInstallStatus))]
+    private string updateInstallStatus = string.Empty;
 
-    public bool CanCheckForUpdates => !IsCheckingForUpdates;
+    [ObservableProperty]
+    private double updateDownloadProgress;
+
+    [ObservableProperty]
+    private bool hasUpdateDownloadProgress;
+
+    private LauncherUpdateRelease? latestUpdateRelease;
+    private PreparedLauncherUpdate? preparedLauncherUpdate;
+
+    public bool CanCheckForUpdates => !IsCheckingForUpdates && !IsPreparingLauncherUpdate;
+
+    public bool CanInstallAvailableUpdate => HasAvailableUpdate && !IsCheckingForUpdates && !IsPreparingLauncherUpdate;
+
+    public bool HasUpdateInstallStatus => !string.IsNullOrWhiteSpace(UpdateInstallStatus);
 
     [ObservableProperty]
     private string contributorSummary = "正在读取 GitHub 贡献者…";
@@ -1572,6 +1605,16 @@ public partial class MainViewModel(
         await LoadPreferencesAsync();
         await LoadCommunityFavoritesAsync();
         await RefreshAsync();
+        if (!isBackgroundMusicSubscribed)
+        {
+            backgroundMusicService.StateChanged += BackgroundMusicStateChanged;
+            isBackgroundMusicSubscribed = true;
+        }
+        await RefreshBackgroundMusicAsync(startAccordingToSettings: true);
+        if (SelectedAutoUpdateBehavior.Value != LauncherAutoUpdateBehavior.Disabled)
+        {
+            _ = CheckForUpdatesCoreAsync(applyAutomaticBehavior: true);
+        }
 
         try
         {
@@ -4329,6 +4372,7 @@ public partial class MainViewModel(
         }
 
         QueueInterfaceSettingsSave();
+        QueueBackgroundMusicSettingsApply();
     }
 
     partial void OnStopBackgroundMusicInGameChanged(bool value)
@@ -4339,6 +4383,7 @@ public partial class MainViewModel(
         }
 
         QueueInterfaceSettingsSave();
+        QueueBackgroundMusicSettingsApply();
     }
 
     partial void OnLightThemeColorIndexChanged(int value) => QueueInterfaceSettingsSave();
@@ -4356,10 +4401,26 @@ public partial class MainViewModel(
     partial void OnInterfaceBackgroundBlurRadiusChanged(int value) => QueueInterfaceSettingsSave();
     partial void OnAutoPauseBackgroundVideoChanged(bool value) => QueueInterfaceSettingsSave();
     partial void OnUseColorfulBackgroundChanged(bool value) => QueueInterfaceSettingsSave();
-    partial void OnInterfaceMusicVolumeChanged(int value) => QueueInterfaceSettingsSave();
-    partial void OnShuffleBackgroundMusicChanged(bool value) => QueueInterfaceSettingsSave();
-    partial void OnAutoPlayBackgroundMusicChanged(bool value) => QueueInterfaceSettingsSave();
-    partial void OnEnableSystemMediaControlsChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnInterfaceMusicVolumeChanged(int value)
+    {
+        QueueInterfaceSettingsSave();
+        QueueBackgroundMusicSettingsApply();
+    }
+    partial void OnShuffleBackgroundMusicChanged(bool value)
+    {
+        QueueInterfaceSettingsSave();
+        QueueBackgroundMusicSettingsApply();
+    }
+    partial void OnAutoPlayBackgroundMusicChanged(bool value)
+    {
+        QueueInterfaceSettingsSave();
+        QueueBackgroundMusicSettingsApply();
+    }
+    partial void OnEnableSystemMediaControlsChanged(bool value)
+    {
+        QueueInterfaceSettingsSave();
+        QueueBackgroundMusicSettingsApply();
+    }
     partial void OnTitleLeftAlignedChanged(bool value) => QueueInterfaceSettingsSave();
     partial void OnCustomTitleTextChanged(string value) => QueueInterfaceSettingsSave();
     partial void OnHomepagePresetIndexChanged(int value) => QueueInterfaceSettingsSave();
@@ -4412,47 +4473,7 @@ public partial class MainViewModel(
         try
         {
             await Task.Delay(250, cancellationToken);
-            var hidden = new InterfaceFeatureVisibility(
-                HidePageDownload, HidePageSettings, HidePageTools,
-                HideSetupLaunch, HideSetupJava, HideSetupManage, HideSetupLink,
-                HideSetupInterface, HideSetupLanguage, HideSetupMisc, HideSetupUpdate,
-                HideSetupAbout, HideSetupFeedback, HideSetupLog,
-                HideToolsLink, HideToolsToolbox,
-                HideInstanceEdit, HideInstanceExport, HideInstanceSave, HideInstanceScreenshot,
-                HideInstanceMod, HideInstanceResourcePack, HideInstanceShader,
-                HideInstanceSchematic, HideInstanceServer,
-                HideFunctionInstanceSelect, HideFunctionModUpdate, HideFunctionSettings);
-            var settings = new InterfaceSettings(
-                InterfaceWindowOpacity,
-                (LauncherColorTheme)LightThemeColorIndex,
-                (LauncherColorTheme)DarkThemeColorIndex,
-                ShowStartupLogo,
-                LockWindowSize,
-                ShowLaunchingHint,
-                EnableAdvancedMaterial,
-                InterfaceBlurRadius,
-                InterfaceBlurSamplingRate,
-                (LauncherBlurKernel)InterfaceBlurKernelIndex,
-                GlobalInterfaceFont,
-                MotdInterfaceFont,
-                (LauncherBackgroundSuitMode)BackgroundSuitIndex,
-                InterfaceBackgroundOpacity,
-                InterfaceBackgroundBlurRadius,
-                AutoPauseBackgroundVideo,
-                UseColorfulBackground,
-                InterfaceMusicVolume,
-                ShuffleBackgroundMusic,
-                AutoPlayBackgroundMusic,
-                StartBackgroundMusicInGame,
-                StopBackgroundMusicInGame,
-                EnableSystemMediaControls,
-                (LauncherTitleContentType)TitleContentTypeIndex,
-                TitleLeftAligned,
-                CustomTitleText,
-                (LauncherHomepageType)HomepageTypeIndex,
-                HomepagePresetIndex,
-                HomepageUrl,
-                hidden);
+            var settings = CreateInterfaceSettings();
             if (!settings.IsValid)
             {
                 return;
@@ -4469,6 +4490,106 @@ public partial class MainViewModel(
             // The next setting change retries the atomic local preference write.
         }
     }
+
+    private InterfaceSettings CreateInterfaceSettings()
+    {
+        var hidden = new InterfaceFeatureVisibility(
+            HidePageDownload, HidePageSettings, HidePageTools,
+            HideSetupLaunch, HideSetupJava, HideSetupManage, HideSetupLink,
+            HideSetupInterface, HideSetupLanguage, HideSetupMisc, HideSetupUpdate,
+            HideSetupAbout, HideSetupFeedback, HideSetupLog,
+            HideToolsLink, HideToolsToolbox,
+            HideInstanceEdit, HideInstanceExport, HideInstanceSave, HideInstanceScreenshot,
+            HideInstanceMod, HideInstanceResourcePack, HideInstanceShader,
+            HideInstanceSchematic, HideInstanceServer,
+            HideFunctionInstanceSelect, HideFunctionModUpdate, HideFunctionSettings);
+        return new InterfaceSettings(
+            InterfaceWindowOpacity,
+            (LauncherColorTheme)LightThemeColorIndex,
+            (LauncherColorTheme)DarkThemeColorIndex,
+            ShowStartupLogo,
+            LockWindowSize,
+            ShowLaunchingHint,
+            EnableAdvancedMaterial,
+            InterfaceBlurRadius,
+            InterfaceBlurSamplingRate,
+            (LauncherBlurKernel)InterfaceBlurKernelIndex,
+            GlobalInterfaceFont,
+            MotdInterfaceFont,
+            (LauncherBackgroundSuitMode)BackgroundSuitIndex,
+            InterfaceBackgroundOpacity,
+            InterfaceBackgroundBlurRadius,
+            AutoPauseBackgroundVideo,
+            UseColorfulBackground,
+            InterfaceMusicVolume,
+            ShuffleBackgroundMusic,
+            AutoPlayBackgroundMusic,
+            StartBackgroundMusicInGame,
+            StopBackgroundMusicInGame,
+            EnableSystemMediaControls,
+            (LauncherTitleContentType)TitleContentTypeIndex,
+            TitleLeftAligned,
+            CustomTitleText,
+            (LauncherHomepageType)HomepageTypeIndex,
+            HomepagePresetIndex,
+            HomepageUrl,
+            hidden);
+    }
+
+    private void QueueBackgroundMusicSettingsApply()
+    {
+        if (isLoadingPreferences) return;
+        backgroundMusicSettingsCancellation?.Cancel();
+        backgroundMusicSettingsCancellation?.Dispose();
+        backgroundMusicSettingsCancellation = new CancellationTokenSource();
+        _ = ApplyBackgroundMusicSettingsAsync(backgroundMusicSettingsCancellation.Token);
+    }
+
+    private async Task ApplyBackgroundMusicSettingsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(120, cancellationToken);
+            await backgroundMusicService.ApplySettingsAsync(CreateInterfaceSettings(), cancellationToken);
+            BackgroundMusicStatus = backgroundMusicService.State.Status;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception)
+        {
+            BackgroundMusicStatus = $"背景音乐设置无法应用：{exception.Message}";
+        }
+    }
+
+    public async Task RefreshBackgroundMusicAsync(bool startAccordingToSettings = false)
+    {
+        try
+        {
+            await backgroundMusicService.RefreshAsync(CreateInterfaceSettings(), startAccordingToSettings);
+            BackgroundMusicStatus = backgroundMusicService.State.Status;
+        }
+        catch (Exception exception)
+        {
+            BackgroundMusicStatus = $"背景音乐刷新失败：{exception.Message}";
+        }
+    }
+
+    public async Task StopBackgroundMusicAsync()
+    {
+        try
+        {
+            await backgroundMusicService.StopAsync();
+            BackgroundMusicStatus = backgroundMusicService.State.Status;
+        }
+        catch (Exception exception)
+        {
+            BackgroundMusicStatus = $"无法停止背景音乐：{exception.Message}";
+        }
+    }
+
+    private void BackgroundMusicStateChanged(object? sender, BackgroundMusicState state) =>
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => BackgroundMusicStatus = state.Status);
 
     private void ApplyLocalizationSettings(LauncherLocalizationSettings settings)
     {
@@ -4583,6 +4704,7 @@ public partial class MainViewModel(
         }
 
         QueueUpdateSettingsSave();
+        launcherUpdateCancellation?.Cancel();
         _ = CheckForUpdatesAsync();
     }
 
@@ -5811,6 +5933,10 @@ public partial class MainViewModel(
         try
         {
             await TryAppendLauncherLogAsync("Launch", $"准备启动实例：{SelectedInstance?.Name ?? "未知实例"}。");
+            if (ShowLaunchingHint)
+            {
+                LaunchingHintRequested?.Invoke(this, EventArgs.Empty);
+            }
             var launchPreparation = gameLaunchPreparation;
             if (launchPreparation.RequestPreparation.Request is { } request)
             {
@@ -5838,6 +5964,7 @@ public partial class MainViewModel(
             HasGameLogLines = false;
             GameLogSummary = $"正在捕获游戏进程 {session.ProcessId} 的输出；日志仅保留在本次会话内。";
             GameProcessStarted?.Invoke(this, visibility);
+            await TryHandleGameMusicStartedAsync();
             await TryAppendLauncherLogAsync("Launch", $"游戏进程已启动，PID {session.ProcessId}。");
             _ = ObserveGameProcessAsync(
                 session,
@@ -6008,40 +6135,159 @@ public partial class MainViewModel(
     }
 
     [RelayCommand(AllowConcurrentExecutions = false)]
-    private async Task CheckForUpdatesAsync()
+    private Task CheckForUpdatesAsync() => CheckForUpdatesCoreAsync(applyAutomaticBehavior: false);
+
+    private async Task CheckForUpdatesCoreAsync(bool applyAutomaticBehavior)
     {
+        await launcherUpdateGate.WaitAsync();
         try
         {
+            launcherUpdateCancellation?.Cancel();
+            launcherUpdateCancellation?.Dispose();
+            launcherUpdateCancellation = new CancellationTokenSource();
             IsCheckingForUpdates = true;
             HasAvailableUpdate = false;
+            preparedLauncherUpdate = null;
+            UpdateInstallStatus = string.Empty;
+            HasUpdateDownloadProgress = false;
             UpdateStatusText = "正在检查更新";
             var result = await launcherUpdateService.CheckAsync(
                 LauncherVersionName,
-                SelectedUpdateChannel.Value);
-            latestUpdateReleaseUri = result.LatestRelease.ReleaseUri;
+                SelectedUpdateChannel.Value,
+                launcherUpdateCancellation.Token);
+            latestUpdateRelease = result.LatestRelease;
             UpdateChangelog = result.LatestRelease.Changelog;
             AvailableUpdateVersionDisplay = result.LatestRelease.DisplayName;
             AvailableUpdateSummary = result.LatestRelease.Summary;
             HasAvailableUpdate = result.IsUpdateAvailable;
             UpdateStatusText = result.IsUpdateAvailable ? "发现新版本" : "已是最新版本";
+            if (result.IsUpdateAvailable && applyAutomaticBehavior)
+            {
+                try
+                {
+                    switch (SelectedAutoUpdateBehavior.Value)
+                    {
+                        case LauncherAutoUpdateBehavior.DownloadAndInstall:
+                            await PrepareAvailableUpdateAsync(launcherUpdateCancellation.Token);
+                            await SchedulePreparedUpdateAsync(launcherUpdateCancellation.Token);
+                            break;
+                        case LauncherAutoUpdateBehavior.DownloadAndNotify:
+                            await PrepareAvailableUpdateAsync(launcherUpdateCancellation.Token);
+                            break;
+                        case LauncherAutoUpdateBehavior.NotifyOnly:
+                        case LauncherAutoUpdateBehavior.Disabled:
+                            break;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    UpdateInstallStatus = $"已发现更新，但自动准备失败：{exception.Message}";
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            UpdateStatusText = "更新检查已取消";
         }
         catch (Exception exception)
         {
             HasAvailableUpdate = false;
-            latestUpdateReleaseUri = null;
+            latestUpdateRelease = null;
+            preparedLauncherUpdate = null;
             UpdateStatusText = "检查更新失败";
             UpdateChangelog = $"暂时无法获取更新日志。\n\n{exception.Message}";
         }
         finally
         {
             IsCheckingForUpdates = false;
+            launcherUpdateGate.Release();
         }
     }
 
     [RelayCommand]
     private async Task InstallAvailableUpdateAsync()
     {
-        await openPathService.OpenUriAsync(latestUpdateReleaseUri ?? AuroraReleasesUri);
+        if (latestUpdateRelease is null)
+        {
+            UpdateInstallStatus = "请先检查更新。";
+            return;
+        }
+
+        launcherUpdateCancellation?.Cancel();
+        launcherUpdateCancellation?.Dispose();
+        launcherUpdateCancellation = new CancellationTokenSource();
+        try
+        {
+            if (preparedLauncherUpdate is null)
+            {
+                await PrepareAvailableUpdateAsync(launcherUpdateCancellation.Token);
+            }
+            await SchedulePreparedUpdateAsync(launcherUpdateCancellation.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            UpdateInstallStatus = "更新安装已取消，未替换当前程序。";
+        }
+        catch (Exception exception)
+        {
+            UpdateInstallStatus = $"无法安装更新：{exception.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void CancelLauncherUpdate() => launcherUpdateCancellation?.Cancel();
+
+    private async Task PrepareAvailableUpdateAsync(CancellationToken cancellationToken)
+    {
+        if (latestUpdateRelease is null) throw new InvalidOperationException("没有可准备的更新版本。");
+        if (!launcherUpdateInstaller.IsSupported)
+        {
+            throw new PlatformNotSupportedException(launcherUpdateInstaller.UnsupportedReason);
+        }
+
+        IsPreparingLauncherUpdate = true;
+        try
+        {
+            var package = launcherUpdateInstaller.SelectPackage(latestUpdateRelease.Assets);
+            var progress = new Progress<LauncherUpdateInstallProgress>(value =>
+            {
+                UpdateInstallStatus = value.Message;
+                HasUpdateDownloadProgress = value.Fraction.HasValue;
+                UpdateDownloadProgress = value.Fraction.GetValueOrDefault() * 100;
+            });
+            preparedLauncherUpdate = await launcherUpdateInstaller.PrepareAsync(
+                latestUpdateRelease.VersionName,
+                package,
+                progress,
+                cancellationToken);
+            UpdateInstallStatus = "更新已下载并通过校验，点击安装即可重启应用。";
+            HasUpdateDownloadProgress = false;
+        }
+        finally
+        {
+            IsPreparingLauncherUpdate = false;
+        }
+    }
+
+    private async Task SchedulePreparedUpdateAsync(CancellationToken cancellationToken)
+    {
+        if (preparedLauncherUpdate is null) throw new InvalidOperationException("更新包尚未准备完成。");
+        IsPreparingLauncherUpdate = true;
+        try
+        {
+            UpdateInstallStatus = "正在安排退出后替换与重启…";
+            await launcherUpdateInstaller.ScheduleInstallAndRestartAsync(preparedLauncherUpdate, cancellationToken);
+            UpdateInstallStatus = "即将退出并安装更新。";
+            LauncherRestartRequested?.Invoke(this, EventArgs.Empty);
+        }
+        finally
+        {
+            IsPreparingLauncherUpdate = false;
+        }
     }
 
     [RelayCommand(AllowConcurrentExecutions = false)]
@@ -6318,7 +6564,32 @@ public partial class MainViewModel(
         }
         CanLaunchGame = false;
         await TryAppendLauncherLogAsync("Launch", GameLaunchSummary);
+        await TryHandleGameMusicExitedAsync();
         GameProcessExited?.Invoke(this, visibility);
+    }
+
+    private async Task TryHandleGameMusicStartedAsync()
+    {
+        try
+        {
+            await backgroundMusicService.HandleGameStartedAsync(CreateInterfaceSettings());
+        }
+        catch (Exception exception)
+        {
+            BackgroundMusicStatus = $"游戏已启动，但背景音乐联动失败：{exception.Message}";
+        }
+    }
+
+    private async Task TryHandleGameMusicExitedAsync()
+    {
+        try
+        {
+            await backgroundMusicService.HandleGameExitedAsync(CreateInterfaceSettings());
+        }
+        catch (Exception exception)
+        {
+            BackgroundMusicStatus = $"游戏已退出，但背景音乐联动失败：{exception.Message}";
+        }
     }
 
     private async Task TryAppendLauncherLogAsync(string category, string message)
