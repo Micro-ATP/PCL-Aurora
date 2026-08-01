@@ -4857,15 +4857,12 @@
         </StackPanel>
     </Border>
 
-    <Grid x:Name="StartupLogoOverlay" Background="#F7FAFD" IsHitTestVisible="True">
+    <Grid x:Name="StartupLogoOverlay" IsHitTestVisible="False">
         <Grid.Transitions>
             <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.24" /></Transitions>
         </Grid.Transitions>
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="13">
-            <Image Width="92" Height="92" Source="/Assets/Icons/AppIcon-2048.png" />
-            <TextBlock HorizontalAlignment="Center" FontSize="21" FontWeight="SemiBold"
-                       Foreground="{DynamicResource PclThemePrimaryBrush}" Text="PCL Aurora" />
-        </StackPanel>
+        <Image Width="78" Height="78" HorizontalAlignment="Center" VerticalAlignment="Center"
+               Source="/Assets/Icons/AppIcon-2048.png" />
     </Grid>
 
     <Popup x:Name="CommunityFavoriteMenuPopup"
