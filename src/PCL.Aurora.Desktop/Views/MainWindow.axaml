@@ -2090,6 +2090,8 @@
     </Window.Styles>
 
     <Grid>
+    <Border x:Name="WindowContentClip" CornerRadius="8" ClipToBounds="True">
+    <Grid>
     <Grid x:Name="LauncherBackgroundHost" ClipToBounds="True" IsHitTestVisible="False">
         <Image x:Name="LauncherBackgroundImage" Stretch="UniformToFill" IsVisible="False" />
         <Border x:Name="LauncherBackgroundTile" IsVisible="False" />
@@ -4864,6 +4866,8 @@
         <Image x:Name="StartupLogoImage" Width="78" Height="78" HorizontalAlignment="Center" VerticalAlignment="Center"
                Source="/Assets/Icons/AppIcon-2048.png" />
     </Grid>
+    </Grid>
+    </Border>
 
     <Popup x:Name="CommunityFavoriteMenuPopup"
            Placement="BottomEdgeAlignedRight"
