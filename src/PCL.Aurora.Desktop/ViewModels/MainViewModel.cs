@@ -5692,7 +5692,7 @@ public partial class MainViewModel(
                 CanOpenMicrosoftVerificationPage = false;
                 microsoftVerificationUri = null;
                 CanCancelMicrosoftLogin = false;
-                UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount);
+                UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount, updateSummary: false);
             }
         }
     }
@@ -5767,7 +5767,7 @@ public partial class MainViewModel(
         }
         finally
         {
-            UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount);
+            UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount, updateSummary: false);
         }
     }
 
@@ -5818,17 +5818,22 @@ public partial class MainViewModel(
         }
         finally
         {
-            UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount);
+            UpdateMicrosoftLoginAvailability(currentPreferences.MicrosoftAccount, updateSummary: false);
         }
     }
 
-    private void UpdateMicrosoftLoginAvailability(MicrosoftAccountProfile? profile)
+    private void UpdateMicrosoftLoginAvailability(MicrosoftAccountProfile? profile, bool updateSummary = true)
     {
         HasMicrosoftAccountProfile = profile is not null;
         MicrosoftAccountDisplayName = profile?.DisplayName ?? "尚未登录";
         CanStartMicrosoftLogin = microsoftAuthenticationService.IsConfigured && microsoftLoginCancellation is null;
         CanRestoreMicrosoftLogin = microsoftAuthenticationService.IsConfigured && profile is not null && microsoftLoginCancellation is null;
         CanClearMicrosoftLogin = profile is not null;
+        if (!updateSummary)
+        {
+            return;
+        }
+
         if (!microsoftAuthenticationService.IsConfigured)
         {
             MicrosoftLoginSummary = "正版登录暂不可用，请使用已配置的 PCL Aurora 正式发行版。";

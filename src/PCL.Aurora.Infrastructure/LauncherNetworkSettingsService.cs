@@ -120,7 +120,15 @@ public sealed class LauncherNetworkSettingsService : ILauncherNetworkSettingsSer
         }
 
         var addresses = await ResolveAddressesAsync(endPoint.Host, cancellationToken).ConfigureAwait(false);
-        return await ConnectHappyEyeballsAsync(addresses, endPoint.Port, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await ConnectHappyEyeballsAsync(addresses, endPoint.Port, cancellationToken).ConfigureAwait(false);
+        }
+        catch (HttpRequestException) when (!cancellationToken.IsCancellationRequested)
+        {
+            dnsCache.TryRemove(endPoint.Host, out _);
+            return await ConnectSystemAsync(endPoint, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private async Task<IPAddress[]> ResolveAddressesAsync(string host, CancellationToken cancellationToken)

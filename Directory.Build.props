@@ -4,5 +4,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PclAuroraMicrosoftClientId Condition="'$(PCL_AURORA_MS_CLIENT_ID)' != ''">$(PCL_AURORA_MS_CLIENT_ID)</PclAuroraMicrosoftClientId>
+    <PclAuroraMicrosoftClientId Condition="'$(PclAuroraMicrosoftClientId)' == ''">f783a1d5-e044-4497-8869-ae41e0b05a66</PclAuroraMicrosoftClientId>
   </PropertyGroup>
 </Project>

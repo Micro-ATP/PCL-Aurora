@@ -33,7 +33,9 @@ public sealed class MicrosoftAccountAuthenticationService(
     private static readonly Uri MinecraftLoginUri = new("https://api.minecraftservices.com/authentication/login_with_xbox");
     private static readonly Uri MinecraftEntitlementsUri = new("https://api.minecraftservices.com/entitlements/mcstore");
     private static readonly Uri MinecraftProfileUri = new("https://api.minecraftservices.com/minecraft/profile");
+    private static readonly JsonSerializerOptions AuthenticationJsonOptions = new(JsonSerializerDefaults.General);
     private const string Scope = "XboxLive.signin offline_access";
+    private const string XboxContractVersionHeader = "x-xbl-contract-version";
 
     public bool IsConfigured => configuration.IsConfigured;
 
@@ -163,6 +165,9 @@ public sealed class MicrosoftAccountAuthenticationService(
         CancellationToken cancellationToken)
     {
         progress?.Report(new("正在验证 Xbox Live 身份…"));
+        var rpsTicket = oauthAccessToken.StartsWith("d=", StringComparison.Ordinal)
+            ? oauthAccessToken
+            : $"d={oauthAccessToken}";
         var xblDocument = await PostJsonAsync(
             XboxLiveAuthenticationUri,
             new
@@ -171,7 +176,7 @@ public sealed class MicrosoftAccountAuthenticationService(
                 {
                     AuthMethod = "RPS",
                     SiteName = "user.auth.xboxlive.com",
-                    RpsTicket = $"d={oauthAccessToken}",
+                    RpsTicket = rpsTicket,
                 },
                 RelyingParty = "http://auth.xboxlive.com",
                 TokenType = "JWT",
@@ -230,11 +235,17 @@ public sealed class MicrosoftAccountAuthenticationService(
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, uri)
         {
-            Content = JsonContent.Create(payload),
+            Content = JsonContent.Create(payload, options: AuthenticationJsonOptions),
         };
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        if (uri.Host.EndsWith(".xboxlive.com", StringComparison.OrdinalIgnoreCase))
+        {
+            request.Headers.TryAddWithoutValidation(XboxContractVersionHeader, "1");
+        }
+
         using var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         var document = await ReadJsonAsync(response, cancellationToken).ConfigureAwait(false);
-        EnsureSuccess(response, document, $"认证服务请求失败：{uri.Host}。");
+        EnsureSuccess(response, document, $"认证服务请求失败：{uri.Host}。", uri);
         return document;
     }
 
@@ -242,9 +253,10 @@ public sealed class MicrosoftAccountAuthenticationService(
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         using var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         var document = await ReadJsonAsync(response, cancellationToken).ConfigureAwait(false);
-        EnsureSuccess(response, document, $"认证服务请求失败：{uri.Host}。");
+        EnsureSuccess(response, document, $"认证服务请求失败：{uri.Host}。", uri);
         return document;
     }
 
@@ -261,12 +273,52 @@ public sealed class MicrosoftAccountAuthenticationService(
         }
     }
 
-    private static void EnsureSuccess(HttpResponseMessage response, JsonDocument document, string message)
+    private static void EnsureSuccess(HttpResponseMessage response, JsonDocument document, string message, Uri? requestUri = null)
     {
         if (!response.IsSuccessStatusCode)
         {
-            throw CreateAuthenticationException(response.StatusCode, GetOptionalString(document.RootElement, "error"), message);
+            if (response.StatusCode == HttpStatusCode.Forbidden && requestUri == MinecraftLoginUri)
+            {
+                throw new InvalidOperationException(
+                    "Minecraft Services 尚未批准此应用的 Client ID，请先完成官方 AppID 审核后重试。 HTTP 403。");
+            }
+
+            throw CreateAuthenticationException(response.StatusCode, GetSafeAuthenticationError(document.RootElement), message);
         }
+    }
+
+    private static string? GetSafeAuthenticationError(JsonElement root)
+    {
+        if (TryGetXboxErrorCode(root) is { } xboxErrorCode)
+        {
+            return xboxErrorCode switch
+            {
+                2148916227 => "Xbox 账户已被封禁（XErr 2148916227）",
+                2148916233 => "尚未注册 Xbox 档案（XErr 2148916233）",
+                2148916235 => "当前国家或地区无法使用 Xbox 登录（XErr 2148916235）",
+                2148916238 => "Xbox 账户需要完成未成年人或家庭设置（XErr 2148916238）",
+                _ => $"Xbox 错误 XErr {xboxErrorCode}",
+            };
+        }
+
+        return GetOptionalString(root, "error");
+    }
+
+    private static long? TryGetXboxErrorCode(JsonElement root)
+    {
+        if (!root.TryGetProperty("XErr", out var element))
+        {
+            return null;
+        }
+
+        if (element.ValueKind == JsonValueKind.Number && element.TryGetInt64(out var numericValue))
+        {
+            return numericValue;
+        }
+
+        return element.ValueKind == JsonValueKind.String && long.TryParse(element.GetString(), out var stringValue)
+            ? stringValue
+            : null;
     }
 
     private static InvalidOperationException CreateAuthenticationException(HttpStatusCode statusCode, string? error, string message) =>
