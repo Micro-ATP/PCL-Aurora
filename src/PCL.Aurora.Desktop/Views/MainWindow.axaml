@@ -2096,7 +2096,7 @@
     </Grid>
     <Border x:Name="LauncherColorOverlay" Background="{DynamicResource PclThemePrimaryBrush}"
             Opacity="0.12" IsHitTestVisible="False" />
-    <Border x:Name="MainShellBorder" CornerRadius="8" ClipToBounds="True" Opacity="0">
+    <Border x:Name="MainShellBorder" ClipToBounds="True" Opacity="0">
     <Border.Transitions>
         <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.22" /></Transitions>
     </Border.Transitions>
