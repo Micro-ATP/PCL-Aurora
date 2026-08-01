@@ -2,7 +2,9 @@ using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Application;
 
-public sealed class CommunityResourceDownloadService(IMinecraftDownloadExecutor downloadExecutor)
+public sealed class CommunityResourceDownloadService(
+    IMinecraftDownloadExecutor downloadExecutor,
+    ILauncherPreferencesService? preferencesService = null)
     : ICommunityResourceDownloadService
 {
     public async Task<string> DownloadAsync(
@@ -43,7 +45,8 @@ public sealed class CommunityResourceDownloadService(IMinecraftDownloadExecutor 
             .Concat(dependencies)
             .DistinctBy(item => item.Id, StringComparer.OrdinalIgnoreCase)
             .ToArray();
-        var artifacts = BuildArtifacts(project, versions);
+        var options = preferencesService?.Current.EffectiveGameManagementOptions ?? GameManagementOptions.Default;
+        var artifacts = BuildArtifacts(project, versions, options);
         await downloadExecutor.ExecuteAsync(
             new MinecraftDownloadPlan(
                 version.Id,
@@ -60,16 +63,26 @@ public sealed class CommunityResourceDownloadService(IMinecraftDownloadExecutor 
 
     private static IReadOnlyList<MinecraftDownloadArtifact> BuildArtifacts(
         CommunityResourceProject project,
-        IReadOnlyList<CommunityResourceVersion> versions)
+        IReadOnlyList<CommunityResourceVersion> versions,
+        GameManagementOptions options)
     {
         var artifacts = new List<MinecraftDownloadArtifact>();
         var destinations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var version in versions)
         {
             var file = version.PrimaryFile ?? throw new InvalidOperationException($"{version.Name} 没有可下载文件。");
-            var fileName = Path.GetFileName(file.FileName);
+            if (string.IsNullOrWhiteSpace(file.FileName) ||
+                !string.Equals(Path.GetFileName(file.FileName), file.FileName, StringComparison.Ordinal) ||
+                file.FileName is "." or "..")
+            {
+                throw new InvalidDataException("社区资源文件名不安全，已停止下载。");
+            }
+
+            var fileName = version.Id == versions[0].Id
+                ? CommunityResourceFileNameFormatter.Format(project, file, options.CommunityFileNameFormat)
+                : Path.GetFileName(file.FileName);
             if (string.IsNullOrWhiteSpace(fileName) ||
-                !string.Equals(fileName, file.FileName, StringComparison.Ordinal) ||
+                !string.Equals(Path.GetFileName(fileName), fileName, StringComparison.Ordinal) ||
                 fileName is "." or "..")
             {
                 throw new InvalidDataException("社区资源文件名不安全，已停止下载。");
@@ -86,12 +99,17 @@ public sealed class CommunityResourceDownloadService(IMinecraftDownloadExecutor 
             }
 
             destinations.Add(fileName, file.Sha1);
+            var sources = PclCeDownloadSourceResolver.OrderCommunity(
+                options.CommunitySource,
+                file.Url,
+                PclCeDownloadSourceResolver.ToCommunityMirror(file.Url));
             artifacts.Add(new(
                 version.Id == versions[0].Id ? project.DisplayTitle : version.Name,
                 fileName,
-                file.Url,
+                sources[0],
                 file.Sha1,
-                file.Size));
+                file.Size,
+                sources.Skip(1).ToArray()));
         }
 
         return artifacts;

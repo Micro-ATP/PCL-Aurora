@@ -78,13 +78,18 @@ public sealed class MinecraftDownloadExecutor(
 
         var preferences = preferencesService?.Current ?? LauncherPreferences.Default;
         var concurrency = preferences.DownloadConcurrency;
+        var effectiveArtifacts = artifacts
+            .Select(artifact => ApplyFileSourcePreference(
+                artifact,
+                preferences.EffectiveGameManagementOptions.FileSource))
+            .ToArray();
         var bandwidthLimiter = new DownloadBandwidthLimiter(
             LauncherDownloadSettings.GetSpeedLimitBytesPerSecond(preferences.DownloadSpeedLimitStep));
         using var requestSlots = new SemaphoreSlim(concurrency, concurrency);
-        var progressTracker = new DownloadProgressTracker(artifacts, progress);
+        var progressTracker = new DownloadProgressTracker(effectiveArtifacts, progress);
         var rootDirectory = Path.GetFullPath(minecraftRootDirectory);
         await Parallel.ForEachAsync(
-            artifacts,
+            effectiveArtifacts,
             new ParallelOptions
             {
                 MaxDegreeOfParallelism = concurrency,
@@ -105,6 +110,34 @@ public sealed class MinecraftDownloadExecutor(
                     throw;
                 }
             }).ConfigureAwait(false);
+    }
+
+    private static MinecraftDownloadArtifact ApplyFileSourcePreference(
+        MinecraftDownloadArtifact artifact,
+        DownloadSourcePreference preference)
+    {
+        var officialSources = new[] { artifact.Url }
+            .Concat(artifact.AlternativeUrls ?? [])
+            .Distinct()
+            .ToArray();
+        var mirrorSources = officialSources
+            .Select(PclCeDownloadSourceResolver.ToBmclapi)
+            .Where(uri => uri is not null)
+            .Cast<Uri>()
+            .Distinct()
+            .ToArray();
+        var ordered = (preference == DownloadSourcePreference.Mirror
+                ? mirrorSources.Concat(officialSources)
+                : officialSources.Concat(mirrorSources))
+            .Distinct()
+            .ToArray();
+        return ordered.Length == 0
+            ? artifact
+            : artifact with
+            {
+                Url = ordered[0],
+                AlternativeUrls = ordered.Skip(1).ToArray(),
+            };
     }
 
     private async Task DownloadArtifactAsync(

@@ -12,6 +12,7 @@ public sealed class ModrinthCommunityResourceSearchService : ICommunityResourceS
     private static readonly Uri SearchEndpoint = new("https://api.modrinth.com/v2/search");
     private readonly HttpClient httpClient;
     private readonly ICommunityResourceLocalizationService? localizationService;
+    private readonly ILauncherPreferencesService? preferencesService;
 
     public ModrinthCommunityResourceSearchService(HttpClient httpClient)
         : this(httpClient, null)
@@ -20,10 +21,12 @@ public sealed class ModrinthCommunityResourceSearchService : ICommunityResourceS
 
     public ModrinthCommunityResourceSearchService(
         HttpClient httpClient,
-        ICommunityResourceLocalizationService? localizationService)
+        ICommunityResourceLocalizationService? localizationService,
+        ILauncherPreferencesService? preferencesService = null)
     {
         this.httpClient = httpClient;
         this.localizationService = localizationService;
+        this.preferencesService = preferencesService;
     }
 
     public async Task<CommunityResourceSearchResult> SearchAsync(
@@ -55,24 +58,45 @@ public sealed class ModrinthCommunityResourceSearchService : ICommunityResourceS
 
         try
         {
-            using var message = new HttpRequestMessage(HttpMethod.Get, BuildSearchUri(request with
+            var officialEndpoint = BuildSearchUri(request with
             {
                 SearchText = searchText,
                 GameVersion = string.IsNullOrWhiteSpace(gameVersion) ? null : gameVersion,
                 Category = string.IsNullOrWhiteSpace(category) ? null : category,
-            }));
-            message.Headers.UserAgent.ParseAdd("PCL-Aurora/0.1");
-            message.Headers.Accept.ParseAdd("application/json");
-            using var response = await httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            var result = ModrinthCommunityResourceParser.Parse(json, request.Type);
-            return localizationService is null || result.Projects.Count == 0
-                ? result
-                : result with
+            });
+            var mirrorEndpoint = PclCeDownloadSourceResolver.ToCommunityMirror(officialEndpoint);
+            var preference = preferencesService?.Current.EffectiveGameManagementOptions.CommunitySource
+                ?? DownloadSourcePreference.PreferOfficialWithFallback;
+            var errors = new List<string>();
+            foreach (var endpoint in PclCeDownloadSourceResolver.OrderCommunity(preference, officialEndpoint, mirrorEndpoint))
+            {
+                try
                 {
-                    Projects = result.Projects.Select(localizationService.Localize).ToArray(),
-                };
+                    using var message = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                    message.Headers.UserAgent.ParseAdd("PCL-Aurora/0.1");
+                    message.Headers.Accept.ParseAdd("application/json");
+                    using var response = await httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+                    var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                    var result = ModrinthCommunityResourceParser.Parse(json, request.Type);
+                    return localizationService is null || result.Projects.Count == 0
+                        ? result
+                        : result with
+                        {
+                            Projects = result.Projects.Select(localizationService.Localize).ToArray(),
+                        };
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception exception) when (exception is HttpRequestException or IOException)
+                {
+                    errors.Add($"{endpoint.Host}：{exception.Message}");
+                }
+            }
+
+            return CommunityResourceSearchResult.Failure($"无法获取 Modrinth 社区资源：{string.Join("；", errors)}");
         }
         catch (OperationCanceledException)
         {

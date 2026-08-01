@@ -51,7 +51,7 @@
         <DataTemplate x:Key="CommunityProjectRowTemplate" x:DataType="vm:CommunityResourceItemViewModel">
             <Grid Classes="community-project-item" Height="64" ClipToBounds="True">
                 <Button Classes="community-project-row" Tag="{Binding}" Click="CommunityResourceOpenClick"
-                        AutomationProperties.Name="{Binding Project.DisplayTitle, StringFormat=查看项目 {0}}" />
+                        AutomationProperties.Name="{Binding DisplayTitle, StringFormat=查看项目 {0}}" />
                 <Grid Margin="7,0,7,0" ColumnDefinitions="50,8,*" RowDefinitions="5,20,18,16,5"
                       IsHitTestVisible="False">
                     <Border Grid.Row="1" Grid.RowSpan="3" Width="50" Height="50" VerticalAlignment="Center"
@@ -66,9 +66,9 @@
                     </Border>
                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal"
                                 VerticalAlignment="Center" Spacing="0">
-                        <TextBlock FontSize="14" Foreground="#36424F" Text="{Binding Project.DisplayTitle}"
+                        <TextBlock FontSize="14" Foreground="#36424F" Text="{Binding DisplayTitle}"
                                    TextTrimming="CharacterEllipsis" />
-                        <TextBlock FontSize="12" Foreground="#8B96A1" Text="{Binding Project.OriginalTitleDisplay}"
+                        <TextBlock FontSize="12" Foreground="#8B96A1" Text="{Binding SecondaryTitle}"
                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                     </StackPanel>
                     <Grid Grid.Row="2" Grid.Column="2" ColumnDefinitions="Auto,*" ColumnSpacing="4">
@@ -118,6 +118,7 @@
                         VerticalAlignment="Stretch" Padding="12,0,5,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
                         <Button Classes="community-row-action" Tag="{Binding}" Click="CommunityResourceQuickDownloadClick"
+                                IsVisible="{Binding CanQuickDownload}"
                                 ToolTip.Tip="快速下载" AutomationProperties.Name="快速下载">
                             <Path Width="15" Height="15" Data="{StaticResource CommunityDownloadIcon}" Stretch="Uniform"
                                   Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"

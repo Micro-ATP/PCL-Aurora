@@ -327,6 +327,12 @@ credential-free requests through the public mirror used by PCL-CE, parses them
 into Aurora's own immutable models, and imports verified world ZIP files through
 a transactional cross-platform extractor. No PCL or PCL-CE API credential is
 copied, embedded or distributed by PCL Aurora.
+The download-source resolver, translated community file naming and quick-download
+destination flow adapt PCL-CE `ModDownload.DlSourceOrder`,
+`ModDownload.DlSourceModDownloadGet`, `ModComp.CompFileNameGet` and
+`ModComp.QuickDownload`. Aurora keeps the official/mirror priority semantics,
+uses cross-platform URI and path APIs, validates original file names before
+formatting, and performs all downloads through its verified atomic executor.
 The manual Java import flow adapts PCL2 `ModJava.ManuallyImportJava` and
 PCL-CE `PageSetupJava.BtnAdd_Click`: the user selects an executable, Aurora
 executes the existing platform inspector, validates version and architecture,

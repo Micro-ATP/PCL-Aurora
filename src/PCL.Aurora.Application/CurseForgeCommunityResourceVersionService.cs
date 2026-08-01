@@ -2,7 +2,9 @@ using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Application;
 
-public sealed class CurseForgeCommunityResourceVersionService(HttpClient httpClient)
+public sealed class CurseForgeCommunityResourceVersionService(
+    HttpClient httpClient,
+    ILauncherPreferencesService? preferencesService = null)
     : ICommunityResourceVersionService
 {
     private static readonly Uri ApiRoot = new("https://mod.mcimirror.top/curseforge/v1/");
@@ -52,12 +54,35 @@ public sealed class CurseForgeCommunityResourceVersionService(HttpClient httpCli
     {
         try
         {
-            using var message = new HttpRequestMessage(HttpMethod.Get, endpoint);
-            message.Headers.UserAgent.ParseAdd("PCL-Aurora/0.1");
-            message.Headers.Accept.ParseAdd("application/json");
-            using var response = await httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            return parser(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+            var preference = preferencesService?.Current.EffectiveGameManagementOptions.CommunitySource
+                ?? DownloadSourcePreference.PreferOfficialWithFallback;
+            var official = new Uri(endpoint.AbsoluteUri.Replace(
+                "https://mod.mcimirror.top/curseforge",
+                "https://api.curseforge.com",
+                StringComparison.OrdinalIgnoreCase));
+            var errors = new List<string>();
+            foreach (var source in PclCeDownloadSourceResolver.OrderCommunity(preference, official, endpoint))
+            {
+                try
+                {
+                    using var message = new HttpRequestMessage(HttpMethod.Get, source);
+                    message.Headers.UserAgent.ParseAdd("PCL-Aurora/0.1");
+                    message.Headers.Accept.ParseAdd("application/json");
+                    using var response = await httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+                    return parser(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception exception) when (exception is HttpRequestException or IOException)
+                {
+                    errors.Add($"{source.Host}：{exception.Message}");
+                }
+            }
+
+            return CommunityResourceVersionCatalog.Failure($"无法获取 CurseForge 版本：{string.Join("；", errors)}");
         }
         catch (OperationCanceledException)
         {

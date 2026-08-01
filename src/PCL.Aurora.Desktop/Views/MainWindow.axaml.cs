@@ -1578,7 +1578,162 @@ public partial class MainWindow : Window
             return;
         }
 
-        await ShowCommunityResourceDetailAsync(viewModel, item);
+        await QuickDownloadCommunityResourceAsync(viewModel, item);
+    }
+
+    private async Task QuickDownloadCommunityResourceAsync(
+        ViewModels.MainViewModel viewModel,
+        ViewModels.CommunityResourceItemViewModel item)
+    {
+        var project = item.Project;
+        var versions = await viewModel.GetCommunityQuickDownloadVersionsAsync(project);
+        if (versions.Count == 0)
+        {
+            await ShowMessageAsync("快速下载", viewModel.CommunityResourceSummary, isWarning: true);
+            return;
+        }
+
+        var behavior = viewModel.CommunityQuickDownloadBehavior;
+        if (behavior == CommunityQuickDownloadBehavior.AlwaysAsk)
+        {
+            var choice = await ShowQuickDownloadChoiceAsync();
+            if (choice is null)
+            {
+                return;
+            }
+
+            behavior = choice.Value;
+        }
+
+        MinecraftInstance? instance = null;
+        string? destinationDirectory = null;
+        switch (behavior)
+        {
+            case CommunityQuickDownloadBehavior.CurrentInstance:
+                instance = viewModel.SelectedInstance;
+                if (instance is null)
+                {
+                    await ShowMessageAsync("快速下载", "当前没有选中的实例，请先选择实例或改用选择路径。", isWarning: true);
+                    return;
+                }
+                break;
+            case CommunityQuickDownloadBehavior.AskInstance:
+                instance = await ShowQuickDownloadInstanceChoiceAsync(viewModel, project, versions);
+                if (instance is null)
+                {
+                    return;
+                }
+                break;
+            case CommunityQuickDownloadBehavior.AskPath:
+                var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                {
+                    Title = "选择资源保存目录",
+                    AllowMultiple = false,
+                });
+                destinationDirectory = folders.SingleOrDefault()?.TryGetLocalPath();
+                if (string.IsNullOrWhiteSpace(destinationDirectory))
+                {
+                    return;
+                }
+                break;
+            default:
+                return;
+        }
+
+        var version = viewModel.GetLatestCompatibleCommunityVersion(project, versions, instance);
+        if (version is null)
+        {
+            await ShowMessageAsync("快速下载", "当前实例没有兼容的社区资源版本，请改用选择路径。", isWarning: true);
+            return;
+        }
+
+        destinationDirectory ??= viewModel.GetCommunityInstanceDownloadDirectory(instance!, project.Type);
+        await viewModel.QuickDownloadCommunityResourceAsync(project, version, destinationDirectory);
+        if (viewModel.CommunityResourceSummary.StartsWith("已", StringComparison.Ordinal))
+        {
+            await ShowMessageAsync("快速下载", viewModel.CommunityResourceSummary);
+        }
+    }
+
+    private async Task<CommunityQuickDownloadBehavior?> ShowQuickDownloadChoiceAsync()
+    {
+        var options = new[]
+        {
+            new RadioButton { Content = "下载到当前选中实例", IsChecked = true, MinHeight = 30 },
+            new RadioButton { Content = "选择一个实例", MinHeight = 30 },
+            new RadioButton { Content = "选择一个保存目录", MinHeight = 30 },
+        };
+        var content = new StackPanel { Spacing = 2 };
+        foreach (var option in options)
+        {
+            content.Children.Add(option);
+        }
+
+        var result = await MessageDialogHost.ShowAsync(new PclMessageDialogOptions(
+            Title: "快速下载",
+            Message: "请选择下载位置。",
+            PrimaryButtonText: "继续",
+            SecondaryButtonText: "取消",
+            Content: content,
+            InitialFocus: options[0]));
+        if (result != 1)
+        {
+            return null;
+        }
+
+        return options[0].IsChecked == true
+            ? CommunityQuickDownloadBehavior.CurrentInstance
+            : options[1].IsChecked == true
+                ? CommunityQuickDownloadBehavior.AskInstance
+                : CommunityQuickDownloadBehavior.AskPath;
+    }
+
+    private async Task<MinecraftInstance?> ShowQuickDownloadInstanceChoiceAsync(
+        ViewModels.MainViewModel viewModel,
+        CommunityResourceProject project,
+        IReadOnlyList<CommunityResourceVersion> versions)
+    {
+        var compatible = viewModel.AvailableInstances
+            .Where(instance => instance.Status == MinecraftInstanceStatus.Valid)
+            .Select(instance => (Instance: instance, Version: viewModel.GetLatestCompatibleCommunityVersion(project, versions, instance)))
+            .Where(item => item.Version is not null)
+            .OrderByDescending(item => ReferenceEquals(item.Instance, viewModel.SelectedInstance))
+            .ThenBy(item => item.Instance.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToArray();
+        if (compatible.Length == 0)
+        {
+            await ShowMessageAsync("快速下载", "没有找到兼容的本地实例。", isWarning: true);
+            return null;
+        }
+
+        var options = compatible
+            .Select((item, index) => new RadioButton
+            {
+                Content = $"{item.Instance.Name}（{item.Instance.VersionDisplay}）",
+                IsChecked = index == 0,
+                MinHeight = 30,
+            })
+            .ToArray();
+        var content = new StackPanel { Spacing = 2 };
+        foreach (var option in options)
+        {
+            content.Children.Add(option);
+        }
+
+        var result = await MessageDialogHost.ShowAsync(new PclMessageDialogOptions(
+            Title: "选择实例",
+            Message: "请选择资源保存到哪个实例。",
+            PrimaryButtonText: "下载",
+            SecondaryButtonText: "取消",
+            Content: content,
+            InitialFocus: options[0]));
+        if (result != 1)
+        {
+            return null;
+        }
+
+        var selectedIndex = Array.FindIndex(options, option => option.IsChecked == true);
+        return selectedIndex >= 0 ? compatible[selectedIndex].Instance : null;
     }
 
     private async Task ShowCommunityResourceDetailAsync(

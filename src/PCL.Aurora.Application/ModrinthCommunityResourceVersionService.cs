@@ -7,7 +7,9 @@ using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Application;
 
-public sealed class ModrinthCommunityResourceVersionService(HttpClient httpClient) : ICommunityResourceVersionService
+public sealed class ModrinthCommunityResourceVersionService(
+    HttpClient httpClient,
+    ILauncherPreferencesService? preferencesService = null) : ICommunityResourceVersionService
 {
     private static readonly Uri ApiRoot = new("https://api.modrinth.com/v2/");
 
@@ -59,12 +61,34 @@ public sealed class ModrinthCommunityResourceVersionService(HttpClient httpClien
     {
         try
         {
-            using var message = new HttpRequestMessage(HttpMethod.Get, endpoint);
-            message.Headers.UserAgent.ParseAdd("PCL-Aurora/0.1");
-            message.Headers.Accept.ParseAdd("application/json");
-            using var response = await httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            return parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+            var preference = preferencesService?.Current.EffectiveGameManagementOptions.CommunitySource
+                ?? DownloadSourcePreference.PreferOfficialWithFallback;
+            var errors = new List<string>();
+            foreach (var source in PclCeDownloadSourceResolver.OrderCommunity(
+                         preference,
+                         endpoint,
+                         PclCeDownloadSourceResolver.ToCommunityMirror(endpoint)))
+            {
+                try
+                {
+                    using var message = new HttpRequestMessage(HttpMethod.Get, source);
+                    message.Headers.UserAgent.ParseAdd("PCL-Aurora/0.1");
+                    message.Headers.Accept.ParseAdd("application/json");
+                    using var response = await httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+                    return parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception exception) when (exception is HttpRequestException or IOException)
+                {
+                    errors.Add($"{source.Host}：{exception.Message}");
+                }
+            }
+
+            return CommunityResourceVersionCatalog.Failure($"无法获取 Modrinth 版本信息：{string.Join("；", errors)}");
         }
         catch (OperationCanceledException)
         {

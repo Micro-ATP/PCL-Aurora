@@ -58,6 +58,29 @@ public sealed class CommunityResourceDownloadServiceTests
         Assert.Equal(["sodium.jar", "fabric-api.jar"], executor.Plan!.Artifacts.Select(item => item.RelativePath));
     }
 
+    [Fact]
+    public async Task DownloadAsync_UsesTranslatedFileNameAndCommunityMirrorFallback()
+    {
+        var executor = new CapturingDownloadExecutor();
+        var preferences = new FakePreferencesService(new LauncherPreferences(LauncherThemeMode.System)
+        {
+            GameManagementOptions = GameManagementOptions.Default with
+            {
+                CommunitySource = DownloadSourcePreference.Mirror,
+                CommunityFileNameFormat = CommunityFileNameFormat.SquareBrackets,
+            },
+        });
+        var service = new CommunityResourceDownloadService(executor, preferences);
+        var project = CreateProject() with { TranslatedTitle = "钠 (Sodium)" };
+
+        var result = await service.DownloadAsync(project, CreateVersion("sodium~0.6.jar"), Path.GetTempPath());
+
+        Assert.EndsWith("[钠] sodium-0.6.jar", result, StringComparison.Ordinal);
+        var artifact = Assert.Single(executor.Plan!.Artifacts);
+        Assert.Equal("mod.mcimirror.top", artifact.Url.Host);
+        Assert.Equal("cdn.modrinth.com", Assert.Single(artifact.AlternativeUrls!).Host);
+    }
+
     private static CommunityResourceProject CreateProject() =>
         new(
             "AANobbMI", "sodium", "Sodium", "Rendering engine", "jellysquid3",
@@ -91,5 +114,55 @@ public sealed class CommunityResourceDownloadServiceTests
             MinecraftAssetDownloadPlan downloadPlan,
             string minecraftRootDirectory,
             CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class FakePreferencesService(LauncherPreferences preferences) : ILauncherPreferencesService
+    {
+        public LauncherPreferences Current { get; } = preferences;
+
+        public Task<LauncherPreferencesLoadResult> LoadAsync(CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveThemeModeAsync(LauncherThemeMode themeMode, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveSelectedInstanceNameAsync(string? instanceName, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveOfflinePlayerNameAsync(string? playerName, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveDownloadConcurrencyAsync(int concurrency, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveDownloadSpeedLimitStepAsync(int speedLimitStep, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveGameManagementOptionsAsync(GameManagementOptions options, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveInterfaceSettingsAsync(InterfaceSettings settings, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveLocalizationSettingsAsync(LauncherLocalizationSettings settings, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveMiscSettingsAsync(LauncherMiscSettings settings, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveUpdateSettingsAsync(LauncherUpdateSettings settings, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveManualJavaExecutablePathsAsync(IReadOnlyList<string> executablePaths, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task ReplaceAsync(LauncherPreferences newPreferences, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
     }
 }

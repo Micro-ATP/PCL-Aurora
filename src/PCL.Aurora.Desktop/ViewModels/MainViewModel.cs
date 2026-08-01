@@ -1931,7 +1931,9 @@ public partial class MainViewModel(
         var project = result.Projects.FirstOrDefault(item =>
             item.Slug.Equals(slug, StringComparison.OrdinalIgnoreCase) ||
             item.Title.Equals(slug, StringComparison.OrdinalIgnoreCase));
-        return project is null ? null : new CommunityResourceItemViewModel(project)
+        return project is null ? null : new CommunityResourceItemViewModel(
+            project,
+            SelectedCommunityModNameStyle.Value)
         {
             IsFavorite = IsCommunityResourceFavorite(project.Id),
         };
@@ -2872,6 +2874,161 @@ public partial class MainViewModel(
 
     public Task LoadSelectedCommunityResourceVersionsAsync() => LoadCommunityResourceVersionsAsync();
 
+    public CommunityQuickDownloadBehavior CommunityQuickDownloadBehavior =>
+        SelectedCommunityQuickDownloadBehavior.Value;
+
+    public async Task<IReadOnlyList<CommunityResourceVersion>> GetCommunityQuickDownloadVersionsAsync(
+        CommunityResourceProject project)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        CommunityResourceSummary = $"正在获取 {project.DisplayTitle} 的可用版本…";
+        var catalog = await communityResourceVersionService.GetProjectVersionsAsync(
+            project.Id,
+            gameVersion: null,
+            CommunityResourceLoader.Any);
+        var versions = catalog.Versions
+            .Where(version => version.PrimaryFile is not null)
+            .OrderBy(version => version.Channel == CommunityResourceVersionChannel.Release ? 0 : 1)
+            .ThenByDescending(version => version.PublishedAt)
+            .ToArray();
+        CommunityResourceSummary = versions.Length > 0
+            ? string.Empty
+            : catalog.Errors.Count > 0
+                ? $"版本列表不可用：{string.Join("；", catalog.Errors)}"
+                : "没有可下载的文件。";
+        return versions;
+    }
+
+    public CommunityResourceVersion? GetLatestCompatibleCommunityVersion(
+        CommunityResourceProject project,
+        IReadOnlyList<CommunityResourceVersion> versions,
+        MinecraftInstance? instance)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        ArgumentNullException.ThrowIfNull(versions);
+        if (instance is null)
+        {
+            return versions.FirstOrDefault();
+        }
+
+        var gameVersion = GetMinecraftVersionForLoaders(instance);
+        var loader = instance.InstalledLoader?.Kind switch
+        {
+            MinecraftLoaderKind.Forge => "forge",
+            MinecraftLoaderKind.NeoForge => "neoforge",
+            MinecraftLoaderKind.Fabric => "fabric",
+            _ => null,
+        };
+        return versions.FirstOrDefault(version =>
+            IsCommunityVersionCompatible(project.Type, version, gameVersion, loader));
+    }
+
+    public async Task QuickDownloadCommunityResourceAsync(
+        CommunityResourceProject project,
+        CommunityResourceVersion version,
+        string destinationDirectory)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        ArgumentNullException.ThrowIfNull(version);
+        if (string.IsNullOrWhiteSpace(destinationDirectory))
+        {
+            throw new ArgumentException("下载目录不能为空。", nameof(destinationDirectory));
+        }
+
+        using var cancellation = new CancellationTokenSource();
+        communityDownloadCancellation = cancellation;
+        CanCancelCommunityResourceOperation = true;
+        try
+        {
+            var progress = new Progress<MinecraftDownloadProgress>(update =>
+            {
+                var size = update.TotalBytes is { } total
+                    ? $"{FormatByteCount(update.DownloadedBytes)} / {FormatByteCount(total)}"
+                    : FormatByteCount(update.DownloadedBytes);
+                CommunityResourceSummary = $"正在下载 {update.CurrentDescription} · {size}";
+            });
+            if (project.Type == CommunityResourceType.World)
+            {
+                var result = await communityWorldImportService.ImportAsync(
+                    project,
+                    version,
+                    destinationDirectory,
+                    CommunityResourceFileNameFormatter.Sanitize(project.DisplayTitle),
+                    progress,
+                    cancellation.Token);
+                CommunityResourceSummary = $"已导入世界：{result.WorldDirectory}";
+            }
+            else
+            {
+                var path = await communityResourceDownloadService.DownloadAsync(
+                    project,
+                    version,
+                    destinationDirectory,
+                    progress,
+                    cancellation.Token);
+                CommunityResourceSummary = $"已下载到 {path}";
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            CommunityResourceSummary = "快速下载已取消。";
+        }
+        catch (Exception exception)
+        {
+            CommunityResourceSummary = $"快速下载失败：{exception.Message}";
+        }
+        finally
+        {
+            if (ReferenceEquals(communityDownloadCancellation, cancellation))
+            {
+                communityDownloadCancellation = null;
+                CanCancelCommunityResourceOperation = false;
+            }
+        }
+    }
+
+    public string GetCommunityInstanceDownloadDirectory(
+        MinecraftInstance instance,
+        CommunityResourceType type)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+        var gameDirectory = MinecraftInstanceIsolationResolver.ResolveGameDirectory(
+            instance,
+            MinecraftRootDirectory,
+            SelectedInstanceIsolationMode.Mode);
+        var subdirectory = type switch
+        {
+            CommunityResourceType.Mod => "mods",
+            CommunityResourceType.ResourcePack => "resourcepacks",
+            CommunityResourceType.Shader => "shaderpacks",
+            CommunityResourceType.World => "saves",
+            _ => string.Empty,
+        };
+        return string.IsNullOrEmpty(subdirectory)
+            ? gameDirectory
+            : Path.Combine(gameDirectory, subdirectory);
+    }
+
+    private static bool IsCommunityVersionCompatible(
+        CommunityResourceType type,
+        CommunityResourceVersion version,
+        string? gameVersion,
+        string? loader)
+    {
+        if (type is CommunityResourceType.Mod or CommunityResourceType.DataPack &&
+            !string.IsNullOrWhiteSpace(gameVersion) &&
+            version.GameVersions.Any(value => value.Contains('.')) &&
+            !version.GameVersions.Contains(gameVersion, StringComparer.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return type != CommunityResourceType.Mod ||
+               string.IsNullOrWhiteSpace(loader) ||
+               version.Loaders.Count == 0 ||
+               version.Loaders.Contains(loader, StringComparer.OrdinalIgnoreCase);
+    }
+
     public void SelectCommunityGameVersionFilter(CommunityResourceVersionFilterOption option)
     {
         ArgumentNullException.ThrowIfNull(option);
@@ -3565,7 +3722,9 @@ public partial class MainViewModel(
             }
 
             pendingItems = result.Projects
-                .Select(project => new CommunityResourceItemViewModel(project))
+                .Select(project => new CommunityResourceItemViewModel(
+                    project,
+                    SelectedCommunityModNameStyle.Value))
                 .ToArray();
             foreach (var item in pendingItems)
             {
@@ -3717,7 +3876,9 @@ public partial class MainViewModel(
         try
         {
             pendingItems = folder.Projects
-                .Select(project => new CommunityResourceItemViewModel(project) { IsFavorite = true })
+                .Select(project => new CommunityResourceItemViewModel(
+                    project,
+                    SelectedCommunityModNameStyle.Value) { IsFavorite = true })
                 .ToArray();
             await LoadCommunityIconsAsync(pendingItems, cancellation.Token);
             cancellation.Token.ThrowIfCancellationRequested();
@@ -4674,7 +4835,15 @@ public partial class MainViewModel(
     partial void OnFixAuthlibChanged(bool value) => QueueGameManagementOptionsSave();
     partial void OnSelectedCommunitySourceChanged(GameManagementOption<DownloadSourcePreference> value) => QueueGameManagementOptionsSave();
     partial void OnSelectedCommunityFileNameFormatChanged(GameManagementOption<CommunityFileNameFormat> value) => QueueGameManagementOptionsSave();
-    partial void OnSelectedCommunityModNameStyleChanged(GameManagementOption<CommunityModNameStyle> value) => QueueGameManagementOptionsSave();
+    partial void OnSelectedCommunityModNameStyleChanged(GameManagementOption<CommunityModNameStyle> value)
+    {
+        foreach (var item in CommunityResources)
+        {
+            item.ApplyNameStyle(value.Value);
+        }
+
+        QueueGameManagementOptionsSave();
+    }
     partial void OnSelectedCommunityQuickDownloadBehaviorChanged(GameManagementOption<CommunityQuickDownloadBehavior> value) => QueueGameManagementOptionsSave();
     partial void OnIgnoreQuiltChanged(bool value)
     {

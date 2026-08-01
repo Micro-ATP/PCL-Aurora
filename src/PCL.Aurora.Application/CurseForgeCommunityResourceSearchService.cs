@@ -6,7 +6,9 @@ using PCL.Aurora.Domain;
 
 namespace PCL.Aurora.Application;
 
-public sealed class CurseForgeCommunityResourceSearchService(HttpClient httpClient)
+public sealed class CurseForgeCommunityResourceSearchService(
+    HttpClient httpClient,
+    ILauncherPreferencesService? preferencesService = null)
     : ICommunityResourceSearchService
 {
     private static readonly Uri SearchEndpoint =
@@ -39,14 +41,40 @@ public sealed class CurseForgeCommunityResourceSearchService(HttpClient httpClie
 
         try
         {
-            using var message = new HttpRequestMessage(HttpMethod.Get, BuildSearchUri(
-                request with { SearchText = searchText, GameVersion = gameVersion, Category = category }, classId));
-            message.Headers.UserAgent.ParseAdd("PCL-Aurora/0.1");
-            message.Headers.Accept.ParseAdd("application/json");
-            using var response = await httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            return CurseForgeCommunityResourceParser.Parse(
-                await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false), request.Type);
+            var endpoint = BuildSearchUri(
+                request with { SearchText = searchText, GameVersion = gameVersion, Category = category }, classId);
+            var preference = preferencesService?.Current.EffectiveGameManagementOptions.CommunitySource
+                ?? DownloadSourcePreference.PreferOfficialWithFallback;
+            var officialEndpoint = endpoint.AbsoluteUri.Replace(
+                "https://mod.mcimirror.top/curseforge",
+                "https://api.curseforge.com",
+                StringComparison.OrdinalIgnoreCase);
+            var official = new Uri(officialEndpoint);
+            var mirror = endpoint;
+            var errors = new List<string>();
+            foreach (var source in PclCeDownloadSourceResolver.OrderCommunity(preference, official, mirror))
+            {
+                try
+                {
+                    using var message = new HttpRequestMessage(HttpMethod.Get, source);
+                    message.Headers.UserAgent.ParseAdd("PCL-Aurora/0.1");
+                    message.Headers.Accept.ParseAdd("application/json");
+                    using var response = await httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+                    return CurseForgeCommunityResourceParser.Parse(
+                        await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false), request.Type);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception exception) when (exception is HttpRequestException or IOException)
+                {
+                    errors.Add($"{source.Host}：{exception.Message}");
+                }
+            }
+
+            return CommunityResourceSearchResult.Failure($"无法获取 CurseForge 社区资源：{string.Join("；", errors)}");
         }
         catch (OperationCanceledException)
         {
