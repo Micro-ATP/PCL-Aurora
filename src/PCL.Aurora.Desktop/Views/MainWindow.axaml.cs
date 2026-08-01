@@ -18,6 +18,7 @@ using PCL.Aurora.Desktop.Controls;
 using PCL.Aurora.Desktop.Services;
 using PCL.Aurora.Desktop.Models;
 using PCL.Aurora.Domain;
+using PCL.Aurora.Platform.Abstractions;
 
 namespace PCL.Aurora.Desktop.Views;
 
@@ -55,6 +56,8 @@ public partial class MainWindow : Window
     private Bitmap? toolboxAvatarBitmap;
     private string? lastProcessedClipboardText;
     private bool isResolvingClipboardResource;
+
+    internal INativeWindowAppearanceService? NativeWindowAppearanceService { get; init; }
 
     public MainWindow()
     {
@@ -96,6 +99,7 @@ public partial class MainWindow : Window
         Activated += MainWindowActivated;
         Opened += async (_, _) =>
         {
+            ApplyNativeWindowAppearance();
             SubscribeToViewModel();
             UpdateLauncherWindowSize();
             if (DataContext is ViewModels.MainViewModel viewModel)
@@ -133,6 +137,15 @@ public partial class MainWindow : Window
         {
             viewModel.UpdateLauncherWindowSize(ClientSize.Width, ClientSize.Height);
         }
+    }
+
+    private void ApplyNativeWindowAppearance()
+    {
+        var platformHandle = TryGetPlatformHandle();
+        var nativeWindowHandle = platformHandle is IMacOSTopLevelPlatformHandle macOSHandle
+            ? macOSHandle.NSWindow
+            : platformHandle?.Handle ?? 0;
+        NativeWindowAppearanceService?.TryEnableTransparentBackground(nativeWindowHandle);
     }
 
     private void SubscribeToViewModel() => SubscribeToViewModel(DataContext as ViewModels.MainViewModel);
@@ -394,6 +407,7 @@ public partial class MainWindow : Window
         TransparencyLevelHint = viewModel.EnableAdvancedMaterial
             ? [WindowTransparencyLevel.AcrylicBlur, WindowTransparencyLevel.Blur, WindowTransparencyLevel.Transparent]
             : [WindowTransparencyLevel.Transparent];
+        ApplyNativeWindowAppearance();
         LauncherColorOverlay.IsVisible = viewModel.UseColorfulBackground;
         PclHomepageView.FontFamily = string.IsNullOrWhiteSpace(viewModel.MotdInterfaceFont)
             ? FontFamily

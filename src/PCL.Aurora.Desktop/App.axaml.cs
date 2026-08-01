@@ -29,6 +29,7 @@ public partial class App : Avalonia.Application
             desktop.MainWindow = new MainWindow
             {
                 DataContext = services.GetRequiredService<MainViewModel>(),
+                NativeWindowAppearanceService = services.GetRequiredService<INativeWindowAppearanceService>(),
             };
         }
 
@@ -39,6 +40,7 @@ public partial class App : Avalonia.Application
     {
         var services = new ServiceCollection();
         services.AddSingleton<IPlatformInfo, MacOSPlatformInfo>();
+        services.AddSingleton<INativeWindowAppearanceService, MacOSNativeWindowAppearanceService>();
         services.AddSingleton<IPlatformPaths, MacOSPlatformPaths>();
         services.AddSingleton<ISystemMemoryInfo, MacOSSystemMemoryInfo>();
         services.AddSingleton<ISystemMemoryOptimizer, MacOSSystemMemoryOptimizer>();
