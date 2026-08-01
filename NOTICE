@@ -341,6 +341,15 @@ loader adapts PCL-CE `PageLaunchRight` and `PageSetupUI`, while rendering remote
 content through Aurora's restricted XML control allowlist rather than executing
 arbitrary XAML. Preset addresses and the Minecraft news allowlist follow the
 listed PCL-CE sources.
+The Java runtime installer adapts PCL-CE `ModJava.GetJavaDownloadLoader` and
+`ModJava.JavaFileList`: downloads are staged in a launcher-owned directory,
+verified before activation, rescanned after installation and removed when the
+operation fails or is cancelled. Aurora queries Azul's public metadata service
+for macOS ARM64 and x64 packages because Mojang does not publish every required
+Java generation for macOS ARM64. Downloaded runtimes are obtained directly from
+Azul at the user's request and are not included in the PCL Aurora repository or
+release package. Window-title variable behavior adapts PCL-CE
+`ModLaunch.ArgumentReplace`, limited to the variables exposed by Aurora's UI.
 The runtime launch-patch flow adapts PCL-CE `ModLaunch`: LegacyFix and the
 LWJGL unsafe agent are selected from effective version metadata, extracted
 atomically into the platform cache and injected through argument lists without

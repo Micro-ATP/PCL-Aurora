@@ -6,7 +6,8 @@ public static class MinecraftGameLaunchRequestBuilder
         MinecraftInstance? instance,
         JavaInstallation? java,
         MinecraftLaunchArgumentPreparation argumentPreparation,
-        MinecraftLaunchOptions? launchOptions = null)
+        MinecraftLaunchOptions? launchOptions = null,
+        MinecraftAccount? account = null)
     {
         ArgumentNullException.ThrowIfNull(argumentPreparation);
         var blockingReasons = new List<string>();
@@ -92,7 +93,7 @@ public static class MinecraftGameLaunchRequestBuilder
                 launchOptions.WindowHeight,
                 string.IsNullOrWhiteSpace(launchOptions.WindowTitle)
                     ? null
-                    : launchOptions.WindowTitle.Trim()),
+                    : MinecraftWindowTitleFormatter.Format(launchOptions.WindowTitle.Trim(), instance, account)),
             []);
     }
 }

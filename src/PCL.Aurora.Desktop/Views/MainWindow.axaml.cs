@@ -1249,59 +1249,9 @@ public partial class MainWindow : Window
         MoreDirectorySection.IsVisible = section == "toolbox";
         MoreLogSection.IsVisible = section == "logs";
         PclHelpView.IsVisible = section == "help";
-        MorePageHeading.IsVisible = section is "feedback" or "vote";
         MoreContentHost.Margin = section == "toolbox"
             ? new Thickness(25, 10, 25, 10)
             : new Thickness(25, 25, 25, 10);
-        MorePlaceholderSection.IsVisible = section is "feedback" or "vote";
-        MorePageTitle.Text = section switch
-        {
-            "toolbox" => "百宝箱",
-            "logs" => "查看日志",
-            "feedback" => "反馈",
-            "vote" => "新功能投票",
-            _ => "帮助",
-        };
-        MorePageDescription.Text = section switch
-        {
-            "toolbox" => "使用常用工具和跨平台维护功能。",
-            "logs" => "查看当前游戏会话输出与诊断信息。",
-            "feedback" => "提交问题报告、兼容性报告或功能建议。",
-            "vote" => "了解候选功能并参与后续版本方向讨论。",
-            _ => "查看启动、下载、实例与故障排查入口。",
-        };
-
-        if (section != "help")
-        {
-            PopulateMorePlaceholder(section);
-        }
-    }
-
-    private void PopulateMorePlaceholder(string section)
-    {
-        var model = section switch
-        {
-            "feedback" => ("反馈", "选择反馈类型；实际提交将在 Aurora 的公开反馈入口接入后启用。", new[] { "问题反馈", "兼容性报告", "功能建议" }),
-            "vote" => ("新功能投票", "查看候选功能与开发进度；投票数据将在后续接入 Aurora 自有服务。", new[] { "候选功能", "已采纳建议", "版本路线图" }),
-            _ => ("帮助", string.Empty, Array.Empty<string>()),
-        };
-
-        MorePlaceholderTitle.Text = model.Item1;
-        MorePlaceholderDescription.Text = model.Item2;
-        MoreHelpSearchBox.IsVisible = false;
-        MoreHelpSearchBox.Text = string.Empty;
-        MorePlaceholderItems.ItemsSource = model.Item3;
-    }
-
-    private void MoreHelpSearchTextChanged(object? sender, TextChangedEventArgs e)
-    {
-        if (!MoreHelpSearchBox.IsVisible)
-        {
-            return;
-        }
-
-        var query = MoreHelpSearchBox.Text?.Trim() ?? string.Empty;
-        MorePlaceholderItems.ItemsSource = Array.Empty<string>();
     }
 
     private async void DownloadNavigationClick(object? sender, RoutedEventArgs e)

@@ -36,6 +36,28 @@ public sealed class MinecraftGameLaunchRequestBuilderTests
         Assert.Contains("缺少 classpath。", preparation.BlockingReasons);
     }
 
+    [Theory]
+    [InlineData(MinecraftAccountKind.Offline, "离线")]
+    [InlineData(MinecraftAccountKind.Microsoft, "正版")]
+    [InlineData(MinecraftAccountKind.AuthlibInjector, "Authlib-Injector")]
+    public void Prepare_ExpandsWindowTitleVariables(MinecraftAccountKind kind, string loginName)
+    {
+        var instance = new MinecraftInstance("生存世界", "/minecraft/versions/1.21.4", "1.21.4", "release", null, MinecraftInstanceStatus.Valid);
+        var java = new JavaInstallation("/usr/bin/java", "21", 21, "Test", JavaArchitecture.Arm64, JavaSource.Path, true);
+        var account = new MinecraftAccount("Alex", "uuid", kind, kind != MinecraftAccountKind.Offline);
+        var arguments = new MinecraftLaunchArgumentPreparation(
+            new MinecraftLaunchArguments([], "example.Main", []),
+            []);
+        var options = MinecraftLaunchOptions.Default with
+        {
+            WindowTitle = "{name} | 玩家：{user} | 使用 {login} 登录 | {unknown}",
+        };
+
+        var preparation = MinecraftGameLaunchRequestBuilder.Prepare(instance, java, arguments, options, account);
+
+        Assert.Equal($"生存世界 | 玩家：Alex | 使用 {loginName} 登录 | {{unknown}}", preparation.Request!.WindowTitle);
+    }
+
     [Fact]
     public void JavaExecutableResolver_UsesAvailableWindowsSiblingOnlyWhenRequested()
     {

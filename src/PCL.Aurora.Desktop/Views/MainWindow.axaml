@@ -3494,10 +3494,20 @@
                             <Border Classes="setup-card">
                                 <Grid RowDefinitions="40,*">
                                     <TextBlock Classes="setup-card-title" Text="Java 操作" />
-                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Orientation="Horizontal" Spacing="10">
-                                        <Button MinWidth="110" Click="AddJavaClick" Content="添加 Java" />
-                                        <Button MinWidth="110" Command="{Binding RefreshCommand}" Content="自动搜索" />
-                                        <TextBlock VerticalAlignment="Center" Classes="setup-muted" Text="仅列出与当前系统架构兼容且可执行的 Java。" />
+                                    <StackPanel Grid.Row="1" Margin="18,0,18,16" Spacing="8">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Button MinWidth="110" Click="AddJavaClick" IsEnabled="{Binding !IsInstallingJava}" Content="添加 Java" />
+                                            <Button MinWidth="110" Command="{Binding InstallRecommendedJavaCommand}"
+                                                    IsEnabled="{Binding !IsInstallingJava}" Content="自动安装" />
+                                            <Button MinWidth="110" Command="{Binding RefreshCommand}"
+                                                    IsEnabled="{Binding !IsInstallingJava}" Content="自动搜索" />
+                                            <Button MinWidth="72" Command="{Binding CancelJavaInstallationCommand}"
+                                                    IsVisible="{Binding IsInstallingJava}" Content="取消" />
+                                        </StackPanel>
+                                        <ProgressBar Height="3" Minimum="0" Maximum="100"
+                                                     IsVisible="{Binding IsInstallingJava}"
+                                                     Value="{Binding JavaInstallationProgress}" />
+                                        <TextBlock Classes="setup-muted" Text="{Binding JavaInstallationStatus}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -4538,10 +4548,6 @@
                             </Grid>
                             <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="toolbox" Label="百宝箱"
                                                           IconData="M3 6h18v14H3z M8 6V4h8v2 M3 11h18 M10 11v3h4v-3" />
-                            <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="feedback" Label="反馈"
-                                                          IconData="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-                            <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="vote" Label="新功能投票"
-                                                          IconData="M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                             <TextBlock Margin="13,10,5,3" FontSize="12" Foreground="#6F7C8B" Text="诊断" />
                             <controls:PclNavigationButton Classes="secondary-navigation" Click="MoreNavigationClick" Tag="logs" Label="查看日志"
                                                           IconData="M4 2h16v20H4z M8 7h8 M8 11h8 M8 15h5" />
@@ -4549,12 +4555,6 @@
                     </Border>
                     <ScrollViewer x:Name="MoreContentScroller" Grid.Column="1" Classes="pcl-page-right" Background="#D9EAF9">
                     <StackPanel x:Name="MoreContentHost" Margin="25,25,25,10" MaxWidth="860" Spacing="15">
-                        <StackPanel x:Name="MorePageHeading" Spacing="6" IsVisible="False">
-                            <TextBlock x:Name="MorePageTitle" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource PclThemePrimaryBrush}" Text="帮助" />
-                            <TextBlock x:Name="MorePageDescription" Foreground="#6F7C8B"
-                                       Text="查看启动、下载、实例与故障排查入口。" />
-                        </StackPanel>
-
                         <controls:PclHelpView x:Name="PclHelpView" />
 
                         <StackPanel x:Name="MoreDirectorySection" Classes="toolbox-section" IsVisible="False" Spacing="0">
@@ -4724,29 +4724,6 @@
                             </StackPanel>
                         </Border>
 
-                        <Border x:Name="MorePlaceholderSection" Classes="pcl-card" Padding="20" IsVisible="False">
-                            <StackPanel Spacing="12">
-                                <TextBlock x:Name="MorePlaceholderTitle" FontSize="17" FontWeight="SemiBold" Text="帮助" />
-                                <TextBlock x:Name="MorePlaceholderDescription" Foreground="#6F7C8B" TextWrapping="Wrap" />
-                                <!-- PCL2 PageOtherHelp.xaml uses a search field above its local help topics. -->
-                                <TextBox x:Name="MoreHelpSearchBox" Height="34" IsVisible="False"
-                                         PlaceholderText="搜索帮助" TextChanged="MoreHelpSearchTextChanged" />
-                                <Separator />
-                                <ItemsControl x:Name="MorePlaceholderItems">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Classes="pcl-option-row">
-                                                <Grid ColumnDefinitions="*,Auto">
-                                                    <TextBlock VerticalAlignment="Center" Text="{Binding}" />
-                                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="14"
-                                                               Foreground="#6F7C8B" Text="›" />
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
                     </StackPanel>
                     </ScrollViewer>
                 </Grid>

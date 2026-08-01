@@ -58,7 +58,8 @@ public sealed class MinecraftGameLaunchService(
             instance,
             java,
             launchPreparation.ArgumentPreparation,
-            launchOptions);
+            launchOptions,
+            account);
         if (requestPreparation.Request is { } request &&
             metadata is not null &&
             java is not null &&

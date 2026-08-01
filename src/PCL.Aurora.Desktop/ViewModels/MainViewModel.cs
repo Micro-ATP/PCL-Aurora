@@ -47,6 +47,7 @@ public partial class MainViewModel(
     ILauncherLogService launcherLogService,
     IOpenPathService openPathService,
     IJavaInstallationInspector javaInstallationInspector,
+    IJavaRuntimeInstallationService javaRuntimeInstallationService,
     IThemeService themeService,
     ISystemMemoryInfo systemMemoryInfo,
     ISecureSecretStore secretStore,
@@ -113,6 +114,7 @@ public partial class MainViewModel(
     private int launcherClientHeight = MinecraftLaunchOptions.DefaultWindowHeight;
     private MinecraftJavaRequirement? currentJavaRequirement;
     private CancellationTokenSource? installationCancellation;
+    private CancellationTokenSource? javaInstallationCancellation;
     private CancellationTokenSource? microsoftLoginCancellation;
     private Uri? microsoftVerificationUri;
     private CancellationTokenSource? communitySearchCancellation;
@@ -886,6 +888,15 @@ public partial class MainViewModel(
     private bool hasAvailableJavaInstallations;
 
     [ObservableProperty]
+    private bool isInstallingJava;
+
+    [ObservableProperty]
+    private double javaInstallationProgress;
+
+    [ObservableProperty]
+    private string javaInstallationStatus = "可根据当前实例要求自动下载并安装 Java。";
+
+    [ObservableProperty]
     private string instanceSummary = "正在扫描本地实例…";
 
     [ObservableProperty]
@@ -1602,6 +1613,77 @@ public partial class MainViewModel(
             string.Equals(java.ExecutablePath, installation.ExecutablePath, StringComparison.OrdinalIgnoreCase));
         return installation;
     }
+
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task InstallRecommendedJavaAsync()
+    {
+        if (IsInstallingJava)
+        {
+            return;
+        }
+
+        var targetVersion = JavaRuntimeTargetResolver.Resolve(currentJavaRequirement).MajorVersion;
+        var existing = AvailableJavaInstallations.FirstOrDefault(java =>
+            java.MajorVersion == targetVersion &&
+            (currentJavaRequirement is null || currentJavaRequirement.GetBlockingReasons(java).Count == 0));
+        if (existing is not null)
+        {
+            SelectedJava = existing;
+            JavaInstallationProgress = 100;
+            JavaInstallationStatus = $"已选择现有 Java {existing.Version ?? targetVersion.ToString(CultureInfo.InvariantCulture)}。";
+            return;
+        }
+
+        javaInstallationCancellation?.Cancel();
+        javaInstallationCancellation?.Dispose();
+        javaInstallationCancellation = new CancellationTokenSource();
+        var cancellationToken = javaInstallationCancellation.Token;
+        try
+        {
+            IsInstallingJava = true;
+            JavaInstallationProgress = 0;
+            JavaInstallationStatus = $"正在准备 Java {targetVersion}…";
+            var progress = new Progress<JavaRuntimeInstallationProgress>(update =>
+            {
+                JavaInstallationStatus = update.Status;
+                JavaInstallationProgress = Math.Clamp(update.Fraction * 100, 0, 100);
+            });
+            var installation = await javaRuntimeInstallationService.InstallAsync(
+                currentJavaRequirement,
+                progress,
+                cancellationToken);
+            var paths = currentPreferences.EffectiveManualJavaExecutablePaths
+                .Append(installation.ExecutablePath)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            await preferencesService.SaveManualJavaExecutablePathsAsync(paths);
+            currentPreferences = preferencesService.Current;
+            await RefreshAsync();
+            SelectedJava = AvailableJavaInstallations.FirstOrDefault(java => string.Equals(
+                java.ExecutablePath,
+                installation.ExecutablePath,
+                StringComparison.OrdinalIgnoreCase));
+            JavaInstallationProgress = 100;
+            JavaInstallationStatus = $"Java {installation.Version ?? targetVersion.ToString(CultureInfo.InvariantCulture)} 已安装并选中。";
+        }
+        catch (OperationCanceledException)
+        {
+            JavaInstallationStatus = "Java 安装已取消，未保留未完成文件。";
+        }
+        catch (Exception exception)
+        {
+            JavaInstallationStatus = $"Java 安装失败：{exception.Message}";
+        }
+        finally
+        {
+            IsInstallingJava = false;
+            javaInstallationCancellation?.Dispose();
+            javaInstallationCancellation = null;
+        }
+    }
+
+    [RelayCommand]
+    private void CancelJavaInstallation() => javaInstallationCancellation?.Cancel();
 
     private async Task LoadPreferencesAsync()
     {

@@ -44,6 +44,7 @@ public partial class App : Avalonia.Application
         services.AddSingleton<MacOSJavaLocator>();
         services.AddSingleton<IJavaLocator>(provider => provider.GetRequiredService<MacOSJavaLocator>());
         services.AddSingleton<IJavaInstallationInspector>(provider => provider.GetRequiredService<MacOSJavaLocator>());
+        services.AddSingleton<IJavaRuntimeInstallationService, AzulJavaRuntimeInstallationService>();
         services.AddSingleton<IMinecraftInstanceLocator, MacOSMinecraftInstanceLocator>();
         services.AddSingleton<IMinecraftRootDirectoryProvider, MacOSMinecraftRootDirectoryProvider>();
         services.AddSingleton<IMinecraftVersionMetadataReader, MacOSMinecraftVersionMetadataReader>();
