@@ -6,11 +6,13 @@ namespace PCL.Aurora.Domain;
 
 public static class CurseForgeCommunityResourceParser
 {
-    public static CommunityResourceSearchResult Parse(string json)
+    public static CommunityResourceSearchResult Parse(
+        string json,
+        CommunityResourceType requestedType = CommunityResourceType.World)
     {
         if (string.IsNullOrWhiteSpace(json))
         {
-            return CommunityResourceSearchResult.Failure("CurseForge 返回了空的世界目录。");
+            return CommunityResourceSearchResult.Failure("CurseForge 返回了空的资源目录。");
         }
 
         try
@@ -19,14 +21,14 @@ public static class CurseForgeCommunityResourceParser
             var root = document.RootElement;
             if (!root.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array)
             {
-                return CommunityResourceSearchResult.Failure("CurseForge 世界目录缺少项目数组。");
+                return CommunityResourceSearchResult.Failure("CurseForge 资源目录缺少项目数组。");
             }
 
             var projects = new List<CommunityResourceProject>();
             var errors = new List<string>();
             foreach (var item in data.EnumerateArray())
             {
-                if (TryParseProject(item, out var project, out var error))
+                if (TryParseProject(item, requestedType, out var project, out var error))
                 {
                     projects.Add(project!);
                 }
@@ -44,12 +46,13 @@ public static class CurseForgeCommunityResourceParser
         }
         catch (JsonException exception)
         {
-            return CommunityResourceSearchResult.Failure($"CurseForge 世界目录不是有效 JSON：{exception.Message}");
+            return CommunityResourceSearchResult.Failure($"CurseForge 资源目录不是有效 JSON：{exception.Message}");
         }
     }
 
     private static bool TryParseProject(
         JsonElement item,
+        CommunityResourceType requestedType,
         out CommunityResourceProject? project,
         out string? error)
     {
@@ -61,7 +64,7 @@ public static class CurseForgeCommunityResourceParser
             string.IsNullOrWhiteSpace(GetString(item, "slug")) ||
             string.IsNullOrWhiteSpace(GetString(item, "name")))
         {
-            error = "CurseForge 世界项目缺少 ID、短名或名称。";
+            error = "CurseForge 项目缺少 ID、短名或名称。";
             return false;
         }
 
@@ -70,7 +73,7 @@ public static class CurseForgeCommunityResourceParser
         var websiteText = item.TryGetProperty("links", out var links) ? GetString(links, "websiteUrl") : null;
         if (!TryCreateHttpsUri(websiteText, "curseforge.com", out var website))
         {
-            website = new Uri($"https://www.curseforge.com/minecraft/worlds/{Uri.EscapeDataString(slug)}");
+            website = new Uri($"https://www.curseforge.com/minecraft/{GetWebsiteCategory(requestedType)}/{Uri.EscapeDataString(slug)}");
         }
 
         Uri? icon = null;
@@ -106,7 +109,7 @@ public static class CurseForgeCommunityResourceParser
             title.Trim(),
             GetString(item, "summary")?.Trim() ?? string.Empty,
             author,
-            CommunityResourceType.World,
+            requestedType,
             website!,
             icon,
             Math.Max(0, GetInt64(item, "downloadCount") ?? 0),
@@ -163,4 +166,15 @@ public static class CurseForgeCommunityResourceParser
 
     private static DateTimeOffset? ParseDate(string? value) =>
         DateTimeOffset.TryParse(value, out var result) ? result : null;
+
+    private static string GetWebsiteCategory(CommunityResourceType type) => type switch
+    {
+        CommunityResourceType.Mod => "mc-mods",
+        CommunityResourceType.ModPack => "modpacks",
+        CommunityResourceType.DataPack => "data-packs",
+        CommunityResourceType.ResourcePack => "texture-packs",
+        CommunityResourceType.Shader => "shaders",
+        CommunityResourceType.World => "worlds",
+        _ => "worlds",
+    };
 }

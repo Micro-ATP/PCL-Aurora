@@ -112,6 +112,16 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
         return UpdateAsync(preferences => preferences with { LaunchOptions = options }, cancellationToken);
     }
 
+    public Task SaveLastNotifiedVersionAsync(
+        bool snapshot,
+        string? version,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(
+            preferences => snapshot
+                ? preferences with { LastNotifiedSnapshotVersion = version }
+                : preferences with { LastNotifiedReleaseVersion = version },
+            cancellationToken);
+
     private async Task UpdateAsync(
         Func<LauncherPreferences, LauncherPreferences> update,
         CancellationToken cancellationToken)

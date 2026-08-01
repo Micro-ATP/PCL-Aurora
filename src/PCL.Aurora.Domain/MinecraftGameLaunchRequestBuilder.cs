@@ -86,7 +86,13 @@ public static class MinecraftGameLaunchRequestBuilder
                 launchOptions.WaitForPreLaunchCommand,
                 launchOptions.ProcessPriority,
                 argumentPreparation.Arguments.JvmArguments.Count,
-                launchOptions.PreferDedicatedGpu),
+                launchOptions.PreferDedicatedGpu,
+                launchOptions.WindowMode,
+                launchOptions.WindowWidth,
+                launchOptions.WindowHeight,
+                string.IsNullOrWhiteSpace(launchOptions.WindowTitle)
+                    ? null
+                    : launchOptions.WindowTitle.Trim()),
             []);
     }
 }

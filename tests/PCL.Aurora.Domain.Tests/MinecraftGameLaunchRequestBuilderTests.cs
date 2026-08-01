@@ -50,4 +50,24 @@ public sealed class MinecraftGameLaunchRequestBuilderTests
         Assert.Equal(javaw, MinecraftJavaExecutableResolver.Resolve(java, useConsoleExecutable: false, isWindows: true));
         Assert.Equal(java, MinecraftJavaExecutableResolver.Resolve(java, useConsoleExecutable: false, isWindows: false));
     }
+
+    [Fact]
+    public void Request_UpdatesLauncherSizeWithoutRebuildingJvmArguments()
+    {
+        var request = new MinecraftGameLaunchRequest(
+            "/usr/bin/java",
+            "/minecraft",
+            ["-Xmx2G", "example.Main", "--width", "854", "--height", "480"],
+            new Dictionary<string, string>(),
+            MainClassArgumentIndex: 1,
+            WindowMode: MinecraftGameWindowMode.Launcher,
+            WindowWidth: 854,
+            WindowHeight: 480);
+
+        var updated = request.WithLauncherWindowSize(1280, 720);
+
+        Assert.Equal(["-Xmx2G", "example.Main", "--width", "1280", "--height", "720"], updated.ArgumentList);
+        Assert.Equal(1280, updated.WindowWidth);
+        Assert.Equal(720, updated.WindowHeight);
+    }
 }

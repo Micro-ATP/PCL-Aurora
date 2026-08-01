@@ -50,4 +50,9 @@ public interface ILauncherPreferencesService
     Task SaveMicrosoftAccountAsync(MicrosoftAccountProfile? profile, CancellationToken cancellationToken = default);
 
     Task SaveLaunchOptionsAsync(MinecraftLaunchOptions options, CancellationToken cancellationToken = default);
+
+    Task SaveLastNotifiedVersionAsync(
+        bool snapshot,
+        string? version,
+        CancellationToken cancellationToken = default) => Task.CompletedTask;
 }

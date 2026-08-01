@@ -71,6 +71,12 @@ public static partial class MinecraftLaunchArgumentBuilder
         {
             gameTemplates = gameTemplates.Concat(["--fullscreen"]).ToArray();
         }
+        else if (launchOptions.WindowMode is MinecraftGameWindowMode.Custom or
+                 MinecraftGameWindowMode.Launcher or
+                 MinecraftGameWindowMode.Maximized)
+        {
+            gameTemplates = AppendWindowDimensions(gameTemplates);
+        }
 
         if (context.MaximumMemoryMiB is { } maximumMemoryMiB &&
             maximumMemoryMiB > 0 &&
@@ -121,6 +127,24 @@ public static partial class MinecraftLaunchArgumentBuilder
         ]).ToArray(),
         _ => arguments,
     };
+
+    private static IReadOnlyList<string> AppendWindowDimensions(IReadOnlyList<string> arguments)
+    {
+        var result = arguments.ToList();
+        if (!result.Contains("--width", StringComparer.Ordinal))
+        {
+            result.Add("--width");
+            result.Add("${resolution_width}");
+        }
+
+        if (!result.Contains("--height", StringComparer.Ordinal))
+        {
+            result.Add("--height");
+            result.Add("${resolution_height}");
+        }
+
+        return result;
+    }
 
     private static IReadOnlyList<string> AppendLegacyGameArguments(
         IReadOnlyList<string> modernArguments,

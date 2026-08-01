@@ -17,9 +17,9 @@ public sealed class CurseForgeCommunityResourceSearchService(HttpClient httpClie
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.Type != CommunityResourceType.World)
+        if (!TryGetClassId(request.Type, out var classId))
         {
-            return CommunityResourceSearchResult.Failure("CurseForge 世界服务只处理世界资源。");
+            return CommunityResourceSearchResult.Failure("CurseForge 暂不支持该社区资源类型。");
         }
 
         if (request.Page < 0 || request.PageSize is < 1 or > 40 ||
@@ -40,13 +40,13 @@ public sealed class CurseForgeCommunityResourceSearchService(HttpClient httpClie
         try
         {
             using var message = new HttpRequestMessage(HttpMethod.Get, BuildSearchUri(
-                request with { SearchText = searchText, GameVersion = gameVersion, Category = category }));
+                request with { SearchText = searchText, GameVersion = gameVersion, Category = category }, classId));
             message.Headers.UserAgent.ParseAdd("PCL-Aurora/0.1");
             message.Headers.Accept.ParseAdd("application/json");
             using var response = await httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             return CurseForgeCommunityResourceParser.Parse(
-                await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false), request.Type);
         }
         catch (OperationCanceledException)
         {
@@ -58,12 +58,12 @@ public sealed class CurseForgeCommunityResourceSearchService(HttpClient httpClie
         }
     }
 
-    private static Uri BuildSearchUri(CommunityResourceSearchRequest request)
+    private static Uri BuildSearchUri(CommunityResourceSearchRequest request, string classId)
     {
         var query = new List<KeyValuePair<string, string>>
         {
             new("gameId", "432"),
-            new("classId", "17"),
+            new("classId", classId),
             new("sortOrder", "desc"),
             new("pageSize", request.PageSize.ToString(CultureInfo.InvariantCulture)),
             new("index", checked(request.Page * request.PageSize).ToString(CultureInfo.InvariantCulture)),
@@ -108,4 +108,19 @@ public sealed class CurseForgeCommunityResourceSearchService(HttpClient httpClie
     private static bool IsSafeCategory(string? value) =>
         string.IsNullOrWhiteSpace(value) ||
         value is "248" or "249" or "250" or "251" or "252" or "253" or "4464";
+
+    private static bool TryGetClassId(CommunityResourceType type, out string classId)
+    {
+        classId = type switch
+        {
+            CommunityResourceType.Mod => "6",
+            CommunityResourceType.ModPack => "4471",
+            CommunityResourceType.DataPack => "6945",
+            CommunityResourceType.Shader => "6552",
+            CommunityResourceType.ResourcePack => "12",
+            CommunityResourceType.World => "17",
+            _ => string.Empty,
+        };
+        return classId.Length > 0;
+    }
 }
