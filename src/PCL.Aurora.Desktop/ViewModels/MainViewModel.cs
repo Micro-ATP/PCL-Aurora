@@ -6112,12 +6112,6 @@ public partial class MainViewModel(
     }
 
     [RelayCommand]
-    private void ShowToolboxDontClick()
-    {
-        ToolboxStatusText = "你还是点了。PCL Aurora 不会在这里执行崩溃、删文件或其他破坏性操作。";
-    }
-
-    [RelayCommand]
     private async Task OpenAuroraReleasesAsync()
     {
         try

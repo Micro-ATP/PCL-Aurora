@@ -1002,11 +1002,7 @@ public partial class MainWindow : Window
 
     private async void ToolboxDontClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ViewModels.MainViewModel viewModel)
-        {
-            viewModel.ShowToolboxDontClickCommand.Execute(null);
-            await ShowMessageAsync("千万别点", viewModel.ToolboxStatusText, isWarning: true);
-        }
+        await ShowMessageAsync("千万别点", "骗你的，啥也没有");
     }
 
     private void ToolboxDownloadUrlChanged(object? sender, TextChangedEventArgs e)
