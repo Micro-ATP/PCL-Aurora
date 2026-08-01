@@ -28,6 +28,46 @@
     <Window.Resources>
         <converters:MinecraftVersionIconConverter x:Key="MinecraftVersionIconConverter" />
         <converters:MinecraftLoaderIconConverter x:Key="MinecraftLoaderIconConverter" />
+        <ControlTheme x:Key="PclComboBoxItemTheme" TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="2"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Background="Transparent"
+                                          BorderBrush="Transparent"
+                                          BorderThickness="0"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            </Style>
+            <Style Selector="^:selected">
+                <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            </Style>
+            <Style Selector="^:selected:pointerover">
+                <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
+            </Style>
+            <Style Selector="^:disabled">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{DynamicResource PclDisabledTextBrush}" />
+            </Style>
+        </ControlTheme>
         <LinearGradientBrush x:Key="PclTitleBarBrush" StartPoint="0,0" EndPoint="1,0">
             <GradientStop Offset="0" Color="#106AC4" />
             <GradientStop Offset="0.5" Color="#1377DD" />
@@ -1001,6 +1041,7 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox">
+            <Setter Property="ItemContainerTheme" Value="{StaticResource PclComboBoxItemTheme}" />
             <Setter Property="Background" Value="{DynamicResource PclControlBackgroundBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
             <Setter Property="PlaceholderForeground" Value="{DynamicResource PclTextMutedBrush}" />
@@ -1081,52 +1122,6 @@
             <Setter Property="Foreground" Value="{DynamicResource PclDisabledTextBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell ComboBox:disabled /template/ PathIcon#DropDownGlyph">
-            <Setter Property="Foreground" Value="{DynamicResource PclDisabledTextBrush}" />
-        </Style>
-        <Style Selector="ComboBoxItem">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="MinHeight" Value="28" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.12" />
-                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
-                </Transitions>
-            </Setter>
-            <Setter Property="Template">
-                <ControlTemplate TargetType="ComboBoxItem">
-                    <Border Background="{TemplateBinding Background}"
-                            CornerRadius="2"
-                            Padding="{TemplateBinding Padding}">
-                        <ContentPresenter Content="{TemplateBinding Content}"
-                                          ContentTemplate="{TemplateBinding ContentTemplate}"
-                                          Background="Transparent"
-                                          BorderBrush="Transparent"
-                                          BorderThickness="0"
-                                          Foreground="{TemplateBinding Foreground}"
-                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                          VerticalContentAlignment="Center"
-                                          TextElement.Foreground="{TemplateBinding Foreground}" />
-                    </Border>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="ComboBoxItem:pointerover">
-            <Setter Property="Background" Value="{DynamicResource PclControlHoverBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
-        </Style>
-        <Style Selector="ComboBoxItem:selected">
-            <Setter Property="Background" Value="{DynamicResource PclControlSelectedBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
-        </Style>
-        <Style Selector="ComboBoxItem:selected:pointerover">
-            <Setter Property="Background" Value="{DynamicResource PclControlSelectedHoverBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource PclTextPrimaryBrush}" />
-        </Style>
-        <Style Selector="ComboBoxItem:disabled">
-            <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource PclDisabledTextBrush}" />
         </Style>
         <Style Selector="Grid.pcl-shell CheckBox">
