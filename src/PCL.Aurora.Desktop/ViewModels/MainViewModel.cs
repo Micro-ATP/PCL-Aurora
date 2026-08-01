@@ -54,6 +54,7 @@ public partial class MainViewModel(
     public event EventHandler<string>? MicrosoftDeviceCodeAvailable;
     public event EventHandler<MinecraftLauncherVisibility>? GameProcessStarted;
     public event EventHandler<MinecraftLauncherVisibility>? GameProcessExited;
+    public event EventHandler<MinecraftVersionCatalogEntry>? MinecraftVersionUpdateAvailable;
 
     private const string ProxySecretService = "PCL.Aurora.Network.Proxy";
     private const string ProxySecretAccount = "default";
@@ -107,6 +108,8 @@ public partial class MainViewModel(
     private bool isLoadingPreferences;
     private bool isSelectingJavaForRequirement;
     private bool contributorsLoadAttempted;
+    private int launcherClientWidth = MinecraftLaunchOptions.DefaultWindowWidth;
+    private int launcherClientHeight = MinecraftLaunchOptions.DefaultWindowHeight;
     private MinecraftJavaRequirement? currentJavaRequirement;
     private CancellationTokenSource? installationCancellation;
     private CancellationTokenSource? microsoftLoginCancellation;
@@ -1812,6 +1815,8 @@ public partial class MainViewModel(
             LatestSnapshotVersion = allCatalogVersions.FirstOrDefault(version =>
                 MinecraftVersionCatalogFilter.GetCategory(version) == MinecraftVersionCatalogCategory.Snapshot);
             ApplyVersionFilters(result.Catalog.LatestRelease);
+            await NotifyNewMinecraftVersionAsync(LatestReleaseVersion, snapshot: false);
+            await NotifyNewMinecraftVersionAsync(LatestSnapshotVersion, snapshot: true);
         }
         catch (OperationCanceledException)
         {
@@ -1825,6 +1830,104 @@ public partial class MainViewModel(
         {
             IsVersionCatalogLoading = false;
         }
+    }
+
+    private async Task NotifyNewMinecraftVersionAsync(
+        MinecraftVersionCatalogEntry? version,
+        bool snapshot)
+    {
+        if (version is null)
+        {
+            return;
+        }
+
+        var management = currentPreferences.EffectiveGameManagementOptions;
+        if ((snapshot && !management.SnapshotNotifications) ||
+            (!snapshot && !management.ReleaseNotifications))
+        {
+            return;
+        }
+
+        var previous = snapshot
+            ? currentPreferences.LastNotifiedSnapshotVersion
+            : currentPreferences.LastNotifiedReleaseVersion;
+        if (string.Equals(previous, version.Id, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        VersionCatalogSummary = snapshot
+            ? $"发现新的快照版 Minecraft：{version.Id}。"
+            : $"发现新的正式版 Minecraft：{version.Id}。";
+        try
+        {
+            await preferencesService.SaveLastNotifiedVersionAsync(snapshot, version.Id);
+            currentPreferences = preferencesService.Current;
+        }
+        catch
+        {
+            // A notification is useful but must never make catalog refresh fail.
+        }
+
+        MinecraftVersionUpdateAvailable?.Invoke(this, version);
+    }
+
+    public async Task<CommunityResourceItemViewModel?> ResolveCommunityResourceLinkAsync(Uri uri)
+    {
+        ArgumentNullException.ThrowIfNull(uri);
+        if (uri.Scheme != Uri.UriSchemeHttps)
+        {
+            return null;
+        }
+
+        var host = uri.Host.Trim().ToLowerInvariant();
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (segments.Length < 2)
+        {
+            return null;
+        }
+
+        CommunityResourceType type;
+        string slug;
+        if (host is "modrinth.com" or "www.modrinth.com")
+        {
+            type = segments[0].ToLowerInvariant() switch
+            {
+                "mod" => CommunityResourceType.Mod,
+                "modpack" => CommunityResourceType.ModPack,
+                "datapack" => CommunityResourceType.DataPack,
+                "resourcepack" => CommunityResourceType.ResourcePack,
+                "shader" => CommunityResourceType.Shader,
+                _ => throw new InvalidOperationException("该 Modrinth 链接不是支持的社区资源类型。"),
+            };
+            slug = segments[1];
+        }
+        else if ((host is "curseforge.com" or "www.curseforge.com") &&
+                 segments.Length >= 3 && segments[0].Equals("minecraft", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!segments[1].Equals("worlds", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            type = CommunityResourceType.World;
+            slug = segments[2];
+        }
+        else
+        {
+            return null;
+        }
+
+        var result = await communityResourceSearchService.SearchAsync(
+            new CommunityResourceSearchRequest(type, slug, null, CommunityResourceLoader.Any,
+                CommunityResourceSort.Relevance, 0, 20));
+        var project = result.Projects.FirstOrDefault(item =>
+            item.Slug.Equals(slug, StringComparison.OrdinalIgnoreCase) ||
+            item.Title.Equals(slug, StringComparison.OrdinalIgnoreCase));
+        return project is null ? null : new CommunityResourceItemViewModel(project)
+        {
+            IsFavorite = IsCommunityResourceFavorite(project.Id),
+        };
     }
 
     [RelayCommand]
@@ -5450,7 +5553,17 @@ public partial class MainViewModel(
         try
         {
             await TryAppendLauncherLogAsync("Launch", $"准备启动实例：{SelectedInstance?.Name ?? "未知实例"}。");
-            var session = await gameLaunchService.LaunchAsync(gameLaunchPreparation);
+            var launchPreparation = gameLaunchPreparation;
+            if (launchPreparation.RequestPreparation.Request is { } request)
+            {
+                var adjustedRequest = request.WithLauncherWindowSize(launcherClientWidth, launcherClientHeight);
+                launchPreparation = launchPreparation with
+                {
+                    RequestPreparation = launchPreparation.RequestPreparation with { Request = adjustedRequest },
+                };
+            }
+
+            var session = await gameLaunchService.LaunchAsync(launchPreparation);
             ToolboxLaunchCount++;
             currentPreferences = currentPreferences with { LaunchCount = ToolboxLaunchCount };
             try
@@ -5479,6 +5592,23 @@ public partial class MainViewModel(
             CanLaunchGame = false;
             await TryAppendLauncherLogAsync("Launch", GameLaunchSummary);
         }
+    }
+
+    public void UpdateLauncherWindowSize(double width, double height)
+    {
+        if (double.IsNaN(width) || double.IsNaN(height) || width <= 0 || height <= 0)
+        {
+            return;
+        }
+
+        launcherClientWidth = Math.Clamp(
+            (int)Math.Round(width),
+            MinecraftLaunchOptions.MinimumWindowDimension,
+            MinecraftLaunchOptions.MaximumWindowDimension);
+        launcherClientHeight = Math.Clamp(
+            (int)Math.Round(height),
+            MinecraftLaunchOptions.MinimumWindowDimension,
+            MinecraftLaunchOptions.MaximumWindowDimension);
     }
 
     [RelayCommand]

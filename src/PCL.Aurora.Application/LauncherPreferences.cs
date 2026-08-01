@@ -19,7 +19,9 @@ public sealed record LauncherPreferences(
     LauncherLocalizationSettings? LocalizationSettings = null,
     LauncherMiscSettings? MiscSettings = null,
     LauncherUpdateSettings? UpdateSettings = null,
-    IReadOnlyList<string>? ManualJavaExecutablePaths = null)
+    IReadOnlyList<string>? ManualJavaExecutablePaths = null,
+    string? LastNotifiedReleaseVersion = null,
+    string? LastNotifiedSnapshotVersion = null)
 {
     public static LauncherPreferences Default { get; } = new(LauncherThemeMode.System);
 
@@ -37,7 +39,9 @@ public sealed record LauncherPreferences(
         (LocalizationSettings?.IsValid ?? true) &&
         (MiscSettings?.IsValid ?? true) &&
         (UpdateSettings?.IsValid ?? true) &&
-        IsValidManualJavaExecutablePaths(ManualJavaExecutablePaths);
+        IsValidManualJavaExecutablePaths(ManualJavaExecutablePaths) &&
+        IsValidVersionMarker(LastNotifiedReleaseVersion) &&
+        IsValidVersionMarker(LastNotifiedSnapshotVersion);
 
     public MinecraftLaunchOptions EffectiveLaunchOptions => LaunchOptions ?? MinecraftLaunchOptions.Default;
 
@@ -88,4 +92,9 @@ public sealed record LauncherPreferences(
 
         return paths.Distinct(StringComparer.OrdinalIgnoreCase).Count() == paths.Count;
     }
+
+    private static bool IsValidVersionMarker(string? version) =>
+        version is null ||
+        (version.Length <= 64 && version.All(character =>
+            char.IsAsciiLetterOrDigit(character) || character is '.' or '-' or '_' or '+'));
 }

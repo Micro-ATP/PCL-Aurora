@@ -46,6 +46,8 @@ public partial class MainWindow : Window
     private CancellationTokenSource? toolboxDownloadCancellation;
     private CancellationTokenSource? homepageRefreshCancellation;
     private Bitmap? toolboxAvatarBitmap;
+    private string? lastProcessedClipboardText;
+    private bool isResolvingClipboardResource;
 
     public MainWindow()
     {
@@ -64,9 +66,12 @@ public partial class MainWindow : Window
         PclHomepageView.ActionRequested += HandleHelpAction;
         DataContextChanged += (_, _) => SubscribeToViewModel();
         KeyDown += MainWindowKeyDown;
+        SizeChanged += (_, _) => UpdateLauncherWindowSize();
+        Activated += MainWindowActivated;
         Opened += async (_, _) =>
         {
             SubscribeToViewModel();
+            UpdateLauncherWindowSize();
             if (DataContext is ViewModels.MainViewModel viewModel)
             {
                 await viewModel.InitializeAsync();
@@ -87,6 +92,15 @@ public partial class MainWindow : Window
         };
     }
 
+    private void UpdateLauncherWindowSize()
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel &&
+            ClientSize.Width > 0 && ClientSize.Height > 0)
+        {
+            viewModel.UpdateLauncherWindowSize(ClientSize.Width, ClientSize.Height);
+        }
+    }
+
     private void SubscribeToViewModel() => SubscribeToViewModel(DataContext as ViewModels.MainViewModel);
 
     private void SubscribeToViewModel(ViewModels.MainViewModel? viewModel)
@@ -101,6 +115,7 @@ public partial class MainWindow : Window
             subscribedViewModel.MicrosoftDeviceCodeAvailable -= MicrosoftDeviceCodeAvailable;
             subscribedViewModel.GameProcessStarted -= GameProcessStarted;
             subscribedViewModel.GameProcessExited -= GameProcessExited;
+            subscribedViewModel.MinecraftVersionUpdateAvailable -= MinecraftVersionUpdateAvailable;
             subscribedViewModel.PropertyChanged -= ViewModelPropertyChanged;
         }
 
@@ -110,9 +125,106 @@ public partial class MainWindow : Window
             subscribedViewModel.MicrosoftDeviceCodeAvailable += MicrosoftDeviceCodeAvailable;
             subscribedViewModel.GameProcessStarted += GameProcessStarted;
             subscribedViewModel.GameProcessExited += GameProcessExited;
+            subscribedViewModel.MinecraftVersionUpdateAvailable += MinecraftVersionUpdateAvailable;
             subscribedViewModel.PropertyChanged += ViewModelPropertyChanged;
             ApplyInterfacePreferences(subscribedViewModel);
         }
+    }
+
+    private async void MinecraftVersionUpdateAvailable(object? sender, MinecraftVersionCatalogEntry version)
+    {
+        var category = MinecraftVersionCatalogFilter.GetCategory(version);
+        await ShowMessageAsync(
+            category == MinecraftVersionCatalogCategory.Release ? "Minecraft 正式版更新" : "Minecraft 快照版更新",
+            $"发现新版本 {version.Id}，可在下载页面查看并安装。运行时间：{version.ReleaseTime.ToLocalTime():yyyy-MM-dd HH:mm}");
+    }
+
+    private async void MainWindowActivated(object? sender, EventArgs e)
+    {
+        if (isResolvingClipboardResource ||
+            DataContext is not ViewModels.MainViewModel { ReadClipboard: true } viewModel ||
+            TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard)
+        {
+            return;
+        }
+
+        string? text;
+        try
+        {
+            text = (await clipboard.TryGetTextAsync())?.Trim();
+        }
+        catch
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(text) ||
+            string.Equals(text, lastProcessedClipboardText, StringComparison.Ordinal) ||
+            !TryGetCommunityResourceUri(text, out var uri))
+        {
+            return;
+        }
+
+        lastProcessedClipboardText = text;
+        isResolvingClipboardResource = true;
+        try
+        {
+            if (!await ShowConfirmationAsync(
+                    "检测到社区资源链接",
+                    $"是否在 PCL Aurora 中打开这个社区资源？\n{uri.AbsoluteUri}",
+                    isWarning: false))
+            {
+                return;
+            }
+
+            var item = await viewModel.ResolveCommunityResourceLinkAsync(uri);
+            if (item is null)
+            {
+                await ShowMessageAsync("无法识别社区资源", "未能从该链接找到可用项目。", isWarning: true);
+                return;
+            }
+
+            currentDownloadSection = item.Project.Type switch
+            {
+                CommunityResourceType.Mod => "mod",
+                CommunityResourceType.ModPack => "pack",
+                CommunityResourceType.DataPack => "datapack",
+                CommunityResourceType.ResourcePack => "resourcepack",
+                CommunityResourceType.Shader => "shader",
+                CommunityResourceType.World => "world",
+                _ => "mod",
+            };
+            viewModel.SetCommunityResourceSection(currentDownloadSection);
+            await SelectMainPageAsync(1);
+            await ShowCommunityResourceDetailAsync(viewModel, item);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("打开社区资源失败", exception.Message, isWarning: true);
+        }
+        finally
+        {
+            isResolvingClipboardResource = false;
+        }
+    }
+
+    private static bool TryGetCommunityResourceUri(string text, out Uri uri)
+    {
+        uri = null!;
+        if (!Uri.TryCreate(text, UriKind.Absolute, out var candidate) ||
+            candidate.Scheme != Uri.UriSchemeHttps)
+        {
+            return false;
+        }
+
+        var host = candidate.Host.Trim().ToLowerInvariant();
+        if (host is not ("modrinth.com" or "www.modrinth.com" or "curseforge.com" or "www.curseforge.com"))
+        {
+            return false;
+        }
+
+        uri = candidate;
+        return true;
     }
 
     private void ViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

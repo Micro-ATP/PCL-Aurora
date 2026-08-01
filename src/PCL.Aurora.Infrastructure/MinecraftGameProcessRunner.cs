@@ -41,6 +41,7 @@ public sealed class MinecraftGameProcessRunner : IGameProcessRunner
             throw new InvalidOperationException("无法启动游戏进程。");
         }
         TryApplyPriority(process, request.ProcessPriority);
+        MinecraftGameWindowController.BeginApply(process.Id, request);
 
         var output = Channel.CreateUnbounded<GameProcessOutput>();
         return new GameProcessSession(
