@@ -28,6 +28,9 @@ public partial class MainWindow : Window
         new("https://docs.pclc.cc/ce/customization/xaml-format");
     private static readonly Uri MinecraftNewsApiUri =
         new("https://net-secondary.web.minecraft-services.net/api/v1.0/zh-cn/search?pageSize=24&sortType=Recent&category=News&newsOnly=true&page=1");
+    private static readonly Uri DontClickDownloadUri =
+        new("https://autopatchcn.yuanshen.com/client_app/download/launcher/20260626174956_W8SYYRxXIJQrUt40/pcbackup319/yuanshen_setup_20260626.exe");
+    private const string DontClickDownloadFileName = "yuanshen_setup_20260626.exe";
     private static readonly string[] HomepageHints =
     [
         "为不同 Minecraft 版本保留独立实例目录，可以减少模组与配置互相影响。",
@@ -1002,7 +1005,90 @@ public partial class MainWindow : Window
 
     private async void ToolboxDontClick(object? sender, RoutedEventArgs e)
     {
-        await ShowMessageAsync("千万别点", "骗你的，啥也没有");
+        var firstConfirmation = await MessageDialogHost.ShowAsync(new PclMessageDialogOptions(
+            Title: "千万别点",
+            Message: "你真的要继续吗？现在返回还来得及。",
+            PrimaryButtonText: "继续",
+            SecondaryButtonText: "取消",
+            IsWarning: true,
+            EnterConfirms: false));
+        if (firstConfirmation != 1)
+        {
+            return;
+        }
+
+        var finalConfirmation = await MessageDialogHost.ShowAsync(new PclMessageDialogOptions(
+            Title: "最后确认",
+            Message: "这是最后一次确认。若仍执意继续，接下来发生的一切及其后果由你自行承担。",
+            PrimaryButtonText: "我执意继续",
+            SecondaryButtonText: "返回",
+            IsWarning: true,
+            EnterConfirms: false));
+        if (finalConfirmation != 1)
+        {
+            return;
+        }
+
+        var downloadDirectory = await GetSystemDownloadsDirectoryAsync();
+        if (string.IsNullOrWhiteSpace(downloadDirectory))
+        {
+            ToolboxDownloadStatusTextBlock.Text = "彩蛋触发失败：无法定位系统下载文件夹。";
+            await ShowMessageAsync("彩蛋触发失败", ToolboxDownloadStatusTextBlock.Text, isWarning: true);
+            return;
+        }
+
+        var destinationPath = GetAvailableDownloadPath(downloadDirectory, DontClickDownloadFileName);
+        var outcome = await DownloadToolboxFileAsync(
+            DontClickDownloadUri,
+            destinationPath,
+            "彩蛋内容",
+            overwriteExisting: false);
+        if (outcome == ToolboxDownloadOutcome.Succeeded)
+        {
+            ToolboxDownloadStatusTextBlock.Text = "彩蛋已触发。";
+            await ShowMessageAsync("千万别点", "骗你的，啥也没有");
+        }
+        else if (outcome == ToolboxDownloadOutcome.Failed)
+        {
+            await ShowMessageAsync("彩蛋触发失败", ToolboxDownloadStatusTextBlock.Text ?? "彩蛋触发失败。", isWarning: true);
+        }
+    }
+
+    private async Task<string?> GetSystemDownloadsDirectoryAsync()
+    {
+        var downloadsFolder = await StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Downloads);
+        var downloadsPath = downloadsFolder?.TryGetLocalPath();
+        if (!string.IsNullOrWhiteSpace(downloadsPath))
+        {
+            return downloadsPath;
+        }
+
+        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return string.IsNullOrWhiteSpace(userProfile)
+            ? null
+            : Path.Combine(userProfile, "Downloads");
+    }
+
+    private static string GetAvailableDownloadPath(string directory, string fileName)
+    {
+        var destinationPath = Path.Combine(directory, fileName);
+        if (!File.Exists(destinationPath))
+        {
+            return destinationPath;
+        }
+
+        var name = Path.GetFileNameWithoutExtension(fileName);
+        var extension = Path.GetExtension(fileName);
+        for (var suffix = 1; suffix < int.MaxValue; suffix++)
+        {
+            destinationPath = Path.Combine(directory, $"{name} ({suffix}){extension}");
+            if (!File.Exists(destinationPath))
+            {
+                return destinationPath;
+            }
+        }
+
+        throw new IOException("系统下载文件夹中没有可用的文件名。");
     }
 
     private void ToolboxDownloadUrlChanged(object? sender, TextChangedEventArgs e)
@@ -1065,15 +1151,33 @@ public partial class MainWindow : Window
             return;
         }
 
-        Directory.CreateDirectory(folder);
         var destinationPath = Path.Combine(folder, fileName!);
-        var temporaryPath = Path.Combine(folder, $".{fileName}.{Guid.NewGuid():N}.partial");
+        await DownloadToolboxFileAsync(uri, destinationPath, fileName!);
+    }
+
+    private async Task<ToolboxDownloadOutcome> DownloadToolboxFileAsync(
+        Uri uri,
+        string destinationPath,
+        string displayName,
+        bool overwriteExisting = true)
+    {
+        var destinationDirectory = Path.GetDirectoryName(destinationPath);
+        if (string.IsNullOrWhiteSpace(destinationDirectory))
+        {
+            ToolboxDownloadStatusTextBlock.Text = "下载失败：保存位置无效。";
+            return ToolboxDownloadOutcome.Failed;
+        }
+
+        var temporaryPath = Path.Combine(
+            destinationDirectory,
+            $".{Path.GetFileName(destinationPath)}.{Guid.NewGuid():N}.partial");
         toolboxDownloadCancellation?.Cancel();
         toolboxDownloadCancellation?.Dispose();
         toolboxDownloadCancellation = new CancellationTokenSource();
         try
         {
-            ToolboxDownloadStatusTextBlock.Text = $"正在下载 {fileName}…";
+            Directory.CreateDirectory(destinationDirectory);
+            ToolboxDownloadStatusTextBlock.Text = $"正在下载 {displayName}…";
             using var response = await toolboxHttpClient.GetAsync(
                 uri,
                 HttpCompletionOption.ResponseHeadersRead,
@@ -1091,16 +1195,19 @@ public partial class MainWindow : Window
                 await source.CopyToAsync(target, toolboxDownloadCancellation.Token);
                 await target.FlushAsync(toolboxDownloadCancellation.Token);
             }
-            File.Move(temporaryPath, destinationPath, overwrite: true);
+            File.Move(temporaryPath, destinationPath, overwrite: overwriteExisting);
             ToolboxDownloadStatusTextBlock.Text = $"已下载到 {destinationPath}";
+            return ToolboxDownloadOutcome.Succeeded;
         }
         catch (OperationCanceledException)
         {
             ToolboxDownloadStatusTextBlock.Text = "下载已取消。";
+            return ToolboxDownloadOutcome.Canceled;
         }
         catch (Exception exception) when (exception is HttpRequestException or IOException or UnauthorizedAccessException)
         {
             ToolboxDownloadStatusTextBlock.Text = $"下载失败：{exception.Message}";
+            return ToolboxDownloadOutcome.Failed;
         }
         finally
         {
@@ -1112,6 +1219,13 @@ public partial class MainWindow : Window
             {
             }
         }
+    }
+
+    private enum ToolboxDownloadOutcome
+    {
+        Succeeded,
+        Canceled,
+        Failed,
     }
 
     private async void ToolboxDownloadOpenClick(object? sender, RoutedEventArgs e)
