@@ -1,0 +1,105 @@
+# Form structure adapted from PCL-CE's Minecraft crash forms (Apache-2.0).
+# Rewritten for PCL Aurora by Micro-ATP.
+name: "Minecraft 崩溃 / Minecraft Crash"
+description: "反馈仅通过 PCL Aurora 启动时出现的游戏崩溃 / Report a game crash specific to launching with PCL Aurora"
+title: "[Crash]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        此模板用于 PCL Aurora 启动 Minecraft 后发生的崩溃。若游戏尚未启动、下载失败或启动器自身崩溃，请改用“启动器问题”。
+
+        Use this form when Minecraft crashes after being launched by PCL Aurora. If the game never starts, downloading fails, or the launcher itself crashes, use "Launcher Bug" instead.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "提交前检查 / Checklist"
+      options:
+        - label: "我已搜索[现有 Issues](https://github.com/Micro-ATP/PCL-Aurora/issues)，没有发现相同崩溃。 / I searched the [existing issues](https://github.com/Micro-ATP/PCL-Aurora/issues) and found no duplicate."
+          required: true
+        - label: "我已确认同一实例能够被其他启动器正常启动，或已在下方明确说明无法进行该项对照。 / I confirmed the same instance launches successfully with another launcher, or explained below why this comparison is unavailable."
+          required: true
+        - label: "我已从日志和启动参数中移除账户令牌、密码、私有服务器地址及其他敏感信息。 / I removed account tokens, passwords, private server addresses, and other secrets from logs and launch arguments."
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "崩溃表现 / Crash Description"
+      description: "说明崩溃发生的时机、画面或错误提示，以及该实例在其他启动器中的对照结果。 / Describe when the crash occurs, the visible error, and the comparison result from another launcher."
+    validations:
+      required: true
+
+  - type: input
+    id: aurora_version
+    attributes:
+      label: "PCL Aurora 版本 / PCL Aurora Version"
+      placeholder: "例如 / Example: 0.1.0 (commit abc1234)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operating_system
+    attributes:
+      label: "操作系统 / Operating System"
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - "其他 / Other"
+    validations:
+      required: true
+
+  - type: input
+    id: system_details
+    attributes:
+      label: "系统版本与架构 / System Version and Architecture"
+      placeholder: "例如 / Example: macOS 26.0 ARM64"
+    validations:
+      required: true
+
+  - type: input
+    id: minecraft_version
+    attributes:
+      label: "Minecraft 与加载器版本 / Minecraft and Loader Versions"
+      description: "填写 Minecraft、Forge/NeoForge/Fabric/Quilt 和关键模组版本。 / Include Minecraft, Forge/NeoForge/Fabric/Quilt, and important mod versions."
+      placeholder: "例如 / Example: Minecraft 1.21.1 + Fabric Loader 0.16.14"
+    validations:
+      required: true
+
+  - type: input
+    id: java_version
+    attributes:
+      label: "Java 版本 / Java Version"
+      description: "填写设置中为该实例选用的 Java 版本、发行版和架构。 / Enter the Java version, distribution, and architecture selected for this instance."
+      placeholder: "例如 / Example: Temurin 21.0.7 ARM64"
+    validations:
+      required: true
+
+  - type: textarea
+    id: crash_files
+    attributes:
+      label: "崩溃报告与游戏日志 / Crash Report and Game Logs"
+      description: "上传实例 `crash-reports` 中最新的崩溃报告，以及 `logs/latest.log`。若文件不存在，请说明。上传前请清理敏感信息。 / Upload the latest report from the instance's `crash-reports` directory and `logs/latest.log`. If either file is absent, say so. Remove sensitive information before uploading."
+      placeholder: "将 crash report 和 latest.log 拖到这里。 / Drag the crash report and latest.log here."
+    validations:
+      required: true
+
+  - type: textarea
+    id: launcher_logs
+    attributes:
+      label: "PCL Aurora 日志 / PCL Aurora Logs"
+      description: "在崩溃后保持启动器开启，通过“设置 → 查看日志 → 导出日志”导出并上传。 / Keep the launcher open after the crash, then use Settings → Logs → Export Logs and attach the archive."
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "补充信息 / Additional Context"
+      description: "可附上复现步骤、整合包来源、近期改动或其他启动器的对照日志。 / Add reproduction steps, modpack source, recent changes, or comparison logs from another launcher."
+    validations:
+      required: false

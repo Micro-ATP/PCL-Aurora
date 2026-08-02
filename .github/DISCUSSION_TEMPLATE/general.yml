@@ -1,0 +1,24 @@
+title: "[讨论] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这里用于与 PCL Aurora 有关、但不属于具体缺陷、问答或功能提案的开放讨论。请保持主题明确并尊重其他参与者。
+
+        Use this category for open discussion about PCL Aurora that is not a specific bug, question, or feature proposal. Keep the topic focused and respectful.
+
+  - type: input
+    id: topic
+    attributes:
+      label: "讨论主题 / Topic"
+      description: "用一句话说明希望讨论的主题。 / Summarize the topic in one sentence."
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "背景与观点 / Context and Viewpoint"
+      description: "补充必要背景、你的看法，以及希望社区回应的部分。 / Add relevant context, your viewpoint, and what feedback you would like from the community."
+    validations:
+      required: true

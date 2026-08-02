@@ -1,0 +1,34 @@
+title: "[想法] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这里用于讨论尚在构思阶段的功能和体验改进。方案明确、可以直接进入开发评估后，再转为功能建议 Issue。
+
+        Use this category for early-stage feature and experience ideas. Once the proposal is concrete enough for implementation review, it can become a feature request Issue.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "想解决什么问题 / Problem to Solve"
+      description: "从用户遇到的困难开始说明。 / Start with the user problem or friction."
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: "你的想法 / Your Idea"
+      description: "描述可能的交互、行为和跨平台差异。 / Describe possible interactions, behavior, and cross-platform differences."
+    validations:
+      required: true
+
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: "取舍与替代方案 / Trade-offs and Alternatives"
+      description: "可以说明兼容性、维护成本、隐私或现有替代方案。 / Consider compatibility, maintenance cost, privacy, or existing alternatives."
+    validations:
+      required: false

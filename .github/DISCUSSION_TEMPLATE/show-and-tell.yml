@@ -1,0 +1,32 @@
+title: "[分享] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        欢迎分享你使用 PCL Aurora 制作的实例、跨平台配置、主题效果或开发成果。请确认分享内容有权公开。
+
+        Share instances, cross-platform setups, themes, or development work created with PCL Aurora. Make sure you have permission to publish everything included.
+
+  - type: input
+    id: summary
+    attributes:
+      label: "分享内容 / What Are You Sharing?"
+      placeholder: "用一句话介绍你的成果。 / Introduce your work in one sentence."
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: "详细介绍 / Details"
+      description: "说明用途、制作过程和使用环境，可附截图或链接。 / Explain its purpose, how it was made, and the environment used. Screenshots and links are welcome."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: rights
+    attributes:
+      label: "发布确认 / Publishing Confirmation"
+      options:
+        - label: "我确认分享内容不包含账户令牌、私人服务器信息或无权分发的文件。 / I confirm this post contains no account tokens, private server details, or files I am not allowed to distribute."
+          required: true

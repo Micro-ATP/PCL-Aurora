@@ -1,0 +1,43 @@
+title: "[问答] "
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这里适合询问 PCL Aurora 的安装、配置和使用方法。若你已经确认遇到可复现的软件缺陷，请改用 Issue 模板。
+
+        Ask installation, configuration, and usage questions here. If you have confirmed a reproducible software defect, use an Issue form instead.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: "你的问题 / Question"
+      description: "说明你想完成什么，以及卡在了哪一步。 / Explain what you are trying to do and where you are stuck."
+    validations:
+      required: true
+
+  - type: textarea
+    id: attempts
+    attributes:
+      label: "已经尝试的操作 / What You Have Tried"
+      description: "列出已经查看的设置、文档或尝试过的解决办法。 / List settings, documentation, or solutions you have already tried."
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: "环境 / Environment"
+      description: "如有关，请填写 PCL Aurora 版本、操作系统、架构、Minecraft 与 Java 版本。 / If relevant, include PCL Aurora, OS, architecture, Minecraft, and Java versions."
+      placeholder: "例如 / Example: Aurora 0.1.0, macOS ARM64, Minecraft 1.21.1, Java 21"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: "隐私确认 / Privacy"
+      options:
+        - label: "我已移除密码、令牌和其他敏感信息。 / I removed passwords, tokens, and other sensitive information."
+          required: true

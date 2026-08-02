@@ -390,3 +390,11 @@ existing verified cross-platform download executor. Installation destinations
 and remembered Minecraft roots are Aurora-specific cross-platform code; selected
 containers receive a dedicated installation-name directory before `assets`,
 `libraries` and `versions` are created.
+The GitHub Issue Forms in `.github/ISSUE_TEMPLATE` adapt the checklist-first
+organization and diagnostic-information structure of PCL-CE's
+`.github/ISSUE_TEMPLATE/1-bug.yml`, `2-game_crash.yml` and `24-improve.yml` at
+commit `dd4c282571c3454233083d87bebab8504c613ec4`. Those upstream repository
+metadata files are distributed under Apache License 2.0. Aurora rewrites the
+forms for its own repository, release process, privacy guidance and macOS,
+Windows and Linux support. The Discussion Forms are original Aurora repository
+configuration because PCL-CE does not currently distribute Discussion Forms.

@@ -1,0 +1,115 @@
+# Form structure adapted from PCL-CE's general bug report forms (Apache-2.0).
+# Rewritten for PCL Aurora by Micro-ATP.
+name: "启动器问题 / Launcher Bug"
+description: "反馈 PCL Aurora 本身可复现的功能或界面问题 / Report a reproducible PCL Aurora issue"
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你帮助改进 PCL Aurora。这里用于反馈启动器本身的问题；Minecraft 崩溃请使用专用模板，一般提问请前往 Discussions。
+
+        Thank you for helping improve PCL Aurora. Use this form for launcher issues. For Minecraft crashes, use the dedicated form; for general questions, use Discussions.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "提交前检查 / Checklist"
+      description: "请逐项确认。未完成必要检查的 Issue 可能会被关闭。 / Please confirm each item. Issues missing required information may be closed."
+      options:
+        - label: "我已搜索[现有 Issues](https://github.com/Micro-ATP/PCL-Aurora/issues)，没有发现相同问题。 / I searched the [existing issues](https://github.com/Micro-ATP/PCL-Aurora/issues) and found no duplicate."
+          required: true
+        - label: "我已使用当前可获取的最新版 PCL Aurora，并确认问题仍然存在。 / I am using the latest available PCL Aurora release and confirmed the issue still occurs."
+          required: true
+        - label: "我确认问题发生在 PCL Aurora，而不是原版 PCL、PCL-CE 或其他启动器；我不会把 Aurora 的问题提交到它们的仓库。 / I confirmed this is a PCL Aurora issue, not an issue in PCL, PCL-CE, or another launcher, and I will not report it to their repositories."
+          required: true
+        - label: "我已从日志、截图和描述中移除密码、访问令牌、刷新令牌及其他敏感信息。 / I removed passwords, access tokens, refresh tokens, and other secrets from logs, screenshots, and descriptions."
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "问题描述 / Description"
+      description: "清楚说明实际发生了什么，以及你原本期望发生什么。 / Clearly describe what happened and what you expected instead."
+      placeholder: |
+        实际结果：
+        期望结果：
+
+        Actual behavior:
+        Expected behavior:
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "复现步骤 / Steps to Reproduce"
+      description: "从启动 PCL Aurora 开始，列出能够稳定触发问题的操作。 / Starting from launching PCL Aurora, list the actions that reliably reproduce the issue."
+      placeholder: |
+        1. 打开……
+        2. 选择……
+        3. 点击……
+        4. 出现……
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: "PCL Aurora 版本 / Version"
+      description: "填写“设置 → 关于”中的版本号；自行编译时请同时填写 Git 提交。 / Enter the version shown in Settings → About. For source builds, also include the Git commit."
+      placeholder: "例如 / Example: 0.1.0 (commit abc1234)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operating_system
+    attributes:
+      label: "操作系统 / Operating System"
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - "其他 / Other"
+    validations:
+      required: true
+
+  - type: input
+    id: system_details
+    attributes:
+      label: "系统版本与架构 / System Version and Architecture"
+      description: "例如 macOS 26.0 ARM64、Windows 11 x64、Arch Linux x64。 / For example: macOS 26.0 ARM64, Windows 11 x64, or Arch Linux x64."
+      placeholder: "操作系统版本 + ARM64/x64 / OS version + ARM64/x64"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation_source
+    attributes:
+      label: "安装方式 / Installation Source"
+      options:
+        - "GitHub Releases"
+        - "从源码运行（dotnet run） / Running from source (dotnet run)"
+        - "自行编译的安装包 / Self-built package"
+        - "其他 / Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "日志与附件 / Logs and Attachments"
+      description: "问题发生后前往“设置 → 查看日志”导出日志，并拖入此处。若启动器崩溃，请重启后导出全部日志。请同时附上必要截图，并先检查其中不含敏感信息。 / After the issue occurs, export logs from Settings → Logs and attach them here. If the launcher crashed, restart it and export all logs. Add relevant screenshots and remove sensitive information first."
+      placeholder: "将日志压缩包、截图或录屏拖到这里。 / Drag log archives, screenshots, or recordings here."
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "补充信息 / Additional Context"
+      description: "填写可能有关的实例、Java、网络或显示设置；没有可留空。 / Add relevant instance, Java, network, or display details. Leave blank if none."
+    validations:
+      required: false
