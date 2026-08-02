@@ -223,7 +223,7 @@ public partial class MainViewModel(
     [
         new(
             "PCL Aurora 新增内容",
-            "Copyright © 2026 Micro-ATP。由 Micro-ATP 独立实现并拥有版权的新增内容适用仓库根目录《PCL Aurora 严格专有迁移许可证》；来源内容不在该许可证授权范围内。",
+            "Copyright © 2026 Micro-ATP。由 Micro-ATP 独立实现并拥有版权的原创贡献采用 Apache License 2.0；PCL、PCL-CE 与第三方来源内容不因此被重新授权。",
             "source",
             "license"),
         new(

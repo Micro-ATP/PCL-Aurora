@@ -1,58 +1,222 @@
-PCL Aurora 严格专有迁移许可证
+PCL Aurora Licensing Notice
 
-版权所有 © 2026 Micro-ATP。保留所有权利。
+Copyright 2026 Micro-ATP
 
-许可证版本：1.0
+PCL Aurora is a mixed-license work based on Plain Craft Launcher (PCL) and
+PCL Community Edition (PCL-CE).
 
-生效日期：2026-07-26
+1. Original contributions for which Micro-ATP owns the copyright are licensed
+   under the Apache License, Version 2.0, reproduced below.
+2. Source code, user-interface designs, documentation and resources adapted or
+   reused from PCL or PCL-CE remain subject to their applicable upstream terms,
+   including the PCL Limited Distribution License and the PCL Repository Fair
+   Use Guidelines. Their complete texts are retained in
+   LICENSES/PCL2-LICENCE.txt and
+   LICENSES/PCL-CE-Plain-Craft-Launcher-2-LICENCE.txt.
+3. Third-party components and resources remain subject to their own licenses.
+4. This file does not relicense any PCL, PCL-CE or third-party material under
+   the Apache License. NOTICE identifies adapted and reused material. When a
+   file contains contributions from more than one source, each copyright
+   holder's terms apply to that holder's contribution.
 
-一、定义
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
 
-1. “许可方”指 GitHub 用户 Micro-ATP。
-2. “项目”指 PCL Aurora，即基于 Plain Craft Launcher（PCL）及 Plain Craft Launcher Community Edition（PCL-CE）进行跨平台迁移和二次修改的第三方项目。
-3. “新增内容”指由许可方独立实现且拥有版权的代码、文档、资源、构建配置、修改和其他受著作权保护的内容，不包括来源于 PCL、PCL-CE 或第三方的内容。
-4. “来源内容”指 PCL、PCL-CE 及第三方权利人拥有或控制的代码、资源、文档、许可证、NOTICE、商标和其他材料。
-5. “书面许可”指许可方通过其 GitHub 账户 Micro-ATP 或其他可验证书面方式作出的明确授权。
-6. “授权范围”指书面许可中明确列出的新增内容、被授权人、允许行为、地域、期限、用途及其他限制；未明确列出的内容和权利均不在授权范围内。
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-二、许可范围
+   1. Definitions.
 
-1. 新增内容采用严格保留所有权利模式。本文件不向任何人授予复制、修改、改编、反向工程、再分发、公开传播、再授权、销售、出租、托管、商业利用、数据挖掘、机器学习/人工智能模型训练或创建衍生作品的许可，除非许可方事先书面同意或适用法律强制要求。
-2. 许可方公开源代码、发布构建产物、接受 Issue、展示截图或提供下载，不构成对新增内容的默示许可、开源许可、商标许可或任何其他权利授予。
-3. 未经书面许可，不得以 PCL Aurora、Micro-ATP 或与其近似、足以造成关联或官方身份误解的名称、商标、标识或视觉识别开展发布、宣传、镜像、分叉或商业活动。
-4. 不得删除、篡改、隐藏或规避新增内容、来源内容或发布物中的版权、许可证、NOTICE、归属、技术保护或其他权利声明。
-5. 书面许可仅在授权范围内有效，不得转让、再授权、推定扩张或作为其他内容的授权先例。许可方未行使任何权利、未提出异议或未及时追究，不构成权利放弃、默示同意或对后续行为的许可。
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
 
-三、来源内容与迁移义务
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
 
-1. 本文件不取代、修改、重新授权或限制 PCL、PCL-CE 或任何第三方对其来源内容所设定的许可证、NOTICE、版权、商标和附加要求。
-2. 来源内容的任何权利仅可从相应权利人的原始许可证取得。即使某项来源许可证允许复制、修改或分发，该许可也不自动扩展至许可方拥有版权的新增内容。
-3. 对 PCL 或 PCL-CE 的复制、改编、实质性迁移或再实现，必须完整遵守相应来源条款，包括但不限于署名、公开源代码、修改说明、许可证和 NOTICE 保留、Minecraft 正版/赞助劝导，以及 Windows 平台的功能和主色限制。
-4. 项目及其修改版本必须明确表明其为第三方基于 PCL/PCL-CE 的跨平台迁移与二次创作，不得暗示由 PCL、PCL-CE、其作者或其社区官方提供、认可或维护。
-5. PCL Aurora 的正式公开名称为 `Plain Craft Launcher (PCL) Aurora Port`。发布、关于页面和归属信息还必须满足实际适用来源许可证的名称、首位署名和赞助链接要求。
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
 
-四、发布与分发条件
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
 
-1. 任何经书面许可的发布、镜像、修改或分发，均须同时满足本文件、所有适用来源许可证和第三方许可证的全部条件；条件冲突时，不得仅凭本文件继续分发。
-2. 发布物必须保留实际分发内容所需的来源许可证、NOTICE、版权和归属信息，并提供适用来源许可证所要求的对应源代码、构建信息和修改说明。
-3. 项目如提供 Minecraft 启动功能，必须实现不弱于来源项目 `McLaunchPrecheck` 的正版购买劝导与赞助劝导。
-4. 本文件不构成对任何专利、商标、商业秘密、名称、域名、账户、服务、网络接口或其他非著作权权利的许可。
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
 
-五、终止
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
 
-1. 对新增内容作出未获许可的使用、复制、修改、分发、宣传或其他违反本文件的行为时，任何已获书面许可即时终止，除非许可方另行书面恢复。
-2. 终止不影响 PCL、PCL-CE 或第三方就其自身内容授予的独立权利，也不免除违反方对已发生违约或侵权行为应承担的责任。
-3. 停止侵权、删除副本、修复违规或取得来源内容的单独许可，均不会自动恢复已终止的新增内容授权。
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
 
-六、无担保与责任限制
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
 
-在适用法律允许的最大范围内，项目、新增内容和发布物按“现状”提供，不作任何明示、默示或法定担保，包括适销性、适用性、不侵权、可用性、安全性和无错误担保。许可方、贡献者及来源内容权利人不对任何直接、间接、附带、特殊、惩罚性或后果性损失承担责任。
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
 
-七、其他
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
 
-1. 本文件不放弃许可方依法享有的任何权利或救济。
-2. 如本文件任一条款被认定无效或不可执行，其余条款仍在适用法律允许的最大范围内有效。
-3. 本文件的中文文本为准。对新增内容的任何例外、附加授权或许可变更，必须由许可方以书面形式作出。
-4. 除适用法律强制规定外，本文件不授予任何默示许可、禁止反言许可、惯例许可或其他未明示的权利。
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
 
-本文件仅约束许可方拥有版权的新增内容。PCL、PCL-CE 及第三方来源内容始终按其各自许可证和权利声明处理。
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright 2026 Micro-ATP
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.

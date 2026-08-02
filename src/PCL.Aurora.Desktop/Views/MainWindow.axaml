@@ -4675,7 +4675,7 @@
                                                    Text="当你使用正版登录、游戏与社区资源下载、更新检查或查看贡献者时，应用会连接 Microsoft、Minecraft、GitHub、Modrinth、CurseForge、BMCLAPI 等对应第三方服务，并受各服务自身政策约束。PCL Aurora 的 User Agent 仅用于向目标服务标识应用名称与版本；问题信息只会在你主动打开 GitHub Issues 并提交后发送。" />
                                         <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="其他信息" />
                                         <TextBlock LineHeight="18" TextWrapping="Wrap"
-                                                   Text="Copyright © 2026 Micro-ATP. All Rights Reserved.&#xA;PCL Aurora 是基于 Plain Craft Launcher 与 PCL Community Edition 的第三方跨平台迁移项目。Micro-ATP 独立实现的新增内容适用仓库根目录的严格专有迁移许可证；PCL、PCL-CE 与第三方来源内容仍按各自许可证处理。&#xA;非 Minecraft 官方产品，未经 Mojang 或 Microsoft 批准，也不与 Mojang 或 Microsoft 关联。" />
+                                                   Text="Copyright © 2026 Micro-ATP.&#xA;PCL Aurora 是基于 Plain Craft Launcher 与 PCL Community Edition 的第三方跨平台迁移项目。Micro-ATP 拥有版权的原创贡献采用 Apache License 2.0；PCL、PCL-CE 与第三方来源内容仍按各自许可证处理。&#xA;非 Minecraft 官方产品，未经 Mojang 或 Microsoft 批准，也不与 Mojang 或 Microsoft 关联。" />
                                         <WrapPanel Margin="0,8,0,0" Orientation="Horizontal">
                                             <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="source" Content="Aurora 源代码" />
                                             <Button Classes="about-action" Margin="0,0,10,8" Command="{Binding OpenProjectPageCommand}" CommandParameter="license" Content="根许可证" />
