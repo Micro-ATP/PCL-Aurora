@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Avalonia BuildServices writes telemetry logs outside the repository during compilation. -->
+    <UsedAvaloniaProducts Condition="'$(PclAuroraEnableAvaloniaTelemetry)' != 'true'"></UsedAvaloniaProducts>
+  </PropertyGroup>
+</Project>
