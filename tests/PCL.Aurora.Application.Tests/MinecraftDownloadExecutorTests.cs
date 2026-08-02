@@ -124,7 +124,10 @@ public sealed class MinecraftDownloadExecutorTests : IDisposable
         var content = "PCL Aurora concurrent downloads"u8.ToArray();
         var handler = new DelayedResponseHandler(content);
         using var client = new HttpClient(handler);
-        var executor = new MinecraftDownloadExecutor(client);
+        var preferencesService = new LauncherPreferencesService(new StaticPreferencesStore(
+            new LauncherPreferences(LauncherThemeMode.System, DownloadConcurrency: 4)));
+        await preferencesService.LoadAsync();
+        var executor = new MinecraftDownloadExecutor(client, preferencesService);
         var artifacts = Enumerable.Range(0, 8)
             .Select(index => new MinecraftDownloadArtifact(
                 $"测试文件 {index}",

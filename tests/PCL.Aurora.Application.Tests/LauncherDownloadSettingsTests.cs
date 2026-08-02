@@ -24,7 +24,7 @@ public sealed class LauncherDownloadSettingsTests
 
     [Theory]
     [InlineData(0)]
-    [InlineData(17)]
+    [InlineData(LauncherDownloadSettings.MaximumConcurrency + 1)]
     public void Preferences_RejectUnsafeDownloadSettings(int concurrency)
     {
         var preferences = new LauncherPreferences(LauncherThemeMode.System, DownloadConcurrency: concurrency);

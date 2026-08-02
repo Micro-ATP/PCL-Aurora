@@ -1,0 +1,58 @@
+name: SBOM
+
+"on":
+  push:
+    branches:
+      - main
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  NUGET_XMLDOC_MODE: skip
+
+jobs:
+  generate:
+    name: Generate SPDX JSON
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore PCL.Aurora.slnx -p:NuGetAudit=true -p:NuGetAuditMode=all
+
+      - name: Build dependency metadata
+        run: dotnet build PCL.Aurora.slnx --configuration Release --no-restore
+
+      - name: Generate and upload SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        env:
+          SYFT_CHECK_FOR_APP_UPDATE: "false"
+          SYFT_SOURCE_NAME: PCL-Aurora
+          SYFT_SOURCE_VERSION: "${{ github.sha }}"
+        with:
+          path: .
+          format: spdx-json
+          output-file: pcl-aurora.spdx.json
+          artifact-name: pcl-aurora-sbom
+          upload-artifact: true
+          upload-artifact-retention: 30
+          upload-release-assets: false
