@@ -7,13 +7,46 @@ namespace PCL.Aurora.Platform.MacOS;
 
 public sealed class MacOSMinecraftInstanceLocator(string? minecraftDirectory = null) : IMinecraftInstanceLocator
 {
-    private readonly string rootDirectory = minecraftDirectory ?? Path.Combine(
+    private readonly string defaultRootDirectory = minecraftDirectory ?? Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         "Library",
         "Application Support",
         "minecraft");
 
     public async Task<IReadOnlyList<MinecraftInstance>> FindAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await FindAllAsync([], cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<MinecraftInstance>> FindAllAsync(
+        IReadOnlyList<string> additionalRootDirectories,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(additionalRootDirectories);
+        var pathComparer = OperatingSystem.IsMacOS()
+            ? StringComparer.OrdinalIgnoreCase
+            : StringComparer.Ordinal;
+        var roots = new[] { defaultRootDirectory }
+            .Concat(additionalRootDirectories)
+            .Where(Path.IsPathFullyQualified)
+            .Select(Path.GetFullPath)
+            .Distinct(pathComparer);
+        var instances = new List<MinecraftInstance>();
+        foreach (var rootDirectory in roots)
+        {
+            instances.AddRange(await FindInRootAsync(rootDirectory, cancellationToken).ConfigureAwait(false));
+        }
+
+        return instances
+            .GroupBy(instance => Path.GetFullPath(instance.DirectoryPath), pathComparer)
+            .Select(group => group.First())
+            .OrderBy(instance => instance.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static async Task<IReadOnlyList<MinecraftInstance>> FindInRootAsync(
+        string rootDirectory,
+        CancellationToken cancellationToken)
     {
         var versionsDirectory = Path.Combine(rootDirectory, "versions");
         if (!Directory.Exists(versionsDirectory))
@@ -38,9 +71,7 @@ public sealed class MacOSMinecraftInstanceLocator(string? minecraftDirectory = n
             instances.Add(await ReadInstanceAsync(directory, cancellationToken).ConfigureAwait(false));
         }
 
-        return instances
-            .OrderBy(instance => instance.Name, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        return instances;
     }
 
     private static async Task<MinecraftInstance> ReadInstanceAsync(string directory, CancellationToken cancellationToken)

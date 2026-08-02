@@ -33,12 +33,18 @@ PCL Aurora contains direct adaptations of the following upstream source files:
 - PCL2: Plain Craft Launcher 2/Modules/Minecraft/ModJava.vb
 - PCL2: Plain Craft Launcher 2/Modules/Resource/ResourceVersion.vb
 - PCL2: Plain Craft Launcher 2/Modules/Base/ModNet.vb
+- PCL2: Plain Craft Launcher 2/Modules/Base/ModLoader.vb (weighted task progress only)
 - PCL2: Plain Craft Launcher 2/FormMain.xaml
+- PCL2: Plain Craft Launcher 2/FormMain.xaml.vb (download-manager navigation only)
 - PCL2: Plain Craft Launcher 2/Controls/MyRadioButton.xaml
 - PCL2: Plain Craft Launcher 2/Modules/ModSecret.vb
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchLeft.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchRight.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLoginMs.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLoginLegacy.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageLaunch/PageLoginLegacy.xaml.vb
+- PCL2: Plain Craft Launcher 2/Pages/PageSpeedLeft.xaml
+- PCL2: Plain Craft Launcher 2/Pages/PageSpeedLeft.xaml.vb
 - PCL2: Plain Craft Launcher 2/Pages/PageLaunch/MyMsgLogin.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml
 - PCL2: Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml
@@ -375,3 +381,12 @@ language updater and Minecraft 1.16.5 Authlib correction follow PCL-CE's
 version cutoffs and replacement values, implemented with atomic text writes
 and structured JSON updates. Abnormal process exits are analyzed only from
 Aurora's captured game output and are skipped when the user disables analysis.
+The offline-account selector adapts PCL2 `PageLoginLegacy`'s editable recent-name
+list and current-account-first behavior, while Aurora stores a validated JSON
+array instead of PCL2's delimiter string. The download-manager page adapts the
+PCL2 `PageSpeedLeft`, `ModLoader`, `ModNet` and `FormMain` task presentation:
+Aurora derives overall progress, speed, remaining files and stage state from its
+existing verified cross-platform download executor. Installation destinations
+and remembered Minecraft roots are Aurora-specific cross-platform code; selected
+containers receive a dedicated installation-name directory before `assets`,
+`libraries` and `versions` are created.

@@ -841,6 +841,32 @@ public partial class MainWindow : Window
         await loadTask;
     }
 
+    private int currentMainPage;
+    private int downloadManagerReturnPage = 1;
+
+    private async void OpenDownloadManagerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            downloadManagerReturnPage = currentMainPage;
+            viewModel.IsDownloadManagerOpen = true;
+        }
+
+        foreach (var navigation in new[] { LaunchNavigation, DownloadNavigation, SettingsNavigation, MoreNavigation })
+        {
+            navigation.Classes.Set("selected", false);
+        }
+        MainTitleBar.IsVisible = false;
+        DownloadManagerTitleBar.IsVisible = true;
+        await PclMotionService.SwitchSectionsAsync(
+            MainPages,
+            [LaunchPage, DownloadPage, SettingsPage, MorePage, InstancePage, DownloadManagerPage],
+            DownloadManagerPage);
+    }
+
+    private async void CloseDownloadManagerClick(object? sender, RoutedEventArgs e) =>
+        await SelectMainPageAsync(downloadManagerReturnPage);
+
     private async void CopyMicrosoftCodeClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ViewModels.MainViewModel { HasMicrosoftDeviceCode: true } viewModel ||
@@ -883,8 +909,15 @@ public partial class MainWindow : Window
 
     private Task SelectMainPageAsync(int page)
     {
-        var pages = new Control[] { LaunchPage, DownloadPage, SettingsPage, MorePage, InstancePage };
+        var pages = new Control[] { LaunchPage, DownloadPage, SettingsPage, MorePage, InstancePage, DownloadManagerPage };
         var selectedPage = pages[page];
+        currentMainPage = page;
+        MainTitleBar.IsVisible = true;
+        DownloadManagerTitleBar.IsVisible = false;
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            viewModel.IsDownloadManagerOpen = false;
+        }
 
         var navigation = new[] { LaunchNavigation, DownloadNavigation, SettingsNavigation, MoreNavigation };
         for (var index = 0; index < navigation.Length; index++)
@@ -910,7 +943,7 @@ public partial class MainWindow : Window
         await viewModel.LoadInstanceManagementAsync();
         await PclMotionService.SwitchSectionsAsync(
             MainPages,
-            [LaunchPage, DownloadPage, SettingsPage, MorePage, InstancePage],
+            [LaunchPage, DownloadPage, SettingsPage, MorePage, InstancePage, DownloadManagerPage],
             InstancePage);
         await SelectInstanceSectionAsync("overview", force: true);
     }
@@ -3517,16 +3550,16 @@ public partial class MainWindow : Window
 
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = $"选择 Minecraft {version.Id} 的存放目录",
+            Title = $"选择 Minecraft {version.Id} 的安装位置",
             AllowMultiple = false,
         });
-        var minecraftRootDirectory = folders.SingleOrDefault()?.TryGetLocalPath();
-        if (string.IsNullOrWhiteSpace(minecraftRootDirectory))
+        var installationContainerDirectory = folders.SingleOrDefault()?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(installationContainerDirectory))
         {
             return;
         }
 
-        await viewModel.InstallSelectedOfficialVersionAsync(minecraftRootDirectory);
+        await viewModel.InstallSelectedOfficialVersionAsync(installationContainerDirectory);
     }
 
     private async void CombinedInstallBackClick(object? sender, RoutedEventArgs e)
@@ -3567,16 +3600,16 @@ public partial class MainWindow : Window
 
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = $"选择 {viewModel.CombinedInstallationName} 的 Minecraft 目录",
+            Title = $"选择 {viewModel.CombinedInstallationName} 的安装位置",
             AllowMultiple = false,
         });
-        var minecraftRootDirectory = folders.SingleOrDefault()?.TryGetLocalPath();
-        if (string.IsNullOrWhiteSpace(minecraftRootDirectory))
+        var installationContainerDirectory = folders.SingleOrDefault()?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(installationContainerDirectory))
         {
             return;
         }
 
-        await viewModel.InstallSelectedCombinedVersionAsync(minecraftRootDirectory);
+        await viewModel.InstallSelectedCombinedVersionAsync(installationContainerDirectory);
     }
 
     private bool TrySelectOfficialVersion(object? sender, out ViewModels.MainViewModel viewModel)

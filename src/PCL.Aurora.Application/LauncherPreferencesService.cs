@@ -18,8 +18,8 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
         try
         {
             var result = await preferencesStore.LoadAsync(cancellationToken).ConfigureAwait(false);
-            currentPreferences = result.Preferences;
-            return result;
+            currentPreferences = Normalize(result.Preferences);
+            return result with { Preferences = currentPreferences };
         }
         finally
         {
@@ -34,7 +34,44 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
         UpdateAsync(preferences => preferences with { SelectedInstanceName = instanceName }, cancellationToken);
 
     public Task SaveOfflinePlayerNameAsync(string? playerName, CancellationToken cancellationToken = default) =>
-        UpdateAsync(preferences => preferences with { OfflinePlayerName = playerName }, cancellationToken);
+        UpdateAsync(
+            preferences => preferences with
+            {
+                OfflinePlayerName = playerName,
+                OfflinePlayerNames = LauncherPreferences.NormalizeOfflinePlayerNames(
+                    playerName,
+                    preferences.EffectiveOfflinePlayerNames),
+            },
+            cancellationToken);
+
+    public Task SaveOfflineAccountsAsync(
+        string? selectedPlayerName,
+        IReadOnlyList<string> playerNames,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(playerNames);
+        return UpdateAsync(
+            preferences => preferences with
+            {
+                OfflinePlayerName = selectedPlayerName,
+                OfflinePlayerNames = LauncherPreferences.NormalizeOfflinePlayerNames(selectedPlayerName, playerNames),
+            },
+            cancellationToken);
+    }
+
+    public Task RegisterMinecraftRootDirectoryAsync(
+        string rootDirectory,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(rootDirectory);
+        return UpdateAsync(
+            preferences => preferences with
+            {
+                MinecraftRootDirectories = LauncherPreferences.NormalizeMinecraftRootDirectories(
+                    new[] { rootDirectory }.Concat(preferences.EffectiveMinecraftRootDirectories)),
+            },
+            cancellationToken);
+    }
 
     public Task SaveDownloadConcurrencyAsync(int concurrency, CancellationToken cancellationToken = default) =>
         UpdateAsync(preferences => preferences with { DownloadConcurrency = concurrency }, cancellationToken);
@@ -143,4 +180,13 @@ public sealed class LauncherPreferencesService(ILauncherPreferencesStore prefere
             updateLock.Release();
         }
     }
+
+    private static LauncherPreferences Normalize(LauncherPreferences preferences) => preferences with
+    {
+        OfflinePlayerNames = LauncherPreferences.NormalizeOfflinePlayerNames(
+            preferences.OfflinePlayerName,
+            preferences.OfflinePlayerNames),
+        MinecraftRootDirectories = LauncherPreferences.NormalizeMinecraftRootDirectories(
+            preferences.MinecraftRootDirectories),
+    };
 }

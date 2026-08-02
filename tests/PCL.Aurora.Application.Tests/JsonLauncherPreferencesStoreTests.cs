@@ -348,6 +348,23 @@ public sealed class JsonLauncherPreferencesStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_RoundTripsOfflineAccountHistoryAndMinecraftRoots()
+    {
+        var store = CreateStore();
+        var rootDirectory = Path.GetFullPath(Path.Combine("minecraft", "1.21.4"));
+
+        await store.SaveAsync(new LauncherPreferences(
+            LauncherThemeMode.System,
+            OfflinePlayerName: "Aurora_01",
+            OfflinePlayerNames: ["Aurora_01", "Builder_02"],
+            MinecraftRootDirectories: [rootDirectory]));
+        var result = await store.LoadAsync();
+
+        Assert.Equal(["Aurora_01", "Builder_02"], result.Preferences.EffectiveOfflinePlayerNames);
+        Assert.Equal([rootDirectory], result.Preferences.EffectiveMinecraftRootDirectories);
+    }
+
+    [Fact]
     public async Task SaveAsync_RejectsInvalidOfflinePlayerName()
     {
         var store = CreateStore();

@@ -50,6 +50,25 @@ public sealed class MinecraftVersionProvisioningServiceTests : IDisposable
         Assert.False(Directory.Exists(defaultRoot));
     }
 
+    [Fact]
+    public async Task ProvisionAsync_ReusesValidatedExistingInstanceForResume()
+    {
+        var instanceDirectory = Path.Combine(rootDirectory, "versions", "1.21.4");
+        Directory.CreateDirectory(instanceDirectory);
+        await File.WriteAllTextAsync(
+            Path.Combine(instanceDirectory, "1.21.4.json"),
+            """{ "id": "1.21.4", "type": "release" }""");
+        var handler = new StaticResponseHandler("""{ "id": "unexpected" }""");
+        using var client = new HttpClient(handler);
+        var service = new MinecraftVersionProvisioningService(client, new FixedRootDirectoryProvider(rootDirectory));
+        var version = new MinecraftVersionCatalogEntry("1.21.4", "release", new Uri("https://example.invalid/1.21.4.json"), DateTimeOffset.UtcNow);
+
+        var instance = await service.ProvisionAsync(version);
+
+        Assert.Equal(instanceDirectory, instance.DirectoryPath);
+        Assert.Equal(0, handler.RequestCount);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(rootDirectory))
@@ -65,7 +84,15 @@ public sealed class MinecraftVersionProvisioningServiceTests : IDisposable
 
     private sealed class StaticResponseHandler(string content) : HttpMessageHandler
     {
+        public int RequestCount { get; private set; }
+
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
-            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content) });
+            Task.FromResult(CreateResponse());
+
+        private HttpResponseMessage CreateResponse()
+        {
+            RequestCount++;
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content) };
+        }
     }
 }

@@ -68,6 +68,26 @@ public sealed class MacOSMinecraftInstanceLocatorTests : IDisposable
         Assert.Equal("Forge 47.2.0 + OptiFine", instance.LoaderDisplay);
     }
 
+    [Fact]
+    public async Task FindAllAsync_IncludesAdditionalMinecraftRoots()
+    {
+        var additionalRoot = Path.Combine(rootDirectory, "custom", "1.21.5");
+        var instanceDirectory = Path.Combine(additionalRoot, "versions", "1.21.5");
+        Directory.CreateDirectory(instanceDirectory);
+        await File.WriteAllTextAsync(
+            Path.Combine(instanceDirectory, "1.21.5.json"),
+            """
+            { "id": "1.21.5", "type": "release" }
+            """);
+
+        var instances = await new MacOSMinecraftInstanceLocator(rootDirectory)
+            .FindAllAsync([additionalRoot]);
+
+        var instance = Assert.Single(instances);
+        Assert.Equal("1.21.5", instance.Name);
+        Assert.Equal(instanceDirectory, instance.DirectoryPath);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(rootDirectory))

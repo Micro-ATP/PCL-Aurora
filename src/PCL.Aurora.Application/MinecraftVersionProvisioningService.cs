@@ -30,7 +30,26 @@ public sealed class MinecraftVersionProvisioningService(
         var instanceDirectory = Path.Combine(versionsDirectory, version.Id);
         if (Directory.Exists(instanceDirectory))
         {
-            throw new InvalidOperationException($"本地实例 {version.Id} 已存在，不会覆盖。 ");
+            var existingMetadataPath = Path.Combine(instanceDirectory, $"{version.Id}.json");
+            if (File.Exists(existingMetadataPath))
+            {
+                var existingJson = await File.ReadAllTextAsync(existingMetadataPath, cancellationToken).ConfigureAwait(false);
+                var existing = MinecraftVersionMetadataParser.Parse(existingJson);
+                if (existing.IsSuccess &&
+                    existing.Metadata is not null &&
+                    string.Equals(existing.Metadata.Id, version.Id, StringComparison.Ordinal))
+                {
+                    return new(
+                        version.Id,
+                        instanceDirectory,
+                        version.Id,
+                        version.Type,
+                        version.ReleaseTime,
+                        MinecraftInstanceStatus.Valid);
+                }
+            }
+
+            throw new InvalidOperationException($"本地实例 {version.Id} 已存在，但版本元数据无效，不会覆盖。 ");
         }
 
         Directory.CreateDirectory(versionsDirectory);

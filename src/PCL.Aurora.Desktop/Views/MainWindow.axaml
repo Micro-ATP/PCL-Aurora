@@ -2181,6 +2181,29 @@
             </Grid>
         </Border>
 
+        <Border x:Name="DownloadManagerTitleBar" Background="{StaticResource PclTitleBarBrush}"
+                PointerPressed="TitleBarPointerPressed" IsVisible="False">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Classes="community-detail-title-back" Click="CloseDownloadManagerClick"
+                        ToolTip.Tip="返回" AutomationProperties.Name="返回上一级">
+                    <Path Width="18" Height="18" Data="{StaticResource CommunityBackIcon}" Stretch="Uniform"
+                          Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                          StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                </Button>
+                <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="16" Foreground="White" Text="下载管理" />
+                <StackPanel Grid.Column="2" Margin="0,0,12,0" Spacing="4"
+                            HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Classes="window-control" Click="MinimizeWindowClick" ToolTip.Tip="最小化">
+                        <Path Width="15" Height="2" Stretch="Fill" Fill="White" Data="M0,0 h15 v2 h-15 v-2 Z" />
+                    </Button>
+                    <Button Classes="window-control" Click="CloseWindowClick" ToolTip.Tip="关闭">
+                        <Path Width="14.4" Height="14.4" Stretch="Uniform" Fill="White"
+                              Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
         <Border x:Name="CommunityDetailTitleBar" Background="{StaticResource PclTitleBarBrush}"
                 PointerPressed="TitleBarPointerPressed" IsVisible="False">
             <Grid ColumnDefinitions="Auto,*,Auto">
@@ -2260,10 +2283,22 @@
                                             </Image>
                                         </Grid>
                                     </Border>
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                        <TextBox Height="35" PlaceholderText="游戏用户名" Text="{Binding OfflinePlayerName}" />
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                        <ComboBox Height="35" IsEditable="True"
+                                                  PlaceholderText="游戏用户名"
+                                                  ItemsSource="{Binding OfflinePlayerNames}"
+                                                  Text="{Binding OfflinePlayerName, Mode=TwoWay}" />
                                         <Button Grid.Column="1" Height="35" MinWidth="76"
                                                 Command="{Binding UseOfflineAccountCommand}" Content="使用" />
+                                        <Button Grid.Column="2" Width="35" Height="35" Padding="8"
+                                                IsVisible="{Binding HasOfflinePlayerNames}"
+                                                Command="{Binding ClearOfflineAccountCommand}"
+                                                ToolTip.Tip="移除当前离线账户" AutomationProperties.Name="移除当前离线账户">
+                                            <Path Stretch="Uniform" Fill="Transparent"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round"
+                                                  Data="M3 6h18 M8 6V4h8v2 M19 6l-1 15H6L5 6 M10 11v6 M14 11v6" />
+                                        </Button>
                                     </Grid>
                                 </StackPanel>
 
@@ -2665,6 +2700,62 @@
                             </Border>
                         </Grid>
                     </Grid>
+                </Grid>
+            </Grid>
+
+            <Grid x:Name="DownloadManagerPage" IsVisible="False" Background="{DynamicResource PclPageBackgroundBrush}">
+                <Grid ColumnDefinitions="230,*">
+                    <Border Background="{DynamicResource PclSurfaceBrush}" BorderBrush="{DynamicResource PclDividerBrush}" BorderThickness="0,0,1,0">
+                        <StackPanel Margin="26,44" Spacing="40">
+                            <StackPanel Spacing="9">
+                                <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{DynamicResource PclThemePrimaryBrush}" Text="总进度" />
+                                <Border Height="2" Background="{DynamicResource PclThemePrimaryBrush}" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="27" FontWeight="Light" Text="{Binding DownloadProgressText}" />
+                            </StackPanel>
+                            <StackPanel Spacing="9">
+                                <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{DynamicResource PclThemePrimaryBrush}" Text="下载速度" />
+                                <Border Height="2" Background="{DynamicResource PclThemePrimaryBrush}" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="23" FontWeight="Light" Text="{Binding DownloadSpeedText}" />
+                            </StackPanel>
+                            <StackPanel Spacing="9">
+                                <TextBlock HorizontalAlignment="Center" FontSize="16" Foreground="{DynamicResource PclThemePrimaryBrush}" Text="剩余文件" />
+                                <Border Height="2" Background="{DynamicResource PclThemePrimaryBrush}" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="23" FontWeight="Light" Text="{Binding DownloadRemainingFilesText}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                        <Border Margin="28,28,28,20" Padding="20,16" Classes="pcl-card">
+                            <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                                <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding DownloadTaskTitle}" />
+                                <Button Grid.Column="1" Width="30" Height="30" Padding="0" Background="Transparent" BorderThickness="0"
+                                        Command="{Binding DismissDownloadTaskCommand}" ToolTip.Tip="取消或移除任务">
+                                    <Path Width="14" Height="14" Stretch="Uniform" Fill="Transparent"
+                                          Stroke="{DynamicResource PclThemePrimaryBrush}" StrokeThickness="2"
+                                          StrokeLineCap="Round" Data="M4 4l16 16 M20 4L4 20" />
+                                </Button>
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,2,40,0" FontSize="12"
+                                           Foreground="{DynamicResource PclTextSecondaryBrush}" Text="{Binding DownloadTaskStatus}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <ProgressBar Grid.Row="2" Grid.ColumnSpan="2" Height="3" Margin="0,9,0,12"
+                                             Minimum="0" Maximum="1" Value="{Binding DownloadOverallProgress}" />
+                                <ItemsControl Grid.Row="3" Grid.ColumnSpan="2" ItemsSource="{Binding DownloadStages}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:DownloadStageItemViewModel">
+                                            <Grid MinHeight="32" ColumnDefinitions="62,*,Auto">
+                                                <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0"
+                                                           FontSize="15" Foreground="{DynamicResource PclThemePrimaryBrush}"
+                                                           Text="{Binding StatusGlyph}" />
+                                                <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="15" Text="{Binding Title}" />
+                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="14"
+                                                           Foreground="{DynamicResource PclThemePrimaryBrush}" Text="{Binding ProgressText}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </Border>
+                    </ScrollViewer>
                 </Grid>
             </Grid>
 
@@ -5062,6 +5153,17 @@
                     </ScrollViewer>
                 </Grid>
             </Grid>
+
+            <Button x:Name="DownloadTaskButton" Width="54" Height="54" Margin="0,0,22,20"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom" ZIndex="20"
+                    Padding="0" CornerRadius="27" Background="{DynamicResource PclThemePrimaryBrush}"
+                    BorderThickness="0"
+                    IsVisible="{Binding ShowDownloadTaskButton}" Click="OpenDownloadManagerClick"
+                    ToolTip.Tip="下载管理" AutomationProperties.Name="打开下载管理">
+                <Path Width="23" Height="23" Stretch="Uniform" Fill="Transparent" Stroke="White" StrokeThickness="2.2"
+                      StrokeLineCap="Round" StrokeJoin="Round"
+                      Data="M12 3v12 M7 10l5 5 5-5 M5 18v3h14v-3" />
+            </Button>
         </Grid>
 
         <!-- Direct Avalonia adaptation of PCL/PCL-CE MyMsgLogin.xaml. -->

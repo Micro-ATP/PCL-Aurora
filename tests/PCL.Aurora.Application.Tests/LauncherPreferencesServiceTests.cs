@@ -130,6 +130,64 @@ public sealed class LauncherPreferencesServiceTests
         Assert.Equal("Aurora_01", store.SavedPreferences?.OfflinePlayerName);
     }
 
+    [Fact]
+    public async Task SaveOfflinePlayerNameAsync_PreservesRecentAccountsAndMovesCurrentToFront()
+    {
+        var store = new RecordingPreferencesStore(
+            new LauncherPreferencesLoadResult(
+                new LauncherPreferences(
+                    LauncherThemeMode.System,
+                    OfflinePlayerName: "Aurora_01",
+                    OfflinePlayerNames: ["Aurora_01", "Builder_02"]),
+                null));
+        var service = new LauncherPreferencesService(store);
+        await service.LoadAsync();
+
+        await service.SaveOfflinePlayerNameAsync("Builder_02");
+
+        Assert.Equal("Builder_02", service.Current.OfflinePlayerName);
+        Assert.Equal(["Builder_02", "Aurora_01"], service.Current.EffectiveOfflinePlayerNames);
+    }
+
+    [Fact]
+    public async Task RegisterMinecraftRootDirectoryAsync_NormalizesAndDeduplicatesRoots()
+    {
+        var firstRoot = Path.GetFullPath(Path.Combine("minecraft", "1.21.4"));
+        var secondRoot = Path.GetFullPath(Path.Combine("minecraft", "1.20.1"));
+        var store = new RecordingPreferencesStore(
+            new LauncherPreferencesLoadResult(
+                new LauncherPreferences(
+                    LauncherThemeMode.System,
+                    MinecraftRootDirectories: [firstRoot]),
+                null));
+        var service = new LauncherPreferencesService(store);
+        await service.LoadAsync();
+
+        await service.RegisterMinecraftRootDirectoryAsync(secondRoot);
+        await service.RegisterMinecraftRootDirectoryAsync(firstRoot);
+
+        Assert.Equal([firstRoot, secondRoot], service.Current.EffectiveMinecraftRootDirectories);
+    }
+
+    [Fact]
+    public async Task SaveOfflineAccountsAsync_RemovesOnlyRequestedHistoryEntry()
+    {
+        var store = new RecordingPreferencesStore(
+            new LauncherPreferencesLoadResult(
+                new LauncherPreferences(
+                    LauncherThemeMode.System,
+                    OfflinePlayerName: "Aurora_01",
+                    OfflinePlayerNames: ["Aurora_01", "Builder_02"]),
+                null));
+        var service = new LauncherPreferencesService(store);
+        await service.LoadAsync();
+
+        await service.SaveOfflineAccountsAsync(null, ["Builder_02"]);
+
+        Assert.Null(service.Current.OfflinePlayerName);
+        Assert.Equal(["Builder_02"], service.Current.EffectiveOfflinePlayerNames);
+    }
+
     private sealed class RecordingPreferencesStore(LauncherPreferencesLoadResult loadResult) : ILauncherPreferencesStore
     {
         public LauncherPreferences? SavedPreferences { get; private set; }

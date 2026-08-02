@@ -17,6 +17,29 @@ public interface ILauncherPreferencesService
 
     Task SaveOfflinePlayerNameAsync(string? playerName, CancellationToken cancellationToken = default);
 
+    Task SaveOfflineAccountsAsync(
+        string? selectedPlayerName,
+        IReadOnlyList<string> playerNames,
+        CancellationToken cancellationToken = default) =>
+        ReplaceAsync(
+            Current with
+            {
+                OfflinePlayerName = selectedPlayerName,
+                OfflinePlayerNames = playerNames,
+            },
+            cancellationToken);
+
+    Task RegisterMinecraftRootDirectoryAsync(
+        string rootDirectory,
+        CancellationToken cancellationToken = default) =>
+        ReplaceAsync(
+            Current with
+            {
+                MinecraftRootDirectories = LauncherPreferences.NormalizeMinecraftRootDirectories(
+                    new[] { rootDirectory }.Concat(Current.EffectiveMinecraftRootDirectories)),
+            },
+            cancellationToken);
+
     Task SaveDownloadConcurrencyAsync(int concurrency, CancellationToken cancellationToken = default);
 
     Task SaveDownloadSpeedLimitStepAsync(int speedLimitStep, CancellationToken cancellationToken = default);

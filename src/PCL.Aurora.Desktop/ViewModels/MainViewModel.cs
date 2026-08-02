@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Avalonia.Controls;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -126,6 +127,11 @@ public partial class MainViewModel(
     private int launcherClientHeight = MinecraftLaunchOptions.DefaultWindowHeight;
     private MinecraftJavaRequirement? currentJavaRequirement;
     private CancellationTokenSource? installationCancellation;
+    private readonly Stopwatch downloadSpeedStopwatch = new();
+    private int downloadSpeedStage = -1;
+    private long downloadCompletedStageBytes;
+    private long downloadLastStageBytes;
+    private long downloadLastSampleBytes;
     private CancellationTokenSource? javaInstallationCancellation;
     private CancellationTokenSource? microsoftLoginCancellation;
     private Uri? microsoftVerificationUri;
@@ -184,6 +190,13 @@ public partial class MainViewModel(
     public ObservableCollection<CommunityFavoriteGroupViewModel> CommunityFavoriteGroups { get; } = [];
 
     public ObservableCollection<MinecraftInstance> AvailableInstances { get; } = [];
+
+    public ObservableCollection<string> OfflinePlayerNames { get; } = [];
+
+    [ObservableProperty]
+    private bool hasOfflinePlayerNames;
+
+    public ObservableCollection<DownloadStageItemViewModel> DownloadStages { get; } = [];
 
     public ObservableCollection<JavaInstallation> AvailableJavaInstallations { get; } = [];
 
@@ -1027,6 +1040,37 @@ public partial class MainViewModel(
     private string installationSummary = "选择本地实例后可查看安装计划。";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowDownloadTaskButton))]
+    private bool hasDownloadTasks;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowDownloadTaskButton))]
+    private bool isDownloadManagerOpen;
+
+    [ObservableProperty]
+    private bool isDownloadTaskRunning;
+
+    [ObservableProperty]
+    private string downloadTaskTitle = "Minecraft 安装";
+
+    [ObservableProperty]
+    private string downloadTaskStatus = "等待下载";
+
+    [ObservableProperty]
+    private double downloadOverallProgress;
+
+    [ObservableProperty]
+    private string downloadProgressText = "0.00 %";
+
+    [ObservableProperty]
+    private string downloadSpeedText = "0 B/s";
+
+    [ObservableProperty]
+    private string downloadRemainingFilesText = "0";
+
+    public bool ShowDownloadTaskButton => HasDownloadTasks && !IsDownloadManagerOpen;
+
+    [ObservableProperty]
     private MinecraftVersionCatalogEntry? selectedCatalogVersion;
 
     [ObservableProperty]
@@ -1791,7 +1835,7 @@ public partial class MainViewModel(
             UsesCustomMemoryAllocation = launchOptions.MemoryAllocationMode == MinecraftMemoryAllocationMode.Custom;
             RefreshMemoryDisplay();
             LaunchOptionsSummary = result.Warning ?? GetLaunchOptionsSummary(launchOptions);
-            RestoreOfflineAccount(result.Preferences.OfflinePlayerName);
+            RestoreOfflineAccounts(result.Preferences);
             UpdateMicrosoftLoginAvailability(result.Preferences.MicrosoftAccount);
         }
         catch (Exception exception)
@@ -2099,7 +2143,7 @@ public partial class MainViewModel(
         }
     }
 
-    public async Task InstallSelectedOfficialVersionAsync(string minecraftRootDirectory)
+    public async Task InstallSelectedOfficialVersionAsync(string installationContainerDirectory)
     {
         if (SelectedCatalogVersion is null || IsInstallationRunning)
         {
@@ -2107,18 +2151,26 @@ public partial class MainViewModel(
         }
 
         var version = SelectedCatalogVersion;
+        BeginDownloadTask($"{version.Id} 安装");
         try
         {
-            var rootDirectory = Path.GetFullPath(minecraftRootDirectory);
-            await InstallSelectedOfficialVersionCoreAsync(version, rootDirectory);
+            var rootDirectory = CreateVersionInstallationRoot(
+                installationContainerDirectory,
+                version.Id);
+            if (await InstallSelectedOfficialVersionCoreAsync(version, rootDirectory))
+            {
+                CompleteDownloadTask();
+            }
         }
         catch (OperationCanceledException)
         {
             InstallationSummary = "安装已取消。";
+            FailDownloadTask("安装已取消");
         }
         catch (Exception exception)
         {
             InstallationSummary = $"安装失败：{exception.Message}";
+            FailDownloadTask("安装失败");
         }
     }
 
@@ -2231,16 +2283,19 @@ public partial class MainViewModel(
         UpdateCombinedInstallationSelection();
     }
 
-    public async Task InstallSelectedCombinedVersionAsync(string minecraftRootDirectory)
+    public async Task InstallSelectedCombinedVersionAsync(string installationContainerDirectory)
     {
         if (SelectedCatalogVersion is not { } version || IsInstallationRunning)
         {
             return;
         }
 
+        BeginDownloadTask($"{CombinedInstallationName} 安装");
         try
         {
-            var rootDirectory = Path.GetFullPath(minecraftRootDirectory);
+            var rootDirectory = CreateVersionInstallationRoot(
+                installationContainerDirectory,
+                CombinedInstallationName);
             var baseInstalled = await InstallSelectedOfficialVersionCoreAsync(version, rootDirectory);
             if (!baseInstalled)
             {
@@ -2275,14 +2330,18 @@ public partial class MainViewModel(
                 ? $"Minecraft {version.Id} 安装完成。"
                 : $"Minecraft {version.Id} 与 {string.Join(" + ", selectedLoaders.Select(loader => $"{loader.Kind} {loader.Version}"))} 安装完成。";
             InstallationSummary = CombinedInstallationSummary;
+            await RefreshAsync();
+            CompleteDownloadTask();
         }
         catch (OperationCanceledException)
         {
             CombinedInstallationSummary = "组合安装已取消。";
+            FailDownloadTask("安装已取消");
         }
         catch (Exception exception)
         {
             CombinedInstallationSummary = $"组合安装失败：{exception.Message}";
+            FailDownloadTask("安装失败");
         }
     }
 
@@ -2291,7 +2350,10 @@ public partial class MainViewModel(
         string rootDirectory)
     {
         VersionCatalogSummary = $"正在 {rootDirectory} 创建 {version.Id}…";
+        StartDownloadStage(0, "正在下载版本元数据");
         var instance = await versionProvisioningService.ProvisionAsync(version, rootDirectory);
+        CompleteDownloadStage(0);
+        StartDownloadStage(1);
         var autoSelect = currentPreferences.EffectiveGameManagementOptions.AutoSelectNewInstance;
         if (autoSelect)
         {
@@ -2311,12 +2373,46 @@ public partial class MainViewModel(
         var installed = await InstallGameCoreAsync(
             refreshDefaultInstanceCatalog: false,
             targetInstance: instance);
-        if (installed && autoSelect)
+        if (installed)
         {
-            await SaveSelectedInstancePreferenceAsync(instance.Name);
+            await preferencesService.RegisterMinecraftRootDirectoryAsync(rootDirectory);
+            currentPreferences = preferencesService.Current;
+            await RefreshAsync();
+            var installedInstance = AvailableInstances.FirstOrDefault(candidate =>
+                string.Equals(candidate.DirectoryPath, instance.DirectoryPath, PathComparison));
+            if (installedInstance is not null && autoSelect)
+            {
+                SelectedInstance = installedInstance;
+                await SaveSelectedInstancePreferenceAsync(installedInstance.Name);
+            }
+
+            InstallationSummary = $"Minecraft {version.Id} 安装完成。";
         }
         return installed;
     }
+
+    private static string CreateVersionInstallationRoot(string containerDirectory, string installationName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(containerDirectory);
+        ArgumentException.ThrowIfNullOrWhiteSpace(installationName);
+        var invalidCharacters = Path.GetInvalidFileNameChars().Concat(['/', '\\']).ToHashSet();
+        var safeName = new string(installationName
+            .Select(character => invalidCharacters.Contains(character) ? '_' : character)
+            .ToArray())
+            .Trim()
+            .TrimEnd('.');
+        if (string.IsNullOrWhiteSpace(safeName) || safeName is "." or "..")
+        {
+            throw new InvalidOperationException("安装名称不能用作文件夹名称。 ");
+        }
+
+        return Path.Combine(Path.GetFullPath(containerDirectory), safeName);
+    }
+
+    private static StringComparison PathComparison =>
+        System.OperatingSystem.IsWindows() || System.OperatingSystem.IsMacOS()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
 
     private MinecraftInstallComponentViewModel GetCombinedComponent(MinecraftLoaderKind kind) =>
         CombinedInstallComponents.Single(component => component.Kind == kind);
@@ -5555,6 +5651,14 @@ public partial class MainViewModel(
             return false;
         }
 
+        var ownsDownloadTask = !IsDownloadTaskRunning;
+        if (ownsDownloadTask)
+        {
+            BeginDownloadTask($"{instance.Name} 安装");
+            CompleteDownloadStage(0);
+            StartDownloadStage(1);
+        }
+
         using var cancellation = new CancellationTokenSource();
         installationCancellation = cancellation;
         IsInstallationRunning = true;
@@ -5563,7 +5667,10 @@ public partial class MainViewModel(
         {
             CanInstallGame = false;
             var progress = new Progress<MinecraftInstallationProgress>(update =>
-                InstallationSummary = FormatInstallationProgress(update));
+            {
+                InstallationSummary = FormatInstallationProgress(update);
+                UpdateDownloadTask(update);
+            });
             await installationService.InstallAsync(instance, progress, cancellation.Token);
             InstallationSummary = "安装下载完成。资源映射将在下一次显式启动时准备。";
             if (refreshDefaultInstanceCatalog)
@@ -5574,17 +5681,23 @@ public partial class MainViewModel(
             {
                 await RefreshSelectedInstanceStateAsync();
             }
+            if (ownsDownloadTask)
+            {
+                CompleteDownloadTask();
+            }
             return true;
         }
         catch (OperationCanceledException)
         {
             InstallationSummary = "安装已取消。";
+            FailDownloadTask("安装已取消");
             CanInstallGame = true;
             return false;
         }
         catch (Exception exception)
         {
             InstallationSummary = $"安装失败：{exception.Message}";
+            FailDownloadTask("安装失败");
             CanInstallGame = true;
             return false;
         }
@@ -5624,6 +5737,136 @@ public partial class MainViewModel(
             ? $"{FormatByteCount(update.DownloadedBytes)} / {FormatByteCount(totalBytes)}"
             : $"已接收 {FormatByteCount(update.DownloadedBytes)}";
         return $"{stage} · {update.CompletedArtifacts}/{update.TotalArtifacts} 个文件已校验 · {bytes} · {update.ActiveArtifacts} 个文件下载中";
+    }
+
+    private void BeginDownloadTask(string title)
+    {
+        DownloadTaskTitle = title;
+        DownloadTaskStatus = "正在准备下载";
+        DownloadOverallProgress = 0;
+        DownloadProgressText = "0.00 %";
+        DownloadSpeedText = "0 B/s";
+        DownloadRemainingFilesText = "0";
+        DownloadStages.Clear();
+        foreach (var stageTitle in new[] { "下载原版 JSON 文件", "下载原版支持库文件", "下载原版资源文件", "安装游戏" })
+        {
+            DownloadStages.Add(new DownloadStageItemViewModel(stageTitle));
+        }
+
+        downloadSpeedStage = -1;
+        downloadCompletedStageBytes = 0;
+        downloadLastStageBytes = 0;
+        downloadLastSampleBytes = 0;
+        downloadSpeedStopwatch.Restart();
+        HasDownloadTasks = true;
+        IsDownloadTaskRunning = true;
+    }
+
+    private void StartDownloadStage(int index, string? progress = null)
+    {
+        if (index >= 0 && index < DownloadStages.Count)
+        {
+            DownloadStages[index].Start(progress);
+        }
+    }
+
+    private void CompleteDownloadStage(int index)
+    {
+        if (index >= 0 && index < DownloadStages.Count)
+        {
+            DownloadStages[index].Complete();
+        }
+    }
+
+    private void UpdateDownloadTask(MinecraftInstallationProgress update)
+    {
+        if (!IsDownloadTaskRunning || DownloadStages.Count < 4)
+        {
+            return;
+        }
+
+        var stageIndex = Math.Clamp(update.CompletedStages + 1, 1, 2);
+        if (update.CompletedStages >= 1)
+        {
+            CompleteDownloadStage(1);
+        }
+        if (update.CompletedStages >= 2)
+        {
+            CompleteDownloadStage(2);
+            StartDownloadStage(3);
+        }
+        else
+        {
+            StartDownloadStage(stageIndex, update.TotalArtifacts > 0
+                ? $"{update.CompletedArtifacts * 100d / update.TotalArtifacts:0}%"
+                : null);
+        }
+
+        var phaseProgress = update.TotalBytes is > 0
+            ? Math.Clamp(update.DownloadedBytes / (double)update.TotalBytes.Value, 0, 1)
+            : update.TotalArtifacts > 0
+                ? Math.Clamp(update.CompletedArtifacts / (double)update.TotalArtifacts, 0, 1)
+                : 0;
+        DownloadOverallProgress = Math.Clamp((1 + update.CompletedStages + phaseProgress) / 4d, 0, 0.99);
+        DownloadProgressText = $"{DownloadOverallProgress * 100:0.00} %";
+        DownloadRemainingFilesText = Math.Max(0, update.TotalArtifacts - update.CompletedArtifacts).ToString(CultureInfo.InvariantCulture);
+        DownloadTaskStatus = update.Description;
+
+        if (downloadSpeedStage != update.CompletedStages)
+        {
+            downloadCompletedStageBytes += downloadLastStageBytes;
+            downloadSpeedStage = update.CompletedStages;
+            downloadLastStageBytes = 0;
+        }
+        downloadLastStageBytes = Math.Max(downloadLastStageBytes, update.DownloadedBytes);
+        var totalDownloaded = downloadCompletedStageBytes + update.DownloadedBytes;
+        if (downloadSpeedStopwatch.ElapsedMilliseconds >= 500)
+        {
+            var bytesPerSecond = (totalDownloaded - downloadLastSampleBytes) /
+                                 Math.Max(downloadSpeedStopwatch.Elapsed.TotalSeconds, 0.001);
+            DownloadSpeedText = $"{FormatByteCount((long)Math.Max(0, bytesPerSecond))}/s";
+            downloadLastSampleBytes = totalDownloaded;
+            downloadSpeedStopwatch.Restart();
+        }
+    }
+
+    private void CompleteDownloadTask()
+    {
+        for (var index = 0; index < DownloadStages.Count; index++)
+        {
+            CompleteDownloadStage(index);
+        }
+        DownloadOverallProgress = 1;
+        DownloadProgressText = "100.00 %";
+        DownloadSpeedText = "0 B/s";
+        DownloadRemainingFilesText = "0";
+        DownloadTaskStatus = "安装完成";
+        IsDownloadTaskRunning = false;
+        downloadSpeedStopwatch.Stop();
+    }
+
+    private void FailDownloadTask(string status)
+    {
+        var activeStage = DownloadStages.FirstOrDefault(stage => stage.IsActive);
+        activeStage?.Fail();
+        DownloadTaskStatus = status;
+        DownloadSpeedText = "0 B/s";
+        IsDownloadTaskRunning = false;
+        downloadSpeedStopwatch.Stop();
+    }
+
+    [RelayCommand]
+    private void DismissDownloadTask()
+    {
+        if (IsDownloadTaskRunning)
+        {
+            CancelInstallation();
+            return;
+        }
+
+        HasDownloadTasks = false;
+        IsDownloadManagerOpen = false;
+        DownloadStages.Clear();
     }
 
     private static string FormatByteCount(long value) => value switch
@@ -5874,7 +6117,8 @@ public partial class MainViewModel(
         try
         {
             await preferencesService.SaveOfflinePlayerNameAsync(account.DisplayName);
-            currentPreferences = currentPreferences with { OfflinePlayerName = account.DisplayName };
+            currentPreferences = preferencesService.Current;
+            ReplaceOfflinePlayerNames(currentPreferences.EffectiveOfflinePlayerNames);
             AccountSummary = $"已恢复离线账户：{account.DisplayName}。本机仅保存用户名，不保存密码或令牌。";
         }
         catch (Exception exception)
@@ -5890,14 +6134,19 @@ public partial class MainViewModel(
     [RelayCommand]
     private async Task ClearOfflineAccountAsync()
     {
+        var removedPlayerName = selectedAccount?.DisplayName ?? OfflinePlayerName;
+        var remainingPlayerNames = OfflinePlayerNames
+            .Where(name => !string.Equals(name, removedPlayerName, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
         selectedAccount = null;
         HasAcknowledgedAccountGuidance = false;
         OfflinePlayerName = string.Empty;
         try
         {
-            await preferencesService.SaveOfflinePlayerNameAsync(null);
-            currentPreferences = currentPreferences with { OfflinePlayerName = null };
-            AccountSummary = "已清除离线账户；本机不再保存该用户名。";
+            await preferencesService.SaveOfflineAccountsAsync(null, remainingPlayerNames);
+            currentPreferences = preferencesService.Current;
+            ReplaceOfflinePlayerNames(currentPreferences.EffectiveOfflinePlayerNames);
+            AccountSummary = "已移除当前离线账户。";
         }
         catch (Exception exception)
         {
@@ -5909,8 +6158,10 @@ public partial class MainViewModel(
         await RefreshGameLaunchPreparationAsync();
     }
 
-    private void RestoreOfflineAccount(string? playerName)
+    private void RestoreOfflineAccounts(LauncherPreferences preferences)
     {
+        ReplaceOfflinePlayerNames(preferences.EffectiveOfflinePlayerNames);
+        var playerName = preferences.OfflinePlayerName;
         if (string.IsNullOrEmpty(playerName))
         {
             return;
@@ -5926,6 +6177,16 @@ public partial class MainViewModel(
         selectedAccount = account;
         HasAcknowledgedAccountGuidance = false;
         AccountSummary = $"已恢复离线账户：{account.DisplayName}。本机仅保存用户名，不保存密码或令牌。";
+    }
+
+    private void ReplaceOfflinePlayerNames(IEnumerable<string> playerNames)
+    {
+        OfflinePlayerNames.Clear();
+        foreach (var playerName in playerNames)
+        {
+            OfflinePlayerNames.Add(playerName);
+        }
+        HasOfflinePlayerNames = OfflinePlayerNames.Count > 0;
     }
 
     [RelayCommand]
