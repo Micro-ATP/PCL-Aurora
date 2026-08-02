@@ -56,6 +56,8 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IOpenPathService, MacOSOpenPathService>();
         services.AddSingleton<ISystemDiagnosticsService, SystemDiagnosticsService>();
         services.AddSingleton<IInstanceCatalogService, InstanceCatalogService>();
+        services.AddSingleton<IMinecraftInstanceManagementService, MinecraftInstanceManagementService>();
+        services.AddSingleton<IMinecraftModUpdateService, MinecraftModUpdateService>();
         services.AddSingleton<ILaunchReadinessService, LaunchReadinessService>();
         services.AddSingleton<IMinecraftVersionPreparationService, MinecraftVersionPreparationService>();
         services.AddSingleton<IMinecraftAssetPreparationService, MinecraftAssetPreparationService>();

@@ -10,7 +10,8 @@ public sealed class MinecraftGameLaunchService(
     INativeLibraryPreparer nativeLibraryPreparer,
     IGameProcessRunner processRunner,
     ILauncherPreferencesService? preferencesService = null,
-    IMinecraftLaunchPatchService? launchPatchService = null) : IMinecraftGameLaunchService
+    IMinecraftLaunchPatchService? launchPatchService = null,
+    IMinecraftInstanceManagementService? instanceManagementService = null) : IMinecraftGameLaunchService
 {
     public async Task<MinecraftGameLaunchPreparation> PrepareAsync(
         MinecraftInstance? instance,
@@ -53,6 +54,12 @@ public sealed class MinecraftGameLaunchService(
             java?.Architecture ?? JavaArchitecture.Unknown,
             launchPreparation.VersionPreparation.RuleEnvironment);
         var launchOptions = preferencesService?.Current.EffectiveLaunchOptions ?? MinecraftLaunchOptions.Default;
+        if (instanceManagementService is not null &&
+            await instanceManagementService.GetProfileAsync(instance, cancellationToken).ConfigureAwait(false) is
+                { IsolationMode: { } instanceIsolationMode })
+        {
+            launchOptions = launchOptions with { InstanceIsolationMode = instanceIsolationMode };
+        }
         var metadata = launchPreparation.VersionPreparation.Inspection.EffectiveMetadata;
         var requestPreparation = MinecraftGameLaunchRequestBuilder.Prepare(
             instance,

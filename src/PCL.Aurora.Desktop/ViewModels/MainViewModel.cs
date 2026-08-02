@@ -54,6 +54,8 @@ public partial class MainViewModel(
     ISystemMemoryInfo systemMemoryInfo,
     ISystemMemoryOptimizer systemMemoryOptimizer,
     IMinecraftJunkCleanupService minecraftJunkCleanupService,
+    IMinecraftInstanceManagementService instanceManagementService,
+    IMinecraftModUpdateService modUpdateService,
     ISecureSecretStore secretStore,
     ILauncherNetworkSettingsService networkSettingsService) : ViewModelBase
 {
@@ -105,6 +107,8 @@ public partial class MainViewModel(
     private static readonly CultureInfo SystemFormatCulture = CultureInfo.CurrentCulture;
 
     private readonly List<MinecraftVersionCatalogEntry> allCatalogVersions = [];
+    private readonly IMinecraftInstanceManagementService instanceManagement = instanceManagementService;
+    private readonly IMinecraftModUpdateService modUpdates = modUpdateService;
     private readonly SemaphoreSlim launcherUpdateGate = new(1, 1);
     private MinecraftAccount? selectedAccount;
     private MinecraftLoaderCatalog? loaderCatalog;
@@ -4447,7 +4451,11 @@ public partial class MainViewModel(
     partial void OnHideInstanceSchematicChanged(bool value) => QueueInterfaceSettingsSave();
     partial void OnHideInstanceServerChanged(bool value) => QueueInterfaceSettingsSave();
     partial void OnHideFunctionInstanceSelectChanged(bool value) => QueueInterfaceSettingsSave();
-    partial void OnHideFunctionModUpdateChanged(bool value) => QueueInterfaceSettingsSave();
+    partial void OnHideFunctionModUpdateChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanShowManagedModUpdate));
+        QueueInterfaceSettingsSave();
+    }
     partial void OnHideFunctionSettingsChanged(bool value) => QueueInterfaceSettingsSave();
 
     private void QueueInterfaceSettingsSave()

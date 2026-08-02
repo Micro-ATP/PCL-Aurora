@@ -4,6 +4,7 @@
         xmlns:controls="using:PCL.Aurora.Desktop.Controls"
         xmlns:converters="using:PCL.Aurora.Desktop.Converters"
         xmlns:domain="using:PCL.Aurora.Domain"
+        xmlns:application="using:PCL.Aurora.Application"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1120" d:DesignHeight="720"
@@ -2296,21 +2297,25 @@
                                         HorizontalAlignment="Stretch"
                                         Height="35" FontSize="14" Content="版本选择" />
                             </StackPanel>
-                            <ComboBox Grid.Row="4" x:Name="InstanceSelector"
-                                      AutomationProperties.Name="启动实例"
-                                      IsVisible="{Binding HasAvailableInstances}"
-                                      ItemsSource="{Binding AvailableInstances}"
-                                      SelectedItem="{Binding SelectedInstance}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Spacing="2">
-                                            <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
-                                            <TextBlock Foreground="{DynamicResource PclTextSecondaryBrush}"
-                                                       Text="{Binding VersionDisplay}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+                            <Grid Grid.Row="4" ColumnDefinitions="*,Auto" ColumnSpacing="7"
+                                  IsVisible="{Binding HasAvailableInstances}">
+                                <ComboBox x:Name="InstanceSelector"
+                                          AutomationProperties.Name="启动实例"
+                                          ItemsSource="{Binding AvailableInstances}"
+                                          SelectedItem="{Binding SelectedInstance}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Spacing="2">
+                                                <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                <TextBlock Foreground="{DynamicResource PclTextSecondaryBrush}"
+                                                           Text="{Binding VersionDisplay}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Grid.Column="1" Width="72" Height="35" Click="OpenInstanceManagementClick"
+                                        ToolTip.Tip="管理当前实例" Content="管理" />
+                            </Grid>
                         </Grid>
                     </Border>
                     <Border Grid.Column="1" Classes="pcl-page-right" Background="{DynamicResource PclPageBackgroundBrush}">
@@ -2356,6 +2361,298 @@
                             </Grid>
                         </ScrollViewer>
                     </Border>
+                </Grid>
+            </Grid>
+
+            <Grid x:Name="InstancePage" IsVisible="False">
+                <Grid ColumnDefinitions="178,*" Background="{DynamicResource PclPageBackgroundBrush}">
+                    <Border Classes="pcl-page-left" Background="{DynamicResource PclSurfaceBrush}"
+                            BorderBrush="{DynamicResource PclDividerBrush}" BorderThickness="0,0,1,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel x:Name="InstanceNavigationPanel" Margin="0,12,0,12">
+                                <Button Classes="community-detail-title-back" Margin="10,0,10,8"
+                                        HorizontalAlignment="Left" Click="CloseInstanceManagementClick">
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <Path Width="16" Height="16" Data="{StaticResource CommunityBackIcon}" Stretch="Uniform"
+                                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                              StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                                        <TextBlock VerticalAlignment="Center" Text="返回启动" />
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock Margin="13,4,5,4" Opacity="0.6" FontSize="12" Text="游戏" />
+                                <controls:PclNavigationButton Classes="secondary-navigation selected"
+                                                              Click="InstanceNavigationClick" Tag="overview" Label="概览"
+                                                              IconData="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z" />
+                                <controls:PclNavigationButton Classes="secondary-navigation"
+                                                              Click="InstanceNavigationClick" Tag="setup" Label="设置"
+                                                              IconData="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2 3.46-.09-.02a1.7 1.7 0 0 0-1.8.18l-.4.23a1.7 1.7 0 0 0-.8 1.7V22h-4v-.11a1.7 1.7 0 0 0-.8-1.7l-.4-.23a1.7 1.7 0 0 0-1.8-.18l-.09.02-2-3.46.06-.06A1.7 1.7 0 0 0 5 15.4v-.46a1.7 1.7 0 0 0-1-1.54L4 13.3v-4l.1-.04A1.7 1.7 0 0 0 5 7.72v-.46a1.7 1.7 0 0 0-.34-1.88L4.6 5.3l2-3.46.09.02a1.7 1.7 0 0 0 1.8-.18l.4-.23a1.7 1.7 0 0 0 .8-1.7V0h4v.11a1.7 1.7 0 0 0 .8 1.7l.4.23a1.7 1.7 0 0 0 1.8.18l.09-.02 2 3.46-.06.06A1.7 1.7 0 0 0 19 7.6v.46a1.7 1.7 0 0 0 1 1.54l.1.04v4l-.1.04a1.7 1.7 0 0 0-1 1.54z" />
+                                <controls:PclNavigationButton Classes="secondary-navigation"
+                                                              Click="InstanceNavigationClick" Tag="install" Label="安装"
+                                                              IsVisible="{Binding !HideInstanceEdit}"
+                                                              IconData="M14.7 6.3a4 4 0 0 0-5-5L7 4l3 3 2.7-2.7a4 4 0 0 0-5 5L1 16l4 4 6.7-6.7a4 4 0 0 0 5-5L14 11l-3-3 2.7-2.7z" />
+                                <controls:PclNavigationButton Classes="secondary-navigation"
+                                                              Click="InstanceNavigationClick" Tag="export" Label="导出"
+                                                              IsVisible="{Binding !HideInstanceExport}"
+                                                              IconData="M16 16l4-4-4-4 M20 12H9 M12 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7" />
+                                <TextBlock Margin="13,8,5,4" Opacity="0.6" FontSize="12" Text="资源" />
+                                <controls:PclNavigationButton Classes="secondary-navigation"
+                                                              Click="InstanceNavigationClick" Tag="saves" Label="存档"
+                                                              IsVisible="{Binding !HideInstanceSave}"
+                                                              IconData="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M2 12h20 M12 2a15.3 15.3 0 0 1 0 20 M12 2a15.3 15.3 0 0 0 0 20" />
+                                <controls:PclNavigationButton Classes="secondary-navigation"
+                                                              Click="InstanceNavigationClick" Tag="screenshots" Label="截图"
+                                                              IsVisible="{Binding !HideInstanceScreenshot}"
+                                                              IconData="M3 5h18v14H3z M8.5 11a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z M21 15l-5-5L5 19" />
+                                <controls:PclNavigationButton Classes="secondary-navigation"
+                                                              Click="InstanceNavigationClick" Tag="mods" Label="Mod"
+                                                              IsVisible="{Binding !HideInstanceMod}"
+                                                              IconData="M8.5 2a2.5 2.5 0 0 0 0 5H7v3H4a2 2 0 1 0 0 4h3v3h3v-1.5a2.5 2.5 0 1 1 5 0V17h3v-3h1.5a2.5 2.5 0 1 0 0-5H18V6h-3V4.5a2.5 2.5 0 1 0-5 0V6H7" />
+                                <controls:PclNavigationButton Classes="secondary-navigation"
+                                                              Click="InstanceNavigationClick" Tag="resourcepacks" Label="资源包"
+                                                              IsVisible="{Binding !HideInstanceResourcePack}"
+                                                              IconData="M12 2 2 7l10 5 10-5-10-5z M2 12l10 5 10-5 M2 17l10 5 10-5" />
+                                <controls:PclNavigationButton Classes="secondary-navigation"
+                                                              Click="InstanceNavigationClick" Tag="shaderpacks" Label="光影包"
+                                                              IsVisible="{Binding !HideInstanceShader}"
+                                                              IconData="M12 2v2 M12 20v2 M4.93 4.93l1.42 1.42 M17.66 17.66l1.41 1.41 M2 12h2 M20 12h2 M4.93 19.07l1.42-1.41 M17.66 6.34l1.41-1.41 M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" />
+                                <controls:PclNavigationButton Classes="secondary-navigation"
+                                                              Click="InstanceNavigationClick" Tag="schematics" Label="投影原理图"
+                                                              IsVisible="{Binding !HideInstanceSchematic}"
+                                                              IconData="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M8 13h8 M8 17h8" />
+                                <controls:PclNavigationButton Classes="secondary-navigation"
+                                                              Click="InstanceNavigationClick" Tag="servers" Label="服务器"
+                                                              IsVisible="{Binding !HideInstanceServer}"
+                                                              IconData="M4 4h16v6H4z M4 14h16v6H4z M8 7h.01 M8 17h.01" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <Grid Grid.Column="1" x:Name="InstanceContentHost" ClipToBounds="True">
+                        <ScrollViewer x:Name="InstanceOverviewSection" VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="25,25,25,30" Spacing="15">
+                                <Border Classes="setup-card">
+                                    <StackPanel>
+                                        <TextBlock Classes="setup-card-title" Text="实例信息" />
+                                        <Grid Margin="20,15,20,18" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto"
+                                              ColumnSpacing="18" RowSpacing="8">
+                                            <StackPanel>
+                                                <TextBlock FontSize="19" Foreground="{StaticResource PclThemePrimaryBrush}"
+                                                           Text="{Binding ManagedInstanceName}" />
+                                                <TextBlock Margin="0,3,0,0" Foreground="{DynamicResource PclTextSecondaryBrush}"
+                                                           Text="{Binding ManagedInstanceVersion}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock FontSize="12" Foreground="{DynamicResource PclTextMutedBrush}" Text="加载器" />
+                                                <TextBlock Margin="0,3,0,0" Text="{Binding ManagedInstanceLoader}" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Foreground="{DynamicResource PclTextSecondaryBrush}"
+                                                       Text="{Binding InstanceManagementStatus}" TextWrapping="Wrap" />
+                                            <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                                                <Border Classes="pcl-status-strip"><TextBlock Text="{Binding ManagedModCount, StringFormat=Mod {0}}" /></Border>
+                                                <Border Grid.Column="1" Classes="pcl-status-strip"><TextBlock Text="{Binding ManagedSaveCount, StringFormat=存档 {0}}" /></Border>
+                                                <Border Grid.Column="2" Classes="pcl-status-strip"><TextBlock Text="{Binding ManagedScreenshotCount, StringFormat=截图 {0}}" /></Border>
+                                                <Border Grid.Column="3" Classes="pcl-status-strip"><TextBlock Text="{Binding ManagedServerCount, StringFormat=服务器 {0}}" /></Border>
+                                            </Grid>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                                <Border Classes="setup-card">
+                                    <StackPanel>
+                                        <TextBlock Classes="setup-card-title" Text="个性化" />
+                                        <StackPanel Margin="20,14,20,18" Spacing="10">
+                                            <TextBlock Text="实例描述" />
+                                            <TextBox MinHeight="64" MaxLength="400" AcceptsReturn="True" TextWrapping="Wrap"
+                                                     Text="{Binding ManagedInstanceDescription}" />
+                                            <CheckBox IsChecked="{Binding IsManagedInstanceFavorite}" Content="收藏这个实例" />
+                                            <WrapPanel HorizontalAlignment="Right">
+                                                <Button Height="34" MinWidth="100" Margin="5,0" Click="SaveInstanceProfileClick" Content="保存" />
+                                                <Button Height="34" MinWidth="100" Margin="5,0" Click="RenameInstanceClick" Content="重命名" />
+                                            </WrapPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Classes="setup-card">
+                                    <StackPanel>
+                                        <TextBlock Classes="setup-card-title" Text="文件夹" />
+                                        <WrapPanel Margin="15,14,15,18">
+                                            <Button Height="34" MinWidth="125" Margin="5" Click="OpenInstanceFolderClick" Content="实例文件夹" />
+                                            <Button Height="34" MinWidth="125" Margin="5" Click="OpenInstanceGameFolderClick" Content="游戏文件夹" />
+                                            <Button Height="34" MinWidth="125" Margin="5" Tag="saves" Click="OpenInstanceContentFolderClick" Content="存档文件夹" />
+                                            <Button Height="34" MinWidth="125" Margin="5" Tag="mods" Click="OpenInstanceContentFolderClick" Content="Mod 文件夹" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Classes="setup-card">
+                                    <StackPanel>
+                                        <TextBlock Classes="setup-card-title" Text="实例管理" />
+                                        <WrapPanel Margin="15,14,15,18">
+                                            <Button Height="34" MinWidth="125" Margin="5" Click="TestInstanceClick" Content="测试启动" />
+                                            <Button Height="34" MinWidth="125" Margin="5" Click="RepairInstanceClick" Content="检查并修复" />
+                                            <Button Height="34" MinWidth="125" Margin="5" Click="CopyInstanceClick" Content="复制实例" />
+                                            <Button Classes="danger-action" Height="34" MinWidth="125" Margin="5" Click="DeleteInstanceClick" Content="删除实例" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <ScrollViewer x:Name="InstanceSetupSection" IsVisible="False" VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="25,25,25,30" Spacing="15">
+                                <Border Classes="pcl-notice">
+                                    <TextBlock Text="这里显示当前实例实际使用的启动设置。修改后会立即参与启动、资源目录和内存分配。" TextWrapping="Wrap" />
+                                </Border>
+                                <Border Classes="setup-card">
+                                    <StackPanel>
+                                        <TextBlock Classes="setup-card-title" Text="启动与隔离" />
+                                        <Grid Margin="20,15,20,18" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto"
+                                              ColumnSpacing="18" RowSpacing="12">
+                                            <TextBlock VerticalAlignment="Center" Text="实例隔离" />
+                                            <ComboBox Grid.Column="1" ItemsSource="{Binding ManagedInstanceIsolationModes}"
+                                                      SelectedItem="{Binding SelectedManagedInstanceIsolationMode}">
+                                                <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="游戏目录" />
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource PclTextSecondaryBrush}"
+                                                       Text="{Binding ManagedGameDirectory}" TextWrapping="Wrap" />
+                                            <Button Grid.Row="2" Grid.Column="1" Width="150" Height="34" HorizontalAlignment="Left"
+                                                    Click="OpenLaunchSettingsClick" Content="打开完整启动设置" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <ScrollViewer x:Name="InstanceInstallSection" IsVisible="False" VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="25,25,25,30" Spacing="15">
+                                <Border Classes="setup-card">
+                                    <StackPanel>
+                                        <TextBlock Classes="setup-card-title" Text="安装与修复" />
+                                        <StackPanel Margin="20,15,20,20" Spacing="12">
+                                            <TextBlock FontSize="18" Foreground="{StaticResource PclThemePrimaryBrush}"
+                                                       Text="{Binding ManagedInstanceVersion}" />
+                                            <TextBlock Text="{Binding InstallationSummary}" TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource PclTextSecondaryBrush}" />
+                                            <WrapPanel>
+                                                <Button Height="35" MinWidth="140" Margin="0,0,10,0" Click="RepairInstanceClick" Content="检查并修复" />
+                                                <Button Height="35" MinWidth="140" Click="OpenInstanceLoaderDownloadClick" Content="安装加载器" />
+                                            </WrapPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <ScrollViewer x:Name="InstanceExportSection" IsVisible="False" VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="25,25,25,30" Spacing="15">
+                                <Border Classes="setup-card">
+                                    <StackPanel>
+                                        <TextBlock Classes="setup-card-title" Text="导出实例" />
+                                        <StackPanel Margin="20,15,20,20" Spacing="12">
+                                            <TextBlock Text="归档会包含版本元数据；选择包含游戏数据时，还会加入当前隔离目录中的 Mod、资源包、光影、存档、截图、服务器和选项文件。"
+                                                       TextWrapping="Wrap" Foreground="{DynamicResource PclTextSecondaryBrush}" />
+                                            <CheckBox x:Name="InstanceExportGameDataCheckBox" IsChecked="True" Content="包含当前游戏数据" />
+                                            <WrapPanel>
+                                                <Button Height="35" MinWidth="140" Margin="0,0,10,0" Click="ExportInstanceClick" Content="导出 ZIP" />
+                                                <Button Height="35" MinWidth="140" Click="CopyInstanceClick" Content="复制为新实例" />
+                                            </WrapPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <Grid x:Name="InstanceResourceSection" IsVisible="False" RowDefinitions="Auto,*">
+                            <Border Margin="25,20,25,10" Classes="setup-card">
+                                <Grid Margin="15,10" ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="8">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock FontSize="18" Foreground="{StaticResource PclThemePrimaryBrush}"
+                                                   Text="{Binding ManagedInstanceContentTitle}" />
+                                        <TextBlock FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}"
+                                                   Text="{Binding ManagedInstanceContentSummary}" />
+                                        <TextBlock FontSize="12" Foreground="{DynamicResource PclThemePrimaryBrush}"
+                                                   IsVisible="{Binding IsManagedModSection}" Text="{Binding ManagedModUpdateSummary}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Height="34" MinWidth="96" IsVisible="{Binding CanShowManagedModUpdate}"
+                                            Click="CheckManagedModUpdatesClick" Content="检查更新" />
+                                    <Button Grid.Column="2" Height="34" MinWidth="88" Click="ImportInstanceContentClick" Content="导入" />
+                                    <Button Grid.Column="3" Height="34" MinWidth="88" Click="OpenCurrentInstanceContentFolderClick" Content="打开目录" />
+                                    <Button Grid.Column="4" Width="34" Height="34" Click="RefreshInstanceSectionClick" ToolTip.Tip="刷新">
+                                        <Path Width="15" Height="15" Data="M20 11a8.1 8.1 0 1 0 2 5.3 M20 4v7h-7" Stretch="Uniform"
+                                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                              StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+                            <Grid Grid.Row="1" Margin="25,0,25,25">
+                                <Border Classes="setup-card" IsVisible="{Binding HasManagedInstanceContent}">
+                                    <ListBox ItemsSource="{Binding ManagedInstanceContent}"
+                                             SelectedItem="{Binding SelectedManagedInstanceContent}"
+                                             Background="Transparent" BorderThickness="0">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="application:MinecraftInstanceContentEntry">
+                                                <Grid MinHeight="52" ColumnDefinitions="*,Auto" Margin="7,3">
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock FontSize="14" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}"
+                                                                   Text="{Binding Detail}" TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                                        <Button Width="68" Height="30" Tag="{Binding}" Click="ToggleInstanceContentClick"
+                                                                IsVisible="{Binding CanToggle}"
+                                                                Content="启用/禁用" />
+                                                        <Button Width="58" Height="30" Tag="{Binding}" Click="ExportInstanceContentClick" Content="导出" />
+                                                        <Button Classes="danger-action" Width="58" Height="30" Tag="{Binding}" Click="DeleteInstanceContentClick" Content="删除" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Border>
+                                <Border Classes="pcl-notice" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        IsVisible="{Binding ShowManagedInstanceContentEmptyState}">
+                                    <TextBlock Text="{Binding ManagedInstanceContentSummary}" />
+                                </Border>
+                                <controls:PclLoadingIndicator IsVisible="{Binding IsInstanceManagementBusy}" Text="正在读取实例资源…" />
+                            </Grid>
+                        </Grid>
+
+                        <Grid x:Name="InstanceServerSection" IsVisible="False" RowDefinitions="Auto,*">
+                            <Border Margin="25,20,25,10" Classes="setup-card">
+                                <Grid Margin="15,10" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock FontSize="18" Foreground="{StaticResource PclThemePrimaryBrush}" Text="服务器" />
+                                        <TextBlock FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}"
+                                                   Text="{Binding ManagedServerCount, StringFormat=共 {0} 个服务器}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Height="34" MinWidth="82" Click="AddManagedServerClick" Content="添加" />
+                                    <Button Grid.Column="2" Height="34" MinWidth="82" IsEnabled="{Binding HasSelectedManagedServer}"
+                                            Click="EditManagedServerClick" Content="编辑" />
+                                    <Button Grid.Column="3" Classes="danger-action" Height="34" MinWidth="82"
+                                            IsEnabled="{Binding HasSelectedManagedServer}" Click="DeleteManagedServerClick" Content="删除" />
+                                </Grid>
+                            </Border>
+                            <Border Grid.Row="1" Margin="25,0,25,25" Classes="setup-card">
+                                <ListBox ItemsSource="{Binding ManagedServers}" SelectedItem="{Binding SelectedManagedServer}"
+                                         Background="Transparent" BorderThickness="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="application:MinecraftServerEntry">
+                                            <Grid MinHeight="54" Margin="9,3" ColumnDefinitions="*,Auto">
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock FontSize="14" Text="{Binding Name}" />
+                                                    <TextBlock FontSize="12" Foreground="{DynamicResource PclTextSecondaryBrush}"
+                                                               Text="{Binding Address}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Border>
+                        </Grid>
+                    </Grid>
                 </Grid>
             </Grid>
 

@@ -6,7 +6,8 @@ namespace PCL.Aurora.Application;
 public sealed class MinecraftLaunchPreparationService(
     IMinecraftVersionPreparationService versionPreparationService,
     ILauncherPreferencesService? preferencesService = null,
-    ISystemMemoryInfo? systemMemoryInfo = null)
+    ISystemMemoryInfo? systemMemoryInfo = null,
+    IMinecraftInstanceManagementService? instanceManagementService = null)
     : IMinecraftLaunchPreparationService
 {
     public async Task<MinecraftLaunchPreparation> PrepareAsync(
@@ -32,6 +33,12 @@ public sealed class MinecraftLaunchPreparationService(
             ? null
             : Directory.GetParent(versionsDirectory)?.FullName;
         var launchOptions = preferencesService?.Current.EffectiveLaunchOptions ?? MinecraftLaunchOptions.Default;
+        if (instanceManagementService is not null &&
+            await instanceManagementService.GetProfileAsync(instance, cancellationToken).ConfigureAwait(false) is
+                { IsolationMode: { } instanceIsolationMode })
+        {
+            launchOptions = launchOptions with { InstanceIsolationMode = instanceIsolationMode };
+        }
         var gameDirectory = minecraftRootDirectory is null
             ? null
             : MinecraftInstanceIsolationResolver.ResolveGameDirectory(

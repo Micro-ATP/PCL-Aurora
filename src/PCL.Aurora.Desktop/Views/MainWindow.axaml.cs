@@ -43,6 +43,8 @@ public partial class MainWindow : Window
 
     private string currentDownloadSection = "game";
     private string currentMoreSection = "help";
+    private string currentInstanceSection = "overview";
+    private MinecraftInstanceContentKind currentManagedContentKind = MinecraftInstanceContentKind.Mod;
     private ViewModels.MainViewModel? subscribedViewModel;
     private Bitmap? launcherBackgroundBitmap;
     private Bitmap? launcherTitleBitmap;
@@ -881,7 +883,7 @@ public partial class MainWindow : Window
 
     private Task SelectMainPageAsync(int page)
     {
-        var pages = new Control[] { LaunchPage, DownloadPage, SettingsPage, MorePage };
+        var pages = new Control[] { LaunchPage, DownloadPage, SettingsPage, MorePage, InstancePage };
         var selectedPage = pages[page];
 
         var navigation = new[] { LaunchNavigation, DownloadNavigation, SettingsNavigation, MoreNavigation };
@@ -892,6 +894,543 @@ public partial class MainWindow : Window
 
         return PclMotionService.SwitchSectionsAsync(MainPages, pages, selectedPage);
     }
+
+    private async void OpenInstanceManagementClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel { SelectedInstance: not null } viewModel)
+        {
+            await ShowMessageAsync("实例管理", "请先选择一个可用实例。", isWarning: true);
+            return;
+        }
+
+        foreach (var navigation in new[] { LaunchNavigation, DownloadNavigation, SettingsNavigation, MoreNavigation })
+        {
+            navigation.Classes.Set("selected", false);
+        }
+        await viewModel.LoadInstanceManagementAsync();
+        await PclMotionService.SwitchSectionsAsync(
+            MainPages,
+            [LaunchPage, DownloadPage, SettingsPage, MorePage, InstancePage],
+            InstancePage);
+        await SelectInstanceSectionAsync("overview", force: true);
+    }
+
+    private async void CloseInstanceManagementClick(object? sender, RoutedEventArgs e) =>
+        await SelectMainPageAsync(0);
+
+    private async void InstanceNavigationClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is PclNavigationButton { Tag: string section })
+        {
+            await SelectInstanceSectionAsync(section, force: section != currentInstanceSection);
+        }
+    }
+
+    private async Task SelectInstanceSectionAsync(string section, bool force)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+
+        foreach (var navigation in InstanceNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>())
+        {
+            navigation.Classes.Set("selected", Equals(navigation.Tag, section));
+        }
+
+        var contentKind = TryGetInstanceContentKind(section);
+        var selected = section switch
+        {
+            "overview" => (Control)InstanceOverviewSection,
+            "setup" => InstanceSetupSection,
+            "install" => InstanceInstallSection,
+            "export" => InstanceExportSection,
+            "servers" => InstanceServerSection,
+            _ when contentKind is not null => InstanceResourceSection,
+            _ => throw new ArgumentOutOfRangeException(nameof(section), section, null),
+        };
+        var sectionChanged = currentInstanceSection != section;
+        currentInstanceSection = section;
+        if (contentKind is { } kind)
+        {
+            currentManagedContentKind = kind;
+        }
+
+        await PclMotionService.SwitchSectionsAsync(
+            InstanceContentHost,
+            [
+                InstanceOverviewSection,
+                InstanceSetupSection,
+                InstanceInstallSection,
+                InstanceExportSection,
+                InstanceResourceSection,
+                InstanceServerSection,
+            ],
+            selected,
+            force: force || sectionChanged);
+        if (contentKind is { } selectedKind)
+        {
+            await viewModel.LoadManagedContentAsync(selectedKind);
+        }
+        else if (section == "servers")
+        {
+            await viewModel.LoadManagedServersAsync();
+        }
+        else if (section == "overview")
+        {
+            await viewModel.LoadInstanceManagementAsync();
+        }
+    }
+
+    private async void RefreshInstanceSectionClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.LoadManagedContentAsync(currentManagedContentKind);
+        }
+    }
+
+    private async void SaveInstanceProfileClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.SaveManagedProfileAsync();
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("保存实例信息失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void RenameInstanceClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        var newName = await ShowTextPromptAsync("重命名实例", "请输入新的实例名称。", viewModel.ManagedInstanceName);
+        if (string.IsNullOrWhiteSpace(newName) || string.Equals(newName.Trim(), viewModel.ManagedInstanceName, StringComparison.Ordinal))
+        {
+            return;
+        }
+        if (!await ShowConfirmationAsync("重命名实例", $"将把实例“{viewModel.ManagedInstanceName}”重命名为“{newName.Trim()}”，是否继续？", isWarning: false))
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.RenameManagedInstanceAsync(newName.Trim());
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("重命名失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void CopyInstanceClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        var newName = await ShowTextPromptAsync("复制实例", "请输入新实例的名称。", viewModel.ManagedInstanceName + " - 副本");
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.CopyManagedInstanceAsync(newName.Trim());
+            await SelectInstanceSectionAsync("overview", force: true);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("复制失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void DeleteInstanceClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel ||
+            !await ShowConfirmationAsync(
+                "删除实例",
+                $"即将永久删除实例“{viewModel.ManagedInstanceName}”及其实例目录。共享 Minecraft 根目录中的其他数据不会删除。此操作无法撤销，是否继续？"))
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.DeleteManagedInstanceAsync();
+            await SelectMainPageAsync(0);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("删除实例失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void ExportInstanceClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        var destination = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "导出实例归档",
+            SuggestedFileName = viewModel.ManagedInstanceName + ".zip",
+            DefaultExtension = "zip",
+            FileTypeChoices = [new FilePickerFileType("ZIP 压缩文件") { Patterns = ["*.zip"] }],
+        });
+        var path = destination?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+        try
+        {
+            var result = await viewModel.ExportManagedInstanceAsync(
+                path,
+                InstanceExportGameDataCheckBox.IsChecked == true);
+            await ShowMessageAsync("导出完成", $"已导出 {result.FileCount} 个文件到：\n{result.ArchivePath}");
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("导出实例失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void RepairInstanceClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.RepairManagedInstanceAsync();
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("检查与修复失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void TestInstanceClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel viewModel)
+        {
+            await viewModel.TestManagedInstanceAsync();
+        }
+    }
+
+    private async void OpenInstanceFolderClick(object? sender, RoutedEventArgs e) =>
+        await OpenManagedInstanceFolderAsync(gameDirectory: false);
+
+    private async void OpenInstanceGameFolderClick(object? sender, RoutedEventArgs e) =>
+        await OpenManagedInstanceFolderAsync(gameDirectory: true);
+
+    private async Task OpenManagedInstanceFolderAsync(bool gameDirectory)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.OpenManagedInstanceDirectoryAsync(gameDirectory);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("打开目录失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void OpenInstanceContentFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string section } && TryGetInstanceContentKind(section) is { } kind)
+        {
+            await OpenManagedContentFolderAsync(kind);
+        }
+    }
+
+    private async void OpenCurrentInstanceContentFolderClick(object? sender, RoutedEventArgs e) =>
+        await OpenManagedContentFolderAsync(currentManagedContentKind);
+
+    private async Task OpenManagedContentFolderAsync(MinecraftInstanceContentKind kind)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.OpenManagedContentDirectoryAsync(kind);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("打开目录失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void ImportInstanceContentClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        IReadOnlyList<string> paths;
+        if (currentManagedContentKind == MinecraftInstanceContentKind.Save)
+        {
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "选择要导入的世界存档文件夹",
+                AllowMultiple = true,
+            });
+            paths = folders.Select(folder => folder.TryGetLocalPath()).Where(path => !string.IsNullOrWhiteSpace(path)).Cast<string>().ToArray();
+        }
+        else
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = $"选择要导入的{viewModel.ManagedInstanceContentTitle}",
+                AllowMultiple = true,
+                FileTypeFilter = [FilePickerFileTypes.All],
+            });
+            paths = files.Select(file => file.TryGetLocalPath()).Where(path => !string.IsNullOrWhiteSpace(path)).Cast<string>().ToArray();
+        }
+        if (paths.Count == 0)
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.ImportManagedContentAsync(currentManagedContentKind, paths);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("导入失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void ToggleInstanceContentClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: MinecraftInstanceContentEntry entry } &&
+            DataContext is ViewModels.MainViewModel viewModel)
+        {
+            try
+            {
+                await viewModel.ToggleManagedContentAsync(entry);
+            }
+            catch (Exception exception)
+            {
+                await ShowMessageAsync("更改状态失败", exception.Message, isWarning: true);
+            }
+        }
+    }
+
+    private async void CheckManagedModUpdatesClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        try
+        {
+            var result = await viewModel.CheckManagedModUpdatesAsync();
+            if (result.Updates.Count == 0)
+            {
+                var errorSuffix = result.Errors.Count == 0
+                    ? string.Empty
+                    : $"\n\n另有 {result.Errors.Count} 项查询未完成，可稍后重试。";
+                await ShowMessageAsync("模组更新", viewModel.ManagedModUpdateSummary + errorSuffix);
+                return;
+            }
+
+            var details = string.Join("\n", result.Updates.Take(20).Select(update =>
+                $"• {update.DisplayName}：{update.VersionSummary}"));
+            if (result.Updates.Count > 20)
+            {
+                details += $"\n• 以及其他 {result.Updates.Count - 20} 项";
+            }
+            if (!await ShowConfirmationAsync(
+                    "更新 Mod",
+                    $"发现以下兼容更新：\n\n{details}\n\n更新会校验下载文件并在替换失败时恢复原文件，是否全部更新？",
+                    isWarning: false))
+            {
+                return;
+            }
+            var applied = await viewModel.ApplyManagedModUpdatesAsync(result.Updates);
+            await ShowMessageAsync("模组更新完成", $"已更新 {applied.UpdatedCount} 个 Mod。");
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("模组更新失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void DeleteInstanceContentClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: MinecraftInstanceContentEntry entry } ||
+            DataContext is not ViewModels.MainViewModel viewModel ||
+            !await ShowConfirmationAsync("删除资源", $"即将永久删除“{entry.Name}”，此操作无法撤销，是否继续？"))
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.DeleteManagedContentAsync(entry);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("删除失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void ExportInstanceContentClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: MinecraftInstanceContentEntry entry } ||
+            DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        var suggestedName = entry.IsDirectory ? entry.Name + ".zip" : entry.Name;
+        var destination = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = $"导出 {entry.Name}",
+            SuggestedFileName = suggestedName,
+            DefaultExtension = entry.IsDirectory ? "zip" : Path.GetExtension(entry.Name).TrimStart('.'),
+            FileTypeChoices = entry.IsDirectory
+                ? [new FilePickerFileType("ZIP 压缩文件") { Patterns = ["*.zip"] }]
+                : [FilePickerFileTypes.All],
+        });
+        var path = destination?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.ExportManagedContentAsync(entry, path);
+            await ShowMessageAsync("导出完成", $"已保存到：\n{path}");
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("导出失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void AddManagedServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel viewModel)
+        {
+            return;
+        }
+        var server = await PromptServerAsync(null);
+        if (server is null)
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.SaveManagedServersAsync(viewModel.ManagedServers.Append(server).ToArray());
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("保存服务器失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void EditManagedServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel { SelectedManagedServer: { } selected } viewModel)
+        {
+            return;
+        }
+        var updated = await PromptServerAsync(selected);
+        if (updated is null)
+        {
+            return;
+        }
+        var servers = viewModel.ManagedServers.Select(server => ReferenceEquals(server, selected) ? updated : server).ToArray();
+        try
+        {
+            await viewModel.SaveManagedServersAsync(servers);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("保存服务器失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async void DeleteManagedServerClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ViewModels.MainViewModel { SelectedManagedServer: { } selected } viewModel ||
+            !await ShowConfirmationAsync("删除服务器", $"从列表中删除“{selected.Name}”？"))
+        {
+            return;
+        }
+        try
+        {
+            await viewModel.SaveManagedServersAsync(viewModel.ManagedServers.Where(server => !ReferenceEquals(server, selected)).ToArray());
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("删除服务器失败", exception.Message, isWarning: true);
+        }
+    }
+
+    private async Task<MinecraftServerEntry?> PromptServerAsync(MinecraftServerEntry? existing)
+    {
+        var name = await ShowTextPromptAsync("服务器名称", "输入服务器在列表中显示的名称。", existing?.Name ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+        var address = await ShowTextPromptAsync("服务器地址", "输入域名或 IP，可在末尾附加端口。", existing?.Address ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            return null;
+        }
+        var result = new MinecraftServerEntry(name.Trim(), address.Trim(), existing?.Icon, existing?.AcceptTextures, existing?.Hidden ?? false);
+        if (!result.IsValid)
+        {
+            await ShowMessageAsync("服务器信息无效", "名称或地址为空、过长或包含控制字符。", isWarning: true);
+            return null;
+        }
+        return result;
+    }
+
+    private async void OpenLaunchSettingsClick(object? sender, RoutedEventArgs e)
+    {
+        await SelectMainPageAsync(2);
+        var launchNavigation = SettingsNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>()
+            .First(navigation => Equals(navigation.Tag, "launch"));
+        SettingsNavigationClick(launchNavigation, new RoutedEventArgs());
+    }
+
+    private async void OpenInstanceLoaderDownloadClick(object? sender, RoutedEventArgs e)
+    {
+        await SelectMainPageAsync(1);
+        var navigation = DownloadNavigationPanel.GetVisualDescendants().OfType<PclNavigationButton>()
+            .First(item => Equals(item.Tag, "forge"));
+        await SelectDownloadSectionAsync("forge", navigation);
+    }
+
+    private static MinecraftInstanceContentKind? TryGetInstanceContentKind(string section) => section switch
+    {
+        "mods" => MinecraftInstanceContentKind.Mod,
+        "resourcepacks" => MinecraftInstanceContentKind.ResourcePack,
+        "shaderpacks" => MinecraftInstanceContentKind.ShaderPack,
+        "saves" => MinecraftInstanceContentKind.Save,
+        "screenshots" => MinecraftInstanceContentKind.Screenshot,
+        "schematics" => MinecraftInstanceContentKind.Schematic,
+        _ => null,
+    };
 
     private async void MoreNavigationClick(object? sender, RoutedEventArgs e)
     {

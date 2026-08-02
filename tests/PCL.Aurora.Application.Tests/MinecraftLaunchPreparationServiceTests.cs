@@ -193,6 +193,67 @@ public sealed class MinecraftLaunchPreparationServiceTests
         }
     }
 
+    [Fact]
+    public async Task PrepareAsync_UsesInstanceIsolationOverrideForGameDirectory()
+    {
+        var rootDirectory = Path.Combine(Path.GetTempPath(), $"pcl-aurora-instance-options-{Guid.NewGuid():N}");
+        var instanceDirectory = Path.Combine(rootDirectory, "versions", "1.20.4");
+        try
+        {
+            Directory.CreateDirectory(instanceDirectory);
+            var instance = new MinecraftInstance(
+                "1.20.4",
+                instanceDirectory,
+                "1.20.4",
+                "release",
+                null,
+                MinecraftInstanceStatus.Valid);
+            var management = new MinecraftInstanceManagementService();
+            await management.SaveProfileAsync(
+                instance,
+                new MinecraftInstanceProfile(IsolationMode: MinecraftInstanceIsolationMode.Disabled));
+            var metadata = new MinecraftVersionMetadata(
+                "1.20.4",
+                null,
+                "release",
+                null,
+                null,
+                null,
+                new MinecraftLaunchMetadata(
+                    "example.Main",
+                    [],
+                    ["--gameDir", "${game_directory}"],
+                    HasModernArguments: true,
+                    HasConditionalArguments: false,
+                    LegacyGameArguments: null));
+            var inspection = new MinecraftVersionMetadataInspection([metadata], metadata, []);
+            var preferences = new LauncherPreferences(
+                LauncherThemeMode.System,
+                LaunchOptions: MinecraftLaunchOptions.Default with
+                {
+                    InstanceIsolationMode = MinecraftInstanceIsolationMode.All,
+                });
+            var service = new MinecraftLaunchPreparationService(
+                new FakeVersionPreparationService(new MinecraftVersionPreparation(
+                    inspection,
+                    new MinecraftDownloadPlan("1.20.4", [], []))),
+                new FixedLauncherPreferencesService(preferences),
+                instanceManagementService: management);
+
+            var preparation = await service.PrepareAsync(instance, account: null);
+
+            Assert.Contains(rootDirectory, preparation.ArgumentPreparation.Arguments!.GameArguments);
+            Assert.DoesNotContain(instanceDirectory, preparation.ArgumentPreparation.Arguments.GameArguments);
+        }
+        finally
+        {
+            if (Directory.Exists(rootDirectory))
+            {
+                Directory.Delete(rootDirectory, recursive: true);
+            }
+        }
+    }
+
     private sealed class FakeVersionPreparationService(MinecraftVersionPreparation preparation) : IMinecraftVersionPreparationService
     {
         public Task<MinecraftVersionPreparation> PrepareAsync(
