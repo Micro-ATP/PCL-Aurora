@@ -434,7 +434,6 @@ FodyWeavers.xsd
 # Local font source files not bundled by the desktop application
 /Fonts/HarmonyOS_Sans/
 /Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Black.ttf
-/Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Light.ttf
 /Fonts/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Thin.ttf
 /docs
 
